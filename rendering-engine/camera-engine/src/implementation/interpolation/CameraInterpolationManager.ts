@@ -56,6 +56,14 @@ export class CameraInterpolationManager {
 			});
 		}
 
+		public pause(): void {
+			this._tween.pause();
+		}
+
+		public resume(): void {
+			this._tween.resume();
+		}
+
 		public stop(): void {
 			this._tween.stop();
 		}
@@ -73,7 +81,7 @@ export class CameraInterpolationManager {
 
 	// #endregion Constructors (1)
 
-	// #region Public Methods (3)
+	// #region Public Methods (5)
 
 	public active(): boolean {
 		return this._tween ? true : false;
@@ -120,12 +128,22 @@ export class CameraInterpolationManager {
 		return this._tween.start();
 	}
 
+	public pause(): boolean {
+		if (!this._tween) return false;
+		this._tween.pause();
+		return true;
+	}
+
+	public resume(): void {
+		if (this._tween) this._tween.resume();
+	}
+
 	public stop(): void {
 		if (this._tween) this._tween.stop();
 		this._tween = null;
 	}
 
-	// #endregion Public Methods (3)
+	// #endregion Public Methods (5)
 
 	// #region Private Methods (2)
 

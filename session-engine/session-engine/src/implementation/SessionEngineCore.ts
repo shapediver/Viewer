@@ -1,7 +1,9 @@
 import {
 	Configuration,
+	RequestError,
 	ResBase,
 	ResModelState,
+	ResponseError,
 	SessionApi,
 	UtilsApi,
 } from "@shapediver/sdk.geometry-api-sdk-v2";
@@ -52,6 +54,7 @@ export class SessionEngineCore {
 	private readonly _utilsManager: UtilsManager;
 
 	private _automaticSceneUpdate: boolean = true;
+	private _directTextureDownload: boolean = false;
 	private _closeOnFailure: () => Promise<void> = async () => {};
 	private _closed: boolean = false;
 	private _excludeViewports: string[] = [];
@@ -99,6 +102,7 @@ export class SessionEngineCore {
 		this._parameterManager.ignoreUnknownParams =
 			properties.ignoreUnknownParams;
 		this._loadSdtf = properties.loadSdtf;
+		this._directTextureDownload = properties.directTextureDownload === true;
 		this._modelStateManager.modelStateId = properties.modelStateId;
 		this._modelStateManager.modelStateValidationMode =
 			properties.modelStateValidationMode;
@@ -144,6 +148,14 @@ export class SessionEngineCore {
 
 	public get customizationManager(): CustomizationManager {
 		return this._customizationManager;
+	}
+
+	public get directTextureDownload(): boolean {
+		return this._directTextureDownload;
+	}
+
+	public set directTextureDownload(value: boolean) {
+		this._directTextureDownload = value;
 	}
 
 	public get excludeViewports(): string[] {
@@ -374,6 +386,12 @@ export class SessionEngineCore {
 					url: string,
 				): Promise<[ArrayBuffer, string]> => {
 					try {
+						if (
+							this._directTextureDownload &&
+							!this.isShapeDiverDirectTextureUrl(url)
+						)
+							return await this.fetchTexture(url);
+
 						const {data: arrayBuffer, contentType} =
 							await new UtilsApi(this._sdkConfig).downloadImage(
 								this._sessionId!,
@@ -500,5 +518,47 @@ export class SessionEngineCore {
 		this._parameterManager.createParametersFromDto(initialParameters);
 		this._exportManager.createExportsFromDto();
 		this._outputManager.createOutputsFromDto();
+	}
+
+	/**
+	 * Fetch a texture URL in the browser.
+	 * HTTP failures become SDK response errors and transport failures become SDK request errors,
+	 * so {@link UtilsManager.handleError} can log, emit, and convert them.
+	 */
+	private async fetchTexture(url: string): Promise<[ArrayBuffer, string]> {
+		let response: Response;
+		try {
+			response = await fetch(url, {method: "GET"});
+		} catch (cause) {
+			throw new RequestError(
+				cause instanceof Error ? cause.message : String(cause),
+			);
+		}
+
+		if (!response.ok)
+			throw new ResponseError(
+				response.status,
+				response.statusText || "Response returned an error code",
+				"No error description provided",
+			);
+
+		const arrayBuffer = await response.arrayBuffer();
+		const contentType = response.headers.get("content-type") || "";
+		return [arrayBuffer, contentType];
+	}
+
+	/**
+	 * URLs that UtilsApi.downloadImage already fetches directly.
+	 * Keep these on that path so Geometry Backend texture assets still send authorization.
+	 * The patterns match the SDK checks in UtilsApi.downloadImage.
+	 */
+	private isShapeDiverDirectTextureUrl(url: string): boolean {
+		return (
+			/.+\/session\/.+\/texture\/.+/.test(url) ||
+			/.+\/cdn-asset-textures\/.+/.test(url) ||
+			/^(https?:\/\/)?(viewer|textures|downloads)\.shapediver\.com(\/.*)?$/.test(
+				url,
+			)
+		);
 	}
 }

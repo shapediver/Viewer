@@ -27,6 +27,7 @@ export class OrthographicCamera
 	readonly #logger: Logger = Logger.instance;
 	readonly #tree: ITree = Tree.instance;
 
+	#aspect: number | undefined;
 	#bottom: number = -100;
 	#direction: ORTHOGRAPHIC_CAMERA_DIRECTION =
 		ORTHOGRAPHIC_CAMERA_DIRECTION.CUSTOM;
@@ -50,6 +51,14 @@ export class OrthographicCamera
 	// #endregion Constructors (1)
 
 	// #region Public Getters And Setters (14)
+
+	public get aspect(): number | undefined {
+		return this.#aspect;
+	}
+
+	public set aspect(value: number | undefined) {
+		this.#aspect = value;
+	}
 
 	public get bottom(): number {
 		return this.#bottom;
@@ -255,7 +264,11 @@ export class OrthographicCamera
 				target[2] + 5,
 			);
 
-		const factor = 2 * box.boundingSphere.radius * this.zoomExtentsFactor;
+		// the height of the frustum is defined by the distance, the width by the distance and the aspect ratio
+		// if the viewport is higher than wide, the width is the limiting dimension
+		const aspect = this.aspect && this.aspect < 1 ? this.aspect : 1;
+		const factor =
+			(2 * box.boundingSphere.radius * this.zoomExtentsFactor) / aspect;
 
 		switch (this.#direction) {
 			case ORTHOGRAPHIC_CAMERA_DIRECTION.TOP:

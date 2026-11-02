@@ -186,6 +186,23 @@ export class RectangleTransformRotationHandler
 	}
 
 	/**
+	 * Cancel the gesture in progress: the rotation returns to its state at the
+	 * start of the gesture (the accumulated rotation matrix only changes on a
+	 * commit).
+	 * @returns the local points at the start of the gesture, undefined if no
+	 * gesture is in progress.
+	 */
+	public cancelGesture(): vec3[] | undefined {
+		const drag = this.#dragStart;
+		if (!drag) return undefined;
+		this.#cumulativeRotation = drag.cumulative;
+		this.#gestureStartCumulative = drag.cumulative;
+		this.#handleLocalPoint = vec3.clone(drag.handle);
+		this.#dragStart = undefined;
+		return drag.localPoints.map((p) => vec3.clone(p));
+	}
+
+	/**
 	 * Sync accumulated to cumulative — called on pointer-out to commit any
 	 * in-progress gesture without a proper DRAG_END.
 	 */

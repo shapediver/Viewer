@@ -4,6 +4,7 @@ import {
 	type IMaterialAbstractData,
 	type IViewportApi} from "@shapediver/viewer";
 import {
+	type DraggingRestrictionMetaData,
 	type LineRestrictionProperties,
 	type PlaneRestrictionProperties,
 	type PointRestrictionProperties,
@@ -52,6 +53,8 @@ export class DragManager extends AbstractInteractionManager {
 		worldMatrix: mat4;
 		worldMatrixInverse: mat4;
 		previousDragMatrix: mat4;
+		// the drag matrices of the grouped nodes before the drag
+		previousGroupDragMatrices: mat4[];
 		dragAnchors: IDragAnchor[];
 		dragOrigin: vec3;
 	};
@@ -63,6 +66,8 @@ export class DragManager extends AbstractInteractionManager {
 	#groupedNodes?: ITreeNode[];
 	#interactionEffectToken?: string;
 	#intersection: IRayTracingIntersection | null = null;
+	#occlusionExcludedNodes: ITreeNode[] = [];
+	#restrictedNodesOnly: boolean = false;
 	#restrictionManager?: RestrictionManager;
 	#setupOptions: {
 		viewport: IViewportApi;
@@ -83,6 +88,25 @@ export class DragManager extends AbstractInteractionManager {
 
 	public get filter(): IInteractionFilterOptions {
 		return this.#filter;
+	}
+
+	/**
+	 * When true, only nodes whose interaction data is restricted to this
+	 * manager are intersected: a draggable node of another manager in front
+	 * does not block the drag (e.g. a drag plane behind the selected object).
+	 */
+	public get restrictedNodesOnly(): boolean {
+		return this.#restrictedNodesOnly;
+	}
+
+	public set restrictedNodesOnly(value: boolean) {
+		this.#restrictedNodesOnly = value;
+		this.#filter = InteractionManagerUtils.createInteractionFilter(
+			"drag",
+			this.id,
+			[INTERACTION_STATE.DOWN],
+			value,
+		);
 	}
 
 	public add(viewport: IViewportApi): void {
@@ -173,6 +197,14 @@ export class DragManager extends AbstractInteractionManager {
 	 * @param properties
 	 * @returns
 	 */
+	/**
+	 * Scene nodes the drag is moving, in addition to the interaction node.
+	 * Hideable snaps ignore these nodes so the object's own face cannot hide them.
+	 */
+	public setOcclusionExcludedNodes(nodes: ITreeNode[]): void {
+		this.#occlusionExcludedNodes = nodes;
+	}
+
 	public addRestriction(
 		properties: RestrictionProperties,
 	): string | undefined {
@@ -249,13 +281,10 @@ export class DragManager extends AbstractInteractionManager {
 		this.#restrictionManager!.showRestrictionVisualization = false;
 		if (!this.#draggedNode) return;
 
-		const transformationResult = this.#restrictionManager!.rayTrace(ray, {
-			type: "dragging",
-			dragAnchors: this.#draggedNode.dragAnchors,
-			dragOrigin: this.#draggedNode.dragOrigin,
-			node: this.#draggedNode.node,
-			startPoint: this.#draggedNode.dragOrigin,
-		});
+		const transformationResult = this.#restrictionManager!.rayTrace(
+			ray,
+			this.draggingRestrictionMetaData(),
+		);
 		const transformationMatrix = mat4.multiply(
 			mat4.create(),
 			mat4.multiply(
@@ -300,13 +329,10 @@ export class DragManager extends AbstractInteractionManager {
 		if (!this.#draggedNode) return;
 		this.#restrictionManager!.showRestrictionVisualization = true;
 
-		const transformationResult = this.#restrictionManager!.rayTrace(ray, {
-			type: "dragging",
-			dragAnchors: this.#draggedNode.dragAnchors,
-			dragOrigin: this.#draggedNode.dragOrigin,
-			node: this.#draggedNode.node,
-			startPoint: this.#draggedNode.dragOrigin,
-		});
+		const transformationResult = this.#restrictionManager!.rayTrace(
+			ray,
+			this.draggingRestrictionMetaData(),
+		);
 		const transformationMatrix = mat4.multiply(
 			mat4.create(),
 			mat4.multiply(
@@ -366,11 +392,52 @@ export class DragManager extends AbstractInteractionManager {
 	}
 
 	/**
+	 * Cancel the drag in progress (see {@link IInteractionManager.cancelInteraction}):
+	 * the dragged nodes return to their placement before the drag. DRAG_END is
+	 * emitted with `cancelled` set and that placement.
+	 */
+	public cancelInteraction(): void {
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
+			return;
+		if (!this.#draggedNode) return;
+
+		const {node, previousDragMatrix, previousGroupDragMatrices} =
+			this.#draggedNode;
+		this.applyTransformation(node, mat4.clone(previousDragMatrix));
+		this.viewport.updateNodeTransformation(node);
+		this.#groupedNodes?.forEach((n, i) => {
+			this.applyTransformation(
+				n,
+				mat4.clone(previousGroupDragMatrices[i] ?? mat4.create()),
+			);
+			this.viewport!.updateNodeTransformation(n);
+		});
+
+		this.endDrag(undefined, undefined, true);
+	}
+
+	/**
 	 * Remove the node as the currently used drag node.
 	 *
 	 * @returns
 	 */
 	public removeNode(event?: PointerEvent, ray?: IRay) {
+		this.endDrag(event, ray, false);
+	}
+
+	/**
+	 * End the drag in progress, see {@link removeNode} and {@link cancelInteraction}.
+	 */
+	private endDrag(
+		event: PointerEvent | undefined,
+		ray: IRay | undefined,
+		cancelled: boolean,
+	) {
 		if (
 			!InteractionManagerUtils.validateViewport(
 				this.viewport,
@@ -387,13 +454,10 @@ export class DragManager extends AbstractInteractionManager {
 
 		// if we have everything we need (the ray) than we try one last time to calculate the transformation
 		if (ray) {
-			transformationResult = this.#restrictionManager!.rayTrace(ray, {
-				type: "dragging",
-				dragAnchors: this.#draggedNode.dragAnchors,
-				dragOrigin: this.#draggedNode.dragOrigin,
-				node: this.#draggedNode.node,
-				startPoint: this.#draggedNode.dragOrigin,
-			});
+			transformationResult = this.#restrictionManager!.rayTrace(
+				ray,
+				this.draggingRestrictionMetaData(),
+			);
 			transformationMatrix = mat4.multiply(
 				mat4.create(),
 				mat4.multiply(
@@ -434,6 +498,7 @@ export class DragManager extends AbstractInteractionManager {
 			dragAnchor: transformationResult?.dragAnchor,
 			manager: this,
 			groupedNodes: this.#groupedNodes,
+			cancelled: cancelled || undefined,
 		} as IDragEvent);
 		this.#setupOptions = null;
 
@@ -531,13 +596,10 @@ export class DragManager extends AbstractInteractionManager {
 			intersection: this.#intersection!,
 		};
 
-		const transformationResult = this.#restrictionManager!.rayTrace(ray, {
-			type: "dragging",
-			dragAnchors: this.#draggedNode.dragAnchors,
-			dragOrigin: this.#draggedNode.dragOrigin,
-			node: this.#draggedNode.node,
-			startPoint: this.#draggedNode.dragOrigin,
-		});
+		const transformationResult = this.#restrictionManager!.rayTrace(
+			ray,
+			this.draggingRestrictionMetaData(),
+		);
 		const transformationMatrix = mat4.multiply(
 			mat4.create(),
 			mat4.multiply(
@@ -625,8 +687,13 @@ export class DragManager extends AbstractInteractionManager {
 		);
 		if (!invertedPreviousDragMatrix)
 			invertedPreviousDragMatrix = mat4.create();
-		if (this.#groupedNodes)
-			this.#groupedNodes!.forEach((n) => this.removeTransformation(n));
+		// (the group contains the dragged node too, its transformation was
+		// removed above)
+		const previousGroupDragMatrices = (this.#groupedNodes ?? []).map((n) =>
+			n === node
+				? mat4.clone(previousDragMatrix)
+				: this.removeTransformation(n),
+		);
 
 		// store the initial world matrix and its inverse
 		const worldMatrix = node.worldMatrix;
@@ -655,6 +722,7 @@ export class DragManager extends AbstractInteractionManager {
 			worldMatrix,
 			worldMatrixInverse,
 			previousDragMatrix,
+			previousGroupDragMatrices,
 			dragAnchors: data?.dragAnchors || [],
 			dragOrigin: data?.dragOrigin
 				? vec3.transformMat4(
@@ -667,6 +735,22 @@ export class DragManager extends AbstractInteractionManager {
 						intersection.point,
 						invertedPreviousDragMatrix,
 					),
+		};
+	}
+
+	private draggingRestrictionMetaData(): DraggingRestrictionMetaData {
+		const dragged = this.#draggedNode!;
+		return {
+			type: "dragging",
+			dragAnchors: dragged.dragAnchors,
+			dragOrigin: dragged.dragOrigin,
+			node: dragged.node,
+			startPoint: dragged.dragOrigin,
+			occlusionExcludedNodes: [
+				dragged.node,
+				...(this.#groupedNodes ?? []),
+				...this.#occlusionExcludedNodes,
+			],
 		};
 	}
 

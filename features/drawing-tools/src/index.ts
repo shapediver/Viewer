@@ -55,6 +55,7 @@ import {
 	type Settings,
 	type SettingsOptional,
 } from "./business/interfaces/IDrawingToolsManager";
+import {removeClosingPoint} from "./business/implementation/managers/geometry/helpers/removeClosingPoint";
 
 export {
 	AngularRestrictionApi,
@@ -67,6 +68,7 @@ export {
 	LineRestrictionApi,
 	PlaneRestrictionApi,
 	PointRestrictionApi,
+	removeClosingPoint,
 	RESTRICTION_TYPE,
 };
 export type {

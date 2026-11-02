@@ -30,6 +30,11 @@ export class GumballTransformPlane extends Mesh {
 		this.isGumballTransformPlane = true;
 
 		this.type = "GumballTransformPlane";
+
+		// The plane is only a raycast target. The rendering engine does not honor
+		// the invisible material, the plane showed as a band across the viewport
+		// once a drag aligned it with an axis. Raycasting ignores visible.
+		this.visible = false;
 	}
 
 	public updateMatrixWorld(force: boolean) {

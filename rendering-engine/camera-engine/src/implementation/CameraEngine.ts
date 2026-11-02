@@ -4,7 +4,8 @@ import {
 	type ITree,
 	type ITreeNode,
 	Tree,
-	TreeNode} from "@shapediver/viewer.shared.node-tree";
+	TreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
@@ -13,11 +14,13 @@ import {
 	SettingsEngine,
 	ShapeDiverViewerCameraError,
 	StateEngine,
-	UuidGenerator} from "@shapediver/viewer.shared.services";
+	UuidGenerator,
+} from "@shapediver/viewer.shared.services";
 import {
 	CAMERA_TYPE,
 	type ISceneEvent,
-	ORTHOGRAPHIC_CAMERA_DIRECTION} from "@shapediver/viewer.shared.types";
+	ORTHOGRAPHIC_CAMERA_DIRECTION,
+} from "@shapediver/viewer.shared.types";
 
 import {vec3} from "gl-matrix";
 
@@ -311,6 +314,12 @@ export class CameraEngine implements ICameraEngine {
 	public assignCamera(id: string): boolean {
 		const camera = this.cameras[id];
 		if (!camera) return false;
+
+		// A selection handler can assign another camera during pointerdown.
+		// End the outgoing camera's gesture here, or it resumes on the next
+		// pointer move after this camera is assigned again.
+		if (this._camera && this._camera.id !== camera.id)
+			this._camera.controls.cameraControlsEventDistribution.reset();
 
 		for (const c in this.cameras) this.cameras[c].active = false;
 

@@ -264,6 +264,7 @@ export class CreationControlCenterSession implements ICreationControlCenterSessi
 					properties.loadSdtf === undefined
 						? false
 						: properties.loadSdtf,
+				directTextureDownload: properties.directTextureDownload === true,
 				modelStateId: properties.modelStateId,
 				throwOnCustomizationError: properties.throwOnCustomizationError,
 				ignoreUnknownParams: properties.ignoreUnknownParams,

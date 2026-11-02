@@ -7,6 +7,7 @@ import {
 	InteractionData,
 	InteractionEngine} from "@shapediver/viewer.features.interaction";
 import {
+	type PlaneRestrictionProperties,
 	type RestrictionProperties,
 	RESTRICTION_TYPE} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
@@ -49,6 +50,7 @@ export class RectangleTransformTranslationHandler
 	#node!: ITreeNode;
 	#previousNode: ITreeNode | undefined;
 	#planeRestrictionToken: string | undefined;
+	#removePointerDownClaim: (() => void) | undefined;
 	#restrictions: RestrictionProperties[] | undefined;
 
 	constructor(
@@ -57,6 +59,7 @@ export class RectangleTransformTranslationHandler
 		parentNode: ITreeNode,
 		planeToWS: mat4,
 		getLocalPoints: () => vec3[],
+		occlusionExcludedNodes: ITreeNode[],
 		isInteractionBlocked: () => boolean = () => false,
 		onTranslationStart: () => void = () => {},
 		onMove: (runningTrans: vec3) => void,
@@ -75,6 +78,12 @@ export class RectangleTransformTranslationHandler
 		this.#interactionEngine = new InteractionEngine(viewport);
 		this.#hoverManager = new HoverManager();
 		this.#dragManager = new DragManager();
+		this.#dragManager.setOcclusionExcludedNodes(occlusionExcludedNodes);
+		// The plane lies at the base of the object, which is usually in front
+		// of it: only the plane itself is intersected, so the object (a
+		// selectable node of another manager) does not block hover and drag.
+		this.#hoverManager.restrictedNodesOnly = true;
+		this.#dragManager.restrictedNodesOnly = true;
 		this.#interactionEngine.addInteractionManager(this.#hoverManager);
 		this.#interactionEngine.addInteractionManager(this.#dragManager);
 
@@ -94,6 +103,19 @@ export class RectangleTransformTranslationHandler
 		// Create the invisible draggable plane mesh covering the bounding rectangle
 		this.createPlaneNode(getLocalPoints());
 
+		// The plane lies on the object: a press on it would also reach the
+		// selection managers of the object behind it (and deselect it, which
+		// closes the tool). While the plane is hovered or dragged, the pointer
+		// is claimed for this handler's own engine.
+		this.#removePointerDownClaim = InteractionEngine.addPointerDownClaim(
+			viewport.id,
+			() =>
+				!this.#interactionEngine.paused &&
+				(this.#isDragging ||
+					(this.#isHovering && !this.#isInteractionBlocked())),
+			this.#interactionEngine,
+		);
+
 		// Snapshot local points at drag start so all DRAG_MOVE deltas are
 		// computed relative to the committed state at the beginning of the drag
 		this.#dragStartToken = this.#eventEngine.addListener(
@@ -102,9 +124,7 @@ export class RectangleTransformTranslationHandler
 				const ev = e as IDragEvent;
 				if (ev.manager !== this.#dragManager) return;
 				// Guard: do not start translation while a DT drag (scaling/rotation) is active.
-				if (this.#isInteractionBlocked()) {
-					return;
-				}
+				if (this.#isInteractionBlocked()) return;
 				// Cancel any active DT hover/drag (e.g. a hovered edge control) so
 				// that only translation runs for this gesture.
 				this.#onTranslationStart();
@@ -193,7 +213,32 @@ export class RectangleTransformTranslationHandler
 		this.#viewport.canvas.style.cursor = newCursor;
 	}
 
+	/**
+	 * Pause the translation: a drag in progress is cancelled (the rectangle
+	 * returns to the committed translation), the plane is unhovered.
+	 */
+	public pause(): void {
+		// cancelled right away (the rectangle transform pauses after the call
+		// stack already): the cancelled DRAG_END returns to the committed
+		// translation, also if the engine continues before its own cancel
+		this.#dragManager.cancelInteraction();
+		this.#hoverManager.cancelInteraction();
+		this.#interactionEngine.pause();
+		this.#isDragging = false;
+		this.#isHovering = false;
+		this.#viewport.canvas.style.cursor = "";
+	}
+
+	/**
+	 * Resume the translation after {@link pause}.
+	 */
+	public continue(): void {
+		this.#interactionEngine.continue();
+	}
+
 	public close(): void {
+		this.#removePointerDownClaim?.();
+		this.#removePointerDownClaim = undefined;
 		this.#eventEngine.removeListener(this.#dragStartToken);
 		this.#eventEngine.removeListener(this.#dragMoveToken);
 		this.#eventEngine.removeListener(this.#dragEndToken);
@@ -227,14 +272,27 @@ export class RectangleTransformTranslationHandler
 	/** Build a plane restriction from the parentNode's current world matrix. */
 	private currentPlaneRestriction(
 		localPoints: vec3[],
-	): RestrictionProperties {
+	): PlaneRestrictionProperties {
 		const M = this.#parentNode.worldMatrix;
 		const cx = (localPoints[0][0] + localPoints[4][0]) / 2;
 		const cy = (localPoints[0][1] + localPoints[4][1]) / 2;
-		const origin = vec3.fromValues(
-			M[0] * cx + M[4] * cy + M[12],
-			M[1] * cx + M[5] * cy + M[13],
-			M[2] * cx + M[6] * cy + M[14],
+		// The drag starts at the intersection with the plane mesh, which is
+		// offset along the normal; the restriction plane must share that
+		// offset, otherwise a tilted camera yields a translation without
+		// pointer movement.
+		const normalWS = vec3.normalize(
+			vec3.create(),
+			vec3.fromValues(M[8], M[9], M[10]),
+		);
+		const origin = vec3.scaleAndAdd(
+			vec3.create(),
+			vec3.fromValues(
+				M[0] * cx + M[4] * cy + M[12],
+				M[1] * cx + M[5] * cy + M[13],
+				M[2] * cx + M[6] * cy + M[14],
+			),
+			normalWS,
+			PLANE_Z_OFFSET,
 		);
 		const vector_u = vec3.normalize(
 			vec3.create(),
@@ -250,6 +308,9 @@ export class RectangleTransformTranslationHandler
 			vector_u,
 			vector_v,
 			createHelperObjects: false,
+			// Below every authored snap. Equal priority keeps the closest hit,
+			// and this face-on plane is always closer in an orthographic view.
+			priority: Number.NEGATIVE_INFINITY,
 		};
 	}
 
@@ -334,7 +395,13 @@ export class RectangleTransformTranslationHandler
 
 		const node = new TreeNode("RectangleTransformTranslationPlane");
 		node.addData(geometryData);
-		const interactionData = new InteractionData({drag: true, hover: true});
+		// Only the handler's own managers may hover or drag the plane. Other
+		// managers would apply their effects to its zero-opacity material.
+		const interactionData = new InteractionData(
+			{drag: true, hover: true},
+			undefined,
+			[this.#hoverManager.id, this.#dragManager.id],
+		);
 
 		if (this.#restrictions && this.#restrictions.length > 0) {
 			// use the plane centroid in world space
@@ -370,6 +437,12 @@ export class RectangleTransformTranslationHandler
 		// rotation hover), we must still commit the accumulated delta so the
 		// committedTranslation stays in sync with the visual state.
 		if (!this.#isDragging) return;
+		// A cancelled drag (see pause) returns to the committed translation.
+		if (ev.cancelled) {
+			this.#onMove(vec3.clone(this.#committedTranslation));
+			this.#viewport.updateNodeTransformation(this.#parentNode);
+			return;
+		}
 		if (this.#isInteractionBlocked() && !commit) {
 			return;
 		}

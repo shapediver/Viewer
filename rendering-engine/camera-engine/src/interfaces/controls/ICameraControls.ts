@@ -65,7 +65,7 @@ export interface ICameraControls {
 
 	// #endregion Properties (29)
 
-	// #region Public Methods (16)
+	// #region Public Methods (17)
 
 	animate(
 		path: {position: vec3; target: vec3}[],
@@ -96,10 +96,11 @@ export interface ICameraControls {
 	getTargetWithUpdates(): vec3;
 	isMoving(): boolean;
 	isWithinRestrictions(position: vec3, target: vec3): boolean;
+	pauseAnimation(): () => void;
 	reset(): void;
 	update(time: number): {position: vec3; target: vec3; sceneRotation: vec2};
 
-	// #endregion Public Methods (16)
+	// #endregion Public Methods (17)
 }
 
 // #endregion Interfaces (1)
