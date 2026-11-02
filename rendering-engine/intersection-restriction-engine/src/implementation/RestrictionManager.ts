@@ -360,7 +360,7 @@ export class RestrictionManager implements IRestrictionManager {
 
 	// #endregion Public Methods (6)
 
-	// #region Private Methods (8)
+	// #region Private Methods (9)
 
 	private selectRestrictionResult(
 		restrictionResults: RestrictionResult[],
@@ -464,7 +464,13 @@ export class RestrictionManager implements IRestrictionManager {
 
 		if (sceneRayTrace.length === 0) return false;
 
-		const sceneDistance = sceneRayTrace[0].distance;
+		// Grid lines and points are often the first hit. A point or line
+		// raycast reports the foot on the ray, which is closer than the
+		// face, and that hit has no normal. Judge occlusion against the
+		// first face. A line by itself still counts when nothing has a normal.
+		const surfaceHit =
+			sceneRayTrace.find((hit) => hit.normal) ?? sceneRayTrace[0];
+		const sceneDistance = surfaceHit.distance;
 		const restrictionDistance = Math.sqrt(
 			restrictionResult.distanceOriginToClosestIntersectionPointSquared,
 		);
@@ -477,40 +483,59 @@ export class RestrictionManager implements IRestrictionManager {
 		);
 		if (sceneDistance + occlusionSlack >= restrictionDistance) return false;
 
-		// A grid snap is not on the ray. Its closest point on the ray can sit
-		// behind the surface even when the snap point itself is on that
-		// surface, which is exactly the cell center of a coarse grid. Accept
-		// the hit when the snap point is still within the pick radius of the
-		// visible surface point. The radius is measured across the surface.
-		// A second surface behind this one, such as the boundary mesh 0.05
-		// behind the lines, stays hidden even when that gap is inside the radius.
+		// A grid snap is not on the ray. On an angled view the point that
+		// lies on the visible face can sit well behind the ray hit, because
+		// the offset across the face projects onto the view direction. That
+		// is the far side of a cell, and it is still a valid placement.
+		// Measure the offset against the hit plane. A parallel surface behind
+		// this one, such as the boundary mesh 0.05 behind the lines, is on
+		// the hidden side of the plane and stays hidden.
 		const target = restrictionResult.targetPoint;
 		if (
 			restrictionResult.restriction instanceof GeometryRestriction &&
 			restrictionResult.restriction.pointPickRadius > 0
 		) {
-			const directionLength = Math.hypot(
-				ray.direction[0],
-				ray.direction[1],
-				ray.direction[2],
-			);
-			if (directionLength > 0) {
-				const scale = sceneDistance / directionLength;
-				const separation = Math.hypot(
-					ray.origin[0] + ray.direction[0] * scale - target[0],
-					ray.origin[1] + ray.direction[1] * scale - target[1],
-					ray.origin[2] + ray.direction[2] * scale - target[2],
-				);
-				const alongRay =
-					((target[0] - ray.origin[0]) * ray.direction[0] +
-						(target[1] - ray.origin[1]) * ray.direction[1] +
-						(target[2] - ray.origin[2]) * ray.direction[2]) /
-					directionLength;
-				if (
-					alongRay <= sceneDistance + occlusionSlack &&
-					separation <= restrictionResult.restriction.pointPickRadius
+			const normal = surfaceHit.normal;
+			if (
+				normal &&
+				this.snapLiesOnVisibleSurface(
+					target,
+					ray,
+					sceneDistance,
+					normal,
+					restrictionResult.restriction.pointPickRadius,
 				)
-					return false;
+			)
+				return false;
+
+			// No face normal, so the plane test is unavailable. Keep the
+			// along-ray check for that case: a snap whose own position is
+			// behind the hit stays hidden.
+			if (!normal) {
+				const directionLength = Math.hypot(
+					ray.direction[0],
+					ray.direction[1],
+					ray.direction[2],
+				);
+				if (directionLength > 0) {
+					const scale = sceneDistance / directionLength;
+					const separation = Math.hypot(
+						ray.origin[0] + ray.direction[0] * scale - target[0],
+						ray.origin[1] + ray.direction[1] * scale - target[1],
+						ray.origin[2] + ray.direction[2] * scale - target[2],
+					);
+					const alongRay =
+						((target[0] - ray.origin[0]) * ray.direction[0] +
+							(target[1] - ray.origin[1]) * ray.direction[1] +
+							(target[2] - ray.origin[2]) * ray.direction[2]) /
+						directionLength;
+					if (
+						alongRay <= sceneDistance + occlusionSlack &&
+						separation <=
+							restrictionResult.restriction.pointPickRadius
+					)
+						return false;
+				}
 			}
 		}
 
@@ -519,7 +544,7 @@ export class RestrictionManager implements IRestrictionManager {
 			restrictionResult.restriction.type !== RESTRICTION_TYPE.GEOMETRY ||
 			(restrictionResult.restriction.type === RESTRICTION_TYPE.GEOMETRY &&
 				(!restrictionResult.restrictionIntersectionData ||
-					!sceneRayTrace[0].data))
+					!surfaceHit.data))
 		)
 			return true;
 
@@ -529,10 +554,65 @@ export class RestrictionManager implements IRestrictionManager {
 		// it is NOT the same geometry
 		return !(
 			geometryRestrictionIntersectionData.geometryData.id ===
-				sceneRayTrace[0].data!.id &&
+				surfaceHit.data!.id &&
 			geometryRestrictionIntersectionData.geometryData.version ===
-				sceneRayTrace[0].data!.version
+				surfaceHit.data!.version
 		);
+	}
+
+	/**
+	 * True when the snap lies on the visible hit face and inside the pick
+	 * cylinder around the ray.
+	 *
+	 * The signed distance uses the hit normal, so a point on the face is
+	 * accepted from any viewing angle. The ray threshold is a cylinder; on
+	 * the face that cylinder is an ellipse, longer along the view by
+	 * 1/cos(incidence). A point on the hidden side of the plane is not.
+	 * The plane tolerance is 0.02, under the 0.05 gap of a boundary surface
+	 * sitting just behind the lines.
+	 */
+	private snapLiesOnVisibleSurface(
+		target: vec3,
+		ray: IRay,
+		sceneDistance: number,
+		normal: vec3,
+		pickRadius: number,
+	): boolean {
+		const directionLength = Math.hypot(
+			ray.direction[0],
+			ray.direction[1],
+			ray.direction[2],
+		);
+		if (directionLength === 0 || pickRadius <= 0) return false;
+
+		const scale = sceneDistance / directionLength;
+		const dx = target[0] - (ray.origin[0] + ray.direction[0] * scale);
+		const dy = target[1] - (ray.origin[1] + ray.direction[1] * scale);
+		const dz = target[2] - (ray.origin[2] + ray.direction[2] * scale);
+
+		let nx = normal[0];
+		let ny = normal[1];
+		let nz = normal[2];
+		const facing =
+			nx * ray.direction[0] +
+			ny * ray.direction[1] +
+			nz * ray.direction[2];
+		if (facing > 0) {
+			nx = -nx;
+			ny = -ny;
+			nz = -nz;
+		}
+
+		const signed = dx * nx + dy * ny + dz * nz;
+		const acrossSq = dx * dx + dy * dy + dz * dz - signed * signed;
+		const across = Math.sqrt(Math.max(0, acrossSq));
+		const cosIncidence = Math.min(1, Math.abs(facing) / directionLength);
+		// Absolute, in model units. Stays under the 0.05 gap of a boundary
+		// surface behind the lines, and still treats a point a hundredth of
+		// a unit off the face as that face.
+		const planeSlack = 0.02;
+		const acrossLimit = pickRadius / Math.max(cosIncidence, 1e-3);
+		return signed >= -planeSlack && across <= acrossLimit;
 	}
 
 	/**

@@ -1598,7 +1598,12 @@ export class ViewportApi implements IViewportApi {
 		origin: vec3,
 		direction: vec3,
 		filterCriteria?: IIntersectionFilter[],
-	): {distance: number; node: ITreeNode; data?: IGeometryData}[] {
+	): {
+		distance: number;
+		node: ITreeNode;
+		data?: IGeometryData;
+		normal?: vec3;
+	}[] {
 		const scope = "raytraceScene";
 		this.#inputValidator.validateAndError(
 			`ViewportApi.${scope}`,
