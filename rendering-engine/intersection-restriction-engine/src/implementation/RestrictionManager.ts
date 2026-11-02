@@ -7,6 +7,7 @@ import {
 	type IRay,
 	type IVisualizationSettings,
 } from "@shapediver/viewer.shared.types";
+import {type vec3} from "gl-matrix";
 import {
 	type DraggingRestrictionMetaData,
 	type DrawingRestrictionMetaData,
@@ -360,7 +361,7 @@ export class RestrictionManager implements IRestrictionManager {
 
 	// #endregion Public Methods (6)
 
-	// #region Private Methods (9)
+	// #region Private Methods (10)
 
 	private selectRestrictionResult(
 		restrictionResults: RestrictionResult[],
@@ -665,5 +666,5 @@ export class RestrictionManager implements IRestrictionManager {
 		if (this.closed) return;
 	}
 
-	// #endregion Private Methods (6)
+	// #endregion Private Methods (10)
 }
