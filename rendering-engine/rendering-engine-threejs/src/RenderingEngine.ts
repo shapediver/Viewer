@@ -1425,7 +1425,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		origin: vec3,
 		direction: vec3,
 		filterCriteria?: IIntersectionFilter[],
-	): {distance: number; node: ITreeNode; data?: IGeometryData}[] {
+	): {
+		distance: number;
+		node: ITreeNode;
+		data?: IGeometryData;
+		normal?: vec3;
+	}[] {
 		return this._sceneTracingManager.raytraceScene(
 			origin,
 			direction,

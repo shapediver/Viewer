@@ -16,11 +16,15 @@ import {type IIntersectionEngine} from "../interfaces/IIntersectionEngine";
 import {SelectionBox} from "./SelectionBox";
 
 export class IntersectionEngine implements IIntersectionEngine {
-	// #region Properties (5)
+	// #region Properties (9)
 
 	private readonly _eventEngine: EventEngine = EventEngine.instance;
+	private readonly _instanceMatrix: THREE.Matrix4 = new THREE.Matrix4();
+	private readonly _instanceWorldMatrix: THREE.Matrix4 = new THREE.Matrix4();
+	private readonly _normalMatrix: THREE.Matrix3 = new THREE.Matrix3();
 	private readonly _raycaster: THREE.Raycaster = new THREE.Raycaster();
 	private readonly _tree: ITree = Tree.instance;
+	private readonly _worldNormal: THREE.Vector3 = new THREE.Vector3();
 
 	private static _instance: IntersectionEngine;
 
@@ -32,7 +36,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 		restrictViewports: string[];
 	}[] = [];
 
-	// #endregion Properties (5)
+	// #endregion Properties (9)
 
 	// #region Constructors (1)
 
@@ -190,7 +194,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 
 	// #endregion Public Methods (2)
 
-	// #region Private Methods (3)
+	// #region Private Methods (5)
 
 	/**
 	 * Gather all nodes that contain geometry data.
@@ -351,6 +355,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 						intersection.point.y,
 						intersection.point.z,
 					],
+					normal: this.worldFaceNormal(intersection),
 					node,
 					geometryData: hitGeometry,
 					type: "RayTracingIntersection",
@@ -388,6 +393,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 							geometryData[
 								`${parent?.SDid}_${parent?.SDversion}`
 							],
+						normal: this.worldFaceNormal(i),
 						type: "RayTracingIntersection",
 						occludePrimitive: {
 							objectType: i.object.type,
@@ -408,6 +414,39 @@ export class IntersectionEngine implements IIntersectionEngine {
 		}
 		intersections.sort((a, b) => a.distance - b.distance);
 		return intersections.length > 0 ? intersections : undefined;
+	}
+
+	/**
+	 * Geometric face normal in world space.
+	 * Three.js keeps `face.normal` in the mesh's local space. An instanced
+	 * hit also needs that instance's matrix.
+	 */
+	private worldFaceNormal(
+		intersection: THREE.Intersection,
+	): [number, number, number] | undefined {
+		const local = intersection.face?.normal;
+		if (!local) return undefined;
+		const object = intersection.object;
+		let worldMatrix = object.matrixWorld;
+		if (
+			object instanceof THREE.InstancedMesh &&
+			intersection.instanceId !== undefined
+		) {
+			this._instanceMatrix.fromArray(
+				object.instanceMatrix.array,
+				intersection.instanceId * 16,
+			);
+			this._instanceWorldMatrix.multiplyMatrices(
+				object.matrixWorld,
+				this._instanceMatrix,
+			);
+			worldMatrix = this._instanceWorldMatrix;
+		}
+		this._normalMatrix.getNormalMatrix(worldMatrix);
+		this._worldNormal.copy(local).applyMatrix3(this._normalMatrix);
+		if (this._worldNormal.lengthSq() < 1e-20) return undefined;
+		this._worldNormal.normalize();
+		return [this._worldNormal.x, this._worldNormal.y, this._worldNormal.z];
 	}
 
 	private isNodeWithinOwner(node: ITreeNode, owner: ITreeNode): boolean {
@@ -459,5 +498,5 @@ export class IntersectionEngine implements IIntersectionEngine {
 		);
 	}
 
-	// #endregion Private Methods (3)
+	// #endregion Private Methods (5)
 }

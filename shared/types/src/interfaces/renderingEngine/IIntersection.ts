@@ -21,6 +21,12 @@ export interface IRayTracingIntersection extends IIntersectionDefinition {
 	/** The distance to the intersection. */
 	distance: number;
 
+	/**
+	 * World-space geometric normal of the hit triangle.
+	 * Absent when the hit is not a mesh.
+	 */
+	normal?: vec3;
+
 	/** The point of intersection. */
 	point: vec3;
 
