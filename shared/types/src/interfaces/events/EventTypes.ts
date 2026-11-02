@@ -135,6 +135,8 @@ export enum EVENTTYPE_INTERACTION {
 	DRAG_MOVE = "interaction.drag.move",
 	/**
 	 * The DRAG_END-event is sent when the dragging of an object has ended.
+	 * A cancelled drag (e.g. the interaction engine was paused) is marked as
+	 * `cancelled`: the object was returned to its placement before the drag.
 	 */
 	DRAG_END = "interaction.drag.end",
 	/**

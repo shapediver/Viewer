@@ -49,6 +49,8 @@ export interface IDrawingParameterSettings {
 		buttons?: {
 			/** When true, the clear button is available to reset the parameter. (default: true) */
 			clear?: boolean;
+			/** When true, the settings menu (point and distance labels) is available. (default: true) */
+			settings?: boolean;
 		};
 		/** The mode to determine when the parameter is active. (default: 'default') */
 		activeMode?: "default" | "activeOnStart" | "alwaysActive";
@@ -123,7 +125,8 @@ export interface IDrawingParameterSettings {
 		 * If true, the drawing tool calls `update()` after points stop changing.
 		 * Waits {@link automaticSceneUpdateTimeout} after the last committed
 		 * geometry change. Distinct from session-level
-		 * `ISessionApi.automaticSceneUpdate`.
+		 * `ISessionApi.automaticSceneUpdate`. App Builder applies it only for
+		 * always active drawings (`general.activeMode: "alwaysActive"`).
 		 *
 		 * @default false
 		 */
@@ -132,7 +135,7 @@ export interface IDrawingParameterSettings {
 		 * Idle timeout in milliseconds before {@link automaticSceneUpdate}
 		 * calls `update()`. Reset on each committed geometry change.
 		 *
-		 * Defaults to 1000 when {@link automaticSceneUpdate} is set, and to 0
+		 * Defaults to 500 when {@link automaticSceneUpdate} is set, and to 0
 		 * when only the deprecated {@link autoUpdate} is set.
 		 */
 		automaticSceneUpdateTimeout?: number;
@@ -521,6 +524,7 @@ export const IDrawingParameterJsonSchema = z.object({
 			buttons: z
 				.object({
 					clear: optionalBoolean,
+					settings: optionalBoolean,
 				})
 				.nullable()
 				.optional(),

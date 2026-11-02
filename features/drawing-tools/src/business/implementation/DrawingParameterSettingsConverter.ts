@@ -2,7 +2,7 @@ import {type RestrictionProperties} from "@shapediver/viewer.rendering-engine.in
 import {type IDrawingParameterSettings} from "@shapediver/viewer.shared.types";
 import {type SettingsOptional} from "../interfaces/IDrawingToolsManager";
 
-export const DEFAULT_AUTOMATIC_SCENE_UPDATE_TIMEOUT = 1000;
+export const DEFAULT_AUTOMATIC_SCENE_UPDATE_TIMEOUT = 500;
 export const LEGACY_AUTO_UPDATE_TIMEOUT = 0;
 
 type DrawingAutomaticSceneUpdateInput = {
@@ -18,7 +18,7 @@ const isSet = (value: unknown): boolean =>
  * Resolve drawing idle-update flags.
  *
  * `automaticSceneUpdate` wins when present. Deprecated `autoUpdate` is still
- * honored otherwise. Timeout defaults to 1000 when `automaticSceneUpdate` is
+ * honored otherwise. Timeout defaults to 500 when `automaticSceneUpdate` is
  * set, and to 0 when only `autoUpdate` is set.
  */
 export const resolveDrawingAutomaticSceneUpdate = (

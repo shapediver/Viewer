@@ -10,8 +10,14 @@ import {type IInteractionManager} from "../IInteractionManager";
  * These events are sent for drag specific events (`EVENTTYPE_INTERACTION`).
  */
 export interface IDragEvent extends IViewportEvent {
-	// #region Properties (9)
+	// #region Properties (10)
 
+	/**
+	 * Whether the drag was cancelled (e.g. the interaction engine was paused).
+	 * Only provided on DRAG_END: the dragged nodes were returned to their
+	 * placement before the drag, {@link matrix} is that placement.
+	 */
+	cancelled?: boolean;
 	/**
 	 * The optional drag anchor that was used.
 	 */
@@ -55,5 +61,5 @@ export interface IDragEvent extends IViewportEvent {
 	 */
 	ray?: IRay;
 
-	// #endregion Properties (9)
+	// #endregion Properties (10)
 }

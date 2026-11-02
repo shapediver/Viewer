@@ -35,6 +35,7 @@ import {
 } from "../../../interfaces/IDrawingToolsManager";
 import {DrawingToolsManager} from "../../DrawingToolsManager";
 import {GeometryManager} from "./GeometryManager";
+import {removeClosingPoint} from "./helpers/removeClosingPoint";
 export class GeometryState {
 	// #region Properties (16)
 
@@ -337,20 +338,10 @@ export class GeometryState {
 
 		if (geometryProperties.points.length > 0) {
 			if (geometryProperties.mode === "lines") {
-				// as in Rhino a closed line is a polyline with the first and last point being the same
-				// we need to remove the last point if it is the same as the first point
-				// due to JavaScript floating point precision we need to check if the values are within a certain range
-
-				const eps = 0.0000001;
-				if (
-					Math.abs(points[0][0] - points[points.length - 1][0]) <
-						eps &&
-					Math.abs(points[0][1] - points[points.length - 1][1]) <
-						eps &&
-					Math.abs(points[0][2] - points[points.length - 1][2]) < eps
-				) {
+				// as in Rhino a closed line is a polyline with the first and last
+				// point being the same, the closing point is not stored
+				if (removeClosingPoint(points).length !== points.length)
 					points.pop();
-				}
 			}
 
 			this.#positionArray = new Float32Array(points.length * 3);

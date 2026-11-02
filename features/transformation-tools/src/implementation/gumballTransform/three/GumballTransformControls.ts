@@ -829,6 +829,22 @@ export class GumballTransformControls extends Object3D<GumballTransformControlsE
 		this.axis = null;
 	}
 
+	/**
+	 * Cancel the drag in progress: the object returns to its placement at the
+	 * start of the drag (the objects are updated), no matrices are reported.
+	 * A hovered axis is released.
+	 */
+	public cancel() {
+		if (this.dragging) {
+			this.reset();
+			this.object?.updateMatrix();
+			if (this._updateCallback) this._updateCallback();
+			this.dragging = false;
+		}
+		this.axis = null;
+		this._hovering = false;
+	}
+
 	public reset() {
 		if (!this.enabled) return;
 		if (this._restrictionManager)

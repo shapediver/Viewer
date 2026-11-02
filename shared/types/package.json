@@ -41,7 +41,7 @@
 		"@shapediver/sdk.sdtf-primitives": "1.7.3",
 		"@shapediver/sdk.sdtf-v1": "1.8.0",
 		"gl-matrix": "3.4.4",
-		"zod": "4.4.3"
+		"zod": "4.6.7"
 	},
 	"gitHead": "439d43d5219976059b89ab173d54cdafdd1f5c20"
 }

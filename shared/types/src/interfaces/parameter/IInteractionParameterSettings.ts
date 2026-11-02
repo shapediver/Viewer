@@ -57,7 +57,9 @@ export interface IInteractionParameterProps {
 	 * This is not session-level `ISessionApi.automaticSceneUpdate`, which
 	 * controls whether the session scene tree node is replaced after customize.
 	 *
-	 * Used by gumball, rectangle transform, and dragging. Selection ignores it.
+	 * Used by gumball and rectangle transform (the drawing parameter has the
+	 * same setting in its behavior settings). Selection and dragging ignore it.
+	 * App Builder applies it only for always active tools (`activeMode: "alwaysActive"`).
 	 *
 	 * @default false
 	 */
@@ -66,7 +68,7 @@ export interface IInteractionParameterProps {
 	 * Idle timeout in milliseconds before {@link automaticSceneUpdate} requests
 	 * a customization. Reset on each committed handle move.
 	 *
-	 * @default 1000
+	 * @default 500
 	 */
 	automaticSceneUpdateTimeout?: number;
 	/** When true, interactions are blocked by non-interactive solid geometry in front of the target. (default: false) */

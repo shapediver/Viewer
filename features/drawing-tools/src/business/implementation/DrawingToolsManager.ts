@@ -5,7 +5,10 @@ import {
 	sceneTree,
 	TreeNode,
 } from "@shapediver/viewer";
-import {type IRay} from "@shapediver/viewer.features.interaction";
+import {
+	InteractionEngine,
+	type IRay,
+} from "@shapediver/viewer.features.interaction";
 import {
 	EventManager,
 	GeometryMathManager,
@@ -17,6 +20,7 @@ import {
 } from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
 	EventEngine,
+	EVENTTYPE,
 	EVENTTYPE_DRAWING_TOOLS,
 	type IEvent,
 	ShapeDiverViewerDrawingToolsError,
@@ -63,8 +67,14 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
 	#closed: boolean = false;
 	#continuousRenderingFlag?: string;
+	#removePointerDownClaim?: () => void;
 	#eventListenerToken?: string;
+	// the effective pause: paused by pause(), or while busy (pauseWhileBusy)
 	#paused: boolean = false;
+	#pausedManually: boolean = false;
+	#pauseWhileBusy: boolean = false;
+	#busy: boolean = false;
+	readonly #busyModeTokens: string[] = [];
 	#uuid = this.#uuidGenerator.create();
 	#automaticSceneUpdateTimeoutId?: ReturnType<typeof setTimeout>;
 
@@ -115,6 +125,10 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		this.#continuousRenderingFlag = this.#viewport.addFlag(
 			FLAG_TYPE.CONTINUOUS_RENDERING,
 		);
+		this.#removePointerDownClaim = InteractionEngine.addPointerDownClaim(
+			this.#viewport.id,
+			(event) => this.#claimsPointerDown(event),
+		);
 
 		// special case, the scene is still empty, so we create a grid by default and show the scene
 		if (sceneTree.root.boundingBox.isEmpty()) this.#viewport.show = true;
@@ -132,19 +146,38 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 					event.metaData !== undefined &&
 					event.recordHistory !== false
 				) {
+					// Points committed during an insertion schedule as well: the
+					// timer defers the update until the insertion ended.
 					if (
 						this.#settings.general.automaticSceneUpdate &&
-						(this.#interactionManager.insertionInteractionHandler
-							.insertionActive === false ||
-							SystemInfo.instance.isMobile === true) &&
 						(this.#settings.geometry.autoClose ||
 							this.#settings.geometry.close ===
 								this.#geometryManager.geometryState.closeLoop)
 					) {
-						this.scheduleAutomaticSceneUpdate();
+						// outside the min/max range update() would throw (and
+						// emit the MINIMUM_POINTS / MAXIMUM_POINTS event), the
+						// pending update is dropped instead
+						if (
+							this.#geometryManager.geometryState.checkNumberOfPoints()
+						)
+							this.scheduleAutomaticSceneUpdate();
+						else this.clearAutomaticSceneUpdateTimeout();
 					}
 				}
 			},
+		);
+
+		// follow the busy mode of the viewport (see pauseWhileBusy)
+		this.#busy = this.#viewport.isBusy;
+		this.#busyModeTokens.push(
+			this.#eventEngine.addListener(
+				EVENTTYPE.VIEWPORT.BUSY_MODE_ON,
+				(e) => this.onBusyModeChange(e, true),
+			),
+			this.#eventEngine.addListener(
+				EVENTTYPE.VIEWPORT.BUSY_MODE_OFF,
+				(e) => this.onBusyModeChange(e, false),
+			),
 		);
 	}
 
@@ -162,6 +195,15 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
 	public get paused(): boolean {
 		return this.#paused;
+	}
+
+	public get pauseWhileBusy(): boolean {
+		return this.#pauseWhileBusy;
+	}
+
+	public set pauseWhileBusy(value: boolean) {
+		this.#pauseWhileBusy = value;
+		this.updatePauseState();
 	}
 
 	public get defaultTextures(): DefaultTextures {
@@ -478,14 +520,52 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	}
 
 	public pause(): void {
-		if (this.#closed || this.#paused) return;
-		this.#interactionManager.onOut();
-		this.#paused = true;
+		if (this.#closed) return;
+		this.#pausedManually = true;
+		this.updatePauseState();
 	}
 
 	public continue(): void {
 		if (this.#closed) return;
-		this.#paused = false;
+		this.#pausedManually = false;
+		this.updatePauseState();
+	}
+
+	/** Follow the busy mode of the viewport (see {@link pauseWhileBusy}). */
+	private onBusyModeChange(event: IEvent, busy: boolean): void {
+		if ((event as {viewportId?: string}).viewportId !== this.#viewport.id)
+			return;
+		// evaluated after the current call stack: a busy mode starting within
+		// the end of an interaction (e.g. a listener computing a session) does
+		// not cancel it in the middle of it
+		queueMicrotask(() => {
+			this.#busy = busy;
+			this.updatePauseState();
+		});
+	}
+
+	/**
+	 * Evaluate the effective pause (see {@link pause} and {@link pauseWhileBusy}).
+	 * On the start of a pause an interaction in progress is cancelled.
+	 */
+	private updatePauseState(): void {
+		if (this.#closed) return;
+		const paused =
+			this.#pausedManually || (this.#pauseWhileBusy && this.#busy);
+		if (paused === this.#paused) return;
+		if (paused) {
+			this.#interactionManager.onOut();
+			// set again by the next pointer move after the pause (kept on
+			// mobile, like on a pointer out)
+			if (
+				this.#continuousRenderingFlag &&
+				SystemInfo.instance.isMobile === false
+			) {
+				this.#viewport.removeFlag(this.#continuousRenderingFlag);
+				this.#continuousRenderingFlag = undefined;
+			}
+		}
+		this.#paused = paused;
 	}
 
 	public cancel(): void {
@@ -506,6 +586,11 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
 	public close(): void {
 		if (this.#closed) return;
+		this.#removePointerDownClaim?.();
+		this.#removePointerDownClaim = undefined;
+		this.#busyModeTokens.forEach((token) =>
+			this.#eventEngine.removeListener(token),
+		);
 		this.clearAutomaticSceneUpdateTimeout();
 		if (this.#eventListenerToken) {
 			this.#eventEngine.removeListener(this.#eventListenerToken);
@@ -536,6 +621,35 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		this.#automaticSceneUpdateTimeoutId = setTimeout(() => {
 			this.#automaticSceneUpdateTimeoutId = undefined;
 			if (this.#closed) return;
+			// an insertion in progress (desktop, the temporary point follows the
+			// pointer) or a paused tool defers the update; the deferred update
+			// sends the committed geometry once the insertion ended (also when
+			// it was cancelled or paused by leaving the canvas, which emits no
+			// committed change)
+			if (
+				this.#paused ||
+				(this.#interactionManager.insertionInteractionHandler
+					.insertionActive === true &&
+					SystemInfo.instance.isMobile !== true)
+			) {
+				this.scheduleAutomaticSceneUpdate();
+				return;
+			}
+			// the geometry may have changed since scheduling: update() would
+			// throw outside the point range or with an open loop (the loop
+			// check of update() applies to more than two points only)
+			const geometry = this.#settings.geometry;
+			const geometryState = this.#geometryManager.geometryState;
+			if (!geometryState.checkNumberOfPoints()) return;
+			if (
+				geometry.mode === "lines" &&
+				!(
+					geometry.autoClose ||
+					geometry.close === geometryState.closeLoop
+				) &&
+				geometryState.getPointCount() > 2
+			)
+				return;
 			this.update();
 		}, this.#settings.general.automaticSceneUpdateTimeout);
 	}
@@ -591,6 +705,39 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		);
 	}
 
+	/**
+	 * True when this tool would pick a point or control under the pointer.
+	 * Uses the same screen-space test as the drag, so a sprite drawn over a
+	 * closer mesh still owns the click.
+	 */
+	#claimsPointerDown(event: PointerEvent): boolean {
+		if (this.#closed || this.#paused) return false;
+		if (
+			this.#interactionManager.interactionManagerHelper.dragging ||
+			this.#interactionManager.controlsManager?.isDraggingControl
+		)
+			return true;
+		const ray = this.#viewport.pointerEventToRay(event);
+		this.#geometryMathManager.localToWorldMatrix =
+			this.#sceneParent.worldMatrix;
+		const localRay = this.transformRayToLocalSpace(ray);
+		const {enableTranslation, enableSelection} = this.#settings.general;
+		if (enableTranslation || enableSelection) {
+			const distances = this.#geometryMathManager.checkPointDistances(
+				localRay,
+				this.positionArray,
+			);
+			const disabled = this.#settings.geometry.disabledPoints;
+			if (distances?.some((entry) => !disabled?.includes(entry.index)))
+				return true;
+		}
+		return (
+			this.#interactionManager.controlsManager?.closestControlDistance(
+				localRay,
+			) !== undefined
+		);
+	}
+
 	public onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {
 		if (this.closed || this.#paused) return;
 		if (!pointerInCanvas) return;
@@ -619,7 +766,8 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	}
 
 	public onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void {
-		if (this.closed || this.#paused) return;
+		// a key released while paused is released (only the state is updated)
+		if (this.closed) return;
 		this.#keysPressed[event.key] = false;
 	}
 
@@ -898,7 +1046,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 				autoStart: true,
 				autoUpdate: false,
 				automaticSceneUpdate: false,
-				automaticSceneUpdateTimeout: 1000,
+				automaticSceneUpdateTimeout: 500,
 				closeOnUpdate: false,
 				displayUnit: "",
 				enableTranslation: true,
@@ -1051,8 +1199,10 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 		}
 
 		if (!isUndefinedOrNull(settingsOptional.general)) {
-			const {enabled: automaticSceneUpdate, timeout: automaticSceneUpdateTimeout} =
-				resolveDrawingAutomaticSceneUpdate(settingsOptional.general);
+			const {
+				enabled: automaticSceneUpdate,
+				timeout: automaticSceneUpdateTimeout,
+			} = resolveDrawingAutomaticSceneUpdate(settingsOptional.general);
 			settings.general = {
 				autoStart: isUndefinedOrNull(settingsOptional.general.autoStart)
 					? true
