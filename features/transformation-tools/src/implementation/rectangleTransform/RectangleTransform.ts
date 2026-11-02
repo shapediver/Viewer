@@ -14,6 +14,7 @@ import {
 import {
 	EventEngine,
 	EVENTTYPE_DRAWING_TOOLS,
+	Logger,
 } from "@shapediver/viewer.shared.services";
 
 import {mat4, vec3} from "gl-matrix";
@@ -88,6 +89,13 @@ export class RectangleTransform
 		id?: string,
 	) {
 		super(id, viewport, nodes, settings);
+
+		// nodes with an empty bounding box are not in the viewport's scene yet
+		const emptyNodes = nodes.filter((node) => node.boundingBox.isEmpty());
+		if (emptyNodes.length > 0)
+			Logger.instance.warn(
+				`RectangleTransform: the bounding box of the node(s) ${emptyNodes.map((node) => node.name).join(", ")} is empty. The rectangle transform cannot be placed on them; create it once the nodes were added to the scene.`,
+			);
 
 		const planeDefinition = this.settings?.plane;
 		const planeRestriction: PlaneRestrictionProperties = !planeDefinition
