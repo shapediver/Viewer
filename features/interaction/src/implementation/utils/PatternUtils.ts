@@ -554,7 +554,14 @@ export const gatherNodesForPattern = (
 	else if (nodeName && new RegExp(`^${escapedTest}$`).test(nodeName)) {
 		if (count === pattern.length - 1) {
 			let nodeData = getNodeData(node, strictNaming);
-			if (!nodeData || !nodeData.nodeName) {
+			// In case the traversal started at an instance (the output found
+			// belongs to the session of the instance), the name is relative to
+			// the instance, like the names created by matchNodeWithPatterns.
+			if (
+				!nodeData ||
+				!nodeData.nodeName ||
+				nodeData.outputName !== outputApiName
+			) {
 				const instanceNodeData = getInstanceNodeData(
 					node,
 					strictNaming,
