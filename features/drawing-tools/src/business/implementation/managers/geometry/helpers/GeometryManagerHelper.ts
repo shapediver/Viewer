@@ -3,7 +3,8 @@ import {type RayTraceResult} from "@shapediver/viewer.rendering-engine.intersect
 import {
 	EventEngine,
 	EVENTTYPE_DRAWING_TOOLS,
-	ShapeDiverViewerDrawingToolsError} from "@shapediver/viewer.shared.services";
+	ShapeDiverViewerDrawingToolsError,
+} from "@shapediver/viewer.shared.services";
 import {vec3} from "gl-matrix";
 import * as THREE from "three";
 import {MATERIAL_INDEX} from "../../../../interfaces/IDrawingToolsManager";
@@ -151,24 +152,26 @@ export class GeometryManagerHelper {
 			point = this.#drawingToolsManager.applyConstraints(point, index);
 		}
 
-		const threeJsPointsGeometry: THREE.Points = this.#geometryState
-			.geometryDataPoints.convertedObject[
-			this.#viewport.id
-		] as THREE.Points;
-		threeJsPointsGeometry.geometry.attributes["position"].setXYZ(
-			index,
-			point[0],
-			point[1],
-			point[2],
-		);
-		threeJsPointsGeometry.geometry.attributes["position"].needsUpdate =
-			true;
+		// the THREE objects only exist once the viewport converted the scene,
+		// before that the position array below is the only state
+		const threeJsPointsGeometry = this.#geometryState.geometryDataPoints
+			.convertedObject[this.#viewport.id] as THREE.Points | undefined;
+		if (threeJsPointsGeometry) {
+			threeJsPointsGeometry.geometry.attributes["position"].setXYZ(
+				index,
+				point[0],
+				point[1],
+				point[2],
+			);
+			threeJsPointsGeometry.geometry.attributes["position"].needsUpdate =
+				true;
+		}
 
-		if (this.#geometryState.geometryDataLines) {
-			const threeJsLinesGeometry: THREE.LineSegments = this.#geometryState
-				.geometryDataLines.convertedObject[
-				this.#viewport.id
-			] as THREE.LineSegments;
+		const threeJsLinesGeometry = this.#geometryState.geometryDataLines
+			?.convertedObject[this.#viewport.id] as
+			| THREE.LineSegments
+			| undefined;
+		if (threeJsLinesGeometry) {
 			threeJsLinesGeometry.geometry.attributes["position"].setXYZ(
 				index,
 				point[0],

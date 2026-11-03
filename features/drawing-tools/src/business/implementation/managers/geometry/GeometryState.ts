@@ -665,12 +665,17 @@ export class GeometryState {
 	public updateMaterialIndexArray(materialIndexArray: number[]): void {
 		this.#materialIndexArray = materialIndexArray;
 
-		const threeJsPointsGeometry: THREE.Points = this.#geometryDataPoints
-			.convertedObject[this.#viewport.id] as THREE.Points;
-		const material = threeJsPointsGeometry.material as MultiPointsMaterial;
-		const materialIndexDataTexture = material.materialIndexDataTexture;
+		// the THREE object only exists once the viewport converted the scene,
+		// before that the material data below is the only state
+		const threeJsPointsGeometry = this.#geometryDataPoints.convertedObject[
+			this.#viewport.id
+		] as THREE.Points | undefined;
+		const material = threeJsPointsGeometry?.material as
+			| MultiPointsMaterial
+			| undefined;
+		const materialIndexDataTexture = material?.materialIndexDataTexture;
 		const materialIndexData = materialIndexDataTexture?.image.data;
-		if (materialIndexDataTexture && materialIndexData) {
+		if (material && materialIndexDataTexture && materialIndexData) {
 			for (let i = 0; i < this.#materialIndexArray.length; i++)
 				materialIndexData[i] = this.#materialIndexArray[i];
 			materialIndexDataTexture.needsUpdate = true;
