@@ -481,8 +481,8 @@ importers:
         specifier: 1.7.3
         version: 1.7.3
       '@shapediver/sdk.sdtf-v1':
-        specifier: 1.8.0
-        version: 1.8.0
+        specifier: 1.9.0
+        version: 1.9.0
       '@shapediver/viewer.shared.build-data':
         specifier: workspace:*
         version: link:../../shared/build-data
@@ -1248,8 +1248,8 @@ importers:
         specifier: 1.7.3
         version: 1.7.3
       '@shapediver/sdk.sdtf-v1':
-        specifier: 1.8.0
-        version: 1.8.0
+        specifier: 1.9.0
+        version: 1.9.0
       '@shapediver/viewer.shared.math':
         specifier: workspace:*
         version: link:../math
@@ -1305,8 +1305,8 @@ importers:
         specifier: 1.7.3
         version: 1.7.3
       '@shapediver/sdk.sdtf-v1':
-        specifier: 1.8.0
-        version: 1.8.0
+        specifier: 1.9.0
+        version: 1.9.0
       gl-matrix:
         specifier: 3.4.4
         version: 3.4.4
@@ -2140,8 +2140,8 @@ packages:
   '@shapediver/sdk.sdtf-primitives@1.7.4':
     resolution: {integrity: sha512-8e0yUxJf6oUbTdeqqVDA+hJA+0Ms8OcHcQLnpNyxHz0wsHLa0s1xRctcTm63HXhXIzXWdQAmoxQ3dzVcqaloNA==}
 
-  '@shapediver/sdk.sdtf-v1@1.8.0':
-    resolution: {integrity: sha512-VKRjMKUAonwIsUCj+TGaCxVFE7SrfWg6Vm2uVU1e6lPOnJoLLVOD4gWC7C2VzonlzoD/EL02n5OUq+evDGjbDQ==}
+  '@shapediver/sdk.sdtf-v1@1.9.0':
+    resolution: {integrity: sha512-4krbcrC10Sgbydllz4PhqTBn5eUx0vguN6Dyzl2tCNo6zjiCsdpHsdhM0o3nEBtqTVNjMQ/mW0PdSEP3M7V75g==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -6387,7 +6387,7 @@ snapshots:
       '@shapediver/sdk.sdtf-core': 1.7.4
       decimal.js: 10.6.0
 
-  '@shapediver/sdk.sdtf-v1@1.8.0':
+  '@shapediver/sdk.sdtf-v1@1.9.0':
     dependencies:
       '@shapediver/sdk.sdtf-core': 1.7.4
       '@shapediver/sdk.sdtf-geometry': 1.7.4
