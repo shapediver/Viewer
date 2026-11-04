@@ -6,6 +6,7 @@ import {
 	RestrictionManager,
 	type RestrictionProperties,
 } from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {type IBox} from "@shapediver/viewer.shared.math";
 import {
 	GeometryData,
 	type ITreeNode,
@@ -416,6 +417,17 @@ export abstract class TransformationToolsManager implements ITransformationTools
 		}
 	}
 
+	/**
+	 * Bounds of the geometry in the space of its node. Baked-transform
+	 * instances share the source geometry and are placed by their offset.
+	 */
+	protected geometryBoundingBox(data: GeometryData): IBox {
+		if (!data.instanceOffsetMatrix) return data.boundingBox;
+		return data.boundingBox
+			.clone()
+			.applyMatrix(data.instanceOffsetMatrix as unknown as mat4);
+	}
+
 	protected initialize(): mat4 {
 		const transformationPlaceholderMatrix = mat4.create();
 
@@ -436,7 +448,7 @@ export abstract class TransformationToolsManager implements ITransformationTools
 				const trueBB = new Box();
 				this.#nodes[0].traverseData((d) => {
 					if (d instanceof GeometryData) {
-						trueBB.union(d.boundingBox);
+						trueBB.union(this.geometryBoundingBox(d));
 					}
 				});
 

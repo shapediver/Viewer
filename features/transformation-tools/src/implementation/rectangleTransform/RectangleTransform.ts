@@ -533,7 +533,8 @@ export class RectangleTransform
 			// for a tight rectangle aligned to the object's local axes.
 			const localBB = new Box();
 			this.nodes[0].traverseData((d) => {
-				if (d instanceof GeometryData) localBB.union(d.boundingBox);
+				if (d instanceof GeometryData)
+					localBB.union(this.geometryBoundingBox(d));
 			});
 			for (let i = 0; i < 8; i++) {
 				const localPt = vec3.fromValues(
