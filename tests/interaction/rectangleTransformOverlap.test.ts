@@ -10,6 +10,8 @@ type Point = [number, number, number];
 
 // on top of A, inside B's rectangle, away from the handles of both
 const A_PRESS: Point = [1, 1, 3];
+// on top of A, outside of B's rectangle and away from its handles
+const A_OUTSIDE: Point = [2.8, 2.5, 3];
 // on top of B, outside of A
 const B_PRESS: Point = [-1, -1, 1];
 // the top right handle of B's rectangle, covered by A
@@ -234,6 +236,18 @@ test.describe("Rectangle transforms on top of each other", () => {
 		const after = await matrix(page, "A");
 		expect(Math.abs(after[12] - before[12])).toBeGreaterThan(0.1);
 		expectMatrix(await matrix(page, "B"), IDENTITY);
+		expect((await testState(page)).selected).toEqual(["B", "A"]);
+	});
+
+	test("an object outside the shown rectangle still receives the hover and the press", async ({
+		page,
+	}) => {
+		const [x, y] = await screen(page, A_OUTSIDE);
+		await page.mouse.move(x, y, {steps: 5});
+		await expect
+			.poll(async () => (await testState(page)).hovered)
+			.toEqual(["A"]);
+		await press(page, A_OUTSIDE);
 		expect((await testState(page)).selected).toEqual(["B", "A"]);
 	});
 
