@@ -557,6 +557,7 @@ export class InteractionEngine implements IInteractionEngine {
 		if (unconditionalOwners.some((owner) => owner !== this)) return true;
 		if (unconditionalOwners.includes(this)) return false;
 		if (distanceOwners.has(this)) return decision.winner?.owner !== this;
+		if (!decision.winner) return false;
 		const distance = decision.candidateDistances.get(this) ?? Infinity;
 		return decision.closestClaimDistance <= distance + EPSILON;
 	}
