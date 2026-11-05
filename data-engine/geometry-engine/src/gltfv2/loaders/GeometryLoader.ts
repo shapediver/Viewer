@@ -16,6 +16,7 @@ import {
 	type IMapData,
 	type IMaterialAbstractData,
 } from "@shapediver/viewer.shared.types";
+import {hashTypedArray} from "../../hashTypedArray";
 import {GLTF_EXTENSIONS} from "../GLTFLoader";
 import {AccessorLoader} from "./AccessorLoader";
 import {BufferViewLoader} from "./BufferViewLoader";
@@ -218,7 +219,7 @@ export class GeometryLoader {
 		if (!accessor) return;
 
 		return JSON.stringify({
-			array: this.createTypedArrayHash(accessor.array),
+			array: hashTypedArray(accessor.array),
 			byteOffset: accessor.byteOffset,
 			byteStride: accessor.byteStride,
 			count: accessor.count,
@@ -228,32 +229,12 @@ export class GeometryLoader {
 			normalized: accessor.normalized,
 			sparse: accessor.sparse,
 			sparseIndices: accessor.sparseIndices
-				? this.createTypedArrayHash(accessor.sparseIndices)
+				? hashTypedArray(accessor.sparseIndices)
 				: undefined,
 			sparseValues: accessor.sparseValues
-				? this.createTypedArrayHash(accessor.sparseValues)
+				? hashTypedArray(accessor.sparseValues)
 				: undefined,
 		});
-	}
-
-	private createTypedArrayHash(array: IAttributeData["array"]): string {
-		const bytes = new Uint8Array(
-			array.buffer,
-			array.byteOffset,
-			array.byteLength,
-		);
-		let hash = 2166136261;
-		const view = new DataView(
-			bytes.buffer,
-			bytes.byteOffset,
-			bytes.byteLength,
-		);
-		const len = bytes.length;
-		let i = 0;
-		for (; i + 4 <= len; i += 4)
-			hash = Math.imul(hash ^ view.getUint32(i, true), 16777619);
-		for (; i < len; i++) hash = Math.imul(hash ^ bytes[i], 16777619);
-		return `${array.constructor.name}:${array.length}:${hash >>> 0}`;
 	}
 
 	/** FNV-1a over the string, independent of the murmur hash it accompanies. */

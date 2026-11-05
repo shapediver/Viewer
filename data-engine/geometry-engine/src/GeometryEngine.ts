@@ -16,6 +16,7 @@ import {
 } from "@shapediver/viewer.shared.types";
 import {GLTFLoader as GLTF_v1Loader} from "./gltfv1/GLTFLoader";
 import {GLTFLoader as GLTF_v2Loader} from "./gltfv2/GLTFLoader";
+import {hashTypedArray} from "./hashTypedArray";
 
 export class GeometryEngine {
 	// #region Properties (6)
@@ -406,10 +407,10 @@ export class GeometryEngine {
 		const names = Object.keys(attributes).sort();
 		const parts: string[] = [];
 		for (const name of names)
-			parts.push(name + ":" + this.hashTypedArray(attributes[name].array));
+			parts.push(name + ":" + hashTypedArray(attributes[name].array));
 		if (geometry.primitive.indices)
 			parts.push(
-				"indices:" + this.hashTypedArray(geometry.primitive.indices.array),
+				"indices:" + hashTypedArray(geometry.primitive.indices.array),
 			);
 		parts.push("material:" + this.createMaterialFingerprint(geometry.material));
 		return parts.join("|");
@@ -448,26 +449,6 @@ export class GeometryEngine {
 			side: material.side,
 			type: material.constructor.name,
 		});
-	}
-
-	private hashTypedArray(array: ArrayBufferView & {length: number}): string {
-		const bytes = new Uint8Array(
-			array.buffer,
-			array.byteOffset,
-			array.byteLength,
-		);
-		let hash = 2166136261;
-		const view = new DataView(
-			bytes.buffer,
-			bytes.byteOffset,
-			bytes.byteLength,
-		);
-		const len = bytes.length;
-		let i = 0;
-		for (; i + 4 <= len; i += 4)
-			hash = Math.imul(hash ^ view.getUint32(i, true), 16777619);
-		for (; i < len; i++) hash = Math.imul(hash ^ bytes[i], 16777619);
-		return `${array.constructor.name}:${array.length}:${hash >>> 0}`;
 	}
 
 	// #endregion Private Methods (1)
