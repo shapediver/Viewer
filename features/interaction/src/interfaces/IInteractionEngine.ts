@@ -14,6 +14,19 @@ export enum INTERACTION_STATE {
 	UP = "up",
 }
 
+/**
+ * The result of a pointer claim (see `InteractionEngine.addPointerDownClaim`).
+ *
+ * - `true` claims the pointer regardless of depth, e.g. a handle drawn in
+ *   screen space.
+ * - A number claims the pointer at that hit distance along the pointer ray.
+ *   The closest candidate wins: the closest distance claim, or the closest
+ *   intersection of an interaction engine of the viewport without a claim.
+ *   On a tie the claim wins.
+ * - `false` does not claim the pointer.
+ */
+export type PointerClaim = boolean | number;
+
 export interface IInteractionEngine extends IDomEventListener {
 	// #region Public Methods (2)
 
