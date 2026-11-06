@@ -478,8 +478,8 @@ importers:
         specifier: 4.2.2
         version: 4.2.2
       '@shapediver/sdk.sdtf-primitives':
-        specifier: 1.7.3
-        version: 1.7.3
+        specifier: 1.7.4
+        version: 1.7.4
       '@shapediver/sdk.sdtf-v1':
         specifier: 1.9.0
         version: 1.9.0
@@ -1245,8 +1245,8 @@ importers:
         specifier: 4.2.2
         version: 4.2.2
       '@shapediver/sdk.sdtf-primitives':
-        specifier: 1.7.3
-        version: 1.7.3
+        specifier: 1.7.4
+        version: 1.7.4
       '@shapediver/sdk.sdtf-v1':
         specifier: 1.9.0
         version: 1.9.0
@@ -1302,8 +1302,8 @@ importers:
         specifier: 4.2.2
         version: 4.2.2
       '@shapediver/sdk.sdtf-primitives':
-        specifier: 1.7.3
-        version: 1.7.3
+        specifier: 1.7.4
+        version: 1.7.4
       '@shapediver/sdk.sdtf-v1':
         specifier: 1.9.0
         version: 1.9.0
@@ -2125,17 +2125,11 @@ packages:
   '@shapediver/sdk.geometry-api-sdk-v2@4.2.2':
     resolution: {integrity: sha512-Eqz3xuVFgeTiGncI5ZzjxLs39scaffndzEGv6dyT/4nULBlVR1pdU/d7SRAcawhl/5UcTFlJExVlorwv/d/Lug==}
 
-  '@shapediver/sdk.sdtf-core@1.7.3':
-    resolution: {integrity: sha512-DhMZVbLw8ZNV5SWKofgZEENxTLnOjrr2VWlAYrqFBlfzFbkGUu/UWMoCaxmwhp2RNBLHmGFGvFr4H0ZOxAkclg==}
-
   '@shapediver/sdk.sdtf-core@1.7.4':
     resolution: {integrity: sha512-izDtWUa34fBqKoTNfBFMNPzkuvO6R9JbMCURxLY9VdseAhDdldMhLKf7Kyy/8Dhpxqwl2qkGrcMxVz3qpjs79g==}
 
   '@shapediver/sdk.sdtf-geometry@1.7.4':
     resolution: {integrity: sha512-Lsh5KkBCW8FMhKi7/fjsfsFJU+1qHO32B5kWuwfLz9qDjTLnF4wf77WfEUonai8NHqysLC+m29FYLfJ+8YIavA==}
-
-  '@shapediver/sdk.sdtf-primitives@1.7.3':
-    resolution: {integrity: sha512-jLSHRlFkHuosJ080FrYiEnEOlSwcmJs7GwXWgDkXtj7CG2lCGvVlwQP2Zd3jxvfW3oh9Gfyb7xIWAE17L9N1uQ==}
 
   '@shapediver/sdk.sdtf-primitives@1.7.4':
     resolution: {integrity: sha512-8e0yUxJf6oUbTdeqqVDA+hJA+0Ms8OcHcQLnpNyxHz0wsHLa0s1xRctcTm63HXhXIzXWdQAmoxQ3dzVcqaloNA==}
@@ -6369,18 +6363,11 @@ snapshots:
 
   '@shapediver/sdk.geometry-api-sdk-v2@4.2.2': {}
 
-  '@shapediver/sdk.sdtf-core@1.7.3': {}
-
   '@shapediver/sdk.sdtf-core@1.7.4': {}
 
   '@shapediver/sdk.sdtf-geometry@1.7.4':
     dependencies:
       '@shapediver/sdk.sdtf-core': 1.7.4
-
-  '@shapediver/sdk.sdtf-primitives@1.7.3':
-    dependencies:
-      '@shapediver/sdk.sdtf-core': 1.7.3
-      decimal.js: 10.6.0
 
   '@shapediver/sdk.sdtf-primitives@1.7.4':
     dependencies:
