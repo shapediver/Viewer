@@ -40,6 +40,17 @@ export interface IRectangleTransformParameterProps
 	enableTranslation?: boolean;
 
 	/**
+	 * Only one exclusive rectangle transform per viewport is selected at a time.
+	 * Nothing is selected on load, also when `minimumSelection` is above 0.
+	 * Once something is selected, the selection cannot drop below
+	 * `minimumSelection` by a deselection of the user.
+	 * `maximumSelection` must be omitted, null or 1.
+	 * Only considered when `activeMode` is "alwaysActive"; ignored otherwise.
+	 * (default: false)
+	 */
+	exclusive?: boolean;
+
+	/**
 	 * Options to disable specific edgeControls of the rectangle.
 	 * Disabled edgeControls are not interactive but still visible as locked handles.
 	 * By default, all edgeControls are enabled.
