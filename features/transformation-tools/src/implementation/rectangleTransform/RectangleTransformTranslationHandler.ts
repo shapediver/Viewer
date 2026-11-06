@@ -5,7 +5,9 @@ import {
 	type IDragEvent,
 	type IHoverEvent,
 	InteractionData,
-	InteractionEngine} from "@shapediver/viewer.features.interaction";
+	InteractionEngine,
+	type IRay,
+	type PointerClaim} from "@shapediver/viewer.features.interaction";
 import {
 	type PlaneRestrictionProperties,
 	type RestrictionProperties,
@@ -52,6 +54,7 @@ export class RectangleTransformTranslationHandler
 	#planeRestrictionToken: string | undefined;
 	#removePointerDownClaim: (() => void) | undefined;
 	#restrictions: RestrictionProperties[] | undefined;
+	readonly #transformedNodes: ITreeNode[];
 
 	constructor(
 		viewport: IViewportApi,
@@ -73,6 +76,7 @@ export class RectangleTransformTranslationHandler
 		this.#onTranslationStart = onTranslationStart;
 		this.#onMove = onMove;
 		this.#onCommit = onCommit;
+		this.#transformedNodes = occlusionExcludedNodes;
 
 		// Set up the interaction engine with a hover + plane-restricted drag manager
 		this.#interactionEngine = new InteractionEngine(viewport);
@@ -104,15 +108,13 @@ export class RectangleTransformTranslationHandler
 		this.createPlaneNode(getLocalPoints());
 
 		// The plane lies on the object: a press on it would also reach the
-		// selection managers of the object behind it (and deselect it, which
-		// closes the tool). While the plane is hovered or dragged, the pointer
-		// is claimed for this handler's own engine.
+		// selection managers of the object (and deselect it, which closes the
+		// tool). The pointer is claimed for this handler's own engine while
+		// the plane is dragged, or over the plane unless a closer object of
+		// another engine wins.
 		this.#removePointerDownClaim = InteractionEngine.addPointerDownClaim(
 			viewport.id,
-			() =>
-				!this.#interactionEngine.paused &&
-				(this.#isDragging ||
-					(this.#isHovering && !this.#isInteractionBlocked())),
+			(_event, ray) => this.pointerClaim(ray),
 			this.#interactionEngine,
 		);
 
@@ -267,6 +269,30 @@ export class RectangleTransformTranslationHandler
 		this.#previousNode = this.#node;
 		sceneTree.root.removeChild(this.#node);
 		this.createPlaneNode(localPoints);
+	}
+
+	/**
+	 * The claim of the pointer (see InteractionEngine.addPointerDownClaim).
+	 * Over the plane its distance is the closest hit of the plane or of the
+	 * transformed objects: an object of this handler in front of its plane
+	 * still belongs to it, an object of another tool in front of both wins.
+	 */
+	private pointerClaim(ray: IRay): PointerClaim {
+		if (this.#interactionEngine.paused) return false;
+		if (this.#isDragging) return true;
+		// a hovered or dragged handle claims the pointer itself
+		if (this.#isInteractionBlocked()) return false;
+		const planeDistance = this.#interactionEngine.closestHitDistance(ray, [
+			this.#node,
+		]);
+		if (planeDistance === Infinity) return false;
+		return Math.min(
+			planeDistance,
+			this.#interactionEngine.closestHitDistance(
+				ray,
+				this.#transformedNodes,
+			),
+		);
 	}
 
 	/** Build a plane restriction from the parentNode's current world matrix. */

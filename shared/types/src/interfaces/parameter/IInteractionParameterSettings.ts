@@ -263,6 +263,7 @@ export const IRectangleTransformParameterPropsJsonSchema = z
 		enableRotation: optionalBoolean,
 		enableScaling: optionalBoolean,
 		enableTranslation: optionalBoolean,
+		exclusive: optionalBoolean,
 		nameFilter: z.array(z.string()).nullable().optional(),
 		selectionColor: interactionEffectSchema.optional(),
 		availableColor: interactionEffectSchema.optional(),
@@ -335,7 +336,25 @@ export const IRectangleTransformParameterPropsJsonSchema = z
 
 export const IRectangleTransformParameterJsonSchema = z.object({
 	type: z.literal("rectangleTransform"),
-	props: IRectangleTransformParameterPropsJsonSchema,
+	// the props schema stays an object schema so that it can be extended
+	props: IRectangleTransformParameterPropsJsonSchema.superRefine(
+		(props, ctx) => {
+			const exclusive =
+				props.activeMode === "alwaysActive" && props.exclusive === true;
+			if (
+				exclusive &&
+				props.maximumSelection !== undefined &&
+				props.maximumSelection !== null &&
+				props.maximumSelection !== 1
+			)
+				ctx.addIssue({
+					code: "custom",
+					path: ["maximumSelection"],
+					message:
+						"maximumSelection must be omitted, null or 1 for an exclusive rectangle transform.",
+				});
+		},
+	),
 });
 
 export const IDraggingParameterPropsJsonSchema = z

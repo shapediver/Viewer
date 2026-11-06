@@ -266,7 +266,12 @@ export class SceneTracingManager implements IManager {
 		origin: vec3,
 		direction: vec3,
 		filterCriteria?: IIntersectionFilter[],
-	): {distance: number; node: ITreeNode; data?: IGeometryData}[] {
+	): {
+		distance: number;
+		node: ITreeNode;
+		data?: IGeometryData;
+		normal?: vec3;
+	}[] {
 		const intersect = this._intersectionManager.intersect(
 			{origin, direction},
 			this._renderingEngine.id,
@@ -277,6 +282,7 @@ export class SceneTracingManager implements IManager {
 				distance: i.distance,
 				node: i.node,
 				data: i.geometryData,
+				normal: i.normal,
 			};
 		});
 	}
