@@ -256,7 +256,8 @@ export class InteractionEngine implements IInteractionEngine {
 	 * When set, a pointerdown for which it returns false does not reach the
 	 * managers (nor the end of that gesture), and the engine has no candidate
 	 * for it in the claim decision of the viewport (see
-	 * {@link addPointerDownClaim}).
+	 * {@link addPointerDownClaim}). A pointermove for which it returns false
+	 * is no candidate either: a distance claim of another engine wins it.
 	 */
 	public get pointerDownFilter():
 		| ((event: PointerEvent) => boolean)
@@ -452,7 +453,7 @@ export class InteractionEngine implements IInteractionEngine {
 		// a claimed pointerdown consumes the whole gesture: managers selecting
 		// on pointerup must not see its end either
 		this.#pointerDownClaimed =
-			this.filtersPointerDown(event) ||
+			this.filtersPointer(event) ||
 			this.isPointerClaimed(event, ray, INTERACTION_STATE.DOWN);
 		if (this.#pointerDownClaimed) return;
 		this.onDown(event, ray);
@@ -493,7 +494,7 @@ export class InteractionEngine implements IInteractionEngine {
 	 */
 	public receivesPointerDown(event: PointerEvent): boolean {
 		if (this.#closed || this.#paused) return false;
-		if (this.filtersPointerDown(event)) return false;
+		if (this.filtersPointer(event)) return false;
 		const ray = this.#viewport.pointerEventToRay(event);
 		return !this.isPointerClaimed(event, ray, INTERACTION_STATE.DOWN);
 	}
@@ -520,10 +521,13 @@ export class InteractionEngine implements IInteractionEngine {
 		return true;
 	}
 
-	/** Whether the pointerdown filter rejects the event, see {@link pointerDownFilter}. */
-	private filtersPointerDown(event: PointerEvent): boolean {
+	/**
+	 * Whether the pointerdown filter rejects the event (a pointerdown or a
+	 * pointermove), see {@link pointerDownFilter}.
+	 */
+	private filtersPointer(event: PointerEvent): boolean {
 		return (
-			event.type === "pointerdown" &&
+			(event.type === "pointerdown" || event.type === "pointermove") &&
 			!!this.#pointerDownFilter &&
 			!this.#pointerDownFilter(event)
 		);
@@ -724,8 +728,7 @@ export class InteractionEngine implements IInteractionEngine {
 		state: INTERACTION_STATE,
 	): number {
 		if (this.#closed || this.#paused) return Infinity;
-		if (state === INTERACTION_STATE.DOWN && this.filtersPointerDown(event))
-			return Infinity;
+		if (this.filtersPointer(event)) return Infinity;
 		// a box selection does not intersect along the ray
 		const boxSelection =
 			state === INTERACTION_STATE.DOWN

@@ -338,9 +338,10 @@ export class RectangleTransformTranslationHandler
 	}
 
 	/**
-	 * Whether a pointerdown may start the translation of a preview: a
-	 * rectangle transform under the pointer which is not a preview wins
-	 * over the plane of the preview, its objects compete by distance.
+	 * Whether a pointerdown may start the translation of a preview (and a
+	 * pointermove may hover its plane): a rectangle transform under the
+	 * pointer which is not a preview wins over the plane of the preview, its
+	 * objects compete by distance.
 	 */
 	private pointerDownAllowed(event: PointerEvent): boolean {
 		if (!this.#options.isPreview?.()) return true;

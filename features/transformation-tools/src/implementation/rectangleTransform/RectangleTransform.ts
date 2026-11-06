@@ -274,6 +274,8 @@ export class RectangleTransform
 		this.changeId(id);
 		this.#preview = false;
 		this.#pointerOver = false;
+		// like a gizmo created for the selection (see init)
+		this.commitInitialPlacement();
 	}
 
 	public setNodes(
