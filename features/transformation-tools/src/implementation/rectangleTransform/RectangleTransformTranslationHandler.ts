@@ -27,6 +27,31 @@ import {type IRectangleTransformHandler} from "./IRectangleTransformHandler";
 
 const PLANE_Z_OFFSET = 0.1;
 
+// the distance (CSS px) from the pointerdown after which a press becomes a
+// drag, see RectangleTransformTranslationOptions.translateOnObjects
+const DRAG_THRESHOLD = 4;
+const DRAG_THRESHOLD_TOUCH = 10;
+
+export type RectangleTransformTranslationOptions = {
+	/**
+	 * A press on the transformed objects starts the translation too, and a
+	 * press only becomes a drag once the pointer moved by the drag threshold.
+	 */
+	translateOnObjects?: boolean;
+	/** Whether the rectangle transform is a preview. */
+	isPreview?: () => boolean;
+	/**
+	 * Whether a rectangle transform of the viewport which is not a preview
+	 * is under the pointer: a preview gives its plane to it.
+	 */
+	otherTransformHits?: (event: PointerEvent) => boolean;
+	/**
+	 * A translation ended without a change: a cancelled drag (see pause and
+	 * InteractionEngine.onPointerCancel) or a press below the drag threshold.
+	 */
+	onCancel?: () => void;
+};
+
 export class RectangleTransformTranslationHandler
 	implements IRectangleTransformHandler
 {
@@ -54,7 +79,11 @@ export class RectangleTransformTranslationHandler
 	#planeRestrictionToken: string | undefined;
 	#removePointerDownClaim: (() => void) | undefined;
 	#restrictions: RestrictionProperties[] | undefined;
+	#restrictionTokens: string[] = [];
 	readonly #transformedNodes: ITreeNode[];
+	readonly #options: RectangleTransformTranslationOptions;
+	// the pointerdown of the drag, undefined once it passed the drag threshold
+	#dragStartPointer: {x: number; y: number; threshold: number} | undefined;
 
 	constructor(
 		viewport: IViewportApi,
@@ -67,7 +96,9 @@ export class RectangleTransformTranslationHandler
 		onTranslationStart: () => void = () => {},
 		onMove: (runningTrans: vec3) => void,
 		onCommit: (committedTrans: vec3) => void,
+		options: RectangleTransformTranslationOptions = {},
 	) {
+		this.#options = options;
 		this.#M_planeToWS = planeToWS;
 		this.#parentNode = parentNode;
 		this.#viewport = viewport;
@@ -91,13 +122,7 @@ export class RectangleTransformTranslationHandler
 		this.#interactionEngine.addInteractionManager(this.#hoverManager);
 		this.#interactionEngine.addInteractionManager(this.#dragManager);
 
-		this.#restrictions = restrictions;
-		// add all other restrictions (e.g. snapping) configured for this handler
-		if (restrictions && restrictions.length > 0) {
-			restrictions.forEach((restriction) => {
-				this.#dragManager.addRestriction(restriction);
-			});
-		}
+		this.setRestrictions(restrictions);
 
 		// Add the initial plane restriction from the parentNode's current world matrix.
 		this.#planeRestrictionToken = this.#dragManager.addRestriction(
@@ -114,9 +139,11 @@ export class RectangleTransformTranslationHandler
 		// another engine wins.
 		this.#removePointerDownClaim = InteractionEngine.addPointerDownClaim(
 			viewport.id,
-			(_event, ray) => this.pointerClaim(ray),
+			(event, ray) => this.pointerClaim(event, ray),
 			this.#interactionEngine,
 		);
+		this.#interactionEngine.pointerDownFilter = (event) =>
+			this.pointerDownAllowed(event);
 
 		// Snapshot local points at drag start so all DRAG_MOVE deltas are
 		// computed relative to the committed state at the beginning of the drag
@@ -133,6 +160,17 @@ export class RectangleTransformTranslationHandler
 				this.#localPointsAtDragStart = this.#getLocalPoints().map((p) =>
 					vec3.clone(p),
 				);
+				this.#dragStartPointer =
+					this.#options.translateOnObjects && ev.event
+						? {
+								x: ev.event.clientX,
+								y: ev.event.clientY,
+								threshold:
+									ev.event.pointerType === "touch"
+										? DRAG_THRESHOLD_TOUCH
+										: DRAG_THRESHOLD,
+							}
+						: undefined;
 				this.#isDragging = true;
 				this.refreshCursor(false);
 			},
@@ -200,6 +238,10 @@ export class RectangleTransformTranslationHandler
 
 	public get isDragging(): boolean {
 		return this.#isDragging;
+	}
+
+	public get restrictions(): RestrictionProperties[] | undefined {
+		return this.#restrictions;
 	}
 
 	/**
@@ -277,22 +319,163 @@ export class RectangleTransformTranslationHandler
 	 * transformed objects: an object of this handler in front of its plane
 	 * still belongs to it, an object of another tool in front of both wins.
 	 */
-	private pointerClaim(ray: IRay): PointerClaim {
+	private pointerClaim(event: PointerEvent, ray: IRay): PointerClaim {
 		if (this.#interactionEngine.paused) return false;
 		if (this.#isDragging) return true;
 		// a hovered or dragged handle claims the pointer itself
 		if (this.#isInteractionBlocked()) return false;
-		const planeDistance = this.#interactionEngine.closestHitDistance(ray, [
-			this.#node,
-		]);
-		if (planeDistance === Infinity) return false;
-		return Math.min(
-			planeDistance,
-			this.#interactionEngine.closestHitDistance(
-				ray,
-				this.#transformedNodes,
+		// a preview leaves the hover to the objects (e.g. its own object keeps
+		// its hover effect)
+		if (this.#options.isPreview?.() && event.type === "pointermove")
+			return false;
+		if (event.type === "pointerdown" && !this.pointerDownAllowed(event))
+			return false;
+		const planeDistance = this.planeDistance(ray);
+		if (planeDistance === Infinity && !this.#options.translateOnObjects)
+			return false;
+		const distance = Math.min(planeDistance, this.objectDistance(ray));
+		return distance === Infinity ? false : distance;
+	}
+
+	/**
+	 * Whether a pointerdown may start the translation of a preview (and a
+	 * pointermove may hover its plane): a rectangle transform under the
+	 * pointer which is not a preview wins over the plane of the preview, its
+	 * objects compete by distance.
+	 */
+	private pointerDownAllowed(event: PointerEvent): boolean {
+		if (!this.#options.isPreview?.()) return true;
+		if (!this.#options.otherTransformHits?.(event)) return true;
+		return (
+			!!this.#options.translateOnObjects &&
+			this.objectDistance(this.#viewport.pointerEventToRay(event)) <
+				Infinity
+		);
+	}
+
+	private planeDistance(ray: IRay): number {
+		return this.#interactionEngine.closestHitDistance(ray, [this.#node]);
+	}
+
+	/** The distance of the closest hit of the transformed objects. */
+	public objectDistance(ray: IRay): number {
+		return this.#interactionEngine.closestHitDistance(
+			ray,
+			this.#transformedNodes,
+		);
+	}
+
+	/**
+	 * Whether the plane or (with translateOnObjects) the transformed objects
+	 * are under the pointer, regardless of the other tools.
+	 */
+	public hitsPointer(event: PointerEvent): boolean {
+		if (this.#interactionEngine.paused) return false;
+		const ray = this.#viewport.pointerEventToRay(event);
+		if (this.planeDistance(ray) < Infinity) return true;
+		return (
+			!!this.#options.translateOnObjects &&
+			this.objectDistance(ray) < Infinity
+		);
+	}
+
+	/**
+	 * What a pointerdown starts the translation on, undefined if it does not
+	 * start the translation (e.g. another tool or a closer object wins it).
+	 * A press on the plane is started by the drag manager, a press on the
+	 * objects by {@link startDrag}.
+	 */
+	public pointerDownTarget(
+		event: PointerEvent,
+	): "plane" | "object" | undefined {
+		if (!this.#interactionEngine.receivesPointerDown(event)) return;
+		const ray = this.#viewport.pointerEventToRay(event);
+		if (this.planeDistance(ray) < Infinity) return "plane";
+		if (!this.#options.translateOnObjects) return;
+		return this.objectDistance(ray) < Infinity ? "object" : undefined;
+	}
+
+	/**
+	 * Start the translation for the gesture of a pointerdown on the objects
+	 * (see {@link pointerDownTarget}), or for a gesture which started before
+	 * this handler existed (`adopt`, e.g. the press which selected the object
+	 * this rectangle transform was created for).
+	 * @returns false if the translation did not start (e.g. the pointer was
+	 * released already).
+	 */
+	public startDrag(event: PointerEvent, adopt: boolean): boolean {
+		if (this.#interactionEngine.paused || this.#isDragging) return false;
+		if (adopt && !this.#interactionEngine.continueGesture(event))
+			return false;
+		const ray = this.#viewport.pointerEventToRay(event);
+		const restriction = this.currentPlaneRestriction(
+			this.#getLocalPoints(),
+		);
+		const normal = vec3.normalize(
+			vec3.create(),
+			vec3.cross(
+				vec3.create(),
+				restriction.vector_u!,
+				restriction.vector_v!,
 			),
 		);
+		// the drag starts on the restriction plane, so the press does not move
+		// anything by itself
+		const denominator = vec3.dot(normal, ray.direction);
+		let distance =
+			Math.abs(denominator) > 1e-9
+				? vec3.dot(
+						vec3.subtract(
+							vec3.create(),
+							restriction.origin!,
+							ray.origin,
+						),
+						normal,
+					) / denominator
+				: -1;
+		if (!(distance >= 0)) distance = this.objectDistance(ray);
+		if (distance === Infinity) return false;
+		const point = vec3.scaleAndAdd(
+			vec3.create(),
+			ray.origin,
+			ray.direction,
+			distance,
+		);
+		this.#dragManager.setNode(
+			this.#node,
+			undefined,
+			distance,
+			point,
+			event,
+			ray,
+		);
+		return this.#isDragging;
+	}
+
+	/**
+	 * Place the handler on other objects (see RectangleTransform.setNodes):
+	 * the translation starts at zero, the restrictions are replaced.
+	 */
+	public reset(
+		localPoints: vec3[],
+		restrictions: RestrictionProperties[] | undefined,
+	): void {
+		vec3.set(this.#committedTranslation, 0, 0, 0);
+		this.setRestrictions(restrictions);
+		this.recompute(localPoints, false);
+	}
+
+	private setRestrictions(
+		restrictions: RestrictionProperties[] | undefined,
+	): void {
+		this.#restrictionTokens.forEach((token) =>
+			this.#dragManager.removeRestriction(token),
+		);
+		this.#restrictions = restrictions;
+		// add all other restrictions (e.g. snapping) configured for this handler
+		this.#restrictionTokens = (restrictions ?? [])
+			.map((restriction) => this.#dragManager.addRestriction(restriction))
+			.filter((token): token is string => token !== undefined);
 	}
 
 	/** Build a plane restriction from the parentNode's current world matrix. */
@@ -465,12 +648,35 @@ export class RectangleTransformTranslationHandler
 		if (!this.#isDragging) return;
 		// A cancelled drag (see pause) returns to the committed translation.
 		if (ev.cancelled) {
-			this.#onMove(vec3.clone(this.#committedTranslation));
+			this.#dragStartPointer = undefined;
+			if (this.#options.onCancel) this.#options.onCancel();
+			else this.#onMove(vec3.clone(this.#committedTranslation));
 			this.#viewport.updateNodeTransformation(this.#parentNode);
 			return;
 		}
 		if (this.#isInteractionBlocked() && !commit) {
 			return;
+		}
+		// a press below the drag threshold does not move anything, its end
+		// changes nothing
+		const start = this.#dragStartPointer;
+		if (start) {
+			const moved =
+				!!ev.event &&
+				Math.hypot(
+					ev.event.clientX - start.x,
+					ev.event.clientY - start.y,
+				) >= start.threshold;
+			if (!moved) {
+				if (!commit) return;
+				this.#dragStartPointer = undefined;
+				// the drag manager moved the plane node, it is rebuilt
+				this.recompute(this.#getLocalPoints(), false);
+				this.#options.onCancel?.();
+				this.#viewport.updateNodeTransformation(this.#parentNode);
+				return;
+			}
+			this.#dragStartPointer = undefined;
 		}
 		if (!ev.matrix || this.#localPointsAtDragStart.length === 0) return;
 		// The drag matrix is a pure translation in world space

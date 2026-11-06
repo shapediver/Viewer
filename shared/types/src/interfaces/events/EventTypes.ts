@@ -117,6 +117,18 @@ export enum EVENTTYPE_TRANSFORMATION_TOOLS {
 	 * The MATRIX_CHANGED-event is sent when the matrix of the transformation tools has changed
 	 */
 	MATRIX_CHANGED = "transformation_tools.matrixChanged",
+	/**
+	 * The GESTURE_START-event is sent when a press on the transformation tools
+	 * starts a gesture (a press on a handle or on the plane of a rectangle
+	 * transform, also on a preview), before the gesture changes anything.
+	 */
+	GESTURE_START = "transformation_tools.gestureStart",
+	/**
+	 * The HOVER_CHANGED-event is sent when the pointer enters or leaves the
+	 * area of a rectangle transform preview (its objects, its rectangle, its
+	 * handles and the gap up to the rotation handle).
+	 */
+	HOVER_CHANGED = "transformation_tools.hoverChanged",
 }
 
 /**

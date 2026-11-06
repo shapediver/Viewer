@@ -186,6 +186,18 @@ export class RectangleTransformRotationHandler
 	}
 
 	/**
+	 * Place the handler on other objects (see RectangleTransform.setNodes):
+	 * the rotation starts at zero.
+	 */
+	public reset(localPoints: vec3[]): void {
+		mat4.identity(this.#M_accumulatedRotation);
+		this.#cumulativeRotation = 0;
+		this.#gestureStartCumulative = 0;
+		this.#dragStart = undefined;
+		this.recompute(localPoints, false);
+	}
+
+	/**
 	 * Cancel the gesture in progress: the rotation returns to its state at the
 	 * start of the gesture (the accumulated rotation matrix only changes on a
 	 * commit).

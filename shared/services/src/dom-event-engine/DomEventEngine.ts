@@ -26,6 +26,7 @@ export class DomEventEngine {
 	private _onKeyDownPointerPositionHelper: (event: PointerEvent) => void;
 	private _onKeyUp: (event: KeyboardEvent) => void;
 	private _onMouseWheel: (event: Event) => void;
+	private _onPointerCancel: (event: PointerEvent) => void;
 	private _onPointerDown: (event: PointerEvent) => void;
 	private _onPointerMove: (event: PointerEvent) => void;
 	private _onPointerOut: (event: PointerEvent) => void;
@@ -45,6 +46,7 @@ export class DomEventEngine {
 			this.onKeyDownPointerPositionHelper.bind(this);
 		this._onPointerUp = this.onPointerUp.bind(this);
 		this._onPointerOut = this.onPointerOut.bind(this);
+		this._onPointerCancel = this.onPointerCancel.bind(this);
 		this._onKeyDown = this.onKeyDown.bind(this);
 		this._onKeyUp = this.onKeyUp.bind(this);
 		this._onContextMenu = this.onContextMenu.bind(this);
@@ -160,12 +162,21 @@ export class DomEventEngine {
 			allowedListeners.pointerup !== undefined &&
 			this._allowListeners.pointerup !== allowedListeners.pointerup
 		) {
+			// a cancelled gesture ends like a released one
 			if (allowedListeners.pointerup) {
 				this._canvas.addEventListener("pointerup", this._onPointerUp);
+				this._canvas.addEventListener(
+					"pointercancel",
+					this._onPointerCancel,
+				);
 			} else {
 				this._canvas.removeEventListener(
 					"pointerup",
 					this._onPointerUp,
+				);
+				this._canvas.removeEventListener(
+					"pointercancel",
+					this._onPointerCancel,
 				);
 			}
 			this._allowListeners.pointerup = allowedListeners.pointerup;
@@ -271,6 +282,7 @@ export class DomEventEngine {
 		this._canvas.addEventListener("pointerdown", this._onPointerDown);
 		this._canvas.addEventListener("pointermove", this._onPointerMove);
 		this._canvas.addEventListener("pointerup", this._onPointerUp);
+		this._canvas.addEventListener("pointercancel", this._onPointerCancel);
 		this._canvas.addEventListener("pointerout", this._onPointerOut);
 
 		window.addEventListener("keyup", this._onKeyUp);
@@ -340,6 +352,17 @@ export class DomEventEngine {
 		});
 	}
 
+	private onPointerCancel(event: PointerEvent): void {
+		Object.entries(this._domEventListeners).forEach(([key, listener]) => {
+			if (
+				this._restrictedListenerTokens.length === 0 ||
+				this._restrictedListenerTokens.includes(key)
+			) {
+				listener.onPointerCancel?.(event);
+			}
+		});
+	}
+
 	private onPointerDown(event: PointerEvent): void {
 		event.preventDefault();
 		Object.entries(this._domEventListeners).forEach(([key, listener]) => {
@@ -402,6 +425,10 @@ export class DomEventEngine {
 		this._canvas.removeEventListener("pointerdown", this._onPointerDown);
 		this._canvas.removeEventListener("pointermove", this._onPointerMove);
 		this._canvas.removeEventListener("pointerup", this._onPointerUp);
+		this._canvas.removeEventListener(
+			"pointercancel",
+			this._onPointerCancel,
+		);
 		this._canvas.removeEventListener("pointerout", this._onPointerOut);
 
 		window.removeEventListener("keydown", this._onKeyDown);

@@ -139,6 +139,7 @@ export class InteractionEngine implements IInteractionEngine {
 	// following pointerout is ignored too
 	readonly #outAfterUpPointers = new Set<number>();
 	#pointerDownClaimed: boolean = false;
+	#pointerDownFilter?: (event: PointerEvent) => boolean;
 	// the intersections of the managers for the latest pointer event, shared
 	// by the claim decision and the delivery to the managers
 	#intersectionCache?: {
@@ -249,6 +250,25 @@ export class InteractionEngine implements IInteractionEngine {
 
 	public get paused(): boolean {
 		return this.#paused;
+	}
+
+	/**
+	 * When set, a pointerdown for which it returns false does not reach the
+	 * managers (nor the end of that gesture), and the engine has no candidate
+	 * for it in the claim decision of the viewport (see
+	 * {@link addPointerDownClaim}). A pointermove for which it returns false
+	 * is no candidate either: a distance claim of another engine wins it.
+	 */
+	public get pointerDownFilter():
+		| ((event: PointerEvent) => boolean)
+		| undefined {
+		return this.#pointerDownFilter;
+	}
+
+	public set pointerDownFilter(
+		value: ((event: PointerEvent) => boolean) | undefined,
+	) {
+		this.#pointerDownFilter = value;
 	}
 
 	public get pauseWhileBusy(): boolean {
@@ -432,17 +452,97 @@ export class InteractionEngine implements IInteractionEngine {
 		const ray = this.#viewport.pointerEventToRay(event);
 		// a claimed pointerdown consumes the whole gesture: managers selecting
 		// on pointerup must not see its end either
-		this.#pointerDownClaimed = this.isPointerClaimed(
-			event,
-			ray,
-			INTERACTION_STATE.DOWN,
-		);
+		this.#pointerDownClaimed =
+			this.filtersPointer(event) ||
+			this.isPointerClaimed(event, ray, INTERACTION_STATE.DOWN);
 		if (this.#pointerDownClaimed) return;
 		this.onDown(event, ray);
 	}
 
+	/**
+	 * The browser cancelled the gesture (pointercancel): the interactions in
+	 * progress are cancelled like on a pause (a drag returns its nodes to
+	 * their placement before the drag), the end of the gesture and the
+	 * following pointerout do not reach the managers.
+	 */
+	public onPointerCancel(event: PointerEvent): void {
+		if (this.#closed) return;
+		const pressed = this.#pressedPointers.has(event.pointerId);
+		const interrupted = this.endGesture(event.pointerId);
+		this.#pointerDownClaimed = false;
+		this.#outAfterUpPointers.add(event.pointerId);
+		if (this.#paused || interrupted || !pressed) return;
+		for (const m in this.#managers) this.#managers[m].cancelInteraction?.();
+		if (this.#boxSelectionActive) {
+			if (this.#cameraFreezeFlag)
+				this.#viewport.removeFlag(this.#cameraFreezeFlag);
+			this.#cameraFreezeFlag = undefined;
+			this.#boxSelectionActive = false;
+			this.#selectionBox.reset();
+		}
+		this.#viewport.render();
+	}
+
 	public onPointerEnd(event: PointerEvent): void {
 		if (this.#closed) return;
+	}
+
+	/**
+	 * Whether the managers of this engine receive the pointerdown, i.e. it is
+	 * not claimed by another engine or tool (see {@link addPointerDownClaim}).
+	 * The decision is the one the engine applies to this event.
+	 */
+	public receivesPointerDown(event: PointerEvent): boolean {
+		if (this.#closed || this.#paused) return false;
+		if (this.filtersPointer(event)) return false;
+		const ray = this.#viewport.pointerEventToRay(event);
+		return !this.isPointerClaimed(event, ray, INTERACTION_STATE.DOWN);
+	}
+
+	/**
+	 * Continue a gesture whose pointerdown this engine did not receive (e.g.
+	 * the engine was created by that press): its moves and its end reach the
+	 * managers, like for a gesture started on the canvas.
+	 * @returns false if the pointer is not pressed anymore.
+	 */
+	public continueGesture(event: PointerEvent): boolean {
+		if (this.#closed || this.#paused) return false;
+		if (
+			!InteractionEngine.isPointerPressed(
+				this.#viewport.id,
+				event.pointerId,
+			)
+		)
+			return false;
+		this.#pressedPointers.add(event.pointerId);
+		this.#interruptedPointers.delete(event.pointerId);
+		this.#outAfterUpPointers.delete(event.pointerId);
+		this.#pointerDownClaimed = false;
+		return true;
+	}
+
+	/**
+	 * Whether the pointerdown filter rejects the event (a pointerdown or a
+	 * pointermove), see {@link pointerDownFilter}.
+	 */
+	private filtersPointer(event: PointerEvent): boolean {
+		return (
+			(event.type === "pointerdown" || event.type === "pointermove") &&
+			!!this.#pointerDownFilter &&
+			!this.#pointerDownFilter(event)
+		);
+	}
+
+	/**
+	 * Whether an engine of the viewport tracks the pointer as pressed.
+	 */
+	public static isPointerPressed(
+		viewportId: string,
+		pointerId: number,
+	): boolean {
+		for (const engine of InteractionEngine.#engines.get(viewportId) ?? [])
+			if (engine.#pressedPointers.has(pointerId)) return true;
+		return false;
 	}
 
 	public onPointerMove(event: PointerEvent): void {
@@ -628,6 +728,7 @@ export class InteractionEngine implements IInteractionEngine {
 		state: INTERACTION_STATE,
 	): number {
 		if (this.#closed || this.#paused) return Infinity;
+		if (this.filtersPointer(event)) return Infinity;
 		// a box selection does not intersect along the ray
 		const boxSelection =
 			state === INTERACTION_STATE.DOWN

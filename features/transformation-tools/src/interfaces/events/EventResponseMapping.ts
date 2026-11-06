@@ -1,4 +1,8 @@
 import {EVENTTYPE_TRANSFORMATION_TOOLS} from "@shapediver/viewer";
+import {
+	type IRectangleTransformGestureEvent,
+	type IRectangleTransformHoverEvent,
+} from "../rectangleTransform/IRectangleTransformEvents";
 import {type ITransformationToolsEvent} from "./ITransformationToolsEvent";
 
 /**
@@ -7,4 +11,6 @@ import {type ITransformationToolsEvent} from "./ITransformationToolsEvent";
  */
 export type EventResponseMapping = {
 	[EVENTTYPE_TRANSFORMATION_TOOLS.MATRIX_CHANGED]: ITransformationToolsEvent;
+	[EVENTTYPE_TRANSFORMATION_TOOLS.GESTURE_START]: IRectangleTransformGestureEvent;
+	[EVENTTYPE_TRANSFORMATION_TOOLS.HOVER_CHANGED]: IRectangleTransformHoverEvent;
 };
