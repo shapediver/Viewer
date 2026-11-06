@@ -50,7 +50,12 @@ export interface IRenderingEngine {
 		origin: vec3,
 		direction: vec3,
 		filterCriteria?: IIntersectionFilter[],
-	): {distance: number; node: ITreeNode; data?: IGeometryData}[];
+	): {
+		distance: number;
+		node: ITreeNode;
+		data?: IGeometryData;
+		normal?: vec3;
+	}[];
 	removeFlag(token: string): boolean;
 	reset(): void;
 	resize(width: number, height: number): void;

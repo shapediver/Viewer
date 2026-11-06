@@ -14,11 +14,13 @@ import {type IIntersectionEngine} from "../interfaces/IIntersectionEngine";
 import {SelectionBox} from "./SelectionBox";
 
 export class IntersectionEngine implements IIntersectionEngine {
-	// #region Properties (5)
+	// #region Properties (7)
 
 	private readonly _eventEngine: EventEngine = EventEngine.instance;
+	private readonly _normalMatrix: THREE.Matrix3 = new THREE.Matrix3();
 	private readonly _raycaster: THREE.Raycaster = new THREE.Raycaster();
 	private readonly _tree: ITree = Tree.instance;
+	private readonly _worldNormal: THREE.Vector3 = new THREE.Vector3();
 
 	private static _instance: IntersectionEngine;
 
@@ -30,7 +32,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 		restrictViewports: string[];
 	}[] = [];
 
-	// #endregion Properties (5)
+	// #endregion Properties (7)
 
 	// #region Constructors (1)
 
@@ -176,7 +178,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 
 	// #endregion Public Methods (2)
 
-	// #region Private Methods (2)
+	// #region Private Methods (3)
 
 	/**
 	 * Gather all nodes that contain geometry data.
@@ -280,6 +282,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 					node: node,
 					geometryData:
 						geometryData[`${parent?.SDid}_${parent?.SDversion}`],
+					normal: this.worldFaceNormal(i),
 					type: "RayTracingIntersection",
 					occludePrimitive: {
 						objectType: i.object.type,
@@ -302,5 +305,21 @@ export class IntersectionEngine implements IIntersectionEngine {
 		}
 	}
 
-	// #endregion Private Methods (2)
+	/**
+	 * Geometric face normal in world space.
+	 * Three.js keeps `face.normal` in the mesh's local space.
+	 */
+	private worldFaceNormal(
+		intersection: THREE.Intersection,
+	): [number, number, number] | undefined {
+		const local = intersection.face?.normal;
+		if (!local) return undefined;
+		this._normalMatrix.getNormalMatrix(intersection.object.matrixWorld);
+		this._worldNormal.copy(local).applyMatrix3(this._normalMatrix);
+		if (this._worldNormal.lengthSq() < 1e-20) return undefined;
+		this._worldNormal.normalize();
+		return [this._worldNormal.x, this._worldNormal.y, this._worldNormal.z];
+	}
+
+	// #endregion Private Methods (3)
 }

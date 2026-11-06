@@ -607,7 +607,12 @@ export interface IViewportApi {
 		origin: vec3,
 		direction: vec3,
 		filterCriteria?: IIntersectionFilter[],
-	): {distance: number; node: ITreeNode; data?: IGeometryData}[];
+	): {
+		distance: number;
+		node: ITreeNode;
+		data?: IGeometryData;
+		normal?: vec3;
+	}[];
 	/**
 	 * Remove the camera with the specified id and destroys it.
 	 * If you remove the current active camera, the rendering will be stopped until a new camera is assigned.

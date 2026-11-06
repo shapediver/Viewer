@@ -14,6 +14,19 @@ export enum INTERACTION_STATE {
 	UP = "up",
 }
 
+/**
+ * The result of a pointer claim (see `InteractionEngine.addPointerDownClaim`).
+ *
+ * - `true` claims the pointer regardless of depth, e.g. a handle drawn in
+ *   screen space.
+ * - A number claims the pointer at that hit distance along the pointer ray.
+ *   The closest candidate wins: the closest distance claim, or the closest
+ *   intersection of an interaction engine of the viewport without a claim.
+ *   On a tie the claim wins.
+ * - `false` does not claim the pointer.
+ */
+export type PointerClaim = boolean | number;
+
 export interface IInteractionEngine extends IDomEventListener {
 	// #region Public Methods (2)
 
@@ -32,6 +45,19 @@ export interface IInteractionEngine extends IDomEventListener {
 	 * when occludeBySceneGeometry is enabled. (Default: 0.01)
 	 */
 	intersectionOpacity: number;
+
+	/**
+	 * Whether the interactions are paused: by {@link pause}, or while the
+	 * viewport is busy if {@link pauseWhileBusy} is set.
+	 */
+	readonly paused: boolean;
+
+	/**
+	 * Pause the interactions while the viewport is busy (busy mode, e.g. a
+	 * session computes), like {@link pause}; they continue when the busy mode
+	 * ends (unless paused by {@link pause}). (Default: false)
+	 */
+	pauseWhileBusy: boolean;
 
 	/**
 	 * Add a new interaction manager to the selection of interaction managers.
@@ -55,5 +81,22 @@ export interface IInteractionEngine extends IDomEventListener {
 	 */
 	close(): void;
 
-	// #endregion Public Methods (2)
+	/**
+	 * Pause all interactions of the registered managers (selection, hovering,
+	 * dragging), e.g. while a computation runs: pointer events are ignored
+	 * until {@link continue} is called. An interaction in progress is
+	 * cancelled (see `IInteractionManager.cancelInteraction`: a drag returns
+	 * its nodes to their placement before the drag, hovered nodes are
+	 * unhovered, a box selection ends without selecting). The selection is
+	 * kept. The camera is not affected. See also {@link pauseWhileBusy}.
+	 */
+	pause(): void;
+
+	/**
+	 * Resume the interactions after {@link pause} (they stay paused while the
+	 * viewport is busy if {@link pauseWhileBusy} is set).
+	 */
+	continue(): void;
+
+	// #endregion Public Methods (4)
 }

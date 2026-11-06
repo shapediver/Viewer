@@ -57,7 +57,9 @@ export interface IInteractionParameterProps {
 	 * This is not session-level `ISessionApi.automaticSceneUpdate`, which
 	 * controls whether the session scene tree node is replaced after customize.
 	 *
-	 * Used by gumball, rectangle transform, and dragging. Selection ignores it.
+	 * Used by gumball and rectangle transform (the drawing parameter has the
+	 * same setting in its behavior settings). Selection and dragging ignore it.
+	 * App Builder applies it only for always active tools (`activeMode: "alwaysActive"`).
 	 *
 	 * @default false
 	 */
@@ -66,7 +68,7 @@ export interface IInteractionParameterProps {
 	 * Idle timeout in milliseconds before {@link automaticSceneUpdate} requests
 	 * a customization. Reset on each committed handle move.
 	 *
-	 * @default 1000
+	 * @default 500
 	 */
 	automaticSceneUpdateTimeout?: number;
 	/** When true, interactions are blocked by non-interactive solid geometry in front of the target. (default: false) */
@@ -261,6 +263,7 @@ export const IRectangleTransformParameterPropsJsonSchema = z
 		enableRotation: optionalBoolean,
 		enableScaling: optionalBoolean,
 		enableTranslation: optionalBoolean,
+		exclusive: optionalBoolean,
 		nameFilter: z.array(z.string()).nullable().optional(),
 		selectionColor: interactionEffectSchema.optional(),
 		availableColor: interactionEffectSchema.optional(),
@@ -333,7 +336,25 @@ export const IRectangleTransformParameterPropsJsonSchema = z
 
 export const IRectangleTransformParameterJsonSchema = z.object({
 	type: z.literal("rectangleTransform"),
-	props: IRectangleTransformParameterPropsJsonSchema,
+	// the props schema stays an object schema so that it can be extended
+	props: IRectangleTransformParameterPropsJsonSchema.superRefine(
+		(props, ctx) => {
+			const exclusive =
+				props.activeMode === "alwaysActive" && props.exclusive === true;
+			if (
+				exclusive &&
+				props.maximumSelection !== undefined &&
+				props.maximumSelection !== null &&
+				props.maximumSelection !== 1
+			)
+				ctx.addIssue({
+					code: "custom",
+					path: ["maximumSelection"],
+					message:
+						"maximumSelection must be omitted, null or 1 for an exclusive rectangle transform.",
+				});
+		},
+	),
 });
 
 export const IDraggingParameterPropsJsonSchema = z
