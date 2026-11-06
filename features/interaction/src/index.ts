@@ -92,6 +92,7 @@ import {
 import {
 	type IInteractionEngine,
 	INTERACTION_STATE,
+	type PointerClaim,
 } from "./interfaces/IInteractionEngine";
 import {
 	type IInteractionFilterOptions,
@@ -184,6 +185,7 @@ export type {
 	NodeNameFilterPattern,
 	OutputNodeNameFilterPatterns,
 	PlaneRestrictionProperties,
+	PointerClaim,
 	PointRestrictionProperties,
 	RestrictionDefinition,
 	RestrictionMetaData,

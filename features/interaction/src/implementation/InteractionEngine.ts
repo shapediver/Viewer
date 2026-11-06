@@ -1,8 +1,13 @@
 import {type IViewportApi, sceneTree} from "@shapediver/viewer";
 import {
+	IntersectionEngine,
 	RaycasterParameters,
 	SelectionBox} from "@shapediver/viewer.rendering-engine.intersection-engine";
 import {Box} from "@shapediver/viewer.shared.math";
+import {
+	GeometryData,
+	type ITreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
@@ -10,6 +15,7 @@ import {
 	UuidGenerator} from "@shapediver/viewer.shared.services";
 import {
 	FLAG_TYPE,
+	type IIntersectionDefinition,
 	type IIntersectionFilter,
 	type IRay,
 	type IRayTracingIntersection,
@@ -19,10 +25,33 @@ import {
 
 import {
 	type IInteractionEngine,
-	INTERACTION_STATE} from "../interfaces/IInteractionEngine";
+	INTERACTION_STATE,
+	type PointerClaim} from "../interfaces/IInteractionEngine";
 import {type IInteractionManager} from "../interfaces/IInteractionManager";
 import {IntersectionManager} from "./IntersectionManager";
 import {MultiSelectManager} from "./managers/MultiSelectManager";
+
+// distances closer than this count as a tie
+const EPSILON = 1e-4;
+
+type PointerClaimEntry = {
+	claim: (event: PointerEvent, ray: IRay) => PointerClaim;
+	owner?: InteractionEngine;
+};
+
+/** The claims of one pointer event, shared by the engines of the viewport. */
+type PointerClaimDecision = {
+	// the owners of the claims which returned true
+	unconditionalOwners: (InteractionEngine | undefined)[];
+	// the owners of the claims which returned a distance
+	distanceOwners: Set<InteractionEngine | undefined>;
+	closestClaimDistance: number;
+	// the closest distance claim, undefined if an engine without a distance
+	// claim has a closer candidate
+	winner?: PointerClaimEntry;
+	// the closest candidate of each engine without a distance claim
+	candidateDistances: Map<InteractionEngine, number>;
+};
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export interface IInteractionEngineProperties {
@@ -72,13 +101,16 @@ export class InteractionEngine implements IInteractionEngine {
 	 * selection would toggle that mesh off on the same click that should drag
 	 * the handle. A claim that returns true consumes pointerdown for this
 	 * viewport's interaction managers; the drawing tool still receives it.
+	 * A claim that returns a distance only wins over farther candidates.
 	 */
 	static readonly #pointerDownClaims = new Map<
 		string,
-		Set<{
-			claim: (event: PointerEvent) => boolean;
-			owner?: InteractionEngine;
-		}>
+		Set<PointerClaimEntry>
+	>();
+	static readonly #engines = new Map<string, Set<InteractionEngine>>();
+	static readonly #claimDecisions = new WeakMap<
+		PointerEvent,
+		PointerClaimDecision
 	>();
 
 	#boxSelectionActive: boolean = false;
@@ -107,6 +139,12 @@ export class InteractionEngine implements IInteractionEngine {
 	// following pointerout is ignored too
 	readonly #outAfterUpPointers = new Set<number>();
 	#pointerDownClaimed: boolean = false;
+	// the intersections of the managers for the latest pointer event, shared
+	// by the claim decision and the delivery to the managers
+	#intersectionCache?: {
+		event: PointerEvent;
+		lists: {[key: string]: IIntersectionDefinition[]};
+	};
 	#intersectionOpacity: number = 0.01;
 	#lineIntersectionPercentage: number = 0.025;
 	#pointIntersectionPercentage: number = 0.025;
@@ -122,6 +160,12 @@ export class InteractionEngine implements IInteractionEngine {
 		this.#canvasEventListenerToken =
 			this.#viewport.addCanvasEventListener(this);
 		this.#selectionBox = new SelectionBox(this.#viewport.canvas);
+		let engines = InteractionEngine.#engines.get(this.#viewport.id);
+		if (!engines) {
+			engines = new Set();
+			InteractionEngine.#engines.set(this.#viewport.id, engines);
+		}
+		engines.add(this);
 		window.addEventListener("pointerdown", this.#onWindowPointerDown, true);
 		window.addEventListener("pointerup", this.#onWindowPointerEnd);
 		window.addEventListener("pointercancel", this.#onWindowPointerEnd);
@@ -256,6 +300,11 @@ export class InteractionEngine implements IInteractionEngine {
 		);
 		window.removeEventListener("pointerup", this.#onWindowPointerEnd);
 		window.removeEventListener("pointercancel", this.#onWindowPointerEnd);
+		const engines = InteractionEngine.#engines.get(this.#viewport.id);
+		engines?.delete(this);
+		if (engines?.size === 0)
+			InteractionEngine.#engines.delete(this.#viewport.id);
+		this.#intersectionCache = undefined;
 		this.#closed = true;
 	}
 
@@ -335,17 +384,25 @@ export class InteractionEngine implements IInteractionEngine {
 	}
 
 	/**
-	 * Register a pointer claim for one viewport. While `claim` returns true,
-	 * interaction managers on that viewport do not see the pointerdown, and
-	 * see no intersections on pointermove (so nothing behind is hovered).
-	 * Drawing tools use this so a handle in front of a mesh wins the pointer.
+	 * Register a pointer claim for one viewport. While the pointer is
+	 * claimed, interaction managers on that viewport do not see the
+	 * pointerdown (nor the end of that gesture), and see no intersections on
+	 * pointermove (so nothing behind is hovered).
+	 *
+	 * `claim` returns a {@link PointerClaim}: `true` claims the pointer
+	 * regardless of depth. Drawing tools use this so a handle drawn in screen
+	 * space wins the pointer over a mesh in front of it. A distance claims the
+	 * pointer only if no engine of the viewport has a closer candidate (e.g.
+	 * the drag plane of a rectangle transform loses against an object in
+	 * front of it); the closest distance claim wins over the others.
+	 *
 	 * A claim made for an `owner` engine does not apply to that engine: its
-	 * own managers keep seeing the pointer (e.g. the drag plane of the
-	 * rectangle transform wins over the selection of the object behind it).
+	 * own managers keep seeing the pointer, unless the claim loses against a
+	 * closer candidate or against a claim of another owner.
 	 */
 	public static addPointerDownClaim(
 		viewportId: string,
-		claim: (event: PointerEvent) => boolean,
+		claim: (event: PointerEvent, ray: IRay) => PointerClaim,
 		owner?: InteractionEngine,
 	): () => void {
 		let claims = InteractionEngine.#pointerDownClaims.get(viewportId);
@@ -372,11 +429,15 @@ export class InteractionEngine implements IInteractionEngine {
 			return;
 		}
 		this.#interruptedPointers.delete(event.pointerId);
+		const ray = this.#viewport.pointerEventToRay(event);
 		// a claimed pointerdown consumes the whole gesture: managers selecting
 		// on pointerup must not see its end either
-		this.#pointerDownClaimed = this.isPointerClaimed(event);
+		this.#pointerDownClaimed = this.isPointerClaimed(
+			event,
+			ray,
+			INTERACTION_STATE.DOWN,
+		);
 		if (this.#pointerDownClaimed) return;
-		const ray = this.#viewport.pointerEventToRay(event);
 		this.onDown(event, ray);
 	}
 
@@ -399,7 +460,7 @@ export class InteractionEngine implements IInteractionEngine {
 		this.#outAfterUpPointers.delete(event.pointerId);
 		if (this.#paused) return;
 		const ray = this.#viewport.pointerEventToRay(event);
-		if (this.isPointerClaimed(event)) {
+		if (this.isPointerClaimed(event, ray, INTERACTION_STATE.MOVE)) {
 			for (const m in this.#managers)
 				this.#managers[m].onMove(event, ray, []);
 			return;
@@ -458,16 +519,201 @@ export class InteractionEngine implements IInteractionEngine {
 		return this.#interruptedPointers.delete(pointerId);
 	}
 
-	private isPointerClaimed(event: PointerEvent): boolean {
+	/**
+	 * The distance of the closest hit of the ray with the geometry of the
+	 * nodes, Infinity if none is hit. A claim can report it as its distance
+	 * (see {@link addPointerDownClaim}).
+	 */
+	public closestHitDistance(ray: IRay, nodes: ITreeNode[]): number {
+		let closest = Infinity;
+		for (const node of nodes) {
+			const geometryData: {[key: string]: GeometryData} = {};
+			node.traverseData((data) => {
+				if (data instanceof GeometryData)
+					geometryData[`${data.id}_${data.version}`] = data;
+			});
+			const hits = IntersectionEngine.instance.intersectNode(
+				ray,
+				node,
+				geometryData,
+				this.#viewport.id,
+				undefined,
+				this.#rayCasterParams,
+			);
+			if (hits && hits.length > 0)
+				closest = Math.min(closest, hits[0].distance);
+		}
+		return closest;
+	}
+
+	private isPointerClaimed(
+		event: PointerEvent,
+		ray: IRay,
+		state: INTERACTION_STATE,
+	): boolean {
+		const decision = this.pointerClaimDecision(event, ray, state);
+		if (!decision) return false;
+		const {unconditionalOwners, distanceOwners} = decision;
+		if (unconditionalOwners.some((owner) => owner !== this)) return true;
+		if (unconditionalOwners.includes(this)) return false;
+		if (distanceOwners.has(this)) return decision.winner?.owner !== this;
+		if (!decision.winner) return false;
+		const distance = decision.candidateDistances.get(this) ?? Infinity;
+		return decision.closestClaimDistance <= distance + EPSILON;
+	}
+
+	/**
+	 * Evaluate the claims of the viewport once per pointer event, so that all
+	 * engines of the viewport agree which one receives it.
+	 */
+	private pointerClaimDecision(
+		event: PointerEvent,
+		ray: IRay,
+		state: INTERACTION_STATE,
+	): PointerClaimDecision | undefined {
 		const claims = InteractionEngine.#pointerDownClaims.get(
 			this.#viewport.id,
 		);
-		if (!claims) return false;
-		for (const {claim, owner} of claims) {
-			if (owner === this) continue;
-			if (claim(event)) return true;
+		if (!claims) return;
+		const cached = InteractionEngine.#claimDecisions.get(event);
+		if (cached) return cached;
+
+		const decision: PointerClaimDecision = {
+			unconditionalOwners: [],
+			distanceOwners: new Set(),
+			closestClaimDistance: Infinity,
+			candidateDistances: new Map(),
+		};
+		for (const entry of claims) {
+			const result = entry.claim(event, ray);
+			if (result === true) {
+				decision.unconditionalOwners.push(entry.owner);
+			} else if (typeof result === "number") {
+				decision.distanceOwners.add(entry.owner);
+				// on a tie, the claim registered first wins
+				if (result < decision.closestClaimDistance - EPSILON) {
+					decision.closestClaimDistance = result;
+					decision.winner = entry;
+				}
+			}
 		}
-		return false;
+
+		if (decision.winner && decision.unconditionalOwners.length === 0) {
+			const engines =
+				InteractionEngine.#engines.get(this.#viewport.id) ?? [];
+			for (const engine of engines) {
+				if (decision.distanceOwners.has(engine)) continue;
+				const distance = engine.closestCandidateDistance(
+					event,
+					ray,
+					state,
+				);
+				decision.candidateDistances.set(engine, distance);
+				if (distance < decision.closestClaimDistance - EPSILON)
+					decision.winner = undefined;
+			}
+		}
+
+		InteractionEngine.#claimDecisions.set(event, decision);
+		return decision;
+	}
+
+	/**
+	 * The distance of the closest intersection which one of the managers
+	 * would act on, Infinity if there is none.
+	 */
+	private closestCandidateDistance(
+		event: PointerEvent,
+		ray: IRay,
+		state: INTERACTION_STATE,
+	): number {
+		if (this.#closed || this.#paused) return Infinity;
+		// a box selection does not intersect along the ray
+		const boxSelection =
+			state === INTERACTION_STATE.DOWN
+				? Object.values(this.#managers).some(
+						(m) => m.boxSelectionActive,
+					)
+				: this.#boxSelectionActive;
+		if (boxSelection) return Infinity;
+
+		const lists = this.managerIntersections(ray, [state], event);
+		let closest = Infinity;
+		for (const m in this.#managers) {
+			const filter = this.#managers[m].filter(state);
+			const hit = lists[m].find(
+				(i) => i.type === "RayTracingIntersection" && filter(i.node),
+			) as IRayTracingIntersection | undefined;
+			if (hit) closest = Math.min(closest, hit.distance);
+		}
+		return closest;
+	}
+
+	/**
+	 * Intersect the scene with the filters of all managers for the given
+	 * states, the result is the list of intersections per manager (without
+	 * the ones occluded by scene geometry for managers using
+	 * occludeBySceneGeometry).
+	 *
+	 * @param event cache the result for this pointer event
+	 */
+	private managerIntersections(
+		ray: IRay,
+		states: INTERACTION_STATE[],
+		event?: PointerEvent,
+		selectionBox?: SelectionBox,
+	): {[key: string]: IIntersectionDefinition[]} {
+		const cache = this.#intersectionCache;
+		if (
+			event &&
+			!selectionBox &&
+			cache?.event === event &&
+			Object.keys(this.#managers).every((m) => cache.lists[m])
+		)
+			return cache.lists;
+
+		const filters: IIntersectionFilter[] = [];
+		for (const state of states)
+			for (const m in this.#managers)
+				filters.push(this.#managers[m].filter(state));
+
+		const intersections =
+			this.#intersectionManager.intersect(
+				ray,
+				this.#viewport.id,
+				filters,
+				{
+					selectionBox,
+					rayCasterParams: this.#rayCasterParams,
+				},
+			) || [];
+
+		const needsOcclusion = Object.values(this.#managers).some(
+			(m) => m.occludeBySceneGeometry,
+		);
+		const occluderDist = needsOcclusion
+			? this.#intersectionManager.closestSceneGeometryDistance(
+					ray,
+					this.#viewport.id,
+					this.#rayCasterParams,
+					this.#intersectionOpacity,
+				)
+			: Infinity;
+		const lists: {[key: string]: IIntersectionDefinition[]} = {};
+		for (const m in this.#managers) {
+			lists[m] =
+				this.#managers[m].occludeBySceneGeometry &&
+				occluderDist < Infinity
+					? intersections.filter(
+							(i) =>
+								(i as IRayTracingIntersection).distance <=
+								occluderDist + EPSILON,
+						)
+					: intersections;
+		}
+
+		if (event && !selectionBox) this.#intersectionCache = {event, lists};
+		return lists;
 	}
 
 	public removeInteractionManager(token: string): boolean {
@@ -488,10 +734,6 @@ export class InteractionEngine implements IInteractionEngine {
 	 * @param ray
 	 */
 	private onDown(event: PointerEvent, ray: IRay): void {
-		const filters: IIntersectionFilter[] = [];
-		for (const m in this.#managers)
-			filters.push(this.#managers[m].filter(INTERACTION_STATE.DOWN));
-
 		// here we need to check if the box selection is active in any manager
 		const boxSelectionActive = Object.values(this.#managers).some(
 			(m) => m.boxSelectionActive,
@@ -509,43 +751,14 @@ export class InteractionEngine implements IInteractionEngine {
 			);
 		}
 
-		const intersections =
-			this.#intersectionManager.intersect(
-				ray,
-				this.#viewport.id,
-				filters,
-				{
-					selectionBox: this.#boxSelectionActive
-						? this.#selectionBox
-						: undefined,
-					rayCasterParams: this.#rayCasterParams,
-				},
-			) || [];
-
-		const needsOcclusion = Object.values(this.#managers).some(
-			(m) => m.occludeBySceneGeometry,
+		const lists = this.managerIntersections(
+			ray,
+			[INTERACTION_STATE.DOWN],
+			event,
+			this.#boxSelectionActive ? this.#selectionBox : undefined,
 		);
-		const occluderDist = needsOcclusion
-			? this.#intersectionManager.closestSceneGeometryDistance(
-					ray,
-					this.#viewport.id,
-					this.#rayCasterParams,
-					this.#intersectionOpacity,
-				)
-			: Infinity;
-		const EPSILON = 1e-4;
-		for (const m in this.#managers) {
-			const list =
-				this.#managers[m].occludeBySceneGeometry &&
-				occluderDist < Infinity
-					? intersections.filter(
-							(i) =>
-								(i as IRayTracingIntersection).distance <=
-								occluderDist + EPSILON,
-						)
-					: intersections;
-			this.#managers[m].onDown(event, ray, list);
-		}
+		for (const m in this.#managers)
+			this.#managers[m].onDown(event, ray, lists[m]);
 	}
 
 	/**
@@ -559,54 +772,18 @@ export class InteractionEngine implements IInteractionEngine {
 		ray: IRay,
 		endState: INTERACTION_STATE,
 	): void {
-		const filters: IIntersectionFilter[] = [];
-		for (const m in this.#managers)
-			filters.push(this.#managers[m].filter(endState));
-
-		for (const m in this.#managers)
-			filters.push(this.#managers[m].filter(INTERACTION_STATE.END));
-
 		if (this.#boxSelectionActive) {
 			this.#selectionBox.onEnd(event);
 		}
 
-		const intersections =
-			this.#intersectionManager.intersect(
-				ray,
-				this.#viewport.id,
-				filters,
-				{
-					selectionBox: this.#boxSelectionActive
-						? this.#selectionBox
-						: undefined,
-					rayCasterParams: this.#rayCasterParams,
-				},
-			) || [];
-
-		const needsOcclusionEnd = Object.values(this.#managers).some(
-			(m) => m.occludeBySceneGeometry,
+		const lists = this.managerIntersections(
+			ray,
+			[endState, INTERACTION_STATE.END],
+			undefined,
+			this.#boxSelectionActive ? this.#selectionBox : undefined,
 		);
-		const occluderDistEnd = needsOcclusionEnd
-			? this.#intersectionManager.closestSceneGeometryDistance(
-					ray,
-					this.#viewport.id,
-					this.#rayCasterParams,
-					this.#intersectionOpacity,
-				)
-			: Infinity;
-		const EPSILON_END = 1e-4;
-		for (const m in this.#managers) {
-			const list =
-				this.#managers[m].occludeBySceneGeometry &&
-				occluderDistEnd < Infinity
-					? intersections.filter(
-							(i) =>
-								(i as IRayTracingIntersection).distance <=
-								occluderDistEnd + EPSILON_END,
-						)
-					: intersections;
-			this.#managers[m].onEnd(event, ray, list, endState);
-		}
+		for (const m in this.#managers)
+			this.#managers[m].onEnd(event, ray, lists[m], endState);
 
 		if (this.#boxSelectionActive) {
 			this.#viewport.removeFlag(this.#cameraFreezeFlag!);
@@ -623,10 +800,6 @@ export class InteractionEngine implements IInteractionEngine {
 	 * @param ray
 	 */
 	private onMove(event: PointerEvent, ray: IRay): void {
-		const filters: IIntersectionFilter[] = [];
-		for (const m in this.#managers)
-			filters.push(this.#managers[m].filter(INTERACTION_STATE.MOVE));
-
 		if (this.#boxSelectionActive) {
 			// update box selection
 			this.#selectionBox.onMove(
@@ -640,43 +813,14 @@ export class InteractionEngine implements IInteractionEngine {
 			);
 		}
 
-		const intersections =
-			this.#intersectionManager.intersect(
-				ray,
-				this.#viewport.id,
-				filters,
-				{
-					selectionBox: this.#boxSelectionActive
-						? this.#selectionBox
-						: undefined,
-					rayCasterParams: this.#rayCasterParams,
-				},
-			) || [];
-
-		const needsOcclusionMove = Object.values(this.#managers).some(
-			(m) => m.occludeBySceneGeometry,
+		const lists = this.managerIntersections(
+			ray,
+			[INTERACTION_STATE.MOVE],
+			event,
+			this.#boxSelectionActive ? this.#selectionBox : undefined,
 		);
-		const occluderDistMove = needsOcclusionMove
-			? this.#intersectionManager.closestSceneGeometryDistance(
-					ray,
-					this.#viewport.id,
-					this.#rayCasterParams,
-					this.#intersectionOpacity,
-				)
-			: Infinity;
-		const EPSILON_MOVE = 1e-4;
-		for (const m in this.#managers) {
-			const list =
-				this.#managers[m].occludeBySceneGeometry &&
-				occluderDistMove < Infinity
-					? intersections.filter(
-							(i) =>
-								(i as IRayTracingIntersection).distance <=
-								occluderDistMove + EPSILON_MOVE,
-						)
-					: intersections;
-			this.#managers[m].onMove(event, ray, list);
-		}
+		for (const m in this.#managers)
+			this.#managers[m].onMove(event, ray, lists[m]);
 	}
 
 	private updateIntersectionThresholds(): void {
