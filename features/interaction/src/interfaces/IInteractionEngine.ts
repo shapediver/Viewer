@@ -98,5 +98,20 @@ export interface IInteractionEngine extends IDomEventListener {
 	 */
 	continue(): void;
 
+	/**
+	 * Continue a gesture whose pointerdown this engine did not receive (e.g.
+	 * the engine was created by that press): its moves and its end reach the
+	 * managers, like for a gesture started on the canvas.
+	 * @returns false if the pointer is not pressed anymore.
+	 */
+	continueGesture(event: PointerEvent): boolean;
+
+	/**
+	 * Whether the managers of this engine receive the pointerdown, i.e. it is
+	 * not claimed by another engine or tool (see
+	 * `InteractionEngine.addPointerDownClaim`).
+	 */
+	receivesPointerDown(event: PointerEvent): boolean;
+
 	// #endregion Public Methods (4)
 }

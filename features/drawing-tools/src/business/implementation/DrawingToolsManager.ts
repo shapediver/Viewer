@@ -77,6 +77,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	readonly #busyModeTokens: string[] = [];
 	#uuid = this.#uuidGenerator.create();
 	#automaticSceneUpdateTimeoutId?: ReturnType<typeof setTimeout>;
+	#pointerDownFilter?: (event: PointerEvent) => boolean;
 
 	// Scratch vec3s reused across hot-path calls to avoid per-frame allocation.
 	#scratchVec3_constraintMin: vec3 = vec3.create();
@@ -204,6 +205,18 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 	public set pauseWhileBusy(value: boolean) {
 		this.#pauseWhileBusy = value;
 		this.updatePauseState();
+	}
+
+	public get pointerDownFilter():
+		| ((event: PointerEvent) => boolean)
+		| undefined {
+		return this.#pointerDownFilter;
+	}
+
+	public set pointerDownFilter(
+		value: ((event: PointerEvent) => boolean) | undefined,
+	) {
+		this.#pointerDownFilter = value;
 	}
 
 	public get defaultTextures(): DefaultTextures {
@@ -697,6 +710,7 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 
 	public onDown(event: PointerEvent, ray: IRay): void {
 		if (this.closed || this.#paused) return;
+		if (this.#pointerDownFilter && !this.#pointerDownFilter(event)) return;
 		this.#geometryMathManager.localToWorldMatrix =
 			this.#sceneParent.worldMatrix;
 		this.#interactionManager.onDown(
@@ -717,6 +731,17 @@ export class DrawingToolsManager implements IDrawingToolsManager {
 			this.#interactionManager.controlsManager?.isDraggingControl
 		)
 			return true;
+		if (this.#pointerDownFilter && !this.#pointerDownFilter(event))
+			return false;
+		return this.hitsPointer(event);
+	}
+
+	/**
+	 * True when a point or control of this tool is under the pointer, see
+	 * {@link #claimsPointerDown}.
+	 */
+	public hitsPointer(event: PointerEvent): boolean {
+		if (this.#closed || this.#paused) return false;
 		const ray = this.#viewport.pointerEventToRay(event);
 		this.#geometryMathManager.localToWorldMatrix =
 			this.#sceneParent.worldMatrix;

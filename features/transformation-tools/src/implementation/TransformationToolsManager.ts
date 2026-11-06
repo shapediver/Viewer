@@ -29,13 +29,13 @@ import {
 
 export abstract class TransformationToolsManager implements ITransformationToolsManager {
 	readonly #eventEngine: EventEngine = EventEngine.instance;
-	readonly #id: string;
+	#id: string;
 	readonly #keysPressed: {[key: string]: boolean} = {};
 	readonly #matrixId: string = "SD_transformation_tools_matrix";
 	readonly #nodes: ITreeNode[] = [];
 	readonly #parentObject: THREE.Object3D = new THREE.Object3D();
 	readonly #restrictionManager?: IRestrictionManager;
-	readonly #singleNode: boolean;
+	#singleNode: boolean;
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 	readonly #viewport: IViewportApi;
 
@@ -144,7 +144,9 @@ export abstract class TransformationToolsManager implements ITransformationTools
 	}
 
 	public set show(value: boolean) {
+		if (this.#show === value) return;
 		this.#show = value;
+		if (!this.#closed) this.showLogic(value);
 	}
 
 	protected get canvasEventListenerToken(): string {
@@ -300,6 +302,12 @@ export abstract class TransformationToolsManager implements ITransformationTools
 
 	public onMouseWheel(event: WheelEvent): void {}
 
+	public onPointerCancel(event: PointerEvent): void {
+		if (this.closed || this.#paused) return;
+
+		this.onPointerCancelLogic(event);
+	}
+
 	public onPointerDown(event: PointerEvent): void {
 		if (this.closed || this.#paused) return;
 
@@ -361,6 +369,29 @@ export abstract class TransformationToolsManager implements ITransformationTools
 	 * Called by {@link continue}.
 	 */
 	protected continueLogic(): void {}
+
+	/**
+	 * Called when {@link show} changes.
+	 */
+	protected showLogic(_show: boolean): void {}
+
+	/** Change the id reported by the events of this instance. */
+	protected changeId(id: string): void {
+		this.#id = id;
+	}
+
+	/**
+	 * Replace the transformed nodes, the implementation places itself on them
+	 * again (see {@link initialize}).
+	 */
+	protected replaceNodes(nodes: ITreeNode[]): void {
+		this.#nodes.splice(0, this.#nodes.length, ...nodes);
+		this.#singleNode = nodes.length === 1;
+		this.#previousTransformationToolsMatrix = [];
+		this.#initialTransform = [];
+		this.#instanceTransform = [];
+		this.#initialOffset = vec3.create();
+	}
 
 	protected getMatrix(previousMatrix: mat4, instanceMatrix: mat4): mat4 {
 		const placeholderMatrix = mat4.copy(
@@ -622,6 +653,8 @@ export abstract class TransformationToolsManager implements ITransformationTools
 		_event: KeyboardEvent,
 		_pointerInCanvas: boolean,
 	): void {}
+
+	protected onPointerCancelLogic(_event: PointerEvent): void {}
 
 	protected onPointerDownLogic(_event: PointerEvent): void {}
 

@@ -14,6 +14,7 @@ import {
 import {
 	EventEngine,
 	EVENTTYPE_DRAWING_TOOLS,
+	EVENTTYPE_TRANSFORMATION_TOOLS,
 	Logger,
 } from "@shapediver/viewer.shared.services";
 
@@ -23,6 +24,10 @@ import {
 	type IRectangleTransform,
 	type RectangleTransformSettingsOptional,
 } from "../../interfaces/rectangleTransform/IRectangleTransform";
+import {
+	type IRectangleTransformGestureEvent,
+	type IRectangleTransformHoverEvent,
+} from "../../interfaces/rectangleTransform/IRectangleTransformEvents";
 import {TransformationToolsManager} from "../TransformationToolsManager";
 import {type IRectangleTransformHandler} from "./IRectangleTransformHandler";
 import {RectangleTransformRotationHandler} from "./RectangleTransformRotationHandler";
@@ -33,9 +38,20 @@ export class RectangleTransform
 	extends TransformationToolsManager
 	implements IRectangleTransform
 {
+	// the rectangle transforms of each viewport, a preview gives a press to
+	// the others (see RectangleTransformSettings.preview)
+	static readonly #instances: Map<string, Set<RectangleTransform>> =
+		new Map();
+
 	readonly #currentTransformationMatrix: mat4 = mat4.create();
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #plane: Plane;
+	// the plane before it is aligned with the nodes, see setNodes
+	readonly #basePlane: {constant: number; vector_u: vec3; vector_v: vec3};
+	readonly #otherTransformHits: WeakMap<PointerEvent, boolean> =
+		new WeakMap();
+	#preview: boolean;
+	#pointerOver: boolean = false;
 
 	// Parent node shared by all drawing-tool instances. Its local transform
 	// represents the accumulated plane-to-WS + rotation + translation, so DT
@@ -158,6 +174,19 @@ export class RectangleTransform
 				planeRestriction.origin!,
 			),
 		);
+		this.#basePlane = {
+			constant: this.#plane.constant,
+			vector_u: vec3.clone(this.#plane.vector_u),
+			vector_v: vec3.clone(this.#plane.vector_v),
+		};
+		this.#preview = this.settings?.preview ?? false;
+
+		let instances = RectangleTransform.#instances.get(viewport.id);
+		if (!instances) {
+			instances = new Set();
+			RectangleTransform.#instances.set(viewport.id, instances);
+		}
+		instances.add(this);
 
 		this.init();
 
@@ -181,6 +210,119 @@ export class RectangleTransform
 		return "rectangleTransform";
 	}
 
+	public get preview(): boolean {
+		return this.#preview;
+	}
+
+	public containsPointer(event: PointerEvent): boolean {
+		if (this.closed || !this.show) return false;
+		if (this.handleHitsPointer(event)) return true;
+		const ray = this.viewport.pointerEventToRay(event);
+		if (
+			(this.#translationHandler?.objectDistance(ray) ?? Infinity) <
+			Infinity
+		)
+			return true;
+
+		// the rectangle and the gap up to the rotation handle, in the space of
+		// the drawing tools (the rectangle lies at z = 0)
+		const toLS = mat4.invert(
+			mat4.create(),
+			this.#dtParentTransformation.matrix,
+		);
+		if (!toLS) return false;
+		const origin = vec3.transformMat4(vec3.create(), ray.origin, toLS);
+		const direction = vec3.sub(
+			vec3.create(),
+			vec3.transformMat4(
+				vec3.create(),
+				vec3.add(vec3.create(), ray.origin, ray.direction),
+				toLS,
+			),
+			origin,
+		);
+		if (Math.abs(direction[2]) < 1e-12) return false;
+		const t = -origin[2] / direction[2];
+		if (t < 0) return false;
+		const u = origin[0] + t * direction[0];
+		const v = origin[1] + t * direction[1];
+		const us = this.#localPoints.map((p) => p[0]);
+		const vs = this.#localPoints.map((p) => p[1]);
+		const minV = Math.min(...vs);
+		const maxV = Math.max(...vs);
+		const gap = this.#rotationHandler
+			? (maxV - minV) * (this.settings?.rotation?.handleDistance ?? 0.25)
+			: 0;
+		return (
+			u >= Math.min(...us) &&
+			u <= Math.max(...us) &&
+			v >= minV &&
+			v <= maxV + gap
+		);
+	}
+
+	public hitsPointer(event: PointerEvent): boolean {
+		if (this.closed || this.paused || !this.show) return false;
+		return (
+			this.handleHitsPointer(event) ||
+			(this.#translationHandler?.hitsPointer(event) ?? false)
+		);
+	}
+
+	public promote(id: string): void {
+		if (this.closed) return;
+		this.changeId(id);
+		this.#preview = false;
+		this.#pointerOver = false;
+	}
+
+	public setNodes(
+		nodes: ITreeNode[],
+		restrictions?: Partial<{[key: string]: RestrictionProperties}>,
+	): void {
+		if (this.closed) return;
+		this.cancelGesture();
+		this.replaceNodes(nodes);
+		this.#plane.constant = this.#basePlane.constant;
+		this.#plane.vector_u = vec3.clone(this.#basePlane.vector_u);
+		this.#plane.vector_v = vec3.clone(this.#basePlane.vector_v);
+		this.#plane.normal = vec3.normalize(
+			vec3.create(),
+			vec3.cross(
+				vec3.create(),
+				this.#plane.vector_u,
+				this.#plane.vector_v,
+			),
+		);
+		const translationRestrictions = restrictions
+			? this.translationRestrictions(restrictions)
+			: undefined;
+
+		this.placeOnNodes();
+		this.#scalingHandler?.recompute(this.#localPoints, false);
+		this.#localPoints =
+			this.#scalingHandler?.readbackConstrainedPoints() ??
+			this.#localPoints;
+		this.#rotationHandler?.reset(this.#localPoints);
+		if (this.#translationHandler)
+			this.#translationHandler.reset(
+				this.#localPoints,
+				restrictions
+					? translationRestrictions
+					: this.#translationHandler.restrictions,
+			);
+		this.#dtParentNode.updateVersion();
+		this.commitInitialPlacement();
+		// cancelGesture paused the handlers
+		if (!this.paused && this.show) this.continueHandlers();
+		this.viewport.render();
+	}
+
+	public startTranslation(event: PointerEvent): boolean {
+		if (this.closed || this.paused || !this.show) return false;
+		return this.#translationHandler?.startDrag(event, true) ?? false;
+	}
+
 	private get committedTranslation(): vec3 {
 		return this.#translationHandler?.committedTranslation ?? vec3.create();
 	}
@@ -197,43 +339,96 @@ export class RectangleTransform
 
 		sceneTree.root.removeChild(this.#dtParentNode);
 		sceneTree.root.updateVersion(false, false);
+
+		const instances = RectangleTransform.#instances.get(this.viewport.id);
+		instances?.delete(this);
+		if (instances?.size === 0)
+			RectangleTransform.#instances.delete(this.viewport.id);
 	}
 
 	protected pauseLogic(): void {
 		// Cancel a gesture in progress: the rectangle returns to its last
 		// committed state. The temporary state is replaced without reporting a
 		// matrix change (the committed state is the reported one).
-		// (only a gesture which was not committed, e.g. by a pointer out, has
-		// a temporary transformation)
-		const rotationStart = this.#rotationHandler?.cancelGesture();
-		if (this.#hasPendingTemporaryTransform) {
-			if (rotationStart) this.#localPoints = rotationStart;
-			else if (this.#isDTDragging && this.#localPointsAtDTDragStart)
-				this.#localPoints = this.#localPointsAtDTDragStart;
-		}
-		this.#localPointsAtDTDragStart = undefined;
-		this.#isDTDragging = false;
-		// the drawing tools reset a point drag in progress, the translation
-		// returns to the committed translation
-		this.#scalingHandler?.drawingTools.pause();
-		this.#rotationHandler?.drawingTools.pause();
-		this.#translationHandler?.pause();
-		if (!this.#hasPendingTemporaryTransform) return;
-		this.applyAccumulatedTransform(this.committedTranslation, false);
-		for (const handler of this.#handlers)
-			handler?.recompute(this.#localPoints, false);
-		this.#dtParentNode.updateVersion();
-		this.calculateTransformationMatrix(this.#localPoints, false);
-		this.#hasPendingTemporaryTransform = false;
+		this.cancelGesture();
 	}
 
 	protected continueLogic(): void {
+		if (!this.show) return;
+		this.continueHandlers();
+	}
+
+	private continueHandlers(): void {
 		this.#scalingHandler?.drawingTools.continue();
 		this.#rotationHandler?.drawingTools.continue();
 		this.#translationHandler?.continue();
 	}
 
-	protected onPointerOutLogic(_event: PointerEvent): void {
+	protected showLogic(show: boolean): void {
+		this.#pointerOver = show;
+		if (show) {
+			if (!this.paused) this.continueHandlers();
+		} else {
+			this.cancelGesture();
+		}
+		this.#dtParentNode.visible = show;
+		this.#dtParentNode.updateVersion();
+		sceneTree.root.updateVersion(false, false);
+		this.viewport.render();
+	}
+
+	protected onPointerDownLogic(event: PointerEvent): void {
+		if (!this.show) return;
+		let target: "handle" | "plane" | "object" | undefined;
+		if (
+			this.handleHitsPointer(event) &&
+			(!this.#preview || !this.otherTransformHitsPointer(event))
+		)
+			target = "handle";
+		else target = this.#translationHandler?.pointerDownTarget(event);
+		if (!target) return;
+
+		const gestureEvent: IRectangleTransformGestureEvent = {
+			viewportId: this.viewport.id,
+			id: this.id,
+			type: this.type,
+			nodes: [...this.nodes],
+			target: target === "handle" ? "handle" : "plane",
+			event,
+		};
+		this.#eventEngine.emitEvent(
+			EVENTTYPE_TRANSFORMATION_TOOLS.GESTURE_START,
+			gestureEvent,
+		);
+		// a listener may have closed or hidden this rectangle transform
+		if (target === "object" && !this.closed && !this.paused && this.show)
+			this.#translationHandler?.startDrag(event, false);
+	}
+
+	protected onPointerCancelLogic(): void {
+		// the translation is cancelled by its interaction engine, a scaling or
+		// rotation gesture returns to its start
+		const rotationStart = this.#rotationHandler?.cancelGesture();
+		if (!this.#isDTDragging && !rotationStart) return;
+		if (this.#hasPendingTemporaryTransform) {
+			if (rotationStart) this.#localPoints = rotationStart;
+			else if (this.#localPointsAtDTDragStart)
+				this.#localPoints = this.#localPointsAtDTDragStart;
+		}
+		this.#localPointsAtDTDragStart = undefined;
+		this.#isDTDragging = false;
+		// the drawing tools end the drag of a point when they are paused
+		this.#scalingHandler?.drawingTools.pause();
+		this.#rotationHandler?.drawingTools.pause();
+		this.revertTemporaryTransform();
+		this.continueDrawingTools();
+		this.toggleCameraFreeze(false);
+		this.viewport.render();
+	}
+
+	protected onPointerOutLogic(event: PointerEvent): void {
+		if (this.#preview && this.#pointerOver && event.buttons === 0)
+			this.setPointerOver(false);
 		this.#rotationHandler?.clearDragState();
 		// the drawing tools end a drag on a pointer out without a DRAG_END:
 		// the gesture ends (it is committed below if it changed anything), a
@@ -336,7 +531,28 @@ export class RectangleTransform
 		}
 	}
 
-	protected onPointerMoveLogic(_event: PointerEvent): void {
+	private setPointerOver(over: boolean): void {
+		this.#pointerOver = over;
+		const hoverEvent: IRectangleTransformHoverEvent = {
+			viewportId: this.viewport.id,
+			id: this.id,
+			type: this.type,
+			nodes: [...this.nodes],
+			hovered: over,
+		};
+		this.#eventEngine.emitEvent(
+			EVENTTYPE_TRANSFORMATION_TOOLS.HOVER_CHANGED,
+			hoverEvent,
+		);
+	}
+
+	protected onPointerMoveLogic(event: PointerEvent): void {
+		// a preview follows the pointer while no button is pressed (a drag,
+		// also of the camera, does not change it)
+		if (this.#preview && this.show && event.buttons === 0) {
+			const over = this.containsPointer(event);
+			if (over !== this.#pointerOver) this.setPointerOver(over);
+		}
 		// Refresh the translation cursor after all DT canvas listeners have run.
 		// queueMicrotask defers until after the current pointermove event cycle
 		// so DT hover state is current when we check it.
@@ -434,6 +650,61 @@ export class RectangleTransform
 	}
 
 	private init() {
+		this.placeOnNodes();
+		this.#dtParentNode = new TreeNode("RectangleTransformDTParent");
+		this.#dtParentNode.addTransformation(this.#dtParentTransformation);
+		sceneTree.root.addChild(this.#dtParentNode);
+		sceneTree.root.updateVersion(false, false);
+
+		const scalingEnabled = this.settings?.enableScaling ?? true;
+		const disabledCorners = {
+			topLeft: false,
+			topRight: false,
+			bottomLeft: false,
+			bottomRight: false,
+		};
+		this.#scalingHandler = new RectangleTransformScalingHandler(
+			this.viewport,
+			this.#dtParentNode,
+			this.#localPoints,
+			{
+				corners: scalingEnabled
+					? this.settings?.corners
+					: disabledCorners,
+				edgeControls: this.settings?.edgeControls,
+				interactive: scalingEnabled,
+			},
+			this.settings?.scaling,
+		);
+
+		this.#scalingHandler.recompute(this.#localPoints, false);
+
+		// Read back the positions actually stored in the DT after applyConstraints
+		// may have clamped the initial points (e.g. size min/max restrictions).
+		// Without this sync #localPoints would still hold the unconstrained values
+		// and calculateTransformationMatrix would not update the object.
+		this.#localPoints = this.#scalingHandler.readbackConstrainedPoints();
+
+		this.commitInitialPlacement();
+
+		this.createHandlers();
+	}
+
+	/**
+	 * Commit the constrained state so that the object reflects the DT
+	 * geometry from creation and min/max/step restrictions are active.
+	 * A preview does not change its objects.
+	 */
+	private commitInitialPlacement(): void {
+		if (this.#preview || !(this.settings?.enableScaling ?? true)) return;
+		this.calculateTransformationMatrix(this.#localPoints, true);
+	}
+
+	/**
+	 * Place the plane, its matrix and the rectangle on the nodes, see
+	 * {@link init} and {@link setNodes}.
+	 */
+	private placeOnNodes() {
 		const initialTransformationMatrix = this.initialize();
 		mat4.copy(
 			this.#currentTransformationMatrix,
@@ -520,10 +791,6 @@ export class RectangleTransform
 			1,
 		);
 		mat4.copy(this.#dtParentTransformation.matrix, this.#M_planeToWS);
-		this.#dtParentNode = new TreeNode("RectangleTransformDTParent");
-		this.#dtParentNode.addTransformation(this.#dtParentTransformation);
-		sceneTree.root.addChild(this.#dtParentNode);
-		sceneTree.root.updateVersion(false, false);
 
 		// Compute 8 world-space corners of the combined geometry extent,
 		// then project them onto the interaction plane.
@@ -615,42 +882,24 @@ export class RectangleTransform
 		];
 		this.#initialLocalPoints = initPoints.map((p) => vec3.clone(p));
 		this.#localPoints = initPoints.map((p) => vec3.clone(p));
+	}
 
-		const scalingEnabled = this.settings?.enableScaling ?? true;
-		const disabledCorners = {
-			topLeft: false,
-			topRight: false,
-			bottomLeft: false,
-			bottomRight: false,
-		};
-		this.#scalingHandler = new RectangleTransformScalingHandler(
-			this.viewport,
-			this.#dtParentNode,
-			this.#localPoints,
-			{
-				corners: scalingEnabled
-					? this.settings?.corners
-					: disabledCorners,
-				edgeControls: this.settings?.edgeControls,
-				interactive: scalingEnabled,
-			},
-			this.settings?.scaling,
-		);
-
-		this.#scalingHandler.recompute(this.#localPoints, false);
-
-		// Read back the positions actually stored in the DT after applyConstraints
-		// may have clamped the initial points (e.g. size min/max restrictions).
-		// Without this sync #localPoints would still hold the unconstrained values
-		// and calculateTransformationMatrix would not update the object.
-		this.#localPoints = this.#scalingHandler.readbackConstrainedPoints();
-
-		if (scalingEnabled) {
-			// Commit the constrained state so that the object reflects the DT
-			// geometry from creation and min/max/step restrictions are active.
-			this.calculateTransformationMatrix(this.#localPoints, true);
+	private translationRestrictions(
+		restrictions: Partial<{[key: string]: RestrictionProperties}>,
+	): RestrictionProperties[] | undefined {
+		const translationRestrictions: RestrictionProperties[] = [];
+		for (const restrictionId in restrictions) {
+			const restriction = restrictions[restrictionId];
+			if (!restriction) continue;
+			if (!restriction.id) restriction.id = restrictionId;
+			translationRestrictions.push(restriction);
 		}
+		return translationRestrictions.length
+			? translationRestrictions
+			: undefined;
+	}
 
+	private createHandlers() {
 		if (this.settings?.enableRotation ?? true) {
 			this.#rotationHandler = new RectangleTransformRotationHandler(
 				this.viewport,
@@ -684,19 +933,9 @@ export class RectangleTransform
 		}
 
 		if (this.settings?.enableTranslation ?? true) {
-			const translationRestrictions: RestrictionProperties[] = [];
-			for (const restrictionId in this.settings?.restrictions) {
-				const restriction = this.settings?.restrictions[restrictionId];
-				if (!restriction) continue;
-				if (!restriction.id) restriction.id = restrictionId;
-				translationRestrictions.push(restriction);
-			}
-
 			this.#translationHandler = new RectangleTransformTranslationHandler(
 				this.viewport,
-				translationRestrictions.length
-					? translationRestrictions
-					: undefined,
+				this.translationRestrictions(this.settings?.restrictions ?? {}),
 				this.#dtParentNode,
 				this.#M_planeToWS,
 				() => this.#localPoints,
@@ -739,11 +978,98 @@ export class RectangleTransform
 					this.#rotationHandler?.recompute(this.#localPoints, false);
 					this.calculateTransformationMatrix(this.#localPoints, true);
 					// Resume scaling/rotation drawing tools now that translation is done.
-					this.#scalingHandler?.drawingTools.continue();
-					this.#rotationHandler?.drawingTools.continue();
+					this.continueDrawingTools();
+				},
+				{
+					translateOnObjects: this.settings?.translateOnObjects,
+					isPreview: () => this.#preview,
+					otherTransformHits: (event) =>
+						this.otherTransformHitsPointer(event),
+					onCancel: () => {
+						this.revertTemporaryTransform();
+						this.continueDrawingTools();
+					},
 				},
 			);
 		}
+
+		// a preview gives a press to the rectangle transforms which are not
+		// a preview, see RectangleTransformSettings.preview
+		for (const handler of [this.#scalingHandler, this.#rotationHandler])
+			if (handler)
+				handler.drawingTools.pointerDownFilter = (event) =>
+					!this.#preview || !this.otherTransformHitsPointer(event);
+	}
+
+	private continueDrawingTools(): void {
+		if (this.paused || !this.show) return;
+		this.#scalingHandler?.drawingTools.continue();
+		this.#rotationHandler?.drawingTools.continue();
+	}
+
+	/**
+	 * Return the rectangle and the objects to the committed state, without
+	 * reporting a change (the committed state is the reported one).
+	 */
+	private revertTemporaryTransform(): void {
+		if (!this.#hasPendingTemporaryTransform) return;
+		this.applyAccumulatedTransform(this.committedTranslation, false);
+		for (const handler of this.#handlers)
+			handler?.recompute(this.#localPoints, false);
+		this.#dtParentNode.updateVersion();
+		this.calculateTransformationMatrix(this.#localPoints, false);
+		this.#hasPendingTemporaryTransform = false;
+	}
+
+	/**
+	 * Cancel a scaling or rotation gesture in progress, the rectangle
+	 * returns to its last committed state. The drawing tools stay paused.
+	 */
+	private cancelGesture(): void {
+		// (only a gesture which was not committed, e.g. by a pointer out, has
+		// a temporary transformation)
+		const rotationStart = this.#rotationHandler?.cancelGesture();
+		if (this.#hasPendingTemporaryTransform) {
+			if (rotationStart) this.#localPoints = rotationStart;
+			else if (this.#isDTDragging && this.#localPointsAtDTDragStart)
+				this.#localPoints = this.#localPointsAtDTDragStart;
+		}
+		this.#localPointsAtDTDragStart = undefined;
+		this.#isDTDragging = false;
+		// the drawing tools reset a point drag in progress, the translation
+		// returns to the committed translation
+		this.#scalingHandler?.drawingTools.pause();
+		this.#rotationHandler?.drawingTools.pause();
+		this.#translationHandler?.pause();
+		this.revertTemporaryTransform();
+	}
+
+	/**
+	 * Whether a rectangle transform of the viewport which is not a preview
+	 * is under the pointer (computed once per event).
+	 */
+	private otherTransformHitsPointer(event: PointerEvent): boolean {
+		const cached = this.#otherTransformHits.get(event);
+		if (cached !== undefined) return cached;
+		let hits = false;
+		for (const other of RectangleTransform.#instances.get(
+			this.viewport.id,
+		) ?? []) {
+			if (other === this || other.#preview) continue;
+			if (other.hitsPointer(event)) {
+				hits = true;
+				break;
+			}
+		}
+		this.#otherTransformHits.set(event, hits);
+		return hits;
+	}
+
+	private handleHitsPointer(event: PointerEvent): boolean {
+		return (
+			(this.#scalingHandler?.drawingTools.hitsPointer(event) ?? false) ||
+			(this.#rotationHandler?.drawingTools.hitsPointer(event) ?? false)
+		);
 	}
 
 	/**
