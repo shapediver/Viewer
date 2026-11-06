@@ -2631,28 +2631,24 @@ packages:
         resolution:
             {
                 integrity: sha512-Eqz3xuVFgeTiGncI5ZzjxLs39scaffndzEGv6dyT/4nULBlVR1pdU/d7SRAcawhl/5UcTFlJExVlorwv/d/Lug==,
-                tarball: https://npm.pkg.github.com/download/@shapediver/sdk.geometry-api-sdk-v2/4.2.2/66d485d9335fd510273a1d693b648a28288f934a,
             }
 
     "@shapediver/sdk.sdtf-core@1.7.4":
         resolution:
             {
                 integrity: sha512-izDtWUa34fBqKoTNfBFMNPzkuvO6R9JbMCURxLY9VdseAhDdldMhLKf7Kyy/8Dhpxqwl2qkGrcMxVz3qpjs79g==,
-                tarball: https://npm.pkg.github.com/download/@shapediver/sdk.sdtf-core/1.7.4/e33ae6e56965d0c96947d47766bf8ed925ab203f,
             }
 
     "@shapediver/sdk.sdtf-geometry@1.7.4":
         resolution:
             {
                 integrity: sha512-Lsh5KkBCW8FMhKi7/fjsfsFJU+1qHO32B5kWuwfLz9qDjTLnF4wf77WfEUonai8NHqysLC+m29FYLfJ+8YIavA==,
-                tarball: https://npm.pkg.github.com/download/@shapediver/sdk.sdtf-geometry/1.7.4/d95bad3ebead30570fa815a1b38c2c90d39c14b4,
             }
 
     "@shapediver/sdk.sdtf-primitives@1.7.4":
         resolution:
             {
                 integrity: sha512-8e0yUxJf6oUbTdeqqVDA+hJA+0Ms8OcHcQLnpNyxHz0wsHLa0s1xRctcTm63HXhXIzXWdQAmoxQ3dzVcqaloNA==,
-                tarball: https://npm.pkg.github.com/download/@shapediver/sdk.sdtf-primitives/1.7.4/f830560988fcf88da04f9459559716ea2102f719,
             }
 
     "@shapediver/sdk.sdtf-v1@1.9.0":
@@ -2673,7 +2669,6 @@ packages:
         resolution:
             {
                 integrity: sha512-KssQEsaUYiLkMCtbW/vd0CxjmP/8REAUejKL+fvjOrp1Z98MED31wYPeVbOXstFOtrCOdhMGM6mFIN2I4DMzfw==,
-                tarball: https://npm.pkg.github.com/download/@shapediver/viewer.utils.mime-type/1.1.0/9bb9eb82ce3b2c71836a370d50aa570abcc65ec6,
             }
 
     "@shikijs/engine-oniguruma@3.23.0":
