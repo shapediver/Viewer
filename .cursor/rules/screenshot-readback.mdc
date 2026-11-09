@@ -1,0 +1,13 @@
+---
+description: Drawing-buffer swaps and screenshot readback
+alwaysApply: true
+---
+
+# Screenshot readback
+
+`createRenderer` sets `preserveDrawingBuffer: false`. The browser swaps the drawing buffer after the turn that drew it. `canvas.toDataURL` outside that turn is blank.
+
+- `getScreenshot` draws the current scene and reads the canvas in the same call. Do not read the buffer later from a preserved frame.
+- That draw uses the shaders of the frame on screen. Beauty mode leaves those uniforms in place when it finishes. The cheaper interactive shadow settings are applied on the next interactive draw, not at the end of the beauty frame.
+- A screenshot also compiles with the synchronous `renderer.compile` before the draw. An asynchronous scene-update compile may still be in flight; this path does not return until the programs for this draw exist.
+- `getScreenshotWithHtml` takes the canvas image from `getScreenshot`. Do not call `toDataURL` on the viewer canvas from anywhere else.
