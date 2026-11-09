@@ -5,7 +5,8 @@ import {
 	type IMaterialAbstractDataProperties,
 	MATERIAL_ALPHA,
 	MATERIAL_SHADING,
-	MATERIAL_SIDE} from "@shapediver/viewer.shared.types";
+	MATERIAL_SIDE,
+} from "@shapediver/viewer.shared.types";
 import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 
 export abstract class AbstractMaterialData
@@ -33,7 +34,7 @@ export abstract class AbstractMaterialData
 	#normalScale: number = 1.0;
 	#opacity = 1.0;
 	#shading: MATERIAL_SHADING = MATERIAL_SHADING.SMOOTH;
-	#side: MATERIAL_SIDE = MATERIAL_SIDE.DOUBLE;
+	#side: MATERIAL_SIDE = MATERIAL_SIDE.FRONT;
 	#transparent?: boolean;
 
 	// #endregion Properties (21)

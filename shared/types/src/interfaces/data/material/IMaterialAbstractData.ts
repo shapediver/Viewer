@@ -16,8 +16,7 @@ export type IMaterialAbstractDataPropertiesDefinition = Partial<
 // #region Interfaces (2)
 
 export interface IMaterialAbstractData
-	extends ITreeNodeData,
-		IMaterialAbstractDataPropertiesGeneric<IMapData> {
+	extends ITreeNodeData, IMaterialAbstractDataPropertiesGeneric<IMapData> {
 	// #region Properties (1)
 
 	materialOutput: boolean;
@@ -54,6 +53,11 @@ export interface IMaterialAbstractDataPropertiesGeneric<T> {
 	normalScale: number;
 	opacity: number;
 	shading: MATERIAL_SHADING;
+	/**
+	 * Which sides of the surface are drawn.
+	 * Default FRONT. DOUBLE draws both sides. BACK draws the back side only.
+	 * A glTF material with doubleSided omitted or false is FRONT.
+	 */
 	side: MATERIAL_SIDE;
 	transparent?: boolean;
 	type?: MATERIAL_TYPE;

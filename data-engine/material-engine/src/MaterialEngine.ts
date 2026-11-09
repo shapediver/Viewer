@@ -701,7 +701,7 @@ export class MaterialEngine {
 				presetData.color,
 			);
 
-		presetData.side = data.side;
+		if (data.side !== undefined) presetData.side = data.side;
 
 		if (data.metalness || data.metalness === 0)
 			presetData.metalness = data.metalness;
@@ -760,7 +760,7 @@ export class MaterialEngine {
 				presetData.color,
 			);
 
-		presetData.side = data.side;
+		if (data.side !== undefined) presetData.side = data.side;
 
 		if (data.metalness || data.metalness === 0)
 			presetData.metalness = data.metalness;
@@ -806,12 +806,9 @@ export class MaterialEngine {
 
 		if (data.color) material.color = data.color;
 
-		material.side =
-			data.side === "front"
-				? MATERIAL_SIDE.FRONT
-				: data.side === "back"
-					? MATERIAL_SIDE.BACK
-					: MATERIAL_SIDE.DOUBLE;
+		if (data.side === "front") material.side = MATERIAL_SIDE.FRONT;
+		else if (data.side === "back") material.side = MATERIAL_SIDE.BACK;
+		else if (data.side !== undefined) material.side = MATERIAL_SIDE.DOUBLE;
 
 		if (data.metalness || data.metalness === 0)
 			material.metalness = data.metalness;

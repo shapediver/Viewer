@@ -5,7 +5,8 @@ import {
 	type IMaterialPhongDataProperties,
 	MATERIAL_ALPHA,
 	MATERIAL_SHADING,
-	MATERIAL_SIDE} from "@shapediver/viewer.shared.types";
+	MATERIAL_SIDE,
+} from "@shapediver/viewer.shared.types";
 import {AbstractMaterialData} from "./AbstractMaterialData";
 
 export class MaterialPhongData
@@ -176,7 +177,7 @@ export class MaterialPhongData
 		this.normalScale = 1.0;
 		this.opacity = 1.0;
 		this.shading = MATERIAL_SHADING.SMOOTH;
-		this.side = MATERIAL_SIDE.DOUBLE;
+		this.side = MATERIAL_SIDE.FRONT;
 		this.transparent = undefined;
 
 		this.specular = "#111111";

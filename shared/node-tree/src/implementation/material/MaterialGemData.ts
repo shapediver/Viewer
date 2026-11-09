@@ -5,7 +5,8 @@ import {
 	type IMaterialGemDataProperties,
 	MATERIAL_ALPHA,
 	MATERIAL_SHADING,
-	MATERIAL_SIDE} from "@shapediver/viewer.shared.types";
+	MATERIAL_SIDE,
+} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import {AbstractMaterialData} from "./AbstractMaterialData";
 
@@ -307,7 +308,7 @@ export class MaterialGemData
 		this.normalScale = 1.0;
 		this.opacity = 1.0;
 		this.shading = MATERIAL_SHADING.SMOOTH;
-		this.side = MATERIAL_SIDE.DOUBLE;
+		this.side = MATERIAL_SIDE.FRONT;
 		this.transparent = undefined;
 
 		this.refractionIndex = 2.4;
