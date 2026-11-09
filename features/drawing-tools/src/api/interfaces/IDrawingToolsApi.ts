@@ -24,6 +24,12 @@ export interface IDrawingToolsApi {
 	 */
 	pauseWhileBusy: boolean;
 	/**
+	 * When set, a pointerdown for which it returns false is ignored: the
+	 * drawing tool does not claim it and does not start an interaction (e.g.
+	 * another tool on top wins the press).
+	 */
+	pointerDownFilter?: (event: PointerEvent) => boolean;
+	/**
 	 * The points data of the drawing tool.
 	 */
 	readonly pointsData: PointsData;
@@ -95,6 +101,11 @@ export interface IDrawingToolsApi {
 	 * Cancel any in-progress hover or drag interaction without closing the drawing tool.
 	 */
 	cancelDrag(): void;
+	/**
+	 * Returns true if a point or control is under the pointer of the event
+	 * (the same screen-space test as a press), false while paused.
+	 */
+	hitsPointer(event: PointerEvent): boolean;
 	/**
 	 * Returns true if a point or control is currently hovered or being dragged.
 	 */

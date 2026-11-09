@@ -6,7 +6,8 @@ import {
 	type IEvent,
 	SettingsEngine,
 	SystemInfo,
-	UuidGenerator} from "@shapediver/viewer.shared.services";
+	UuidGenerator,
+} from "@shapediver/viewer.shared.services";
 import {
 	ANTI_ALIASING_TECHNIQUE,
 	FLAG_TYPE,
@@ -31,7 +32,8 @@ import {
 	type ITiltShiftEffectDefinition,
 	type IVignetteEffectDefinition,
 	POST_PROCESSING_EFFECT_TYPE,
-	TONE_MAPPING} from "@shapediver/viewer.shared.types";
+	TONE_MAPPING,
+} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import {
 	BlendFunction,
@@ -107,6 +109,7 @@ export class PostProcessingManager implements IManager {
 		[key: string]: OutlineManager;
 	} = {};
 	private _renderPass?: RenderPass;
+	private _refreshingInstancedEffectSelections = false;
 	private _sceneExtents = 0;
 	private _selectiveBloomManagers: {
 		[key: string]: SelectiveBloomManager;
@@ -212,6 +215,31 @@ export class PostProcessingManager implements IManager {
 		return this._selectiveBloomManagers;
 	}
 
+	/**
+	 * Rebuild selections after instances move between effect-combination meshes.
+	 * A mesh can be shared by several effects, so every selection must observe the
+	 * same current mesh after any one effect changes.
+	 */
+	public refreshInstancedEffectSelections(): void {
+		if (this._refreshingInstancedEffectSelections) return;
+		this._refreshingInstancedEffectSelections = true;
+		try {
+			// The first pass establishes the final effect combinations. Moving an
+			// occurrence can replace a mesh selected by an earlier manager, so the
+			// second pass binds every selection to the stable replacement meshes.
+			for (let pass = 0; pass < 2; pass++) {
+				Object.values(this._outlineManagers).forEach((manager) =>
+					manager.updateOutlineEffectObjects(),
+				);
+				Object.values(this._selectiveBloomManagers).forEach((manager) =>
+					manager.updateSelectiveBloomEffectObjects(),
+				);
+			}
+		} finally {
+			this._refreshingInstancedEffectSelections = false;
+		}
+	}
+
 	public get ssaaSampleLevel(): number {
 		return this._ssaaRenderPass ? this._ssaaRenderPass.sampleLevel : 2;
 	}
@@ -243,13 +271,14 @@ export class PostProcessingManager implements IManager {
 				if (!this._outlineManagers[token])
 					this._outlineManagers[token] = new OutlineManager(
 						this._renderingEngine,
+						token,
 					);
 				break;
 
 			case POST_PROCESSING_EFFECT_TYPE.SELECTIVE_BLOOM:
 				if (!this._selectiveBloomManagers[token])
 					this._selectiveBloomManagers[token] =
-						new SelectiveBloomManager(this._renderingEngine);
+						new SelectiveBloomManager(this._renderingEngine, token);
 				break;
 
 			default:

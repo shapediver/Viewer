@@ -6,9 +6,7 @@ const name = "attributes";
 
 test.describe("Attribute Visualization", () => {
 	test.beforeEach(async ({page}) => {
-		await page.goto(
-			"test-cdn/index.html",
-		);
+		await page.goto("test-cdn/index.html");
 
 		await page.evaluate(async () => {
 			const SDV = (<any>window).SDV;
@@ -133,5 +131,80 @@ test.describe("Attribute Visualization", () => {
 			});
 		});
 		await expect(page).toHaveScreenshot(name + "/number_attribute.png");
+	});
+
+	test("attribute updates refresh existing regular mesh materials", async ({
+		page,
+	}) => {
+		const state = await page.evaluate(async () => {
+			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+			const SDVAV: typeof ShapeDiverViewerAttributeVisualization = (<any>(
+				window
+			)).SDVAV;
+			const viewport = SDV.viewports.myViewer;
+			const attributeVisualizationEngine = (<any>window)
+				.attributeVisualizationEngine;
+			const regularRenderingFinished = new Promise<void>((resolve) => {
+				SDV.addListener(
+					SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
+					() => resolve(),
+				);
+			});
+			viewport.gpuInstancing.enabled = false;
+			await regularRenderingFinished;
+			const colorsBefore = new Map<string, string>();
+			SDV.sceneTree.root.traverse((node) => {
+				for (const data of node.data) {
+					if (!(data instanceof SDV.GeometryData)) continue;
+					const geometryObject: any =
+						data.convertedObject[viewport.id];
+					if (geometryObject?.isInstancedMesh) continue;
+					colorsBefore.set(
+						data.id,
+						geometryObject.material.color.getHexString(),
+					);
+				}
+			});
+			if (colorsBefore.size === 0)
+				throw new Error(
+					"Expected regular geometry in attribute fixture",
+				);
+			const rendered = new Promise<void>((resolve) => {
+				SDV.addListener(
+					SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
+					() => resolve(),
+				);
+			});
+			attributeVisualizationEngine.updateAttributes([
+				{
+					key: "x+y, number",
+					type: SDV.SDTF_TYPEHINT.DOUBLE,
+					visualization:
+						SDVAV.ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED,
+				},
+			]);
+			await rendered;
+
+			let changedMaterialCount = 0;
+			let coloredAttributeCount = 0;
+			SDV.sceneTree.root.traverse((node) => {
+				for (const data of node.data) {
+					if (!(data instanceof SDV.GeometryData)) continue;
+					const before = colorsBefore.get(data.id);
+					if (before === undefined) continue;
+					const geometryObject: any =
+						data.convertedObject[viewport.id];
+					if (geometryObject.material.color.getHexString() !== before)
+						changedMaterialCount++;
+					if (data.attributeMaterial?.color !== "#000000")
+						coloredAttributeCount++;
+				}
+			});
+
+			return {changedMaterialCount, coloredAttributeCount};
+		});
+
+		expect(state.coloredAttributeCount).toBeGreaterThan(0);
+		expect(state.changedMaterialCount).toBeGreaterThan(0);
 	});
 });

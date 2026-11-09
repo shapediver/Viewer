@@ -2073,6 +2073,33 @@ export class MaterialLoader implements ILoader {
 		return material;
 	}
 
+	/**
+	 * Register a material that is not produced by {@link load} (GPU-instance
+	 * batch clones) so environment-map updates still reach it.
+	 */
+	public trackMaterial(
+		cacheKey: string,
+		material: THREE.Material,
+		materialData: IMaterialAbstractData | null = null,
+		materialSettings?: MaterialSettings,
+	): void {
+		this._materialCache[cacheKey] = {
+			material,
+			materialData,
+			materialSettings,
+		};
+		material.userData.cacheKey = cacheKey;
+		if (
+			(material instanceof THREE.MeshPhysicalMaterial ||
+				material instanceof THREE.MeshStandardMaterial) &&
+			!(materialData && "envMap" in materialData && materialData.envMap)
+		) {
+			material.envMap = this._envMap;
+			material.envMapIntensity = this._envMapIntensity;
+			material.needsUpdate = true;
+		}
+	}
+
 	public removeFromMaterialCache(cacheKey: string): void {
 		if (!this._materialCache[cacheKey]) return;
 		this._materialCache[cacheKey].material.dispose();

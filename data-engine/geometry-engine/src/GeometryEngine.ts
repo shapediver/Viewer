@@ -1,5 +1,6 @@
-import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
+import {GeometryData, type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
+	HashCreator,
 	HttpClient,
 	type HttpResponse,
 	Logger,
@@ -8,13 +9,20 @@ import {
 } from "@shapediver/viewer.shared.services";
 
 import {ResOutputContent} from "@shapediver/sdk.geometry-api-sdk-v2";
+import {
+	type IMaterialAbstractData,
+	type IMaterialStandardData,
+	PRIMITIVE_MODE,
+} from "@shapediver/viewer.shared.types";
 import {GLTFLoader as GLTF_v1Loader} from "./gltfv1/GLTFLoader";
 import {GLTFLoader as GLTF_v2Loader} from "./gltfv2/GLTFLoader";
+import {hashTypedArray} from "./hashTypedArray";
 
 export class GeometryEngine {
-	// #region Properties (7)
+	// #region Properties (6)
 
 	private readonly BINARY_EXTENSION_HEADER_LENGTH = 20;
+	private readonly _hashCreator: HashCreator = HashCreator.instance;
 	private readonly _httpClient: HttpClient = HttpClient.instance;
 	private readonly _loadingQueue: Promise<ITreeNode>[] = [];
 	private readonly _logger: Logger = Logger.instance;
@@ -22,9 +30,10 @@ export class GeometryEngine {
 
 	private static _instance: GeometryEngine;
 
+	private _gpuInstancing = true;
 	private _loadingQueueLength = Infinity;
 
-	// #endregion Properties (7)
+	// #endregion Properties (6)
 
 	// #region Public Static Accessors (1)
 
@@ -34,7 +43,20 @@ export class GeometryEngine {
 
 	// #endregion Public Static Accessors (1)
 
-	// #region Public Accessors (2)
+	// #region Public Accessors (3)
+
+	/**
+	 * When true, glTF parsing looks for repeated triangle primitives and marks
+	 * them instantiable. On by default and independent of viewport rendering;
+	 * already-loaded trees can be scanned with {@link applyGpuInstancing}.
+	 */
+	public get gpuInstancing(): boolean {
+		return this._gpuInstancing;
+	}
+
+	public set gpuInstancing(value: boolean) {
+		this._gpuInstancing = value;
+	}
 
 	public get parallelGlTFProcessing(): number {
 		return this._loadingQueueLength;
@@ -44,7 +66,7 @@ export class GeometryEngine {
 		this._loadingQueueLength = value;
 	}
 
-	// #endregion Public Accessors (2)
+	// #endregion Public Accessors (3)
 
 	// #region Public Methods (1)
 
@@ -68,6 +90,10 @@ export class GeometryEngine {
 			await new Promise((resolve) => setTimeout(resolve, 10));
 
 		const url = content.href!;
+		const urlHash = this._gpuInstancing
+			? this._hashCreator.createMurmurHash(url)
+			: undefined;
+
 		// eslint-disable-next-line no-async-promise-executor
 		const loadingPromise = new Promise<ITreeNode>(
 			async (resolve, reject) => {
@@ -210,7 +236,9 @@ export class GeometryEngine {
 						gltfHeader,
 						gltfBaseUrl,
 						taskEventId,
+						urlHash,
 						sessionId,
+						this._gpuInstancing,
 					);
 				}
 				promise.catch((e) => {
@@ -232,5 +260,196 @@ export class GeometryEngine {
 		return node;
 	}
 
+	/**
+	 * Mark already-loaded opaque triangle geometry as instantiable when the
+	 * same primitive is referenced more than once, or when attribute arrays
+	 * are byte-identical. Baked-transform recovery still runs only at parse
+	 * time. Call before converting the scene with instancing enabled.
+	 */
+	public applyGpuInstancing(root: ITreeNode): void {
+		const geometries: GeometryData[] = [];
+		this.collectGeometryData(root, geometries);
+
+		const byPrimitive = new Map<string, GeometryData[]>();
+		const unique = new Map<string, GeometryData[]>();
+		for (const geometry of geometries) {
+			if (!this.canMarkInstantiable(geometry)) continue;
+			if (geometry.instantiable && geometry.instanceHash) continue;
+			// Match parse-time hashing: color-only material variants still
+			// batch (the tint lives in instanceColor). Splitting on
+			// material.id would leave duplicated/shared boxes unbatched.
+			const primitiveKey = `${geometry.primitive.id}_${this.createMaterialFingerprint(geometry.material)}`;
+			let group = byPrimitive.get(primitiveKey);
+			if (!group) {
+				group = [];
+				byPrimitive.set(primitiveKey, group);
+			}
+			group.push(geometry);
+		}
+
+		for (const group of byPrimitive.values()) {
+			if (group.length >= 2) {
+				this.markGroupInstantiable(
+					group,
+					`${group[0].primitive.id}_${this.createMaterialFingerprint(group[0].material)}`,
+				);
+				continue;
+			}
+			const geometry = group[0];
+			const fingerprint = this.createGeometryFingerprint(geometry);
+			if (!fingerprint) continue;
+			let bucket = unique.get(fingerprint);
+			if (!bucket) {
+				bucket = [];
+				unique.set(fingerprint, bucket);
+			}
+			bucket.push(geometry);
+		}
+
+		for (const bucket of unique.values()) {
+			if (bucket.length < 2) continue;
+			const byContent = new Map<string, GeometryData[]>();
+			for (const geometry of bucket) {
+				const content = this.createGeometryContentHash(geometry);
+				if (!content) continue;
+				let contentGroup = byContent.get(content);
+				if (!contentGroup) {
+					contentGroup = [];
+					byContent.set(content, contentGroup);
+				}
+				contentGroup.push(geometry);
+			}
+			for (const contentGroup of byContent.values()) {
+				if (contentGroup.length >= 2) {
+					this.markGroupInstantiable(
+						contentGroup,
+						`${contentGroup[0].primitive.id}_${this.createMaterialFingerprint(contentGroup[0].material)}`,
+					);
+				}
+			}
+		}
+	}
+
 	// #endregion Public Methods (1)
+
+	// #region Private Methods (1)
+
+	private collectGeometryData(
+		node: ITreeNode,
+		out: GeometryData[],
+	): void {
+		for (const data of node.data) {
+			if (data instanceof GeometryData) out.push(data);
+		}
+		for (const child of node.children) this.collectGeometryData(child, out);
+	}
+
+	private canMarkInstantiable(geometry: GeometryData): boolean {
+		if (geometry.mode !== PRIMITIVE_MODE.TRIANGLES) return false;
+		if (geometry.morphWeights && geometry.morphWeights.length > 0)
+			return false;
+		if (geometry.materialVariants && geometry.materialVariants.length > 0)
+			return false;
+		const attributes = geometry.primitive.attributes;
+		if (attributes["JOINTS_0"] || attributes["WEIGHTS_0"]) return false;
+		const position = attributes["POSITION"];
+		if (position?.morphAttributeData?.length) return false;
+		if ((geometry.material?.opacity ?? 1) < 1) return false;
+		return true;
+	}
+
+	private markGroupInstantiable(
+		group: GeometryData[],
+		contentKey: string,
+	): void {
+		const geometryHash =
+			this._hashCreator.createMurmurHash(contentKey) +
+			"_" +
+			contentKey.length;
+		const instanceHash = "tree_" + geometryHash;
+		for (const geometry of group) {
+			geometry.instanceHash = instanceHash;
+			if (!geometry.instantiable) {
+				geometry.instantiable = true;
+				geometry.instanceColors = [
+					geometry.material && geometry.material.color
+						? geometry.material.color
+						: [255, 255, 255, 255],
+				];
+			}
+		}
+	}
+
+	private createGeometryFingerprint(
+		geometry: GeometryData,
+	): string | undefined {
+		const attributes = geometry.primitive.attributes;
+		const names = Object.keys(attributes).sort();
+		if (names.length === 0) return;
+		const parts = names.map((name) => {
+			const attribute = attributes[name];
+			return `${name}:${attribute.count}:${attribute.itemSize}:${attribute.array.length}`;
+		});
+		const indices = geometry.primitive.indices;
+		return JSON.stringify({
+			indices: indices
+				? `${indices.count}:${indices.array.length}`
+				: "",
+			material: this.createMaterialFingerprint(geometry.material),
+			parts,
+		});
+	}
+
+	private createGeometryContentHash(
+		geometry: GeometryData,
+	): string | undefined {
+		const attributes = geometry.primitive.attributes;
+		const names = Object.keys(attributes).sort();
+		const parts: string[] = [];
+		for (const name of names)
+			parts.push(name + ":" + hashTypedArray(attributes[name].array));
+		if (geometry.primitive.indices)
+			parts.push(
+				"indices:" + hashTypedArray(geometry.primitive.indices.array),
+			);
+		parts.push("material:" + this.createMaterialFingerprint(geometry.material));
+		return parts.join("|");
+	}
+
+	/**
+	 * Identity of a material for instance grouping, excluding id, name, and
+	 * color — the same rule as parse-time hashing of baseColorFactor.
+	 */
+	private createMaterialFingerprint(
+		material: IMaterialAbstractData | null,
+	): string {
+		if (!material) return "none";
+		const mapId = (map: {id: string} | undefined) => map?.id ?? "";
+		const standard = material as IMaterialStandardData;
+		return JSON.stringify({
+			alphaCutoff: material.alphaCutoff,
+			alphaMode: material.alphaMode,
+			aoMap: mapId(material.aoMap),
+			aoMapIntensity: material.aoMapIntensity,
+			bumpMap: mapId(material.bumpMap),
+			bumpScale: material.bumpScale,
+			depthTest: material.depthTest,
+			depthWrite: material.depthWrite,
+			emissiveMap: mapId(material.emissiveMap),
+			map: mapId(material.map),
+			metalness: standard.metalness,
+			metalnessMap: mapId(standard.metalnessMap),
+			metalnessRoughnessMap: mapId(standard.metalnessRoughnessMap),
+			normalMap: mapId(material.normalMap),
+			normalScale: material.normalScale,
+			opacity: material.opacity,
+			roughness: standard.roughness,
+			roughnessMap: mapId(standard.roughnessMap),
+			shading: material.shading,
+			side: material.side,
+			type: material.constructor.name,
+		});
+	}
+
+	// #endregion Private Methods (1)
 }

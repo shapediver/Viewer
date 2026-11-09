@@ -6,6 +6,7 @@ import {
 	RestrictionManager,
 	type RestrictionProperties,
 } from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {type IBox} from "@shapediver/viewer.shared.math";
 import {
 	GeometryData,
 	type ITreeNode,
@@ -28,13 +29,13 @@ import {
 
 export abstract class TransformationToolsManager implements ITransformationToolsManager {
 	readonly #eventEngine: EventEngine = EventEngine.instance;
-	readonly #id: string;
+	#id: string;
 	readonly #keysPressed: {[key: string]: boolean} = {};
 	readonly #matrixId: string = "SD_transformation_tools_matrix";
 	readonly #nodes: ITreeNode[] = [];
 	readonly #parentObject: THREE.Object3D = new THREE.Object3D();
 	readonly #restrictionManager?: IRestrictionManager;
-	readonly #singleNode: boolean;
+	#singleNode: boolean;
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 	readonly #viewport: IViewportApi;
 
@@ -143,7 +144,9 @@ export abstract class TransformationToolsManager implements ITransformationTools
 	}
 
 	public set show(value: boolean) {
+		if (this.#show === value) return;
 		this.#show = value;
+		if (!this.#closed) this.showLogic(value);
 	}
 
 	protected get canvasEventListenerToken(): string {
@@ -299,6 +302,12 @@ export abstract class TransformationToolsManager implements ITransformationTools
 
 	public onMouseWheel(event: WheelEvent): void {}
 
+	public onPointerCancel(event: PointerEvent): void {
+		if (this.closed || this.#paused) return;
+
+		this.onPointerCancelLogic(event);
+	}
+
 	public onPointerDown(event: PointerEvent): void {
 		if (this.closed || this.#paused) return;
 
@@ -361,6 +370,29 @@ export abstract class TransformationToolsManager implements ITransformationTools
 	 */
 	protected continueLogic(): void {}
 
+	/**
+	 * Called when {@link show} changes.
+	 */
+	protected showLogic(_show: boolean): void {}
+
+	/** Change the id reported by the events of this instance. */
+	protected changeId(id: string): void {
+		this.#id = id;
+	}
+
+	/**
+	 * Replace the transformed nodes, the implementation places itself on them
+	 * again (see {@link initialize}).
+	 */
+	protected replaceNodes(nodes: ITreeNode[]): void {
+		this.#nodes.splice(0, this.#nodes.length, ...nodes);
+		this.#singleNode = nodes.length === 1;
+		this.#previousTransformationToolsMatrix = [];
+		this.#initialTransform = [];
+		this.#instanceTransform = [];
+		this.#initialOffset = vec3.create();
+	}
+
 	protected getMatrix(previousMatrix: mat4, instanceMatrix: mat4): mat4 {
 		const placeholderMatrix = mat4.copy(
 			mat4.create(),
@@ -416,6 +448,17 @@ export abstract class TransformationToolsManager implements ITransformationTools
 		}
 	}
 
+	/**
+	 * Bounds of the geometry in the space of its node. Baked-transform
+	 * instances share the source geometry and are placed by their offset.
+	 */
+	protected geometryBoundingBox(data: GeometryData): IBox {
+		if (!data.instanceOffsetMatrix) return data.boundingBox;
+		return data.boundingBox
+			.clone()
+			.applyMatrix(data.instanceOffsetMatrix as unknown as mat4);
+	}
+
 	protected initialize(): mat4 {
 		const transformationPlaceholderMatrix = mat4.create();
 
@@ -436,7 +479,7 @@ export abstract class TransformationToolsManager implements ITransformationTools
 				const trueBB = new Box();
 				this.#nodes[0].traverseData((d) => {
 					if (d instanceof GeometryData) {
-						trueBB.union(d.boundingBox);
+						trueBB.union(this.geometryBoundingBox(d));
 					}
 				});
 
@@ -611,6 +654,8 @@ export abstract class TransformationToolsManager implements ITransformationTools
 		_pointerInCanvas: boolean,
 	): void {}
 
+	protected onPointerCancelLogic(_event: PointerEvent): void {}
+
 	protected onPointerDownLogic(_event: PointerEvent): void {}
 
 	protected onPointerEndLogic(_event: PointerEvent): void {}
@@ -651,7 +696,14 @@ export abstract class TransformationToolsManager implements ITransformationTools
 		});
 	}
 
-	protected updateObjectMatrices(): void {
+	/**
+	 * Write the tool matrix onto the nodes and refresh the scene.
+	 *
+	 * @param emit Report `MATRIX_CHANGED`. A drag omits it: the scene still
+	 * shows the matrix (a later scene update reads `node.transformations`),
+	 * and the event is sent once the gesture ends.
+	 */
+	protected updateObjectMatrices(emit = true): void {
 		const eventData: ITransformationToolsEvent = {
 			viewportId: this.viewport.id,
 			transformations: [],
@@ -793,7 +845,12 @@ export abstract class TransformationToolsManager implements ITransformationTools
 			node.updateVersion();
 		});
 
-		// emit the event
+		// A drag writes the matrix without an event. The scene update that
+		// follows a node version change applies node.transformations, so the
+		// object moves while the pointer is down. Emitting here would report
+		// every move as a committed transformation.
+		if (!emit) return;
+
 		this.#eventEngine.emitEvent(
 			EVENTTYPE_TRANSFORMATION_TOOLS.MATRIX_CHANGED,
 			eventData,

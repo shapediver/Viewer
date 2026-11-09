@@ -4,7 +4,7 @@ import {
 	type ITreeNode,
 	type ITreeNodeData,
 } from "@shapediver/viewer.shared.node-tree";
-import {vec3} from "gl-matrix";
+import {mat4, vec3} from "gl-matrix";
 import * as THREE from "three";
 import {SDObject, SD_DATA_TYPE} from "../../objects/SDObject";
 import {RenderingEngine} from "../../RenderingEngine";
@@ -19,6 +19,31 @@ export const removeData = (
 
 	switch (true) {
 		case dataObject.userData.SDtype === SD_DATA_TYPE.GEOMETRY:
+			// Instanced-geometry placeholder: delegate removal to InstanceGroupManager
+			if (dataObject.userData.isInstanced) {
+				const instanceGeometry = dataObject.userData
+					.instanceGeometry as GeometryData | undefined;
+				const instanceNode = dataObject.userData.instanceNode as
+					| ITreeNode
+					| undefined;
+				if (instanceNode)
+					renderingEngine.instanceGroupManager.removeNode(
+						instanceNode,
+						dataObject.userData.instanceNodeKey as
+							| string
+							| undefined,
+					);
+				if (
+					instanceGeometry &&
+					!renderingEngine.instanceGroupManager.hasGeometry(
+						instanceGeometry.id,
+					)
+				)
+					renderingEngine.pulseEffectManager.removeGeometry(
+						instanceGeometry,
+					);
+				break;
+			}
 			dataObject.traverse((o) => {
 				if (dataObject.id !== o.id && o.userData.removed === true)
 					return;
@@ -147,9 +172,19 @@ export const assignBoundingBox = (
 	// assign the bb
 	if (data instanceof GeometryData) {
 		const geometry = data as GeometryData;
+		// Baked-transform occurrences share the source geometry and position
+		// it via an offset: their bounds use worldMatrix * offset.
+		let boundsMatrix: mat4 = node.worldMatrix;
+		if (geometry.instanceOffsetMatrix)
+			boundsMatrix = mat4.multiply(
+				mat4.create(),
+				node.worldMatrix,
+				geometry.instanceOffsetMatrix as unknown as mat4,
+			);
+
 		let bb: IBox;
 		if (!geometry.boundingBox.isEmpty()) {
-			bb = geometry.boundingBox.clone().applyMatrix(node.worldMatrix);
+			bb = geometry.boundingBox.clone().applyMatrix(boundsMatrix);
 		} else {
 			const clone = convertedObjectData.clone();
 			clone.matrix.identity();
@@ -157,9 +192,7 @@ export const assignBoundingBox = (
 			clone.position.set(0, 0, 0);
 			clone.scale.set(1, 1, 1);
 			clone.quaternion.set(0, 0, 0, 1);
-			clone.applyMatrix4(
-				new THREE.Matrix4().fromArray(node.worldMatrix),
-			);
+			clone.applyMatrix4(new THREE.Matrix4().fromArray(boundsMatrix));
 			const threeBox = new THREE.Box3().setFromObject(clone, true);
 			bb = new Box(
 				vec3.fromValues(threeBox.min.x, threeBox.min.y, threeBox.min.z),

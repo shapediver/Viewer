@@ -3,6 +3,7 @@ import {
 	GeometryData,
 	InstanceData,
 	MaterialGemData,
+	type ITreeNode,
 } from "@shapediver/viewer.shared.node-tree";
 import {
 	Logger,
@@ -89,10 +90,168 @@ export class GeometryLoader implements ILoader {
 	 * @param geometry the geometry data
 	 * @returns the geometry object
 	 */
+	/**
+	 * Create an instanced-geometry placeholder for a node.
+	 * Registers the node with InstanceGroupManager and returns a lightweight
+	 * THREE.Object3D placeholder that lives in the SDObject hierarchy so the
+	 * normal data-lifecycle (cleanup, bounding-box, …) keeps working.
+	 */
+	public loadInstanced(
+		parentNode: ITreeNode,
+		geometry: GeometryData,
+	): THREE.Object3D {
+		// Base material for the batch. Effect materials (interaction
+		// highlights) are per occurrence and applied as overrides below.
+		const incomingMaterialData: IMaterialAbstractData | null =
+			this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES
+				? geometry.attributeMaterial
+				: geometry.material;
+
+		const existingMesh =
+			this._renderingEngine.instanceGroupManager.getDefaultMesh(
+				geometry.instanceHash,
+				geometry,
+			);
+
+		const primitiveCacheKey =
+			geometry.primitive.id + "_" + geometry.primitive.version;
+		let bufferGeometry: THREE.BufferGeometry;
+		if (existingMesh) {
+			bufferGeometry = existingMesh.geometry;
+		} else {
+			const cachedPrimitive = this._primitiveCache[primitiveCacheKey];
+			if (!cachedPrimitive) {
+				bufferGeometry = this.loadPrimitive(geometry.primitive);
+			} else {
+				// Instanced meshes share the geometry – no clone needed.
+				// The new group holds one primitive-cache retain until it is
+				// disposed.
+				bufferGeometry = cachedPrimitive.threeGeometry;
+				cachedPrimitive.counter++;
+			}
+		}
+
+		const materialSettings = {
+			mode: geometry.mode,
+			useVertexTangents: bufferGeometry.attributes.tangent !== undefined,
+			useVertexColors:
+				bufferGeometry.attributes.color !== undefined &&
+				this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES,
+			useFlatShading: bufferGeometry.attributes.normal === undefined,
+			useMorphTargets: false,
+			useMorphNormals: false,
+		};
+		// Only build the shared batch material when the group does not exist
+		// yet — an unused clone would leak on every re-conversion.
+		// The base color moves into the per-instance color, so the batch
+		// material is whitened — but only when actual material data supplied
+		// that color. The fallback default material keeps its own color, and
+		// the instance colors stay at neutral white.
+		let material: THREE.Material | undefined;
+		if (!existingMesh) {
+			const loadedMaterial = this._renderingEngine.materialLoader.load(
+				incomingMaterialData || geometry,
+				materialSettings,
+			);
+			material = incomingMaterialData
+				? this.createInstancedMaterial(loadedMaterial)
+				: loadedMaterial.clone();
+			material.userData.sourceMaterialUuid = loadedMaterial.uuid;
+			material.needsUpdate = false;
+			this._renderingEngine.materialLoader.trackMaterial(
+				"gpu-instance/" +
+					this._renderingEngine.instanceGroupManager.getGroupKey(
+						geometry,
+					),
+				material,
+				incomingMaterialData,
+				materialSettings,
+			);
+		}
+
+		// Delegate to InstanceGroupManager
+		const instancedMesh =
+			this._renderingEngine.instanceGroupManager.addNode(
+				parentNode,
+				geometry,
+				bufferGeometry,
+				material,
+			);
+
+		// Apply/remove the per-occurrence interaction material.
+		if (geometry.effectMaterials.length > 0) {
+			const effectMaterial = this._renderingEngine.materialLoader
+				.load(
+					geometry.effectMaterials[
+						geometry.effectMaterials.length - 1
+					].material,
+					materialSettings,
+				)
+				.clone();
+			this._renderingEngine.instanceGroupManager.setMaterialOverride(
+				geometry.id,
+				effectMaterial,
+			);
+		} else {
+			this._renderingEngine.instanceGroupManager.clearMaterialOverride(
+				geometry.id,
+			);
+			// Color-only variants keep unique material ids; instanceColor
+			// already carries the tint. Override only when this occurrence's
+			// material was replaced after it joined the batch.
+			if (
+				incomingMaterialData &&
+				this._renderingEngine.instanceGroupManager.hasOccurrenceMaterialChanged(
+					geometry.id,
+					incomingMaterialData.id,
+				)
+			) {
+				const overrideMaterial = this._renderingEngine.materialLoader
+					.load(incomingMaterialData, materialSettings)
+					.clone();
+				this._renderingEngine.instanceGroupManager.setMaterialOverride(
+					geometry.id,
+					overrideMaterial,
+				);
+			}
+		}
+
+		// Store the InstancedMesh in geometry.convertedObject so IntersectionEngine
+		// and effects can reach it via geometryData.convertedObject[viewportId].
+		geometry.convertedObject[this._renderingEngine.id] = instancedMesh;
+
+		// Return a lightweight placeholder that lives in the SDObject children.
+		// It carries enough userData for the cleanup path and effect managers.
+		const placeholder = new THREE.Object3D();
+		placeholder.matrixAutoUpdate = false;
+		placeholder.userData.isInstanced = true;
+		placeholder.userData.instanceHash = geometry.instanceHash;
+		placeholder.userData.instanceGroupKey =
+			this._renderingEngine.instanceGroupManager.getGroupKey(geometry);
+		placeholder.userData.instanceNode = parentNode; // strong ref for effects
+		placeholder.userData.instanceGeometry = geometry;
+		placeholder.userData.instanceNodeKey = `${parentNode.id}:${geometry.id}`;
+		placeholder.userData.cacheKey = geometry.id + "_" + geometry.version;
+		placeholder.userData.primitiveCacheKey = primitiveCacheKey;
+		return placeholder;
+	}
+
 	public load(
+		parentNode: ITreeNode,
 		geometry: GeometryData,
 		instanceData?: InstanceData,
 	): GeometryType {
+		let incomingMaterialData: IMaterialAbstractData | null;
+		if (geometry.effectMaterials.length > 0) {
+			incomingMaterialData =
+				geometry.effectMaterials[geometry.effectMaterials.length - 1]
+					.material;
+		} else if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
+			incomingMaterialData = geometry.attributeMaterial;
+		} else {
+			incomingMaterialData = geometry.material;
+		}
+
 		// Cache key to avoid repeated string concatenation
 		const primitiveCacheKey =
 			geometry.primitive.id + "_" + geometry.primitive.version;
@@ -108,17 +267,6 @@ export class GeometryLoader implements ILoader {
 				return clone;
 			}
 		})();
-
-		let incomingMaterialData: IMaterialAbstractData | null;
-		if (geometry.effectMaterials.length > 0) {
-			incomingMaterialData =
-				geometry.effectMaterials[geometry.effectMaterials.length - 1]
-					.material;
-		} else if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
-			incomingMaterialData = geometry.attributeMaterial;
-		} else {
-			incomingMaterialData = geometry.material;
-		}
 
 		const attributes = threeGeometry.attributes;
 		const morphAttributes = threeGeometry.morphAttributes;
@@ -183,47 +331,46 @@ export class GeometryLoader implements ILoader {
 		material.needsUpdate = false;
 
 		let threeGeometryObject: GeometryType;
-		if (this._geometryCache[geometry.id + "_" + geometry.version]) {
-			this._geometryCache[geometry.id + "_" + geometry.version].counter++;
-			threeGeometryObject =
-				this._geometryCache[geometry.id + "_" + geometry.version].obj;
-
+		// One geometry can be shared by several nodes that each carry their own
+		// InstanceData (EXT_mesh_gpu_instancing). Those must not share a cached
+		// InstancedMesh, so the instance set is part of the cache identity.
+		const geometryCacheKey =
+			geometry.id +
+			"_" +
+			geometry.version +
+			(instanceData ? "_" + instanceData.id : "");
+		const cachedGeometry = this._geometryCache[geometryCacheKey];
+		if (cachedGeometry) {
+			cachedGeometry.counter++;
+			threeGeometryObject = cachedGeometry.obj;
 			threeGeometryObject.material = material;
 
-			// Clear instance colors when in ATTRIBUTES mode to prevent them
-			// from multiplying with the attribute material color
+			// Conventional InstancedMeshes are still used for explicit InstanceData.
+			// Attribute rendering must not multiply its material by their stale colors.
 			if (threeGeometryObject instanceof THREE.InstancedMesh) {
 				if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
 					threeGeometryObject.instanceColor = null;
 				} else if (instanceData && !threeGeometryObject.instanceColor) {
-					for (
-						let i = 0;
-						i < instanceData.instanceColors.length;
-						i++
-					) {
+					for (let i = 0; i < instanceData.instanceColors.length; i++)
 						threeGeometryObject.setColorAt(
 							i,
 							this._renderingEngine.createThreeJsColor(
 								instanceData.instanceColors[i],
 							),
 						);
-					}
-					// setColorAt creates instanceColor; re-read after mutation
-					(
-						threeGeometryObject as THREE.InstancedMesh
-					).instanceColor!.needsUpdate = true;
+					threeGeometryObject.instanceColor!.needsUpdate = true;
 				}
 			}
 		} else {
 			threeGeometryObject = this.createMesh(
+				parentNode,
 				geometry,
 				threeGeometry,
 				material,
 				instanceData,
 			);
-			threeGeometryObject.userData.cacheKey =
-				geometry.id + "_" + geometry.version;
-			this._geometryCache[geometry.id + "_" + geometry.version] = {
+			threeGeometryObject.userData.cacheKey = geometryCacheKey;
+			this._geometryCache[geometryCacheKey] = {
 				obj: threeGeometryObject,
 				counter: 1,
 				clones: [],
@@ -350,9 +497,13 @@ export class GeometryLoader implements ILoader {
 	}
 
 	public updateGeometryMaterial(geometry: GeometryData): void {
+		// Instanced-data meshes carry an InstanceData suffix in their cache key.
 		const cacheKey = geometry.id + "_" + geometry.version;
-		const cached = this._geometryCache[cacheKey];
-		if (!cached) return;
+		const cached =
+			this._geometryCache[cacheKey] ??
+			Object.entries(this._geometryCache).find(([key]) =>
+				key.startsWith(cacheKey + "_"),
+			)?.[1];
 
 		let incomingMaterialData: IMaterialAbstractData | null;
 		if (geometry.effectMaterials.length > 0) {
@@ -363,6 +514,128 @@ export class GeometryLoader implements ILoader {
 			incomingMaterialData = geometry.attributeMaterial;
 		} else {
 			incomingMaterialData = geometry.material;
+		}
+
+		if (!cached) {
+			if (!geometry.instantiable) return;
+
+			const instanceMesh =
+				this._renderingEngine.instanceGroupManager.getDefaultMesh(
+					geometry.instanceHash,
+				);
+			if (!instanceMesh) return;
+
+			const attributes = instanceMesh.geometry.attributes;
+			const instancedMaterialSettings = {
+				mode: geometry.mode,
+				useVertexTangents: attributes.tangent !== undefined,
+				useVertexColors:
+					attributes.color !== undefined &&
+					this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES,
+				useFlatShading: attributes.normal === undefined,
+				useMorphTargets: false,
+				useMorphNormals: false,
+			};
+
+			// Effect materials (interaction highlights) are per occurrence:
+			// only this geometry's instances move into an override batch, the
+			// rest of the group keeps its shared material. The same applies to
+			// a non-opaque attribute material, which needs its own transparent
+			// batch instead of poisoning the group's shared material.
+			if (
+				geometry.effectMaterials.length > 0 ||
+				(this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES &&
+					(incomingMaterialData?.opacity ?? 1) < 1)
+			) {
+				const overrideMaterial = this._renderingEngine.materialLoader
+					.load(
+						incomingMaterialData || geometry,
+						instancedMaterialSettings,
+					)
+					.clone();
+				this._renderingEngine.instanceGroupManager.setMaterialOverride(
+					geometry.id,
+					overrideMaterial,
+				);
+				this.updateInstancedPulse(geometry);
+				return;
+			}
+			this._renderingEngine.instanceGroupManager.clearMaterialOverride(
+				geometry.id,
+			);
+
+			// Attribute visualization carries per-occurrence flat colors via
+			// the per-instance color attribute; refresh only this occurrence.
+			if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
+				this._renderingEngine.instanceGroupManager.updateNodeColor(
+					geometry,
+				);
+				this.updateInstancedPulse(geometry);
+				return;
+			}
+
+			// Material data can change without changing its id (for example after
+			// changing material override settings). Refresh the shared white batch
+			// material when this occurrence owns the group's source material.
+			if (
+				incomingMaterialData &&
+				incomingMaterialData.id ===
+					this._renderingEngine.instanceGroupManager.getSharedMaterialId(
+						geometry.instanceHash,
+					)
+			) {
+				const sourceMaterial =
+					this._renderingEngine.materialLoader.load(
+						incomingMaterialData,
+						instancedMaterialSettings,
+					);
+				if (
+					this._renderingEngine.instanceGroupManager.hasSharedMaterialSourceChanged(
+						geometry.instanceHash,
+						sourceMaterial.uuid,
+					)
+				) {
+					const sharedMaterial =
+						this.createInstancedMaterial(sourceMaterial);
+					sharedMaterial.userData.sourceMaterialUuid =
+						sourceMaterial.uuid;
+					this._renderingEngine.instanceGroupManager.updateMaterial(
+						geometry.instanceHash,
+						sharedMaterial,
+					);
+				}
+				this._renderingEngine.instanceGroupManager.updateNodeColor(
+					geometry,
+				);
+				this.updateInstancedPulse(geometry);
+				return;
+			}
+
+			// A base-material change on one occurrence must not re-material
+			// the whole group. Color variants keep their original material ids
+			// and stay in the default batch; a later assignment of a different
+			// material gets its own override batch.
+			if (
+				incomingMaterialData &&
+				this._renderingEngine.instanceGroupManager.hasOccurrenceMaterialChanged(
+					geometry.id,
+					incomingMaterialData.id,
+				)
+			) {
+				const overrideMaterial = this._renderingEngine.materialLoader
+					.load(incomingMaterialData, instancedMaterialSettings)
+					.clone();
+				this._renderingEngine.instanceGroupManager.setMaterialOverride(
+					geometry.id,
+					overrideMaterial,
+				);
+			} else {
+				this._renderingEngine.instanceGroupManager.updateNodeColor(
+					geometry,
+				);
+			}
+			this.updateInstancedPulse(geometry);
+			return;
 		}
 
 		const threeGeometry = cached.obj.geometry;
@@ -393,9 +666,6 @@ export class GeometryLoader implements ILoader {
 		geometryObjects.forEach((geometryObject) => {
 			this._renderingEngine.pulseEffectManager.clear(geometryObject);
 			geometryObject.material = material;
-
-			// Clear instance colors when in ATTRIBUTES mode to prevent them
-			// from multiplying with the attribute material color.
 			if (geometryObject instanceof THREE.InstancedMesh) {
 				if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
 					geometryObject.instanceColor = null;
@@ -408,11 +678,6 @@ export class GeometryLoader implements ILoader {
 		);
 	}
 
-	/**
-	 * Associate a tree's geometry data with the exact rendered object created for
-	 * it. Geometry cache entries can be reused by multiple tree nodes, but their
-	 * interaction materials are instance-specific.
-	 */
 	public registerGeometryObject(
 		geometry: GeometryData,
 		object: THREE.Object3D,
@@ -428,21 +693,36 @@ export class GeometryLoader implements ILoader {
 		]);
 	}
 
-	public removeFromGeometryCache(id: string) {
-		if (this._geometryCache[id]) {
-			if (this._geometryCache[id].counter === 1) {
-				this.removeFromPrimitiveCache(
-					this._geometryCache[id].primitiveCacheId,
-				);
+	private updateInstancedPulse(geometry: GeometryData): void {
+		this._renderingEngine.pulseEffectManager.update(
+			geometry,
+			this._geometryObjects.get(geometry) ?? [],
+		);
+	}
 
-				this._geometryCache[id].clones.forEach((c) => {
+	private createInstancedMaterial(material: THREE.Material): THREE.Material {
+		const instanceMaterial = material.clone();
+		if (
+			"color" in instanceMaterial &&
+			instanceMaterial.color instanceof THREE.Color
+		)
+			instanceMaterial.color.setRGB(1, 1, 1);
+		return instanceMaterial;
+	}
+
+	public removeFromGeometryCache(id: string) {
+		const cachedGeometry = this._geometryCache[id];
+		if (cachedGeometry) {
+			if (cachedGeometry.counter === 1) {
+				this.removeFromPrimitiveCache(cachedGeometry.primitiveCacheId);
+				cachedGeometry.clones.forEach(() => {
 					this.removeFromPrimitiveCache(
-						this._geometryCache[id].primitiveCacheId,
+						cachedGeometry.primitiveCacheId,
 					);
 				});
 				delete this._geometryCache[id];
 			} else {
-				this._geometryCache[id].counter--;
+				cachedGeometry.counter--;
 			}
 		}
 	}
@@ -699,6 +979,7 @@ export class GeometryLoader implements ILoader {
 	}
 
 	private createMesh(
+		_parentNode: ITreeNode,
 		geometry: GeometryData,
 		threeGeometry: THREE.BufferGeometry,
 		material: THREE.Material,
@@ -950,7 +1231,7 @@ export class GeometryLoader implements ILoader {
 		return buffer;
 	}
 
-	private removeFromPrimitiveCache(id: string) {
+	public removeFromPrimitiveCache(id: string) {
 		if (this._primitiveCache[id]) {
 			if (this._primitiveCache[id].counter === 1) {
 				this._primitiveCache[id].threeGeometry.dispose();

@@ -2,21 +2,25 @@ import {
 	GeometryData,
 	type ITree,
 	type ITreeNode,
-	Tree} from "@shapediver/viewer.shared.node-tree";
+	Tree,
+} from "@shapediver/viewer.shared.node-tree";
 import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {
 	type IIntersectionDefinition,
 	type IIntersectionFilter,
 	type IRay,
-	type IRayTracingIntersection} from "@shapediver/viewer.shared.types";
+	type IRayTracingIntersection,
+} from "@shapediver/viewer.shared.types";
 import * as THREE from "three";
 import {type IIntersectionEngine} from "../interfaces/IIntersectionEngine";
 import {SelectionBox} from "./SelectionBox";
 
 export class IntersectionEngine implements IIntersectionEngine {
-	// #region Properties (7)
+	// #region Properties (9)
 
 	private readonly _eventEngine: EventEngine = EventEngine.instance;
+	private readonly _instanceMatrix: THREE.Matrix4 = new THREE.Matrix4();
+	private readonly _instanceWorldMatrix: THREE.Matrix4 = new THREE.Matrix4();
 	private readonly _normalMatrix: THREE.Matrix3 = new THREE.Matrix3();
 	private readonly _raycaster: THREE.Raycaster = new THREE.Raycaster();
 	private readonly _tree: ITree = Tree.instance;
@@ -32,7 +36,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 		restrictViewports: string[];
 	}[] = [];
 
-	// #endregion Properties (7)
+	// #endregion Properties (9)
 
 	// #region Constructors (1)
 
@@ -74,6 +78,10 @@ export class IntersectionEngine implements IIntersectionEngine {
 				filterCriteria || [],
 			);
 		} else {
+			const instancedIntersectionCache = new Map<
+				THREE.InstancedMesh,
+				THREE.Intersection[]
+			>();
 			let intersections: IRayTracingIntersection[] = [];
 			this._intersectNodes.forEach((i) => {
 				const currentIntersections = this.intersectNode(
@@ -83,6 +91,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 					viewportId,
 					filterCriteria,
 					options?.rayCasterParams,
+					instancedIntersectionCache,
 				);
 				if (currentIntersections)
 					intersections = intersections.concat(currentIntersections);
@@ -139,6 +148,10 @@ export class IntersectionEngine implements IIntersectionEngine {
 		viewportId: string,
 		filterCriteria?: IIntersectionFilter[],
 		rayCasterParams?: THREE.RaycasterParameters,
+		instancedIntersectionCache: Map<
+			THREE.InstancedMesh,
+			THREE.Intersection[]
+		> = new Map(),
 	): IRayTracingIntersection[] | undefined {
 		if (node.visible === false) return;
 
@@ -163,6 +176,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 						viewportId,
 						rayCasterParams,
 						filterCriteria,
+						instancedIntersectionCache,
 					);
 			}
 		} else {
@@ -172,13 +186,15 @@ export class IntersectionEngine implements IIntersectionEngine {
 				geometryData,
 				viewportId,
 				rayCasterParams,
+				undefined,
+				instancedIntersectionCache,
 			);
 		}
 	}
 
 	// #endregion Public Methods (2)
 
-	// #region Private Methods (3)
+	// #region Private Methods (5)
 
 	/**
 	 * Gather all nodes that contain geometry data.
@@ -240,6 +256,10 @@ export class IntersectionEngine implements IIntersectionEngine {
 		viewportId: string,
 		rayCasterParams?: THREE.RaycasterParameters,
 		filterCriteria?: IIntersectionFilter[],
+		instancedIntersectionCache: Map<
+			THREE.InstancedMesh,
+			THREE.Intersection[]
+		> = new Map(),
 	): IRayTracingIntersection[] | undefined {
 		if (rayCasterParams) this._raycaster.params = rayCasterParams;
 
@@ -254,72 +274,229 @@ export class IntersectionEngine implements IIntersectionEngine {
 			ray.origin[2],
 		);
 
+		const geometryValues = Object.values(geometryData);
+		const instancedMeshes = new Set<THREE.InstancedMesh>();
+		geometryValues.forEach((geometry) => {
+			const convertedObject = geometry.convertedObject[viewportId];
+			if (!(convertedObject instanceof THREE.InstancedMesh)) return;
+
+			const instanceHash = convertedObject.userData.instanceHash as
+				| string
+				| undefined;
+			const groupMeshes = convertedObject.parent?.children.filter(
+				(child): child is THREE.InstancedMesh =>
+					child instanceof THREE.InstancedMesh &&
+					child.userData.instanceHash === instanceHash,
+			) ?? [convertedObject];
+			groupMeshes.forEach((mesh) => instancedMeshes.add(mesh));
+		});
+
+		let intersections: IRayTracingIntersection[] = [];
+		instancedMeshes.forEach((mesh) => {
+			let meshIntersections = instancedIntersectionCache.get(mesh);
+			if (!meshIntersections) {
+				meshIntersections = this._raycaster.intersectObject(
+					mesh,
+					false,
+				);
+				instancedIntersectionCache.set(mesh, meshIntersections);
+			}
+
+			const instanceHash = mesh.userData.instanceHash as
+				| string
+				| undefined;
+			const instanceNodes = mesh.userData.instanceNodes as
+				| (ITreeNode | undefined)[]
+				| undefined;
+			meshIntersections.forEach((intersection) => {
+				const hitNode =
+					intersection.instanceId !== undefined && instanceNodes
+						? instanceNodes[intersection.instanceId]
+						: undefined;
+				if (!hitNode || !this.isNodeWithinOwner(hitNode, node)) return;
+				if (
+					hitNode.intersectionTest === false ||
+					hitNode.visible === false
+				)
+					return;
+				if (
+					viewportId &&
+					hitNode.excludeViewports?.includes(viewportId)
+				)
+					return;
+				if (
+					viewportId &&
+					hitNode.restrictViewports?.length &&
+					!hitNode.restrictViewports.includes(viewportId)
+				)
+					return;
+
+				const hitGeometry = this.resolveInstancedGeometry(
+					hitNode,
+					mesh,
+					intersection.instanceId,
+					instanceHash,
+					geometryValues.find(
+						(geometry) =>
+							(
+								geometry as GeometryData & {
+									instanceHash?: string;
+								}
+							).instanceHash === instanceHash,
+					),
+				);
+				if (!hitGeometry || !geometryValues.includes(hitGeometry))
+					return;
+
+				intersections.push({
+					distance: intersection.distance,
+					point: [
+						intersection.point.x,
+						intersection.point.y,
+						intersection.point.z,
+					],
+					normal: this.worldFaceNormal(intersection),
+					node,
+					geometryData: hitGeometry,
+					type: "RayTracingIntersection",
+				});
+			});
+		});
+
+		// Standard (non-instanced) path
 		const threeJsObject = node.convertedObject[
 			viewportId!
 		] as THREE.Object3D;
 		if (threeJsObject) {
 			const intersectionThree =
 				this._raycaster.intersectObject(threeJsObject);
-			if (intersectionThree.length === 0) return;
-
-			let intersections = intersectionThree.map((i) => {
-				const parent = i.object.parent as {
-					SDid?: string;
-					SDversion?: string;
-				} | null;
-				const material = (i.object as THREE.Mesh).material;
-				const materialOpacity = Array.isArray(material)
-					? material.map((entry) => entry.opacity)
-					: material?.opacity;
-				const intersectionDefinition: IRayTracingIntersection & {
-					occludePrimitive?: {
-						objectType: string;
-						materialOpacity?: number | number[];
+			intersections = intersections.concat(
+				intersectionThree.map((i) => {
+					const parent = i.object.parent as {
+						SDid?: string;
+						SDversion?: string;
+					} | null;
+					const material = (i.object as THREE.Mesh).material;
+					const materialOpacity = Array.isArray(material)
+						? material.map((entry) => entry.opacity)
+						: material?.opacity;
+					const intersectionDefinition: IRayTracingIntersection & {
+						occludePrimitive?: {
+							objectType: string;
+							materialOpacity?: number | number[];
+						};
+					} = {
+						distance: i.distance,
+						point: [i.point.x, i.point.y, i.point.z],
+						node: node,
+						geometryData:
+							geometryData[
+								`${parent?.SDid}_${parent?.SDversion}`
+							],
+						normal: this.worldFaceNormal(i),
+						type: "RayTracingIntersection",
+						occludePrimitive: {
+							objectType: i.object.type,
+							materialOpacity,
+						},
 					};
-				} = {
-					distance: i.distance,
-					point: [i.point.x, i.point.y, i.point.z],
-					node: node,
-					geometryData:
-						geometryData[`${parent?.SDid}_${parent?.SDversion}`],
-					normal: this.worldFaceNormal(i),
-					type: "RayTracingIntersection",
-					occludePrimitive: {
-						objectType: i.object.type,
-						materialOpacity,
-					},
-				};
-				return intersectionDefinition;
-			});
-
-			if (filterCriteria) {
-				intersections = intersections.filter((i) => {
-					for (let j = 0; j < filterCriteria.length; j++)
-						if (filterCriteria[j](i.node, i.geometryData))
-							return true;
-					return false;
-				});
-			}
-			intersections.sort((a, b) => a.distance - b.distance);
-			return intersections;
+					return intersectionDefinition;
+				}),
+			);
 		}
+
+		if (filterCriteria) {
+			intersections = intersections.filter((intersection) =>
+				filterCriteria.some((filter) =>
+					filter(node, intersection.geometryData),
+				),
+			);
+		}
+		intersections.sort((a, b) => a.distance - b.distance);
+		return intersections.length > 0 ? intersections : undefined;
 	}
 
 	/**
 	 * Geometric face normal in world space.
-	 * Three.js keeps `face.normal` in the mesh's local space.
+	 * Three.js keeps `face.normal` in the mesh's local space. An instanced
+	 * hit also needs that instance's matrix.
 	 */
 	private worldFaceNormal(
 		intersection: THREE.Intersection,
 	): [number, number, number] | undefined {
 		const local = intersection.face?.normal;
 		if (!local) return undefined;
-		this._normalMatrix.getNormalMatrix(intersection.object.matrixWorld);
+		const object = intersection.object;
+		let worldMatrix = object.matrixWorld;
+		if (
+			object instanceof THREE.InstancedMesh &&
+			intersection.instanceId !== undefined
+		) {
+			this._instanceMatrix.fromArray(
+				object.instanceMatrix.array,
+				intersection.instanceId * 16,
+			);
+			this._instanceWorldMatrix.multiplyMatrices(
+				object.matrixWorld,
+				this._instanceMatrix,
+			);
+			worldMatrix = this._instanceWorldMatrix;
+		}
+		this._normalMatrix.getNormalMatrix(worldMatrix);
 		this._worldNormal.copy(local).applyMatrix3(this._normalMatrix);
 		if (this._worldNormal.lengthSq() < 1e-20) return undefined;
 		this._worldNormal.normalize();
 		return [this._worldNormal.x, this._worldNormal.y, this._worldNormal.z];
 	}
 
-	// #endregion Private Methods (3)
+	private isNodeWithinOwner(node: ITreeNode, owner: ITreeNode): boolean {
+		let currentNode: ITreeNode | undefined = node;
+		while (currentNode) {
+			if (currentNode === owner) return true;
+			currentNode = currentNode.parent;
+		}
+		return false;
+	}
+
+	/**
+	 * Map an InstancedMesh hit to the GeometryData for that slot. The slot key
+	 * is `${node.id}:${geometry.id}`; falling back to the first matching hash
+	 * would pick the wrong primitive when one node has several identical ones.
+	 */
+	private resolveInstancedGeometry(
+		hitNode: ITreeNode,
+		mesh: THREE.InstancedMesh,
+		instanceId: number | undefined,
+		instanceHash: string | undefined,
+		fallback: GeometryData | undefined,
+	): GeometryData | undefined {
+		const instanceKeys = mesh.userData.instanceKeys as
+			| (string | undefined)[]
+			| undefined;
+		const nodeKey =
+			instanceId !== undefined ? instanceKeys?.[instanceId] : undefined;
+		const prefix = hitNode.id + ":";
+		const geometryId = nodeKey?.startsWith(prefix)
+			? nodeKey.slice(prefix.length)
+			: undefined;
+		if (geometryId) {
+			const byId = hitNode.data.find(
+				(d) => d instanceof GeometryData && d.id === geometryId,
+			) as GeometryData | undefined;
+			if (byId) return byId;
+		}
+		return (
+			(hitNode.data.find(
+				(d) =>
+					d instanceof GeometryData &&
+					(
+						d as GeometryData & {
+							instanceHash?: string;
+						}
+					).instanceHash === instanceHash,
+			) as GeometryData | undefined) ?? fallback
+		);
+	}
+
+	// #endregion Private Methods (5)
 }

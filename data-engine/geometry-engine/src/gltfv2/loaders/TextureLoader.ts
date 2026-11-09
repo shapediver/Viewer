@@ -118,7 +118,6 @@ export class TextureLoader {
 									.then((imageBitmap) => {
 										const sdImageBitmap: SDImageBitmap =
 											imageBitmap as SDImageBitmap;
-
 										// create a unique id for the image bitmap depending on its content
 										sdImageBitmap.id =
 											hashForArraySampled(uint8Array);
