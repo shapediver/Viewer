@@ -136,6 +136,9 @@ float getShadow( sampler2D shadowMap, vec2 shadowMapSize, float shadowIntensity,
                  f.y )
         ) * ( 1.0 / 9.0 );
 
+        if ( blending == 0.0 ) pcfShadow = mix( 1.0, pcfShadow, shadowIntensity );
+        if ( blending == 0.0 ) return pcfShadow;
+
         float pcssShadow = getPCSSShadow( shadowMap, shadowCoord.xy, shadowCoord.z );
         shadow = mix( pcfShadow, pcssShadow, blending );
     }
