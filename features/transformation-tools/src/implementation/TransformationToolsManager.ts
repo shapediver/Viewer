@@ -697,11 +697,12 @@ export abstract class TransformationToolsManager implements ITransformationTools
 	}
 
 	/**
-	 * Write the tool matrix onto the nodes and refresh the scene.
+	 * Write the tool matrix onto the nodes.
 	 *
-	 * @param emit Report `MATRIX_CHANGED`. A drag omits it: the scene still
-	 * shows the matrix (a later scene update reads `node.transformations`),
-	 * and the event is sent once the gesture ends.
+	 * @param emit Report `MATRIX_CHANGED` and publish a new node version.
+	 * A drag omits both and applies the matrix with
+	 * `updateNodeTransformation`, so the object moves without rebuilding
+	 * its descendants. The event is sent once the gesture ends.
 	 */
 	protected updateObjectMatrices(emit = true): void {
 		const eventData: ITransformationToolsEvent = {
@@ -842,13 +843,15 @@ export abstract class TransformationToolsManager implements ITransformationTools
 				}
 			}
 
-			node.updateVersion();
+			// updateVersion rebuilds this node and its descendants. A drag only
+			// needs the matrix on screen; the committed gesture is the one
+			// that publishes a new node version.
+			if (emit) node.updateVersion();
+			else this.#viewport.updateNodeTransformation(node);
 		});
 
-		// A drag writes the matrix without an event. The scene update that
-		// follows a node version change applies node.transformations, so the
-		// object moves while the pointer is down. Emitting here would report
-		// every move as a committed transformation.
+		// A drag writes the matrix and applies that transformation. Emitting
+		// here would report every move as a committed transformation.
 		if (!emit) return;
 
 		this.#eventEngine.emitEvent(

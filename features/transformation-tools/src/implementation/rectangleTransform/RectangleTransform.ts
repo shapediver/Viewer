@@ -526,10 +526,9 @@ export class RectangleTransform
 			this.#initialTransformationMatrix,
 		);
 
-		// updateObjects only changes the Three.js matrix. The next scene
-		// update copies node.transformations back onto that object, so the
-		// drag never shows. Writing the matrix (without an event until the
-		// gesture ends) is what the scene update displays.
+		// Commit publishes the matrix and a node version. A drag writes the
+		// same matrix and applies it with updateNodeTransformation, without
+		// rebuilding the node on every move.
 		this.updateObjectMatrices(commit);
 	}
 
