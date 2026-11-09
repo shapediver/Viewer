@@ -526,11 +526,11 @@ export class RectangleTransform
 			this.#initialTransformationMatrix,
 		);
 
-		if (commit) {
-			this.updateObjectMatrices();
-		} else {
-			this.updateObjects();
-		}
+		// updateObjects only changes the Three.js matrix. The next scene
+		// update copies node.transformations back onto that object, so the
+		// drag never shows. Writing the matrix (without an event until the
+		// gesture ends) is what the scene update displays.
+		this.updateObjectMatrices(commit);
 	}
 
 	private setPointerOver(over: boolean): void {
