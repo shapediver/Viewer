@@ -896,6 +896,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
 	public set shadows(value: boolean) {
 		this._shadows = value;
+		this._renderingManager.applyShadowMapEnabled();
 	}
 
 	public get show(): boolean {

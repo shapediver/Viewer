@@ -252,10 +252,16 @@ export class RenderingManager implements IManager {
 			this._logger.warn(
 				"RenderingManager.evaluateTextureUnitCount: Maximum number of texture units exceeded. Disabling shadows.",
 			);
+			const alreadyDisabled =
+				this._renderingEngine.lightLoader.forceDisabledShadows;
 			this._renderingEngine.lightLoader.forceDisabledShadows = true;
 			this._renderingEngine.update(
 				"RenderingManager.evaluateTextureUnitCount",
 			);
+			// Only the transition rebuilds programs. Later scene updates that
+			// are still over the limit must not dirty every cached material.
+			if (!alreadyDisabled)
+				this._renderingEngine.materialLoader.updateMaterials();
 		} else {
 			this._renderingEngine.lightLoader.forceDisabledShadows = false;
 		}
@@ -391,6 +397,23 @@ export class RenderingManager implements IManager {
 		this._updateShadowMapInNextRender = true;
 	}
 
+	/**
+	 * Rebuild materials only when the shadow map is actually switched on or off.
+	 * Camera start/stop and the beauty fade keep BasicShadowMap and must not
+	 * come through here.
+	 */
+	public applyShadowMapEnabled(): void {
+		const shadowMap = this._renderingEngine.renderer.shadowMap;
+		const enabled = shadowMap.enabled;
+		shadowMap.enabled =
+			this._renderingEngine.usingSwiftShader ||
+			this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES
+				? false
+				: this._renderingEngine.shadows;
+		if (enabled !== shadowMap.enabled)
+			this._renderingEngine.materialLoader.updateMaterials();
+	}
+
 	// #endregion Public Methods (10)
 
 	// #region Private Methods (14)
@@ -398,7 +421,12 @@ export class RenderingManager implements IManager {
 	private activateBeautyRenderShaders() {
 		this._renderingEngine.renderer.shadowMap.type = THREE.BasicShadowMap;
 		this._renderingEngine.renderer.shadowMap.needsUpdate = true;
-		this._renderingEngine.materialLoader.updateMaterials();
+		// Fade starts at the hard-shadow end of the blend. setShaderProperties
+		// advances the same uniforms; new materials read the stored weight.
+		this._renderingEngine.materialLoader.updateSoftShadow(
+			this._lightSizeUVStart,
+			0,
+		);
 	}
 
 	private animate(
@@ -591,14 +619,7 @@ export class RenderingManager implements IManager {
 
 		// animation loop - part 11: adjust some scene settings
 		// enable / disable the shadow map
-		const enabled = this._renderingEngine.renderer.shadowMap.enabled;
-		this._renderingEngine.renderer.shadowMap.enabled =
-			this._renderingEngine.usingSwiftShader ||
-			this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES
-				? false
-				: this._renderingEngine.shadows;
-		if (enabled !== this._renderingEngine.renderer.shadowMap.enabled)
-			this._renderingEngine.materialLoader.updateMaterials();
+		this.applyShadowMapEnabled();
 		let threeJsLightObject,
 			oldLightVisibility = true;
 		// enable / disable lights
@@ -912,7 +933,6 @@ export class RenderingManager implements IManager {
 			this._lightSizeUVStart,
 			0.1,
 		);
-		this._renderingEngine.materialLoader.updateMaterials();
 	}
 
 	private evaluateRenderingState(): {

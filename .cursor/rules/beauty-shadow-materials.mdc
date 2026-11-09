@@ -1,0 +1,13 @@
+---
+description: When camera motion and the beauty fade may rebuild shadow materials
+alwaysApply: true
+---
+
+# Beauty fade and shadow materials
+
+`activateBeautyRenderShaders` and `deactivateBeautyRenderShaders` both set `shadowMap.type` to `BasicShadowMap`. Camera start calls deactivate, and the fade after camera stop calls activate. Neither state changes the shadow program.
+
+- Those paths update the soft-shadow uniforms only (`updateSoftShadow`). Do not call `updateMaterials()` there. That sets `needsUpdate` on every cached material and rebuilds every program.
+- Call `updateMaterials()` when `shadowMap.enabled` actually changes (`applyShadowMapEnabled`), including a shadows on/off toggle.
+- The texture-unit overflow path disables shadow-casting lights. It still calls `updateMaterials()` after that update.
+- New materials read the current blend from the values `updateSoftShadow` stores. The fade keeps writing those uniforms; do not snapshot the weight only onto materials that already exist.
