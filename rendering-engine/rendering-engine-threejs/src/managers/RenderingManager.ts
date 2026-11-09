@@ -874,12 +874,7 @@ export class RenderingManager implements IManager {
 		width: number;
 		height: number;
 	} {
-		const pixelRatio = this.pixelRatioOverride ?? window.devicePixelRatio;
-		const pixelRatioChanged =
-			this._renderingEngine.renderer.getPixelRatio() !== pixelRatio;
-		if (pixelRatioChanged) {
-			this._renderingEngine.renderer.setPixelRatio(pixelRatio);
-		}
+		const deviceRatio = this.pixelRatioOverride ?? window.devicePixelRatio;
 
 		let width = this._width,
 			height = this._height;
@@ -890,35 +885,42 @@ export class RenderingManager implements IManager {
 				.clientHeight;
 		}
 
+		// Cap the drawing buffer in physical pixels. setSize multiplies the CSS
+		// size by the pixel ratio, so the ratio is physical / css.
 		const aspect = width / height;
-		let adjustedWidth = width,
-			adjustedHeight = height;
-
+		let physicalWidth = width * deviceRatio;
+		let physicalHeight = height * deviceRatio;
+		const maximumRenderingSize = this._renderingEngine.maximumRenderingSize;
 		if (
-			width > this._renderingEngine.maximumRenderingSize.width ||
-			height > this._renderingEngine.maximumRenderingSize.height
+			physicalWidth > maximumRenderingSize.width ||
+			physicalHeight > maximumRenderingSize.height
 		) {
 			if (
-				(width - this._renderingEngine.maximumRenderingSize.width) /
-					aspect >
-				height - this._renderingEngine.maximumRenderingSize.height
+				(physicalWidth - maximumRenderingSize.width) / aspect >
+				physicalHeight - maximumRenderingSize.height
 			) {
-				adjustedWidth =
-					this._renderingEngine.maximumRenderingSize.width;
-				adjustedHeight =
-					this._renderingEngine.maximumRenderingSize.width / aspect;
+				physicalWidth = maximumRenderingSize.width;
+				physicalHeight = maximumRenderingSize.width / aspect;
 			} else {
-				adjustedWidth =
-					this._renderingEngine.maximumRenderingSize.height * aspect;
-				adjustedHeight =
-					this._renderingEngine.maximumRenderingSize.height;
+				physicalWidth = maximumRenderingSize.height * aspect;
+				physicalHeight = maximumRenderingSize.height;
 			}
 		}
+
+		const widthRatio = width > 0 ? physicalWidth / width : deviceRatio;
+		const heightRatio = height > 0 ? physicalHeight / height : widthRatio;
+		const pixelRatio = Math.min(widthRatio, heightRatio);
+		const pixelRatioChanged =
+			this._renderingEngine.renderer.getPixelRatio() !== pixelRatio;
+		if (pixelRatioChanged) {
+			this._renderingEngine.renderer.setPixelRatio(pixelRatio);
+		}
+
 		return {
 			width,
-			adjustedWidth,
+			adjustedWidth: width,
 			height,
-			adjustedHeight,
+			adjustedHeight: height,
 			pixelRatioChanged,
 		};
 	}

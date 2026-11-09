@@ -1,0 +1,14 @@
+---
+description: Drawing-buffer cap is in physical pixels, after the device pixel ratio
+alwaysApply: true
+---
+
+# Drawing buffer size
+
+`maximumRenderingSize` caps the drawing buffer in physical pixels. `devicePixelRatio` (or `pixelRatioOverride`) is applied before the cap. The CSS size of the viewport can stay larger; the buffer is scaled down to fit.
+
+- `RenderingManager.calculateSize` multiplies the CSS size by the device ratio, caps that physical width and height, then sets the renderer pixel ratio to `physical / css`. `setSize` multiplies the CSS size by that ratio, so the product stays inside the cap.
+- Do not cap CSS pixels and then multiply by `devicePixelRatio`. A 1280×720 view at device pixel ratio 2 must be a 1920×1080 buffer, not 2560×1440. At device pixel ratio 1, a view at or under the cap stays that size.
+- Defaults stay 1920×1080 on desktop and 1280×720 on mobile.
+- Screenshots of the on-screen frame use that same buffer. An explicit screenshot resolution still describes output pixels (`pixelRatioOverride = 1` and `maximumRenderingSize` set to the requested size).
+- `PostProcessingManager.resize` sizes effect targets (ambient occlusion and the passes it sets before the composer) to the smaller of the CSS size and the drawing buffer. The composer still receives the CSS size and then sizes its passes from `getDrawingBufferSize`.

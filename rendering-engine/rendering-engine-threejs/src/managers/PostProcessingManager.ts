@@ -1675,13 +1675,24 @@ export class PostProcessingManager implements IManager {
 	public resize(width: number, height: number) {
 		if (!this._composer) return;
 
+		// Effect targets are sized here and are not updated again by the
+		// composer. When the pixel ratio is below 1, the drawing buffer is
+		// smaller than the CSS size; use that buffer so those targets stay
+		// inside maximumRenderingSize. A ratio above 1 keeps the CSS size.
+		const drawingBuffer = new THREE.Vector2();
+		this._renderingEngine.renderer.getDrawingBufferSize(drawingBuffer);
+		const effectWidth = Math.min(width, drawingBuffer.width);
+		const effectHeight = Math.min(height, drawingBuffer.height);
+
 		this.effects.forEach((e) => {
-			if (e.effect.setSize) e.effect.setSize(width, height);
+			if (e.effect.setSize) e.effect.setSize(effectWidth, effectHeight);
 		});
 
-		this._renderPass!.setSize(width, height);
-		this._ssaaRenderPass!.setSize(width, height);
-		this._effectPasses?.forEach((pass) => pass.setSize(width, height));
+		this._renderPass!.setSize(effectWidth, effectHeight);
+		this._ssaaRenderPass!.setSize(effectWidth, effectHeight);
+		this._effectPasses?.forEach((pass) =>
+			pass.setSize(effectWidth, effectHeight),
+		);
 		this._composer.setSize(width, height);
 	}
 
