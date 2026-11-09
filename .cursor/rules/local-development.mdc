@@ -18,6 +18,10 @@ http://localhost:8080/?ticket=<ticket>&modelViewUrl=<gateway-url>
 
 - The example page exposes `window.SDV` after `bundle.js` loads.
 
+## Windows scripts
+
+Package scripts call `bash`. On this machine `bash` on `PATH` is `C:\Windows\System32\bash.exe`, the WSL launcher, and it fails when no distribution is installed. Run those scripts with Git bash as the script shell for that command only: `$env:npm_config_script_shell = "C:\Program Files\Git\bin\bash.exe"`. Do not change the saved npm config.
+
 ## Rebuild after source changes
 
 - After editing a workspace package, run `npm run build` **in that package** (for example `rendering-engine/rendering-engine-threejs`). The simple example’s webpack watches `dist/` and will rebundle.

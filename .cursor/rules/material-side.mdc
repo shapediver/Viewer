@@ -1,0 +1,13 @@
+---
+description: Default material side is front; stored double stays double-sided
+alwaysApply: true
+---
+
+# Material side
+
+- The default side is `MATERIAL_SIDE.FRONT`. `AbstractMaterialData` and every concrete material `reset()` use that default.
+- A glTF material with `doubleSided` omitted or false is front-sided. The glTF loader sets `side` only when `doubleSided` is present.
+- An explicit `side: "double"` and glTF `doubleSided: true` stay `DOUBLE`. Do not migrate stored `"double"` values.
+- ShapeDiver material content with `side` omitted keeps a preset `side` when one is set, and otherwise keeps the material default. Do not assign `presetData.side = data.side` when `data.side` is omitted; that used to be hidden because a missing side was forced to double. A present value of `"double"` (or any value other than `"front"` or `"back"`) stays double-sided.
+- Gem materials still force three.js `FrontSide` in the gem shader path.
+- The placeholder material in the three.js `MaterialLoader` sets `side: DOUBLE` on purpose. Lines and points do not change how they draw when their material side default changes.
