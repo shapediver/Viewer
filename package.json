@@ -34,6 +34,7 @@
 		"clean": "lerna exec -- rm -rf ./node_modules && rm -rf ./node_modules",
 		"hard-reset": "lerna exec -- rm -rf ./dist && lerna exec -- rm -rf tsconfig.tsbuildinfo && npm run clean",
 		"test": "playwright test --config tests/playwright.config.ts",
+		"test:performance": "playwright test --config tests/performance/playwright.config.ts",
 		"test-ui": "playwright test --config tests/playwright.config.ts --ui",
 		"test-update": "playwright test --config tests/playwright.config.ts --update-snapshots",
 		"test-install": "cd tests && npx playwright install chromium",
