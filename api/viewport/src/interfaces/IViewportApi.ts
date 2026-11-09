@@ -285,8 +285,10 @@ export interface IViewportApi {
 	 */
 	materialOverrideType: MATERIAL_TYPE | undefined;
 	/**
-	 * The maximum size of the renderings. The renderings will be upscaled to the actual resolution if these values are lower than the resolution of the canvas.
-	 * This setting exists, as for higher resolutions the performance can drop due to the rendering effort. (default: { width: 1920, height: 1080 })
+	 * Largest drawing buffer, in physical pixels.
+	 * The CSS size of the viewport may be larger; the buffer is scaled down to fit.
+	 * devicePixelRatio is applied before this cap.
+	 * Default: 1920×1080 on desktop, 1280×720 on mobile.
 	 */
 	maximumRenderingSize: {width: number; height: number};
 	/**
