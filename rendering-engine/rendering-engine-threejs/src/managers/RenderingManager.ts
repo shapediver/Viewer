@@ -48,6 +48,7 @@ export class RenderingManager implements IManager {
 	private _continuousRendering: boolean = false;
 	private _continuousShadowMapUpdate: boolean = false;
 	private _height: number = 0;
+	private _hasPresentedFrame: boolean = false;
 	private _hidden: boolean = true;
 	private _hiddenCamera: THREE.PerspectiveCamera =
 		new THREE.PerspectiveCamera();
@@ -71,6 +72,7 @@ export class RenderingManager implements IManager {
 	private _minimalRendering: boolean = false;
 	private _noWebGL: boolean = false;
 	private _pixelRatioOverride?: number;
+	private _restoreInteractiveShaders: boolean = false;
 	private _runningAnimation: boolean = false;
 	private _sizeChanged: boolean = false;
 	private _softShadowRenderingActive: boolean = false;
@@ -195,7 +197,7 @@ export class RenderingManager implements IManager {
 			alpha: true,
 			depth: true,
 			antialias: true,
-			preserveDrawingBuffer: true,
+			preserveDrawingBuffer: false,
 			stencil: true,
 			premultipliedAlpha: true,
 			canvas,
@@ -271,6 +273,9 @@ export class RenderingManager implements IManager {
 		type: string = "image/png",
 		encoderOptions: number = 1,
 	): string {
+		// The context swaps the drawing buffer. Read it in this same turn,
+		// after drawing the scene that is on screen.
+		this.renderSceneForScreenshot();
 		return this._renderingEngine.renderer.domElement.toDataURL(
 			type,
 			encoderOptions,
@@ -548,6 +553,107 @@ export class RenderingManager implements IManager {
 		// do the things that have to be done for standard and beauty rendering in the same way
 		this._stats.begin();
 		this.showStatistics();
+		// Roll the beauty shaders back on the next interactive frame, not
+		// while the finished beauty frame is still the one on screen.
+		this.applyInteractiveShaders();
+
+		this.paintFrame(
+			deltaTime,
+			{
+				width,
+				height,
+				adjustedWidth,
+				adjustedHeight,
+				pixelRatioChanged,
+				aspect,
+			},
+			{
+				updateShadowMap: states.updateShadowMap,
+				softShadowRendering: states.softShadowRendering,
+				compileShaders: false,
+				trackBeauty: true,
+				notify: true,
+			},
+		);
+		this._hasPresentedFrame = true;
+
+		this._stats.end();
+	}
+
+	private renderSceneForScreenshot(): void {
+		if (this._noWebGL || this._renderingEngine.closed) return;
+		if (!this._renderingEngine.cameraEngine.camera) return;
+
+		// Before the first presented frame, the interactive shaders are the
+		// ones that frame will use. After that, keep whatever is on screen,
+		// including a finished beauty pass whose uniforms are restored later.
+		if (!this._hasPresentedFrame) this.applyInteractiveShaders();
+
+		const {
+			width,
+			height,
+			adjustedWidth,
+			adjustedHeight,
+			pixelRatioChanged,
+		} = this.calculateSize();
+		if (!(width > 0) || !(height > 0)) return;
+
+		const updateShadowMap =
+			this._runningAnimation === true ||
+			this._continuousShadowMapUpdate === true ||
+			this._updateShadowMapInNextRender === true;
+		this._updateShadowMapInNextRender = false;
+
+		this.paintFrame(
+			0,
+			{
+				width,
+				height,
+				adjustedWidth,
+				adjustedHeight,
+				pixelRatioChanged,
+				aspect: width / height,
+			},
+			{
+				updateShadowMap,
+				// Draw the shaders already on screen. Advancing the beauty
+				// blend here would show a different frame than the canvas.
+				softShadowRendering: false,
+				compileShaders: true,
+				trackBeauty: false,
+				notify: false,
+			},
+		);
+		this._hasPresentedFrame = true;
+	}
+
+	private paintFrame(
+		deltaTime: number,
+		size: {
+			width: number;
+			height: number;
+			adjustedWidth: number;
+			adjustedHeight: number;
+			pixelRatioChanged: boolean;
+			aspect: number;
+		},
+		options: {
+			updateShadowMap: boolean;
+			softShadowRendering: boolean;
+			compileShaders: boolean;
+			trackBeauty: boolean;
+			notify: boolean;
+		},
+	): void {
+		const {
+			width,
+			height,
+			adjustedWidth,
+			adjustedHeight,
+			pixelRatioChanged,
+			aspect,
+		} = size;
+		let updateShadowMap = options.updateShadowMap;
 
 		// animation loop - part 8: calculate the current size
 		const currentSize = new THREE.Vector2();
@@ -583,7 +689,6 @@ export class RenderingManager implements IManager {
 		// that means that the turntable controls or the object controls are activated
 		if (matrix) {
 			for (let i = 0; i < this._tree.root.children.length; i++) {
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				if (
 					!(<any>this._tree.root.children[i]).sessionNode ||
 					this._tree.root.children[i].excludeViewports.includes(
@@ -603,7 +708,7 @@ export class RenderingManager implements IManager {
 					});
 				}
 			}
-			states.updateShadowMap = true;
+			updateShadowMap = true;
 			this._renderingEngine.sceneTreeManager.updateNode(
 				undefined,
 				undefined,
@@ -637,7 +742,7 @@ export class RenderingManager implements IManager {
 		}
 
 		// update shadowMap if need
-		if (states.updateShadowMap) {
+		if (updateShadowMap) {
 			if (this._renderingEngine.renderer.shadowMap.enabled)
 				this._renderingEngine.renderer.shadowMap.needsUpdate = true;
 			this._renderingEngine.environmentGeometryManager.contactShadow?.render();
@@ -669,27 +774,35 @@ export class RenderingManager implements IManager {
 				this._systemInfo.isMobile === true
 			);
 
-		// animation loop - part 12: actual rendering separation
-		if (states.softShadowRendering === true) {
-			this.setShaderProperties();
+		const scene = (<SceneTreeManager>this._renderingEngine.sceneTreeManager)
+			.scene;
+		// A screenshot cannot read the buffer after this call returns.
+		// Compile here so the draw waits for programs that an in-flight
+		// asynchronous compile has not finished yet.
+		if (options.compileShaders)
+			this._renderingEngine.renderer.compile(scene, camera);
 
+		const draw = () => {
 			if (renderPostProcessing) {
 				this._renderingEngine.postProcessingManager.render(
 					deltaTime,
 					camera,
 				);
 			} else {
-				this._renderingEngine.renderer.render(
-					(<SceneTreeManager>this._renderingEngine.sceneTreeManager)
-						.scene,
-					camera,
-				);
+				this._renderingEngine.renderer.render(scene, camera);
 			}
+		};
+
+		// animation loop - part 12: actual rendering separation
+		if (options.softShadowRendering === true) {
+			this.setShaderProperties();
+			draw();
 
 			// if the duration was long enough, disable the beauty rendering
 			if (
+				options.trackBeauty &&
 				this._softShadowRenderingDurationActive >=
-				this._renderingEngine.beautyRenderBlendingDuration
+					this._renderingEngine.beautyRenderBlendingDuration
 			) {
 				this._eventEngine.emitEvent(
 					EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
@@ -697,25 +810,14 @@ export class RenderingManager implements IManager {
 				);
 				this.deactivateBeautyRenderShaders();
 				this._activeRendering = false;
-			} else {
+			} else if (options.trackBeauty) {
 				this._softShadowRenderingDurationActive += deltaTime;
 			}
 		} else {
-			if (renderPostProcessing) {
-				this._renderingEngine.postProcessingManager.render(
-					deltaTime,
-					camera,
-				);
-			} else {
-				this._renderingEngine.renderer.render(
-					(<SceneTreeManager>this._renderingEngine.sceneTreeManager)
-						.scene,
-					camera,
-				);
-			}
+			draw();
 
 			// if the beauty rendering was active, disable it
-			if (this._softShadowRenderingActive) {
+			if (options.trackBeauty && this._softShadowRenderingActive) {
 				this._eventEngine.emitEvent(
 					EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
 					{viewportId: this._renderingEngine.id},
@@ -728,14 +830,12 @@ export class RenderingManager implements IManager {
 		// reset the visibility of the threeJs light object
 		if (threeJsLightObject) threeJsLightObject.visible = oldLightVisibility;
 
-		if (this._renderingEngine.postRenderingCallback)
+		if (options.notify && this._renderingEngine.postRenderingCallback)
 			this._renderingEngine.postRenderingCallback(
 				this._renderingEngine.renderer,
 				this._renderingEngine.scene,
 				this._renderingEngine.camera,
 			);
-
-		this._stats.end();
 	}
 
 	private async rasterizeCanvasParent(
@@ -929,6 +1029,14 @@ export class RenderingManager implements IManager {
 		this._softShadowRenderingTimeout = null;
 		this._softShadowRenderingActive = false;
 		this._softShadowRenderingDurationActive = 0;
+		// Keep the shaders that produced the frame now on screen. The next
+		// interactive draw applies the cheaper shadow settings.
+		this._restoreInteractiveShaders = true;
+	}
+
+	private applyInteractiveShaders() {
+		if (!this._restoreInteractiveShaders) return;
+		this._restoreInteractiveShaders = false;
 		this._renderingEngine.renderer.shadowMap.type = THREE.BasicShadowMap;
 		this._renderingEngine.renderer.shadowMap.needsUpdate = true;
 		this._renderingEngine.materialLoader.updateSoftShadow(
