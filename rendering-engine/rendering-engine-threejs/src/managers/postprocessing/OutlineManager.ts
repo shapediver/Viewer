@@ -100,6 +100,7 @@ export class OutlineManager {
 	}
 
 	public updateOutlineEffectObjects() {
+		this._renderingEngine.materialBatchManager.syncHeldNodes();
 		const selectedNodes = new Set(this._outlineNodes);
 		this._instancedOutlineNodes.forEach((node) => {
 			if (!selectedNodes.has(node)) this._removeInstancedEffects(node);

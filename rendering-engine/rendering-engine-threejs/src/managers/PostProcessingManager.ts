@@ -215,6 +215,18 @@ export class PostProcessingManager implements IManager {
 		return this._selectiveBloomManagers;
 	}
 
+	/** Nodes drawn on their own so outline or bloom can select that mesh. */
+	public effectNodeIds(): string[] {
+		const ids: string[] = [];
+		for (const manager of Object.values(this._outlineManagers)) {
+			for (const node of manager.selectedNodes()) ids.push(node.id);
+		}
+		for (const manager of Object.values(this._selectiveBloomManagers)) {
+			for (const node of manager.selectedNodes()) ids.push(node.id);
+		}
+		return ids;
+	}
+
 	/**
 	 * Rebuild selections after instances move between effect-combination meshes.
 	 * A mesh can be shared by several effects, so every selection must observe the

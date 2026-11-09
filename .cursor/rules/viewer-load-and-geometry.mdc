@@ -23,6 +23,14 @@ alwaysApply: true
 - Do **not** `clone()` every object and `Box3.setFromObject(clone, true)` per node; that vertex-walked ~6k lines in ~8 s.
 - The viewer does **not** merge line primitives. Each exported line is its own node / `THREE.LineSegments` / draw call. First-frame upload of thousands of them dominates remaining load time; batch in Grasshopper or a dedicated merge pass, not ad-hoc clones.
 
+## Static triangle batches
+
+- Static triangle meshes that share a material, aside from color, are one `BatchedMesh` per chunk. Do not key the batch on `material.id`. Color-only variants keep distinct ids; the tint is `setColorAt`.
+- Lines, points, morph targets, GPU-instanced meshes, and the node being dragged stay individual meshes. Put a dragged node back when the drag ends.
+- Picking reads `intersection.batchId` and the batch's node list. Hiding or recoloring one member uses `setVisibleAt` / `setColorAt` and leaves the others in the batch. A material edit other than color draws that object on its own until the next scene rebuild.
+- Transparent meshes that share a material stay in one batch, so they are not depth-sorted against each other.
+- Bounds stay on `GeometryData.boundingBox` times the node matrix. Do not vertex-walk the merged batch.
+
 ## GPU instancing is opt-in
 
 - Default is **off**. Detection uses glTF accessor identity and a count/type fingerprint; byte hashing and baked-transform vertex walks run only when a second primitive shares that fingerprint.

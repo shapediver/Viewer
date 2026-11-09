@@ -676,6 +676,10 @@ export class GeometryLoader implements ILoader {
 			geometry,
 			geometryObjects,
 		);
+		for (const geometryObject of geometryObjects)
+			this._renderingEngine.materialBatchManager.syncObject(
+				geometryObject,
+			);
 	}
 
 	public registerGeometryObject(

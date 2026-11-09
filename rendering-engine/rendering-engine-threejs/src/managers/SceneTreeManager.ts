@@ -54,6 +54,8 @@ export class SceneTreeManager implements IManager {
 	private _mainConvertedObject!: SDObject;
 	private _newRendererType: boolean = false;
 	private _suspendSceneUpdates: boolean = false;
+	private _deferBatch = false;
+	private _batchDepth = 0;
 
 	constructor(private readonly _renderingEngine: RenderingEngine) {
 		this._scene.background = new THREE.Color("#ffffff");
@@ -377,82 +379,104 @@ export class SceneTreeManager implements IManager {
 			if (!obj) return;
 		}
 
-		const convertedObject = <SDObject>obj;
+		this._batchDepth++;
+		try {
+			const convertedObject = <SDObject>obj;
 
-		// reset bounding boxes
-		this.resetBoundingBoxes(treeNode);
+			// reset bounding boxes
+			this.resetBoundingBoxes(treeNode);
 
-		// cleanup obsolete data and children
-		if (filter.transformationOnly === false) {
-			this.cleanupObsoleteData(treeNode, convertedObject);
-			this.cleanupObsoleteChildren(treeNode, convertedObject);
-		}
-
-		const isVisible = this.isNodeVisible(treeNode);
-		const isVisibleInHierarchy = visibleInHierarchy && isVisible;
-
-		// convert all data items of the current node
-		// old versions will be replaced by new ones
-
-		// Create a lookup map for efficient access to converted children
-		const convertedChildrenMap = new Map<string, SDObject>();
-		for (const child of convertedObject.children) {
-			if (child instanceof SDObject) {
-				convertedChildrenMap.set(child.SDid, child);
+			// cleanup obsolete data and children
+			if (filter.transformationOnly === false) {
+				this.cleanupObsoleteData(treeNode, convertedObject);
+				this.cleanupObsoleteChildren(treeNode, convertedObject);
 			}
-		}
 
-		for (let i = 0, len = treeNode.data.length; i < len; i++) {
-			const dataItem = treeNode.data[i];
-			const convertedObjectData = convertedChildrenMap.get(dataItem.id);
+			const isVisible = this.isNodeVisible(treeNode);
+			const isVisibleInHierarchy = visibleInHierarchy && isVisible;
 
-			if (
-				!convertedObjectData ||
-				convertedObjectData.SDversion !== dataItem.version ||
-				this._newRendererType
-			) {
-				this.updateData(
-					dataItem,
-					treeNode,
+			// convert all data items of the current node
+			// old versions will be replaced by new ones
+
+			// Create a lookup map for efficient access to converted children
+			const convertedChildrenMap = new Map<string, SDObject>();
+			for (const child of convertedObject.children) {
+				if (child instanceof SDObject) {
+					convertedChildrenMap.set(child.SDid, child);
+				}
+			}
+
+			for (let i = 0, len = treeNode.data.length; i < len; i++) {
+				const dataItem = treeNode.data[i];
+				const convertedObjectData = convertedChildrenMap.get(
+					dataItem.id,
+				);
+
+				if (
+					!convertedObjectData ||
+					convertedObjectData.SDversion !== dataItem.version ||
+					this._newRendererType
+				) {
+					this.updateData(
+						dataItem,
+						treeNode,
+						convertedObject,
+						filter,
+						isVisibleInHierarchy,
+					);
+				} else {
+					assignBoundingBox(
+						treeNode,
+						dataItem,
+						this._renderingEngine.id,
+						convertedObjectData,
+					);
+				}
+			}
+
+			// Update or create child nodes
+			for (let i = 0, len = treeNode.children.length; i < len; i++) {
+				const treeNodeChild = treeNode.children[i];
+				const childConvertedObject = convertedChildrenMap.get(
+					treeNodeChild.id,
+				);
+
+				this.processChildTreeNode(
+					treeNodeChild,
 					convertedObject,
+					childConvertedObject,
 					filter,
 					isVisibleInHierarchy,
 				);
-			} else {
-				assignBoundingBox(
+
+				this.unionChildBoundingBoxes(
 					treeNode,
-					dataItem,
-					this._renderingEngine.id,
-					convertedObjectData,
+					treeNodeChild,
+					isVisible,
 				);
 			}
-		}
 
-		// Update or create child nodes
-		for (let i = 0, len = treeNode.children.length; i < len; i++) {
-			const treeNodeChild = treeNode.children[i];
-			const childConvertedObject = convertedChildrenMap.get(
-				treeNodeChild.id,
-			);
-
-			this.processChildTreeNode(
-				treeNodeChild,
-				convertedObject,
-				childConvertedObject,
-				filter,
+			convertedObject.visible = isVisible;
+			convertedObject.applyTransformation(treeNode.nodeMatrix);
+			this._renderingEngine.instanceGroupManager.updateNode(treeNode);
+			this._renderingEngine.instanceGroupManager.setNodeVisible(
+				treeNode.id,
 				isVisibleInHierarchy,
 			);
-
-			this.unionChildBoundingBoxes(treeNode, treeNodeChild, isVisible);
+			if (!this._deferBatch)
+				this._renderingEngine.materialBatchManager.updateTransforms(
+					treeNode,
+					isVisibleInHierarchy,
+				);
+		} finally {
+			this._batchDepth--;
+			if (
+				this._batchDepth === 0 &&
+				filter.transformationOnly === false &&
+				this._deferBatch === false
+			)
+				this._renderingEngine.materialBatchManager.rebuild();
 		}
-
-		convertedObject.visible = isVisible;
-		convertedObject.applyTransformation(treeNode.nodeMatrix);
-		this._renderingEngine.instanceGroupManager.updateNode(treeNode);
-		this._renderingEngine.instanceGroupManager.setNodeVisible(
-			treeNode.id,
-			isVisibleInHierarchy,
-		);
 	}
 
 	public updateSceneTree(rootTreeNode: ITreeNode): void {
@@ -524,9 +548,15 @@ export class SceneTreeManager implements IManager {
 			);
 
 		this._currentSDTFOverview = createSDTFOverview(rootTreeNode);
+		this._deferBatch = true;
 		this._renderingEngine.instanceGroupManager.beginBoundsUpdate();
-		this.updateNode(rootTreeNode, this._mainConvertedObject);
-		this._renderingEngine.instanceGroupManager.endBoundsUpdate();
+		try {
+			this.updateNode(rootTreeNode, this._mainConvertedObject);
+		} finally {
+			this._renderingEngine.instanceGroupManager.endBoundsUpdate();
+			this._deferBatch = false;
+		}
+		this._renderingEngine.materialBatchManager.rebuild();
 		this._boundingBox =
 			rootTreeNode.boundingBoxViewport[this._renderingEngine.id].clone();
 
