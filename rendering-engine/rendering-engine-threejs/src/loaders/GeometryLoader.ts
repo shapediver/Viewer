@@ -252,21 +252,21 @@ export class GeometryLoader implements ILoader {
 			incomingMaterialData = geometry.material;
 		}
 
-		// Cache key to avoid repeated string concatenation
+		// One primitive is one BufferGeometry. A second GeometryData with
+		// the same primitive reuses it, so three does not copy every
+		// attribute array. The geometry-cache hit below is the same
+		// GeometryData again: that mesh already holds its retain.
 		const primitiveCacheKey =
 			geometry.primitive.id + "_" + geometry.primitive.version;
-
-		const threeGeometry = (() => {
-			const cachedPrimitive = this._primitiveCache[primitiveCacheKey];
-			if (!cachedPrimitive) {
-				return this.loadPrimitive(geometry.primitive);
-			} else {
-				cachedPrimitive.counter++;
-				const clone = cachedPrimitive.threeGeometry.clone();
-				cachedPrimitive.clones.push(clone);
-				return clone;
-			}
-		})();
+		const geometryCacheKey =
+			geometry.id +
+			"_" +
+			geometry.version +
+			(instanceData ? "_" + instanceData.id : "");
+		const cachedGeometry = this._geometryCache[geometryCacheKey];
+		const threeGeometry = cachedGeometry
+			? cachedGeometry.obj.geometry
+			: this.acquirePrimitiveGeometry(geometry, primitiveCacheKey);
 
 		const attributes = threeGeometry.attributes;
 		const morphAttributes = threeGeometry.morphAttributes;
@@ -334,12 +334,6 @@ export class GeometryLoader implements ILoader {
 		// One geometry can be shared by several nodes that each carry their own
 		// InstanceData (EXT_mesh_gpu_instancing). Those must not share a cached
 		// InstancedMesh, so the instance set is part of the cache identity.
-		const geometryCacheKey =
-			geometry.id +
-			"_" +
-			geometry.version +
-			(instanceData ? "_" + instanceData.id : "");
-		const cachedGeometry = this._geometryCache[geometryCacheKey];
 		if (cachedGeometry) {
 			cachedGeometry.counter++;
 			threeGeometryObject = cachedGeometry.obj;
@@ -773,6 +767,38 @@ export class GeometryLoader implements ILoader {
 		return false;
 	}
 
+	/**
+	 * Retain the cached geometry for a new mesh. Triangle strips and fans
+	 * rewrite the index, so those get a clone and the cached geometry stays
+	 * as it was parsed.
+	 */
+	private acquirePrimitiveGeometry(
+		geometry: GeometryData,
+		primitiveCacheKey: string,
+	): THREE.BufferGeometry {
+		const cachedPrimitive = this._primitiveCache[primitiveCacheKey];
+		let bufferGeometry: THREE.BufferGeometry;
+		if (!cachedPrimitive) {
+			bufferGeometry = this.loadPrimitive(geometry.primitive);
+		} else {
+			cachedPrimitive.counter++;
+			bufferGeometry = cachedPrimitive.threeGeometry;
+		}
+
+		if (!this.indexIsRewritten(geometry.mode)) return bufferGeometry;
+
+		const clone = bufferGeometry.clone();
+		this._primitiveCache[primitiveCacheKey].clones.push(clone);
+		return clone;
+	}
+
+	private indexIsRewritten(mode: PRIMITIVE_MODE): boolean {
+		return (
+			mode === PRIMITIVE_MODE.TRIANGLE_STRIP ||
+			mode === PRIMITIVE_MODE.TRIANGLE_FAN
+		);
+	}
+
 	private convertToTriangleMode(
 		geometry: THREE.BufferGeometry,
 		drawMode: PRIMITIVE_MODE,
@@ -1011,10 +1037,7 @@ export class GeometryLoader implements ILoader {
 			geometry.mode === PRIMITIVE_MODE.TRIANGLE_FAN
 		) {
 			const bufferGeometry = threeGeometry;
-			if (
-				geometry.mode === PRIMITIVE_MODE.TRIANGLE_STRIP ||
-				geometry.mode === PRIMITIVE_MODE.TRIANGLE_FAN
-			)
+			if (this.indexIsRewritten(geometry.mode))
 				this.convertToTriangleMode(bufferGeometry, geometry.mode);
 
 			if (instanceData && instanceData.instanceMatrices.length > 0) {
@@ -1062,34 +1085,16 @@ export class GeometryLoader implements ILoader {
 			);
 		}
 
-		// Cache userData and bounding box data to reduce allocations
-		const userDataCache = {
-			SDid: geometry.id,
-			SDversion: geometry.version,
-			primitiveSDid: geometry.primitive.id,
-			primitiveSDversion: geometry.primitive.version,
-		};
-		const bbox = geometry.boundingBox;
-		const bboxMin = new THREE.Vector3(
-			bbox.min[0],
-			bbox.min[1],
-			bbox.min[2],
-		);
-		const bboxMax = new THREE.Vector3(
-			bbox.max[0],
-			bbox.max[1],
-			bbox.max[2],
-		);
-		const bsphereCenter = new THREE.Vector3(
-			bbox.boundingSphere.center[0],
-			bbox.boundingSphere.center[1],
-			bbox.boundingSphere.center[2],
-		);
-		const renderOrder = geometry.renderOrder;
+		// These ids belong to this object. The geometry may be shared, so
+		// they must not be written onto it.
+		threeGeometryObject.userData.SDid = geometry.id;
+		threeGeometryObject.userData.SDversion = geometry.version;
+		threeGeometryObject.userData.primitiveSDid = geometry.primitive.id;
+		threeGeometryObject.userData.primitiveSDversion =
+			geometry.primitive.version;
 
 		const threeGeom = threeGeometryObject.geometry;
-		threeGeom.userData = userDataCache;
-		threeGeometryObject.renderOrder = renderOrder;
+		threeGeometryObject.renderOrder = geometry.renderOrder;
 
 		// Performance: Disable matrixAutoUpdate for static geometry (no animations/transforms)
 		// This prevents Three.js from recalculating matrices every frame
@@ -1101,12 +1106,23 @@ export class GeometryLoader implements ILoader {
 			threeGeometryObject instanceof THREE.Mesh &&
 			threeGeometryObject.userData.transparencyPlaceholder !== true
 		) {
-			// Assign bounding box directly without unnecessary clones
-			threeGeom.boundingBox = new THREE.Box3(bboxMin, bboxMax);
-			threeGeom.boundingSphere = new THREE.Sphere(
-				bsphereCenter,
-				bbox.boundingSphere.radius,
-			);
+			// The local box matches the shared vertices. A later object keeps
+			// the box already stored on that geometry.
+			if (!threeGeom.boundingBox) {
+				const bbox = geometry.boundingBox;
+				threeGeom.boundingBox = new THREE.Box3(
+					new THREE.Vector3(bbox.min[0], bbox.min[1], bbox.min[2]),
+					new THREE.Vector3(bbox.max[0], bbox.max[1], bbox.max[2]),
+				);
+				threeGeom.boundingSphere = new THREE.Sphere(
+					new THREE.Vector3(
+						bbox.boundingSphere.center[0],
+						bbox.boundingSphere.center[1],
+						bbox.boundingSphere.center[2],
+					),
+					bbox.boundingSphere.radius,
+				);
+			}
 			(<THREE.Mesh>threeGeometryObject).morphTargetInfluences =
 				geometry.morphWeights;
 		}
