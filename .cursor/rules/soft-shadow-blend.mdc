@@ -1,0 +1,10 @@
+---
+description: When the PCSS soft-shadow blend runs and when it is exactly zero
+alwaysApply: true
+---
+
+# Soft-shadow blend
+
+- `shaders/PCSS.ts` `getShadow` returns the 9-tap result when `blending == 0.0` and does not call `getPCSSShadow`. Apply `shadowIntensity` on that path. The final `mix(1.0, shadow, shadowIntensity)` is only reached when the blend is above zero.
+- `blending` is 0 when `softShadows` is off, and on the first beauty frame while the fade duration is still 0. Any weight above 0 still runs the PCSS kernel.
+- `deactivateBeautyRenderShaders` sets the blend to 0.1, not 0. An orbit therefore still samples PCSS. Do not treat 0.1 as hard shadows, and do not change that weight from a shader-only task.
