@@ -23,6 +23,7 @@ http://localhost:8080/?ticket=<ticket>&modelViewUrl=<gateway-url>
 - After editing a workspace package, run `npm run build` **in that package** (for example `rendering-engine/rendering-engine-threejs`). The simple example’s webpack watches `dist/` and will rebundle.
 - Do **not** run root `npm run build` for a one-package change; it builds ~29 packages and is slow.
 - Root `npm run build` is for a full monorepo compile before publish or a broad check.
+- Package `build` scripts call `bash`. On Windows, `bash` may be the WSL stub (`C:\Windows\System32\bash.exe`) and fail when no distribution is installed. Put `C:\Program Files\Git\bin` first on `PATH` so those scripts use Git Bash.
 
 ## Tests
 
