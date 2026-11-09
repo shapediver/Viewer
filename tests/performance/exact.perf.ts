@@ -1,4 +1,4 @@
-import {expect, test as base, type Page} from "@playwright/test";
+import {test as base, expect, type Page} from "@playwright/test";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -50,8 +50,8 @@ const test = base.extend({
 
 function installApi() {
 	const BOX_INDICES = [
-		0, 2, 3, 0, 3, 1, 4, 5, 7, 4, 7, 6, 0, 1, 5, 0, 5, 4, 2, 7, 3, 2, 6, 7, 0,
-		4, 6, 0, 6, 2, 1, 3, 7, 1, 7, 5,
+		0, 2, 3, 0, 3, 1, 4, 5, 7, 4, 7, 6, 0, 1, 5, 0, 5, 4, 2, 7, 3, 2, 6, 7,
+		0, 4, 6, 0, 6, 2, 1, 3, 7, 1, 7, 5,
 	];
 	const SDV = (window as any).SDV;
 	const renderers: any[] = [];
@@ -75,7 +75,11 @@ function installApi() {
 				const materials = Array.isArray(object.material)
 					? object.material
 					: [object.material];
-				if (materials.some((material: any) => material?.isMeshDepthMaterial))
+				if (
+					materials.some(
+						(material: any) => material?.isMeshDepthMaterial,
+					)
+				)
 					depthMeshes++;
 			});
 			const result = original(scene, camera);
@@ -113,7 +117,15 @@ function installApi() {
 						positions.length,
 					),
 				},
-				new SDV.AttributeData(indices, 1, 2, 0, 2, false, indices.length),
+				new SDV.AttributeData(
+					indices,
+					1,
+					2,
+					0,
+					2,
+					false,
+					indices.length,
+				),
 			),
 			SDV.PRIMITIVE_MODE.TRIANGLES,
 		);
@@ -294,7 +306,9 @@ test("SS-10385 blending 0 returns before the PCSS kernel", async ({page}) => {
 		const sources = programs.map(
 			(program: any) => gl.getShaderSource(program.fragmentShader) ?? "",
 		);
-		return sources.find((item: string) => item.includes("getPCSSShadow")) ?? "";
+		return (
+			sources.find((item: string) => item.includes("getPCSSShadow")) ?? ""
+		);
 	});
 	expect(source.length).toBeGreaterThan(0);
 	const guard = source.search(
@@ -326,7 +340,9 @@ test.describe("SS-10386 drawing buffer is capped in physical pixels", () => {
 			perf.viewport.update();
 			perf.viewport.show = true;
 			await new Promise<void>((resolve) => {
-				requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+				requestAnimationFrame(() =>
+					requestAnimationFrame(() => resolve()),
+				);
 			});
 			const canvas = perf.renderer.domElement as HTMLCanvasElement;
 			const cssWidth = canvas.parentElement!.clientWidth;
@@ -379,7 +395,9 @@ test.describe("SS-10386 device pixel ratio 1 is unchanged", () => {
 			perf.viewport.update();
 			perf.viewport.show = true;
 			await new Promise<void>((resolve) => {
-				requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+				requestAnimationFrame(() =>
+					requestAnimationFrame(() => resolve()),
+				);
 			});
 			const canvas = perf.renderer.domElement as HTMLCanvasElement;
 			return {
@@ -418,8 +436,9 @@ test("SS-10387 camera start and beauty activation do not dirty materials", async
 		perf.viewport.update();
 		perf.viewport.show = true;
 		await new Promise<void>((resolve) => {
-			SDV.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, () =>
-				resolve(),
+			SDV.addListener(
+				SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
+				() => resolve(),
 			);
 		});
 		let flips = 0;
@@ -464,7 +483,9 @@ test("SS-10387 camera start and beauty activation do not dirty materials", async
 	await page.mouse.move(280, 240);
 	await page.mouse.up();
 	await finished;
-	const afterGesture = await page.evaluate(() => (window as any).__perfFlips());
+	const afterGesture = await page.evaluate(() =>
+		(window as any).__perfFlips(),
+	);
 	expect(afterGesture - before).toBe(0);
 	const afterShadow = await page.evaluate(() => {
 		const beforeToggle = (window as any).__perfFlips();
@@ -492,7 +513,8 @@ test("SS-10388 omitted side is front, stored double stays double", async ({
 		bytes.set(new Uint8Array(positions.buffer), 0);
 		bytes.set(new Uint8Array(indices.buffer), 36);
 		let binary = "";
-		for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+		for (let i = 0; i < bytes.length; i++)
+			binary += String.fromCharCode(bytes[i]);
 		const gltf = {
 			asset: {version: "2.0"},
 			scene: 0,
@@ -502,8 +524,16 @@ test("SS-10388 omitted side is front, stored double stays double", async ({
 				{name: "doubled", mesh: 1, translation: [2, 0, 0]},
 			],
 			meshes: [
-				{primitives: [{attributes: {POSITION: 0}, indices: 1, material: 0}]},
-				{primitives: [{attributes: {POSITION: 0}, indices: 1, material: 1}]},
+				{
+					primitives: [
+						{attributes: {POSITION: 0}, indices: 1, material: 0},
+					],
+				},
+				{
+					primitives: [
+						{attributes: {POSITION: 0}, indices: 1, material: 1},
+					],
+				},
 			],
 			materials: [
 				{pbrMetallicRoughness: {baseColorFactor: [1, 0, 0, 1]}},
@@ -534,7 +564,9 @@ test("SS-10388 omitted side is front, stored double stays double", async ({
 				},
 			],
 		};
-		const blob = new Blob([JSON.stringify(gltf)], {type: "model/gltf+json"});
+		const blob = new Blob([JSON.stringify(gltf)], {
+			type: "model/gltf+json",
+		});
 		const href = URL.createObjectURL(blob);
 		const node = await SDV.DataEngine.instance.loadContent({
 			format: "gltf",
@@ -548,8 +580,10 @@ test("SS-10388 omitted side is front, stored double stays double", async ({
 			const converted = treeNode.convertedObject[perf.viewport.id];
 			converted?.traverse?.((object: any) => {
 				if (!object.isMesh) return;
-				if (treeNode.name === "omitted") found.omitted = object.material.side;
-				if (treeNode.name === "doubled") found.doubled = object.material.side;
+				if (treeNode.name === "omitted")
+					found.omitted = object.material.side;
+				if (treeNode.name === "doubled")
+					found.doubled = object.material.side;
 			});
 		});
 		return {
@@ -612,9 +646,7 @@ test("SS-10389 drawing buffer is not preserved and the screenshot still has the 
 	expect(shot.preserve).toBe(false);
 });
 
-test("SS-10390 / SS-10397 one material is one draw and the renderer sorts", async ({
-	page,
-}) => {
+test("SS-10390 one material is one draw", async ({page}) => {
 	await open(page);
 	const draw = await page.evaluate(async () => {
 		const perf = (window as any).__perf;
@@ -638,7 +670,6 @@ test("SS-10390 / SS-10397 one material is one draw and the renderer sorts", asyn
 		);
 		return {
 			calls: pass?.calls ?? null,
-			sortObjects: perf.renderer.sortObjects,
 			passes: perf.renders.map((item: any) => ({
 				calls: item.calls,
 				triangles: item.triangles,
@@ -647,7 +678,180 @@ test("SS-10390 / SS-10397 one material is one draw and the renderer sorts", asyn
 		};
 	});
 	expect(draw.calls, JSON.stringify(draw.passes)).toBe(1);
-	expect(draw.sortObjects).toBe(true);
+});
+
+test("SS-10397", async ({page}) => {
+	await open(page);
+	const sortObjects = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		await perf.create({shadows: false});
+		return perf.renderer.sortObjects;
+	});
+	expect(sortObjects).toBe(true);
+});
+
+test("SS-10390 color variants stay one draw and a ray hits that box", async ({
+	page,
+}) => {
+	await open(page);
+	const draw = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const green = new SDV.MaterialUnlitData({color: "#66cc88"});
+		const blue = new SDV.MaterialUnlitData({color: "#3366cc"});
+		perf.addBoxes(8, green);
+		for (let i = 0; i < 8; i++) {
+			const geometry = perf.boxGeometry(
+				[1.2, -0.4, i * 1.2],
+				[2, 0.4, i * 1.2 + 0.8],
+			);
+			geometry.material = blue;
+			const node = new SDV.TreeNode(`blue${i}`);
+			node.addData(geometry);
+			SDV.sceneTree.root.addChild(node);
+		}
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		perf.viewport.show = true;
+		perf.renders.length = 0;
+		await new Promise<void>((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+		});
+		const pass = perf.renders.find(
+			(item: any) => item.target === null && item.triangles === 192,
+		);
+		const hits = perf.viewport.raytraceScene([0, 0, -1], [0, 0, 1]);
+		const centerPixel = async (eye: number[], target: number[]) => {
+			await perf.viewport.camera.set(eye, target, {duration: 0});
+			await new Promise<void>((resolve) => {
+				requestAnimationFrame(() =>
+					requestAnimationFrame(() => resolve()),
+				);
+			});
+			const url = perf.viewport.getScreenshot();
+			const bitmap = await createImageBitmap(
+				await (await fetch(url)).blob(),
+			);
+			const canvas = document.createElement("canvas");
+			canvas.width = bitmap.width;
+			canvas.height = bitmap.height;
+			const context = canvas.getContext("2d")!;
+			context.drawImage(bitmap, 0, 0);
+			const pixel = context.getImageData(
+				Math.floor(bitmap.width / 2),
+				Math.floor(bitmap.height / 2),
+				1,
+				1,
+			).data;
+			return [pixel[0], pixel[1], pixel[2]];
+		};
+		const greenPixel = await centerPixel([0, 0, 4], [0, 0, 0.4]);
+		const bluePixel = await centerPixel([1.6, 0, 4], [1.6, 0, 0.4]);
+		return {
+			calls: pass?.calls ?? null,
+			hit: hits[0]?.node?.name ?? null,
+			greenPixel,
+			bluePixel,
+			passes: perf.renders.map((item: any) => ({
+				calls: item.calls,
+				triangles: item.triangles,
+				target: item.target,
+			})),
+		};
+	});
+	expect(draw.calls, JSON.stringify(draw.passes)).toBe(1);
+	expect(draw.hit).toBe("box0");
+	expect(draw.greenPixel[1], JSON.stringify(draw.greenPixel)).toBeGreaterThan(
+		draw.greenPixel[0],
+	);
+	expect(draw.greenPixel[1], JSON.stringify(draw.greenPixel)).toBeGreaterThan(
+		draw.greenPixel[2],
+	);
+	expect(draw.bluePixel[2], JSON.stringify(draw.bluePixel)).toBeGreaterThan(
+		draw.bluePixel[0],
+	);
+	expect(draw.bluePixel[2], JSON.stringify(draw.bluePixel)).toBeGreaterThan(
+		draw.bluePixel[1],
+	);
+});
+
+test("SS-10390 hiding one box keeps the batch and drops its triangles", async ({
+	page,
+}) => {
+	await open(page);
+	const draw = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const material = new SDV.MaterialStandardData({
+			color: "#66cc88",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		perf.addBoxes(16, material);
+		const hidden = SDV.sceneTree.root.children.find(
+			(node: any) => node.name === "box0",
+		);
+		hidden.visible = false;
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		perf.viewport.show = true;
+		perf.renders.length = 0;
+		await new Promise<void>((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+		});
+		const pass = perf.renders.find(
+			(item: any) => item.target === null && item.triangles === 180,
+		);
+		return {
+			calls: pass?.calls ?? null,
+			passes: perf.renders.map((item: any) => ({
+				calls: item.calls,
+				triangles: item.triangles,
+				target: item.target,
+			})),
+		};
+	});
+	expect(draw.calls, JSON.stringify(draw.passes)).toBe(1);
+});
+
+test("SS-10390 a morph target stays its own draw", async ({page}) => {
+	await open(page);
+	const draw = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const material = new SDV.MaterialStandardData({
+			color: "#66cc88",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		perf.addBoxes(16, material);
+		const morph = perf.boxGeometry([-0.4, -0.4, 0.85], [0.4, 0.4, 1.15]);
+		morph.material = material;
+		morph.morphWeights = [0];
+		const node = new SDV.TreeNode("morph");
+		node.addData(morph);
+		SDV.sceneTree.root.addChild(node);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		perf.viewport.show = true;
+		perf.renders.length = 0;
+		await new Promise<void>((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+		});
+		const pass = perf.renders.find(
+			(item: any) => item.target === null && item.triangles === 204,
+		);
+		return {
+			calls: pass?.calls ?? null,
+			passes: perf.renders.map((item: any) => ({
+				calls: item.calls,
+				triangles: item.triangles,
+				target: item.target,
+			})),
+		};
+	});
+	expect(draw.calls, JSON.stringify(draw.passes)).toBe(2);
 });
 
 test("SS-10391 reused primitives share one position buffer", async ({page}) => {
@@ -669,7 +873,9 @@ test("SS-10391 reused primitives share one position buffer", async ({page}) => {
 		);
 		second.material = material;
 		for (const geometry of [first, second]) {
-			const node = new SDV.TreeNode(geometry === first ? "first" : "second");
+			const node = new SDV.TreeNode(
+				geometry === first ? "first" : "second",
+			);
 			node.addData(geometry);
 			SDV.sceneTree.root.addChild(node);
 		}
@@ -748,7 +954,15 @@ test("SS-10393 a ray hits the known triangle through a BVH", async ({page}) => {
 						positions.length,
 					),
 				},
-				new SDV.AttributeData(indices, 1, 2, 0, 2, false, indices.length),
+				new SDV.AttributeData(
+					indices,
+					1,
+					2,
+					0,
+					2,
+					false,
+					indices.length,
+				),
 			),
 			SDV.PRIMITIVE_MODE.TRIANGLES,
 		);
@@ -879,7 +1093,8 @@ test("SS-10396 Draco is constructed once and decodes on one worker", async ({
 			return (instantiate as any)(...args);
 		}) as typeof WebAssembly.instantiate;
 		if (WebAssembly.instantiateStreaming) {
-			const streaming = WebAssembly.instantiateStreaming.bind(WebAssembly);
+			const streaming =
+				WebAssembly.instantiateStreaming.bind(WebAssembly);
 			WebAssembly.instantiateStreaming = ((...args: any[]) => {
 				wasm++;
 				return (streaming as any)(...args);
