@@ -23,6 +23,14 @@ alwaysApply: true
 - Do **not** `clone()` every object and `Box3.setFromObject(clone, true)` per node; that vertex-walked ~6k lines in ~8 s.
 - The viewer does **not** merge line primitives. Each exported line is its own node / `THREE.LineSegments` / draw call. First-frame upload of thousands of them dominates remaining load time; batch in Grasshopper or a dedicated merge pass, not ad-hoc clones.
 
+## Shared primitive geometry
+
+- A primitive-cache hit reuses the cached `BufferGeometry`. Do not `clone()` it there. In three r184, `BufferAttribute.clone` allocates a new typed array, so every reuse becomes a new CPU copy and a new GPU upload.
+- Per-object ids (`SDid`, `SDversion`, `primitiveSDid`, `primitiveSDversion`) live on the `Object3D`. Removal reads them from the object. Do not stamp one object's userData onto a shared geometry.
+- `convertToTriangleMode` replaces the index for `TRIANGLE_STRIP` and `TRIANGLE_FAN`. Clone before that write. The cached geometry stays as parsed. Dispose of the shared geometry only when the last primitive-cache user is gone.
+- A gem's center and radius are the tight sphere around the positions. Measure that into a temporary sphere and restore the geometry's box and sphere. The shared `boundingSphere` stays the one AABB sphere used for culling.
+- This is not GPU instancing. Leave that path alone.
+
 ## GPU instancing is opt-in
 
 - Default is **off**. Detection uses glTF accessor identity and a count/type fingerprint; byte hashing and baked-transform vertex walks run only when a second primitive shares that fingerprint.
