@@ -680,6 +680,58 @@ test("SS-10390 one material is one draw", async ({page}) => {
 	expect(draw.calls, JSON.stringify(draw.passes)).toBe(1);
 });
 
+test("SS-10390 a parent transform moves a batched child", async ({page}) => {
+	await open(page);
+	const moved = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const material = new SDV.MaterialStandardData({
+			color: "#66cc88",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		const anchor = perf.boxGeometry([-0.4, -0.4, 0], [0.4, 0.4, 0.8]);
+		anchor.material = material;
+		const anchorNode = new SDV.TreeNode("anchor");
+		anchorNode.addData(anchor);
+		const childGeometry = perf.boxGeometry(
+			[-0.4, -0.4, 2],
+			[0.4, 0.4, 2.8],
+		);
+		childGeometry.material = material;
+		const child = new SDV.TreeNode("child");
+		child.addData(childGeometry);
+		const parent = new SDV.TreeNode("parent");
+		parent.addChild(child);
+		SDV.sceneTree.root.addChild(anchorNode);
+		SDV.sceneTree.root.addChild(parent);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		const mesh = childGeometry.convertedObject[perf.viewport.id];
+		const batch = mesh?.userData?.batchedMesh;
+		const read = () => {
+			const elements = new Float32Array(16);
+			batch.getMatrixAt(mesh.userData.batchId, {
+				elements,
+				fromArray(array: ArrayLike<number>, offset = 0) {
+					for (let i = 0; i < 16; i++) elements[i] = array[i + offset];
+					return this;
+				},
+			});
+			return elements[12];
+		};
+		const before = read();
+		const matrix = new Float32Array([
+			1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 4, 0, 0, 1,
+		]);
+		parent.addTransformation({id: "shift", matrix});
+		perf.viewport.updateNodeTransformation(parent);
+		return {before, after: read(), batched: Boolean(batch)};
+	});
+	expect(moved.batched).toBe(true);
+	expect(moved.after).toBeCloseTo(moved.before + 4, 4);
+});
+
 test("SS-10397", async ({page}) => {
 	await open(page);
 	const sortObjects = await page.evaluate(async () => {

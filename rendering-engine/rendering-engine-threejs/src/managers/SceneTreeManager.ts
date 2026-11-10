@@ -434,6 +434,12 @@ export class SceneTreeManager implements IManager {
 				}
 			}
 
+			// Children write batch matrices from mesh.matrixWorld, which walks
+			// ancestors. Apply this node's matrix first, or a transform-only
+			// update leaves descendants at the previous pose until a rebuild.
+			convertedObject.visible = isVisible;
+			convertedObject.applyTransformation(treeNode.nodeMatrix);
+
 			// Update or create child nodes
 			for (let i = 0, len = treeNode.children.length; i < len; i++) {
 				const treeNodeChild = treeNode.children[i];
@@ -455,9 +461,6 @@ export class SceneTreeManager implements IManager {
 					isVisible,
 				);
 			}
-
-			convertedObject.visible = isVisible;
-			convertedObject.applyTransformation(treeNode.nodeMatrix);
 			this._renderingEngine.instanceGroupManager.updateNode(treeNode);
 			this._renderingEngine.instanceGroupManager.setNodeVisible(
 				treeNode.id,

@@ -1,4 +1,5 @@
 import {type IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {
 	Converter,
 	EventEngine,
@@ -215,16 +216,25 @@ export class PostProcessingManager implements IManager {
 		return this._selectiveBloomManagers;
 	}
 
-	/** Nodes drawn on their own so outline or bloom can select that mesh. */
+	/**
+	 * Nodes drawn on their own so outline or bloom can select that mesh.
+	 * Both effects traverse the converted subtree, so a selected group's
+	 * descendants have to leave the batch too. A descendant left in the
+	 * batch stays hidden and the batch mesh is not in the selection.
+	 */
 	public effectNodeIds(): string[] {
-		const ids: string[] = [];
+		const ids = new Set<string>();
+		const add = (node: ITreeNode) => {
+			ids.add(node.id);
+			for (const child of node.children) add(child);
+		};
 		for (const manager of Object.values(this._outlineManagers)) {
-			for (const node of manager.selectedNodes()) ids.push(node.id);
+			for (const node of manager.selectedNodes()) add(node);
 		}
 		for (const manager of Object.values(this._selectiveBloomManagers)) {
-			for (const node of manager.selectedNodes()) ids.push(node.id);
+			for (const node of manager.selectedNodes()) add(node);
 		}
-		return ids;
+		return [...ids];
 	}
 
 	/**

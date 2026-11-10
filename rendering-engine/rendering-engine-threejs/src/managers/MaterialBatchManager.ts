@@ -71,6 +71,10 @@ export class MaterialBatchManager {
 	private readonly _held = new Set<string>();
 	private readonly _matrix = new THREE.Matrix4();
 	private readonly _color = new THREE.Color();
+	private readonly _materialKeys = new WeakMap<
+		THREE.Material,
+		{version: number; key: string}
+	>();
 
 	private _signature: string | undefined;
 	private _chunkSerial = 0;
@@ -270,8 +274,11 @@ export class MaterialBatchManager {
 	}
 
 	private materialKey(material: THREE.Material): string {
+		const cached = this._materialKeys.get(material);
+		if (cached && cached.version === material.version) return cached.key;
 		const saved = material.userData;
 		material.userData = {};
+		let key: string;
 		try {
 			const json = material.toJSON() as unknown as Record<
 				string,
@@ -282,12 +289,14 @@ export class MaterialBatchManager {
 			delete json.name;
 			delete json.color;
 			delete json.userData;
-			return JSON.stringify(json);
+			key = JSON.stringify(json);
 		} catch {
-			return material.uuid;
+			key = material.uuid;
 		} finally {
 			material.userData = saved;
 		}
+		this._materialKeys.set(material, {version: material.version, key});
+		return key;
 	}
 
 	private geometryKey(geometry: THREE.BufferGeometry): string {
@@ -484,6 +493,9 @@ export class MaterialBatchManager {
 			member.instanceId,
 			this.hierarchyVisible(member.mesh),
 		);
+		// Keep the source mesh and its geometry. Drag, outline, and a
+		// material edit show that mesh again without rebuilding the chunk.
+		// three.js does not raycast an instance hidden with setVisibleAt.
 		member.mesh.visible = false;
 		member.mesh.userData.batchedMesh = member.batch.mesh;
 		member.mesh.userData.batchId = member.instanceId;
