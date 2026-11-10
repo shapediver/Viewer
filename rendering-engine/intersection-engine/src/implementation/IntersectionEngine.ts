@@ -82,6 +82,10 @@ export class IntersectionEngine implements IIntersectionEngine {
 				THREE.InstancedMesh,
 				THREE.Intersection[]
 			>();
+			const batchedIntersectionCache = new Map<
+				THREE.BatchedMesh,
+				THREE.Intersection[]
+			>();
 			let intersections: IRayTracingIntersection[] = [];
 			this._intersectNodes.forEach((i) => {
 				const currentIntersections = this.intersectNode(
@@ -92,6 +96,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 					filterCriteria,
 					options?.rayCasterParams,
 					instancedIntersectionCache,
+					batchedIntersectionCache,
 				);
 				if (currentIntersections)
 					intersections = intersections.concat(currentIntersections);
@@ -152,6 +157,10 @@ export class IntersectionEngine implements IIntersectionEngine {
 			THREE.InstancedMesh,
 			THREE.Intersection[]
 		> = new Map(),
+		batchedIntersectionCache: Map<
+			THREE.BatchedMesh,
+			THREE.Intersection[]
+		> = new Map(),
 	): IRayTracingIntersection[] | undefined {
 		if (node.visible === false) return;
 
@@ -177,6 +186,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 						rayCasterParams,
 						filterCriteria,
 						instancedIntersectionCache,
+						batchedIntersectionCache,
 					);
 			}
 		} else {
@@ -188,6 +198,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 				rayCasterParams,
 				undefined,
 				instancedIntersectionCache,
+				batchedIntersectionCache,
 			);
 		}
 	}
@@ -258,6 +269,10 @@ export class IntersectionEngine implements IIntersectionEngine {
 		filterCriteria?: IIntersectionFilter[],
 		instancedIntersectionCache: Map<
 			THREE.InstancedMesh,
+			THREE.Intersection[]
+		> = new Map(),
+		batchedIntersectionCache: Map<
+			THREE.BatchedMesh,
 			THREE.Intersection[]
 		> = new Map(),
 	): IRayTracingIntersection[] | undefined {
@@ -363,13 +378,89 @@ export class IntersectionEngine implements IIntersectionEngine {
 			});
 		});
 
+		const batchedMeshes = new Set<THREE.BatchedMesh>();
+		const convertedNode = node.convertedObject[viewportId!] as
+			| THREE.Object3D
+			| undefined;
+		convertedNode?.traverse((child) => {
+			const batch = child.userData.batchedMesh as
+				| THREE.BatchedMesh
+				| undefined;
+			if (batch) batchedMeshes.add(batch);
+		});
+		batchedMeshes.forEach((mesh) => {
+			let meshIntersections = batchedIntersectionCache.get(mesh);
+			if (!meshIntersections) {
+				meshIntersections = this._raycaster.intersectObject(
+					mesh,
+					false,
+				);
+				batchedIntersectionCache.set(mesh, meshIntersections);
+			}
+			const batchNodes = mesh.userData.batchNodes as
+				| (ITreeNode | undefined)[]
+				| undefined;
+			const batchKeys = mesh.userData.batchKeys as
+				| (string | undefined)[]
+				| undefined;
+			const batchGeometries = mesh.userData.batchGeometries as
+				| (GeometryData | undefined)[]
+				| undefined;
+			meshIntersections.forEach((intersection) => {
+				const batchId = intersection.batchId;
+				const hitNode =
+					batchId !== undefined ? batchNodes?.[batchId] : undefined;
+				if (!hitNode || !this.isNodeWithinOwner(hitNode, node)) return;
+				if (
+					hitNode.intersectionTest === false ||
+					hitNode.visible === false
+				)
+					return;
+				if (
+					viewportId &&
+					hitNode.excludeViewports?.includes(viewportId)
+				)
+					return;
+				if (
+					viewportId &&
+					hitNode.restrictViewports?.length &&
+					!hitNode.restrictViewports.includes(viewportId)
+				)
+					return;
+				const hitGeometry = this.resolveBatchedGeometry(
+					hitNode,
+					batchId,
+					batchKeys,
+					batchGeometries,
+				);
+				if (!hitGeometry || !geometryValues.includes(hitGeometry))
+					return;
+				intersections.push({
+					distance: intersection.distance,
+					point: [
+						intersection.point.x,
+						intersection.point.y,
+						intersection.point.z,
+					],
+					normal: this.worldFaceNormal(intersection),
+					node,
+					geometryData: hitGeometry,
+					type: "RayTracingIntersection",
+				});
+			});
+		});
+
 		// Standard (non-instanced) path
 		const threeJsObject = node.convertedObject[
 			viewportId!
 		] as THREE.Object3D;
 		if (threeJsObject) {
-			const intersectionThree =
-				this._raycaster.intersectObject(threeJsObject);
+			// three r184 raycasts visible === false. A batched member is
+			// already returned from the BatchedMesh, so the hidden source
+			// mesh would be a second hit of the same surface.
+			const intersectionThree = this._raycaster
+				.intersectObject(threeJsObject)
+				.filter((hit) => hit.object.userData.batchedMesh == null);
 			intersections = intersections.concat(
 				intersectionThree.map((i) => {
 					const parent = i.object.parent as {
@@ -428,14 +519,21 @@ export class IntersectionEngine implements IIntersectionEngine {
 		if (!local) return undefined;
 		const object = intersection.object;
 		let worldMatrix = object.matrixWorld;
+		const batchedId =
+			object instanceof THREE.BatchedMesh
+				? intersection.batchId
+				: undefined;
+		const instancedId =
+			object instanceof THREE.InstancedMesh
+				? intersection.instanceId
+				: undefined;
+		const perObjectId = batchedId ?? instancedId;
 		if (
-			object instanceof THREE.InstancedMesh &&
-			intersection.instanceId !== undefined
+			perObjectId !== undefined &&
+			(object instanceof THREE.BatchedMesh ||
+				object instanceof THREE.InstancedMesh)
 		) {
-			this._instanceMatrix.fromArray(
-				object.instanceMatrix.array,
-				intersection.instanceId * 16,
-			);
+			object.getMatrixAt(perObjectId, this._instanceMatrix);
 			this._instanceWorldMatrix.multiplyMatrices(
 				object.matrixWorld,
 				this._instanceMatrix,
@@ -463,6 +561,29 @@ export class IntersectionEngine implements IIntersectionEngine {
 	 * is `${node.id}:${geometry.id}`; falling back to the first matching hash
 	 * would pick the wrong primitive when one node has several identical ones.
 	 */
+	private resolveBatchedGeometry(
+		hitNode: ITreeNode,
+		batchId: number | undefined,
+		batchKeys: (string | undefined)[] | undefined,
+		batchGeometries: (GeometryData | undefined)[] | undefined,
+	): GeometryData | undefined {
+		if (batchId === undefined) return undefined;
+		const stored = batchGeometries?.[batchId];
+		if (stored && hitNode.data.includes(stored)) return stored;
+		const nodeKey = batchKeys?.[batchId];
+		const prefix = hitNode.id + ":";
+		const geometryId = nodeKey?.startsWith(prefix)
+			? nodeKey.slice(prefix.length)
+			: undefined;
+		if (!geometryId) return stored;
+		return (
+			(hitNode.data.find(
+				(data) =>
+					data instanceof GeometryData && data.id === geometryId,
+			) as GeometryData | undefined) ?? stored
+		);
+	}
+
 	private resolveInstancedGeometry(
 		hitNode: ITreeNode,
 		mesh: THREE.InstancedMesh,

@@ -350,9 +350,17 @@ export class MaterialLoader implements ILoader {
 	};
 
 	public assignDefaultMaterial() {
+		const batches: ThreeJsMaterialTypes[] = [];
 		for (const cacheKey in this._materialCache) {
 			if (this._materialCache[cacheKey].materialData === null) {
 				const material = this._materialCache[cacheKey].material;
+				// copy replaces userData and the shading properties. A batch
+				// keeps a white color so the per-instance tint is the color,
+				// and it keeps the shadow hook copy does not carry over.
+				const batch = material.userData.materialBatch === true;
+				const compile = material.onBeforeCompile;
+				const trackedKey = material.userData.cacheKey;
+				const shader = material.userData.shader;
 				const {properties, mapCount} = this.getMaterialProperties(
 					this._defaultMaterialData,
 					GEOMETRY_MATERIAL_TYPE.MESH,
@@ -379,8 +387,24 @@ export class MaterialLoader implements ILoader {
 					this._environmentMapPbrMode,
 				);
 				material.needsUpdate = true;
+				if (!batch) continue;
+				material.onBeforeCompile = compile;
+				material.userData.materialBatch = true;
+				if (typeof trackedKey === "string")
+					material.userData.cacheKey = trackedKey;
+				if (shader) material.userData.shader = shader;
+				if (
+					"color" in material &&
+					material.color instanceof THREE.Color
+				)
+					material.color.setRGB(1, 1, 1);
+				batches.push(material);
 			}
 		}
+		for (const material of batches)
+			this._renderingEngine.materialBatchManager.syncBatchColors(
+				material,
+			);
 	}
 
 	public assignDefaultPointMaterial() {
@@ -457,7 +481,7 @@ export class MaterialLoader implements ILoader {
 					this._renderingEngine.environmentMapForUnlitMaterials ===
 						false
 				)
-					return;
+					continue;
 
 				material.envMap = e;
 				material.needsUpdate = true;
@@ -953,32 +977,11 @@ export class MaterialLoader implements ILoader {
 							envMapInput,
 						);
 					envMapResult.map.then((envMap) => {
-						if (
-							(material instanceof THREE.MeshBasicMaterial ||
-								material instanceof THREE.MeshLambertMaterial ||
-								material instanceof THREE.MeshPhongMaterial) &&
-							this._renderingEngine
-								.environmentMapForUnlitMaterials === false
-						)
-							return;
-
-						(<ThreeJsMeshMaterialTypes>material).envMap = envMap;
-
-						const envMapType =
-							(<ThreeJsMeshMaterialTypes>material)
-								.envMap instanceof THREE.CubeTexture
-								? ENVIRONMENT_MAP_TYPE.LDR
-								: ENVIRONMENT_MAP_TYPE.HDR;
-						for (const d in material.defines) {
-							if (d.startsWith("ENVMAP_TYPE_"))
-								delete material.defines[d];
+						for (const key in this._materialCache) {
+							const entry = this._materialCache[key];
+							if (entry.materialData !== materialData) continue;
+							this.applyOwnedEnvMap(entry.material, envMap);
 						}
-						if (material.defines)
-							material.defines[
-								"ENVMAP_TYPE_" + envMapType.toUpperCase()
-							] = "";
-
-						material.needsUpdate = true;
 					});
 				}
 			}
@@ -2073,6 +2076,58 @@ export class MaterialLoader implements ILoader {
 		return material;
 	}
 
+	private applyOwnedEnvMap(
+		material: THREE.Material,
+		envMap: THREE.CubeTexture | THREE.Texture | null,
+	): void {
+		if (
+			(material instanceof THREE.MeshBasicMaterial ||
+				material instanceof THREE.MeshLambertMaterial ||
+				material instanceof THREE.MeshPhongMaterial) &&
+			this._renderingEngine.environmentMapForUnlitMaterials === false
+		)
+			return;
+		if (
+			!(
+				material instanceof THREE.MeshPhysicalMaterial ||
+				material instanceof THREE.MeshStandardMaterial ||
+				material instanceof THREE.MeshBasicMaterial ||
+				material instanceof THREE.MeshLambertMaterial ||
+				material instanceof THREE.MeshPhongMaterial
+			)
+		)
+			return;
+
+		material.envMap = envMap;
+		const envMapType =
+			envMap instanceof THREE.CubeTexture
+				? ENVIRONMENT_MAP_TYPE.LDR
+				: ENVIRONMENT_MAP_TYPE.HDR;
+		for (const d in material.defines) {
+			if (d.startsWith("ENVMAP_TYPE_")) delete material.defines[d];
+		}
+		if (material.defines)
+			material.defines["ENVMAP_TYPE_" + envMapType.toUpperCase()] = "";
+		material.needsUpdate = true;
+	}
+
+	/**
+	 * The material cache entry for a three.js material, including a pulse
+	 * clone. The clone keeps the source cache key and drops onBeforeCompile.
+	 */
+	public recordFor(material: THREE.Material):
+		| {
+				material: ThreeJsMaterialTypes;
+				materialData: IMaterialAbstractData | null;
+		  }
+		| undefined {
+		const key = material.userData?.cacheKey;
+		if (typeof key !== "string") return undefined;
+		const record = this._materialCache[key];
+		if (!record) return undefined;
+		return {material: record.material, materialData: record.materialData};
+	}
+
 	/**
 	 * Register a material that is not produced by {@link load} (GPU-instance
 	 * batch clones) so environment-map updates still reach it.
@@ -2115,15 +2170,12 @@ export class MaterialLoader implements ILoader {
 		this._lightSizeUV = lightSizeUV;
 		this._blending = blending;
 		for (const cacheKey in this._materialCache) {
-			if (this._materialCache[cacheKey].material.userData.shader) {
-				this._materialCache[
-					cacheKey
-				].material.userData.shader.uniforms.lightSizeUV.value =
-					lightSizeUV;
-				this._materialCache[
-					cacheKey
-				].material.userData.shader.uniforms.blending.value = blending;
-			}
+			const uniforms =
+				this._materialCache[cacheKey].material.userData.shader
+					?.uniforms;
+			if (!uniforms?.lightSizeUV || !uniforms.blending) continue;
+			uniforms.lightSizeUV.value = lightSizeUV;
+			uniforms.blending.value = blending;
 		}
 	}
 

@@ -1,4 +1,4 @@
-import {expect, test as base, type Page} from "@playwright/test";
+import {test as base, expect, type Page} from "@playwright/test";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -50,8 +50,8 @@ const test = base.extend({
 
 function installApi() {
 	const BOX_INDICES = [
-		0, 2, 3, 0, 3, 1, 4, 5, 7, 4, 7, 6, 0, 1, 5, 0, 5, 4, 2, 7, 3, 2, 6, 7, 0,
-		4, 6, 0, 6, 2, 1, 3, 7, 1, 7, 5,
+		0, 2, 3, 0, 3, 1, 4, 5, 7, 4, 7, 6, 0, 1, 5, 0, 5, 4, 2, 7, 3, 2, 6, 7,
+		0, 4, 6, 0, 6, 2, 1, 3, 7, 1, 7, 5,
 	];
 	const SDV = (window as any).SDV;
 	const renderers: any[] = [];
@@ -75,7 +75,11 @@ function installApi() {
 				const materials = Array.isArray(object.material)
 					? object.material
 					: [object.material];
-				if (materials.some((material: any) => material?.isMeshDepthMaterial))
+				if (
+					materials.some(
+						(material: any) => material?.isMeshDepthMaterial,
+					)
+				)
 					depthMeshes++;
 			});
 			const result = original(scene, camera);
@@ -113,7 +117,15 @@ function installApi() {
 						positions.length,
 					),
 				},
-				new SDV.AttributeData(indices, 1, 2, 0, 2, false, indices.length),
+				new SDV.AttributeData(
+					indices,
+					1,
+					2,
+					0,
+					2,
+					false,
+					indices.length,
+				),
 			),
 			SDV.PRIMITIVE_MODE.TRIANGLES,
 		);
@@ -294,7 +306,9 @@ test("SS-10385 blending 0 returns before the PCSS kernel", async ({page}) => {
 		const sources = programs.map(
 			(program: any) => gl.getShaderSource(program.fragmentShader) ?? "",
 		);
-		return sources.find((item: string) => item.includes("getPCSSShadow")) ?? "";
+		return (
+			sources.find((item: string) => item.includes("getPCSSShadow")) ?? ""
+		);
 	});
 	expect(source.length).toBeGreaterThan(0);
 	const guard = source.search(
@@ -326,7 +340,9 @@ test.describe("SS-10386 drawing buffer is capped in physical pixels", () => {
 			perf.viewport.update();
 			perf.viewport.show = true;
 			await new Promise<void>((resolve) => {
-				requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+				requestAnimationFrame(() =>
+					requestAnimationFrame(() => resolve()),
+				);
 			});
 			const canvas = perf.renderer.domElement as HTMLCanvasElement;
 			const cssWidth = canvas.parentElement!.clientWidth;
@@ -379,7 +395,9 @@ test.describe("SS-10386 device pixel ratio 1 is unchanged", () => {
 			perf.viewport.update();
 			perf.viewport.show = true;
 			await new Promise<void>((resolve) => {
-				requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+				requestAnimationFrame(() =>
+					requestAnimationFrame(() => resolve()),
+				);
 			});
 			const canvas = perf.renderer.domElement as HTMLCanvasElement;
 			return {
@@ -418,8 +436,9 @@ test("SS-10387 camera start and beauty activation do not dirty materials", async
 		perf.viewport.update();
 		perf.viewport.show = true;
 		await new Promise<void>((resolve) => {
-			SDV.addListener(SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED, () =>
-				resolve(),
+			SDV.addListener(
+				SDV.EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
+				() => resolve(),
 			);
 		});
 		let flips = 0;
@@ -464,7 +483,9 @@ test("SS-10387 camera start and beauty activation do not dirty materials", async
 	await page.mouse.move(280, 240);
 	await page.mouse.up();
 	await finished;
-	const afterGesture = await page.evaluate(() => (window as any).__perfFlips());
+	const afterGesture = await page.evaluate(() =>
+		(window as any).__perfFlips(),
+	);
 	expect(afterGesture - before).toBe(0);
 	const afterShadow = await page.evaluate(() => {
 		const beforeToggle = (window as any).__perfFlips();
@@ -492,7 +513,8 @@ test("SS-10388 omitted side is front, stored double stays double", async ({
 		bytes.set(new Uint8Array(positions.buffer), 0);
 		bytes.set(new Uint8Array(indices.buffer), 36);
 		let binary = "";
-		for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+		for (let i = 0; i < bytes.length; i++)
+			binary += String.fromCharCode(bytes[i]);
 		const gltf = {
 			asset: {version: "2.0"},
 			scene: 0,
@@ -502,8 +524,16 @@ test("SS-10388 omitted side is front, stored double stays double", async ({
 				{name: "doubled", mesh: 1, translation: [2, 0, 0]},
 			],
 			meshes: [
-				{primitives: [{attributes: {POSITION: 0}, indices: 1, material: 0}]},
-				{primitives: [{attributes: {POSITION: 0}, indices: 1, material: 1}]},
+				{
+					primitives: [
+						{attributes: {POSITION: 0}, indices: 1, material: 0},
+					],
+				},
+				{
+					primitives: [
+						{attributes: {POSITION: 0}, indices: 1, material: 1},
+					],
+				},
 			],
 			materials: [
 				{pbrMetallicRoughness: {baseColorFactor: [1, 0, 0, 1]}},
@@ -534,7 +564,9 @@ test("SS-10388 omitted side is front, stored double stays double", async ({
 				},
 			],
 		};
-		const blob = new Blob([JSON.stringify(gltf)], {type: "model/gltf+json"});
+		const blob = new Blob([JSON.stringify(gltf)], {
+			type: "model/gltf+json",
+		});
 		const href = URL.createObjectURL(blob);
 		const node = await SDV.DataEngine.instance.loadContent({
 			format: "gltf",
@@ -548,8 +580,10 @@ test("SS-10388 omitted side is front, stored double stays double", async ({
 			const converted = treeNode.convertedObject[perf.viewport.id];
 			converted?.traverse?.((object: any) => {
 				if (!object.isMesh) return;
-				if (treeNode.name === "omitted") found.omitted = object.material.side;
-				if (treeNode.name === "doubled") found.doubled = object.material.side;
+				if (treeNode.name === "omitted")
+					found.omitted = object.material.side;
+				if (treeNode.name === "doubled")
+					found.doubled = object.material.side;
 			});
 		});
 		return {
@@ -612,9 +646,7 @@ test("SS-10389 drawing buffer is not preserved and the screenshot still has the 
 	expect(shot.preserve).toBe(false);
 });
 
-test("SS-10390 / SS-10397 one material is one draw and the renderer sorts", async ({
-	page,
-}) => {
+test("SS-10390 one material is one draw", async ({page}) => {
 	await open(page);
 	const draw = await page.evaluate(async () => {
 		const perf = (window as any).__perf;
@@ -638,7 +670,6 @@ test("SS-10390 / SS-10397 one material is one draw and the renderer sorts", asyn
 		);
 		return {
 			calls: pass?.calls ?? null,
-			sortObjects: perf.renderer.sortObjects,
 			passes: perf.renders.map((item: any) => ({
 				calls: item.calls,
 				triangles: item.triangles,
@@ -647,7 +678,632 @@ test("SS-10390 / SS-10397 one material is one draw and the renderer sorts", asyn
 		};
 	});
 	expect(draw.calls, JSON.stringify(draw.passes)).toBe(1);
-	expect(draw.sortObjects).toBe(true);
+});
+
+test("SS-10390 a parent transform moves a batched child", async ({page}) => {
+	await open(page);
+	const moved = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const material = new SDV.MaterialStandardData({
+			color: "#66cc88",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		const anchor = perf.boxGeometry([-0.4, -0.4, 0], [0.4, 0.4, 0.8]);
+		anchor.material = material;
+		const anchorNode = new SDV.TreeNode("anchor");
+		anchorNode.addData(anchor);
+		const childGeometry = perf.boxGeometry(
+			[-0.4, -0.4, 2],
+			[0.4, 0.4, 2.8],
+		);
+		childGeometry.material = material;
+		const child = new SDV.TreeNode("child");
+		child.addData(childGeometry);
+		const parent = new SDV.TreeNode("parent");
+		parent.addChild(child);
+		SDV.sceneTree.root.addChild(anchorNode);
+		SDV.sceneTree.root.addChild(parent);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		const mesh = childGeometry.convertedObject[perf.viewport.id];
+		const batch = mesh?.userData?.batchedMesh;
+		const read = () => {
+			const elements = new Float32Array(16);
+			batch.getMatrixAt(mesh.userData.batchId, {
+				elements,
+				fromArray(array: ArrayLike<number>, offset = 0) {
+					for (let i = 0; i < 16; i++) elements[i] = array[i + offset];
+					return this;
+				},
+			});
+			return elements[12];
+		};
+		const before = read();
+		const matrix = new Float32Array([
+			1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 4, 0, 0, 1,
+		]);
+		parent.addTransformation({id: "shift", matrix});
+		perf.viewport.updateNodeTransformation(parent);
+		return {before, after: read(), batched: Boolean(batch)};
+	});
+	expect(moved.batched).toBe(true);
+	expect(moved.after).toBeCloseTo(moved.before + 4, 4);
+});
+
+test("SS-10390 a batched triangle is one ray hit", async ({page}) => {
+	await open(page);
+	const hit = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const material = new SDV.MaterialStandardData({
+			color: "#66cc88",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		const triangle = (name: string, x: number) => {
+			const positions = new Float32Array([
+				x, 0, 0, x + 1, 0, 0, x, 1, 0,
+			]);
+			const indices = new Uint16Array([0, 1, 2]);
+			const geometry = new SDV.GeometryData(
+				new SDV.PrimitiveData(
+					{
+						POSITION: new SDV.AttributeData(
+							positions,
+							3,
+							12,
+							0,
+							4,
+							false,
+							positions.length,
+						),
+					},
+					new SDV.AttributeData(
+						indices,
+						1,
+						2,
+						0,
+						2,
+						false,
+						indices.length,
+					),
+				),
+				SDV.PRIMITIVE_MODE.TRIANGLES,
+			);
+			geometry.material = material;
+			const node = new SDV.TreeNode(name);
+			node.addData(geometry);
+			SDV.sceneTree.root.addChild(node);
+			return geometry;
+		};
+		const first = triangle("near", 0);
+		triangle("far", 3);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		const mesh = first.convertedObject[perf.viewport.id];
+		const hits = perf.viewport.raytraceScene([0.2, 0.2, 1], [0, 0, -1]);
+		return {
+			batched: Boolean(mesh?.userData?.batchedMesh),
+			count: hits.length,
+			name: hits[0]?.node?.name ?? null,
+		};
+	});
+	expect(hit.batched).toBe(true);
+	expect(hit.count).toBe(1);
+	expect(hit.name).toBe("near");
+});
+
+test("SS-10390 a mirrored node stays out of the batch", async ({page}) => {
+	await open(page);
+	const mirrored = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const material = new SDV.MaterialStandardData({
+			color: "#66cc88",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		const plain = perf.boxGeometry([-0.4, -0.4, 0], [0.4, 0.4, 0.8]);
+		plain.material = material;
+		const plainNode = new SDV.TreeNode("plain");
+		plainNode.addData(plain);
+		const childGeometry = perf.boxGeometry(
+			[-0.4, -0.4, 2],
+			[0.4, 0.4, 2.8],
+		);
+		childGeometry.material = material;
+		const child = new SDV.TreeNode("child");
+		child.addData(childGeometry);
+		const parent = new SDV.TreeNode("parent");
+		parent.addChild(child);
+		SDV.sceneTree.root.addChild(plainNode);
+		SDV.sceneTree.root.addChild(parent);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		const matrix = new Float32Array([
+			-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+		]);
+		parent.addTransformation({id: "mirror", matrix});
+		perf.viewport.updateNodeTransformation(parent);
+		const childMesh = childGeometry.convertedObject[perf.viewport.id];
+		const plainMesh = plain.convertedObject[perf.viewport.id];
+		return {
+			childBatched: Boolean(childMesh?.userData?.batchedMesh),
+			childVisible: childMesh?.visible === true,
+			plainBatched: Boolean(plainMesh?.userData?.batchedMesh),
+		};
+	});
+	expect(mirrored.childBatched).toBe(false);
+	expect(mirrored.childVisible).toBe(true);
+	expect(mirrored.plainBatched).toBe(true);
+});
+
+test("SS-10390 un-mirroring a node returns it to the batch once", async ({
+	page,
+}) => {
+	await open(page);
+	const restored = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const material = new SDV.MaterialStandardData({
+			color: "#66cc88",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		const plain = perf.boxGeometry([-0.4, -0.4, 0], [0.4, 0.4, 0.8]);
+		plain.material = material;
+		const plainNode = new SDV.TreeNode("plain");
+		plainNode.addData(plain);
+		const childGeometry = perf.boxGeometry(
+			[-0.4, -0.4, 2],
+			[0.4, 0.4, 2.8],
+		);
+		childGeometry.material = material;
+		const child = new SDV.TreeNode("child");
+		child.addData(childGeometry);
+		const parent = new SDV.TreeNode("parent");
+		parent.addChild(child);
+		SDV.sceneTree.root.addChild(plainNode);
+		SDV.sceneTree.root.addChild(parent);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		const mirror = {
+			id: "mirror",
+			matrix: new Float32Array([
+				-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+			]),
+		};
+		parent.addTransformation(mirror);
+		perf.viewport.updateNodeTransformation(parent);
+		parent.removeTransformation(mirror);
+		perf.viewport.updateNodeTransformation(parent);
+		perf.viewport.show = true;
+		perf.renders.length = 0;
+		await new Promise<void>((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+		});
+		const childMesh = childGeometry.convertedObject[perf.viewport.id];
+		const plainMesh = plain.convertedObject[perf.viewport.id];
+		const pass = perf.renders.find(
+			(item: {target: unknown; triangles: number}) =>
+				item.target === null && item.triangles === 24,
+		);
+		return {
+			childBatched: Boolean(childMesh?.userData?.batchedMesh),
+			childVisible: childMesh?.visible === true,
+			plainBatched: Boolean(plainMesh?.userData?.batchedMesh),
+			calls: pass?.calls ?? null,
+		};
+	});
+	expect(restored.childBatched, JSON.stringify(restored)).toBe(true);
+	expect(restored.childVisible, JSON.stringify(restored)).toBe(false);
+	expect(restored.plainBatched, JSON.stringify(restored)).toBe(true);
+	expect(restored.calls, JSON.stringify(restored)).toBe(1);
+});
+
+test("SS-10390 a batched material keeps the shadow hook", async ({page}) => {
+	await open(page);
+	const shader = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		const errors: string[] = [];
+		const report = console.error;
+		console.error = (...args: unknown[]) => {
+			errors.push(args.map((arg) => String(arg)).join(" "));
+			report.apply(console, args);
+		};
+		await perf.create({shadows: true, softShadows: true});
+		perf.addBoxes(
+			2,
+			new SDV.MaterialStandardData({
+				color: "#66cc88",
+				side: SDV.MATERIAL_SIDE.FRONT,
+			}),
+		);
+		perf.viewport.update();
+		perf.viewport.show = true;
+		await new Promise<void>((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+		});
+		const node = SDV.sceneTree.root.children.find(
+			(child: {name: string}) => child.name === "box0",
+		);
+		const mesh = node?.data[0]?.convertedObject[perf.viewport.id];
+		const batch = mesh?.userData?.batchedMesh;
+		const uniforms = batch?.material?.userData?.shader?.uniforms;
+		console.error = report;
+		return {
+			lightSizeUV: Boolean(uniforms?.lightSizeUV),
+			blending: Boolean(uniforms?.blending),
+			errors: errors.filter((line) => /shader|lightSizeUV|compile/i.test(line)),
+		};
+	});
+	expect(shader.lightSizeUV, JSON.stringify(shader)).toBe(true);
+	expect(shader.blending, JSON.stringify(shader)).toBe(true);
+	expect(shader.errors, JSON.stringify(shader.errors)).toEqual([]);
+});
+
+test("SS-10390 a default color change leaves an authored batch alone", async ({
+	page,
+}) => {
+	await open(page);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const material = new SDV.MaterialStandardData({
+			color: "#66cc88",
+			metalness: 0.2,
+			roughness: 0.15,
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		perf.addBoxes(2, material);
+		perf.viewport.update();
+		perf.viewport.defaultMaterialColor = "#ff0000";
+		const node = SDV.sceneTree.root.children.find(
+			(child: {name: string}) => child.name === "box0",
+		);
+		const mesh = node?.data[0]?.convertedObject[perf.viewport.id];
+		const batch = mesh?.userData?.batchedMesh;
+		return {
+			r: batch?.material?.color?.r ?? null,
+			g: batch?.material?.color?.g ?? null,
+			b: batch?.material?.color?.b ?? null,
+			metalness: batch?.material?.metalness ?? null,
+			roughness: batch?.material?.roughness ?? null,
+		};
+	});
+	expect(result.r, JSON.stringify(result)).toBeCloseTo(1, 5);
+	expect(result.g, JSON.stringify(result)).toBeCloseTo(1, 5);
+	expect(result.b, JSON.stringify(result)).toBeCloseTo(1, 5);
+	expect(result.metalness, JSON.stringify(result)).toBeCloseTo(0.2, 5);
+	expect(result.roughness, JSON.stringify(result)).toBeCloseTo(0.15, 5);
+});
+
+test("SS-10390 a default color change keeps the batch white and updates its tint", async ({
+	page,
+}) => {
+	await open(page);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const geometry = perf.boxGeometry([-0.4, -0.4, 0], [0.4, 0.4, 0.8]);
+		const node = new SDV.TreeNode("plain");
+		node.addData(geometry);
+		const other = perf.boxGeometry([-0.4, -0.4, 2], [0.4, 0.4, 2.8]);
+		const otherNode = new SDV.TreeNode("other");
+		otherNode.addData(other);
+		SDV.sceneTree.root.addChild(node);
+		SDV.sceneTree.root.addChild(otherNode);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		perf.viewport.defaultMaterialColor = "#ff0000";
+		const mesh = geometry.convertedObject[perf.viewport.id];
+		const batch = mesh?.userData?.batchedMesh;
+		const tint = {r: 0, g: 0, b: 0};
+		batch.getColorAt(mesh.userData.batchId, {
+			setRGB(r: number, g: number, b: number) {
+				tint.r = r;
+				tint.g = g;
+				tint.b = b;
+				return this;
+			},
+			fromArray(array: ArrayLike<number>, offset = 0) {
+				tint.r = array[offset];
+				tint.g = array[offset + 1];
+				tint.b = array[offset + 2];
+				return this;
+			},
+		});
+		return {
+			batch: [
+				batch?.material?.color?.r,
+				batch?.material?.color?.g,
+				batch?.material?.color?.b,
+			],
+			tint,
+			source: [
+				mesh?.material?.color?.r,
+				mesh?.material?.color?.g,
+				mesh?.material?.color?.b,
+			],
+		};
+	});
+	expect(result.batch[0], JSON.stringify(result)).toBeCloseTo(1, 5);
+	expect(result.batch[1], JSON.stringify(result)).toBeCloseTo(1, 5);
+	expect(result.batch[2], JSON.stringify(result)).toBeCloseTo(1, 5);
+	expect(result.tint.r, JSON.stringify(result)).toBeCloseTo(result.source[0], 4);
+	expect(result.tint.g, JSON.stringify(result)).toBeCloseTo(result.source[1], 4);
+	expect(result.tint.b, JSON.stringify(result)).toBeCloseTo(result.source[2], 4);
+});
+
+test("SS-10390 a pulsed member does not supply the batch shader", async ({
+	page,
+}) => {
+	await open(page);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: true, softShadows: true});
+		const material = new SDV.MaterialStandardData({
+			color: "#66cc88",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		perf.addBoxes(2, material);
+		perf.viewport.update();
+		perf.viewport.show = true;
+		await new Promise<void>((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+		});
+		const boxes = ["box0", "box1"].map((name) =>
+			SDV.sceneTree.root.children.find(
+				(child: {name: string}) => child.name === name,
+			),
+		);
+		const geometry = boxes[0].data[0];
+		geometry.effectPulses.push({
+			effect: {type: "pulse", color: "#00ff78"},
+			token: "pulse",
+		});
+		geometry.updateVersion();
+		perf.viewport.update();
+		await new Promise<void>((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+		});
+		const pulsed = geometry.convertedObject[perf.viewport.id];
+		const other = boxes[1].data[0].convertedObject[perf.viewport.id];
+		const batch = other?.userData?.batchedMesh;
+		return {
+			pulsedVisible: pulsed?.visible === true,
+			pulsedBatched: Boolean(pulsed?.userData?.batchedMesh),
+			otherBatched: Boolean(batch),
+			blending: batch?.material?.userData?.shader?.uniforms?.blending?.value ?? null,
+		};
+	});
+	expect(result.pulsedVisible, JSON.stringify(result)).toBe(true);
+	expect(result.pulsedBatched, JSON.stringify(result)).toBe(false);
+	expect(result.otherBatched, JSON.stringify(result)).toBe(true);
+	expect(result.blending, JSON.stringify(result)).toBeGreaterThan(0);
+});
+
+test("SS-10390 reusing geometry after a batch does not throw", async ({
+	page,
+}) => {
+	await open(page);
+	const reused = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const material = new SDV.MaterialStandardData({
+			color: "#66cc88",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		const geometry = perf.boxGeometry([-0.4, -0.4, 0], [0.4, 0.4, 0.8]);
+		geometry.material = material;
+		const first = new SDV.TreeNode("first");
+		first.addData(geometry);
+		SDV.sceneTree.root.addChild(first);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		const second = new SDV.TreeNode("second");
+		second.addData(geometry);
+		SDV.sceneTree.root.addChild(second);
+		SDV.sceneTree.root.updateVersion();
+		let thrown: string | null = null;
+		try {
+			perf.viewport.update();
+		} catch (error) {
+			thrown = String(error);
+		}
+		const mesh = geometry.convertedObject[perf.viewport.id];
+		return {
+			thrown,
+			batched: Boolean(mesh?.userData?.batchedMesh),
+			secondMesh: Boolean(
+				second.convertedObject[perf.viewport.id]?.children?.length,
+			),
+		};
+	});
+	expect(reused.thrown).toBeNull();
+	expect(reused.batched).toBe(true);
+	expect(reused.secondMesh).toBe(true);
+});
+
+test("SS-10397", async ({page}) => {
+	await open(page);
+	const sortObjects = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		await perf.create({shadows: false});
+		return perf.renderer.sortObjects;
+	});
+	expect(sortObjects).toBe(true);
+});
+
+test("SS-10390 color variants stay one draw and a ray hits that box", async ({
+	page,
+}) => {
+	await open(page);
+	const draw = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const green = new SDV.MaterialUnlitData({color: "#66cc88"});
+		const blue = new SDV.MaterialUnlitData({color: "#3366cc"});
+		perf.addBoxes(8, green);
+		for (let i = 0; i < 8; i++) {
+			const geometry = perf.boxGeometry(
+				[1.2, -0.4, i * 1.2],
+				[2, 0.4, i * 1.2 + 0.8],
+			);
+			geometry.material = blue;
+			const node = new SDV.TreeNode(`blue${i}`);
+			node.addData(geometry);
+			SDV.sceneTree.root.addChild(node);
+		}
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		perf.viewport.show = true;
+		perf.renders.length = 0;
+		await new Promise<void>((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+		});
+		const pass = perf.renders.find(
+			(item: any) => item.target === null && item.triangles === 192,
+		);
+		const hits = perf.viewport.raytraceScene([0, 0, -1], [0, 0, 1]);
+		const centerPixel = async (eye: number[], target: number[]) => {
+			await perf.viewport.camera.set(eye, target, {duration: 0});
+			await new Promise<void>((resolve) => {
+				requestAnimationFrame(() =>
+					requestAnimationFrame(() => resolve()),
+				);
+			});
+			const url = perf.viewport.getScreenshot();
+			const bitmap = await createImageBitmap(
+				await (await fetch(url)).blob(),
+			);
+			const canvas = document.createElement("canvas");
+			canvas.width = bitmap.width;
+			canvas.height = bitmap.height;
+			const context = canvas.getContext("2d")!;
+			context.drawImage(bitmap, 0, 0);
+			const pixel = context.getImageData(
+				Math.floor(bitmap.width / 2),
+				Math.floor(bitmap.height / 2),
+				1,
+				1,
+			).data;
+			return [pixel[0], pixel[1], pixel[2]];
+		};
+		const greenPixel = await centerPixel([0, 0, 4], [0, 0, 0.4]);
+		const bluePixel = await centerPixel([1.6, 0, 4], [1.6, 0, 0.4]);
+		return {
+			calls: pass?.calls ?? null,
+			hit: hits[0]?.node?.name ?? null,
+			greenPixel,
+			bluePixel,
+			passes: perf.renders.map((item: any) => ({
+				calls: item.calls,
+				triangles: item.triangles,
+				target: item.target,
+			})),
+		};
+	});
+	expect(draw.calls, JSON.stringify(draw.passes)).toBe(1);
+	expect(draw.hit).toBe("box0");
+	expect(draw.greenPixel[1], JSON.stringify(draw.greenPixel)).toBeGreaterThan(
+		draw.greenPixel[0],
+	);
+	expect(draw.greenPixel[1], JSON.stringify(draw.greenPixel)).toBeGreaterThan(
+		draw.greenPixel[2],
+	);
+	expect(draw.bluePixel[2], JSON.stringify(draw.bluePixel)).toBeGreaterThan(
+		draw.bluePixel[0],
+	);
+	expect(draw.bluePixel[2], JSON.stringify(draw.bluePixel)).toBeGreaterThan(
+		draw.bluePixel[1],
+	);
+});
+
+test("SS-10390 hiding one box keeps the batch and drops its triangles", async ({
+	page,
+}) => {
+	await open(page);
+	const draw = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const material = new SDV.MaterialStandardData({
+			color: "#66cc88",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		perf.addBoxes(16, material);
+		const hidden = SDV.sceneTree.root.children.find(
+			(node: any) => node.name === "box0",
+		);
+		hidden.visible = false;
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		perf.viewport.show = true;
+		perf.renders.length = 0;
+		await new Promise<void>((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+		});
+		const pass = perf.renders.find(
+			(item: any) => item.target === null && item.triangles === 180,
+		);
+		return {
+			calls: pass?.calls ?? null,
+			passes: perf.renders.map((item: any) => ({
+				calls: item.calls,
+				triangles: item.triangles,
+				target: item.target,
+			})),
+		};
+	});
+	expect(draw.calls, JSON.stringify(draw.passes)).toBe(1);
+});
+
+test("SS-10390 a morph target stays its own draw", async ({page}) => {
+	await open(page);
+	const draw = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const material = new SDV.MaterialStandardData({
+			color: "#66cc88",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		perf.addBoxes(16, material);
+		const morph = perf.boxGeometry([-0.4, -0.4, 0.85], [0.4, 0.4, 1.15]);
+		morph.material = material;
+		morph.morphWeights = [0];
+		const node = new SDV.TreeNode("morph");
+		node.addData(morph);
+		SDV.sceneTree.root.addChild(node);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		perf.viewport.show = true;
+		perf.renders.length = 0;
+		await new Promise<void>((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+		});
+		const pass = perf.renders.find(
+			(item: any) => item.target === null && item.triangles === 204,
+		);
+		return {
+			calls: pass?.calls ?? null,
+			passes: perf.renders.map((item: any) => ({
+				calls: item.calls,
+				triangles: item.triangles,
+				target: item.target,
+			})),
+		};
+	});
+	expect(draw.calls, JSON.stringify(draw.passes)).toBe(2);
 });
 
 test("SS-10391 reused primitives share one position buffer", async ({page}) => {
@@ -669,7 +1325,9 @@ test("SS-10391 reused primitives share one position buffer", async ({page}) => {
 		);
 		second.material = material;
 		for (const geometry of [first, second]) {
-			const node = new SDV.TreeNode(geometry === first ? "first" : "second");
+			const node = new SDV.TreeNode(
+				geometry === first ? "first" : "second",
+			);
 			node.addData(geometry);
 			SDV.sceneTree.root.addChild(node);
 		}
@@ -912,7 +1570,15 @@ test("SS-10393 a ray hits the known triangle through a BVH", async ({page}) => {
 						positions.length,
 					),
 				},
-				new SDV.AttributeData(indices, 1, 2, 0, 2, false, indices.length),
+				new SDV.AttributeData(
+					indices,
+					1,
+					2,
+					0,
+					2,
+					false,
+					indices.length,
+				),
 			),
 			SDV.PRIMITIVE_MODE.TRIANGLES,
 		);
@@ -1043,7 +1709,8 @@ test("SS-10396 Draco is constructed once and decodes on one worker", async ({
 			return (instantiate as any)(...args);
 		}) as typeof WebAssembly.instantiate;
 		if (WebAssembly.instantiateStreaming) {
-			const streaming = WebAssembly.instantiateStreaming.bind(WebAssembly);
+			const streaming =
+				WebAssembly.instantiateStreaming.bind(WebAssembly);
 			WebAssembly.instantiateStreaming = ((...args: any[]) => {
 				wasm++;
 				return (streaming as any)(...args);

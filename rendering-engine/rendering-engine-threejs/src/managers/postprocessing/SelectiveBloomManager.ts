@@ -47,12 +47,17 @@ export class SelectiveBloomManager {
 		return index !== -1;
 	}
 
+	public selectedNodes(): ITreeNode[] {
+		return this._selectiveBloomNodes;
+	}
+
 	public setEffect(selectiveBloomEffect: SelectiveBloomEffect) {
 		this._selectiveBloomEffect = selectiveBloomEffect;
 		this.updateSelectiveBloomEffectObjects();
 	}
 
 	public updateSelectiveBloomEffectObjects() {
+		this._renderingEngine.materialBatchManager.syncHeldNodes();
 		if (!this._selectiveBloomEffect) return;
 		this._selectiveBloomEffect.selection.clear();
 		const selectedNodes = new Set(this._selectiveBloomNodes);

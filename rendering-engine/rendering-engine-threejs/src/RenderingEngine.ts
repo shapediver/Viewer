@@ -67,6 +67,7 @@ import {CameraManager} from "./managers/CameraManager";
 import {EnvironmentGeometryManager} from "./managers/EnvironmentGeometryManager";
 import {FlagManager} from "./managers/FlagManager";
 import {InstanceGroupManager} from "./managers/InstanceGroupManager";
+import {MaterialBatchManager} from "./managers/MaterialBatchManager";
 import {PostProcessingManager} from "./managers/PostProcessingManager";
 import {PulseEffectManager} from "./managers/PulseEffectManager";
 import {RenderingManager} from "./managers/RenderingManager";
@@ -113,6 +114,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	private readonly _flagManager: FlagManager;
 	private readonly _geometryLoader: GeometryLoader;
 	private readonly _instanceGroupManager: InstanceGroupManager;
+	private readonly _materialBatchManager: MaterialBatchManager;
 	private readonly _htmlElementAnchorLoader: HTMLElementAnchorLoader;
 	private readonly _id: string;
 	private readonly _lightEngine: LightEngine;
@@ -263,6 +265,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._environmentMapLoader = new EnvironmentMapLoader(this);
 		this._materialLoader = new MaterialLoader(this);
 		this._instanceGroupManager = new InstanceGroupManager(this);
+		this._materialBatchManager = new MaterialBatchManager(this);
 		this._geometryLoader = new GeometryLoader(this);
 		this._htmlElementAnchorLoader = new HTMLElementAnchorLoader(this);
 		this._lightLoader = new LightLoader(this);
@@ -645,6 +648,10 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
 	public get instanceGroupManager(): InstanceGroupManager {
 		return this._instanceGroupManager;
+	}
+
+	public get materialBatchManager(): MaterialBatchManager {
+		return this._materialBatchManager;
 	}
 
 	public get gridColor(): Color {
@@ -1072,6 +1079,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._closed = true;
 		this._pulseEffectManager.dispose();
 		this._instanceGroupManager.clear();
+		this._materialBatchManager.clear();
 		this._lightEngine.close();
 		this._cameraEngine.close();
 		this._renderer.clear(true, true, true);
