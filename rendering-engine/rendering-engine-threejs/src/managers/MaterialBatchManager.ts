@@ -280,13 +280,6 @@ export class MaterialBatchManager {
 		if (Object.keys(mesh.geometry.morphAttributes).length > 0) return false;
 		if (mesh.geometry.groups.length > 1) return false;
 		if (!mesh.geometry.getAttribute("position")) return false;
-		// The amber shell in MosquitoInAmber is one transmissive mesh. A
-		// BatchedMesh of that shell no longer shows the insect inside it.
-		if (
-			"transmission" in mesh.material &&
-			(mesh.material as {transmission: number}).transmission > 0
-		)
-			return false;
 		// The batch object stays at identity. three.js flips winding only
 		// from object.matrixWorld, so a mirrored instance would drop FrontSide
 		// faces. The source mesh still flips.
@@ -363,9 +356,10 @@ export class MaterialBatchManager {
 	private build(entries: BatchEntry[]): void {
 		const chunks = this.pack(entries);
 		for (const chunk of chunks) {
-			// One mesh is already one draw. Wrapping it hides the source
-			// and draws a BatchedMesh instead, which drops the insect
-			// inside a transmissive shell.
+			// One mesh is already one draw. A single transmissive shell
+			// (the amber around the insect) must stay a mesh. Several
+			// panes that share a transmissive material still batch:
+			// separate transmission draws stack and darken the volume.
 			if (chunk.length < 2) continue;
 			// A pulse replaces the mesh material with a clone that has no
 			// compile hook. The cache still holds the source material.

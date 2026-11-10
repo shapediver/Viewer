@@ -1306,7 +1306,7 @@ test("SS-10390 a morph target stays its own draw", async ({page}) => {
 	expect(draw.calls, JSON.stringify(draw.passes)).toBe(2);
 });
 
-test("SS-10390 one mesh and a transmissive material stay meshes", async ({
+test("SS-10390 one mesh stays a mesh and shared transmission stays one batch", async ({
 	page,
 }) => {
 	await open(page);
@@ -1351,6 +1351,7 @@ test("SS-10390 one mesh and a transmissive material stay meshes", async ({
 		const alone = meshOf("alone");
 		const glassA = meshOf("glassA");
 		const glassB = meshOf("glassB");
+		const batch = glassA?.userData?.batchedMesh;
 		return {
 			aloneVisible: alone?.visible ?? null,
 			aloneBatched: Boolean(alone?.userData?.batchedMesh),
@@ -1359,13 +1360,15 @@ test("SS-10390 one mesh and a transmissive material stay meshes", async ({
 				Boolean(glassA?.userData?.batchedMesh),
 				Boolean(glassB?.userData?.batchedMesh),
 			],
-			transmission: glassA?.material?.transmission ?? null,
+			sameBatch: glassA?.userData?.batchedMesh === glassB?.userData?.batchedMesh,
+			transmission: batch?.material?.transmission ?? null,
 		};
 	});
 	expect(result.aloneVisible, JSON.stringify(result)).toBe(true);
 	expect(result.aloneBatched, JSON.stringify(result)).toBe(false);
-	expect(result.glassVisible, JSON.stringify(result)).toEqual([true, true]);
-	expect(result.glassBatched, JSON.stringify(result)).toEqual([false, false]);
+	expect(result.glassVisible, JSON.stringify(result)).toEqual([false, false]);
+	expect(result.glassBatched, JSON.stringify(result)).toEqual([true, true]);
+	expect(result.sameBatch, JSON.stringify(result)).toBe(true);
 	expect(result.transmission, JSON.stringify(result)).toBeGreaterThan(0);
 });
 
