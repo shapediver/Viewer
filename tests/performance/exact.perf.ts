@@ -840,6 +840,69 @@ test("SS-10390 a mirrored node stays out of the batch", async ({page}) => {
 	expect(mirrored.plainBatched).toBe(true);
 });
 
+test("SS-10390 un-mirroring a node returns it to the batch once", async ({
+	page,
+}) => {
+	await open(page);
+	const restored = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const material = new SDV.MaterialStandardData({
+			color: "#66cc88",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		const plain = perf.boxGeometry([-0.4, -0.4, 0], [0.4, 0.4, 0.8]);
+		plain.material = material;
+		const plainNode = new SDV.TreeNode("plain");
+		plainNode.addData(plain);
+		const childGeometry = perf.boxGeometry(
+			[-0.4, -0.4, 2],
+			[0.4, 0.4, 2.8],
+		);
+		childGeometry.material = material;
+		const child = new SDV.TreeNode("child");
+		child.addData(childGeometry);
+		const parent = new SDV.TreeNode("parent");
+		parent.addChild(child);
+		SDV.sceneTree.root.addChild(plainNode);
+		SDV.sceneTree.root.addChild(parent);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		const mirror = {
+			id: "mirror",
+			matrix: new Float32Array([
+				-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+			]),
+		};
+		parent.addTransformation(mirror);
+		perf.viewport.updateNodeTransformation(parent);
+		parent.removeTransformation(mirror);
+		perf.viewport.updateNodeTransformation(parent);
+		perf.viewport.show = true;
+		perf.renders.length = 0;
+		await new Promise<void>((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+		});
+		const childMesh = childGeometry.convertedObject[perf.viewport.id];
+		const plainMesh = plain.convertedObject[perf.viewport.id];
+		const pass = perf.renders.find(
+			(item: {target: unknown; triangles: number}) =>
+				item.target === null && item.triangles === 24,
+		);
+		return {
+			childBatched: Boolean(childMesh?.userData?.batchedMesh),
+			childVisible: childMesh?.visible === true,
+			plainBatched: Boolean(plainMesh?.userData?.batchedMesh),
+			calls: pass?.calls ?? null,
+		};
+	});
+	expect(restored.childBatched, JSON.stringify(restored)).toBe(true);
+	expect(restored.childVisible, JSON.stringify(restored)).toBe(false);
+	expect(restored.plainBatched, JSON.stringify(restored)).toBe(true);
+	expect(restored.calls, JSON.stringify(restored)).toBe(1);
+});
+
 test("SS-10390 a batched material keeps the shadow hook", async ({page}) => {
 	await open(page);
 	const shader = await page.evaluate(async () => {

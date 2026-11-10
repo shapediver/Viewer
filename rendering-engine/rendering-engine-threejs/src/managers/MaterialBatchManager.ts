@@ -129,14 +129,12 @@ export class MaterialBatchManager {
 		const members = this._byNode.get(node.id);
 		if (!members) return;
 		for (const member of members) {
-			if (this.isIndividual(member)) {
-				member.batch.mesh.setVisibleAt(member.instanceId, false);
-				member.mesh.visible = true;
-				delete member.mesh.userData.batchedMesh;
-				continue;
-			}
-			this.writeMatrix(member);
-			member.batch.mesh.setVisibleAt(member.instanceId, visible);
+			// applyMember hides the source mesh again when the member is no
+			// longer individual. Updating only the instance leaves that mesh
+			// visible, so an un-mirror draws the surface twice.
+			this.applyMember(member);
+			if (member.mesh.userData.batchedMesh)
+				member.batch.mesh.setVisibleAt(member.instanceId, visible);
 		}
 	}
 
