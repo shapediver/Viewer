@@ -990,6 +990,7 @@ test("SS-10390 a default color change keeps the batch white and updates its tint
 		const perf = (window as any).__perf;
 		const SDV = (window as any).SDV;
 		await perf.create({shadows: false});
+		perf.viewport.defaultMaterial.side = SDV.MATERIAL_SIDE.FRONT;
 		const geometry = perf.boxGeometry([-0.4, -0.4, 0], [0.4, 0.4, 0.8]);
 		const node = new SDV.TreeNode("plain");
 		node.addData(geometry);
@@ -1150,8 +1151,14 @@ test("SS-10390 color variants stay one draw and a ray hits that box", async ({
 		const perf = (window as any).__perf;
 		const SDV = (window as any).SDV;
 		await perf.create({shadows: false});
-		const green = new SDV.MaterialUnlitData({color: "#66cc88"});
-		const blue = new SDV.MaterialUnlitData({color: "#3366cc"});
+		const green = new SDV.MaterialUnlitData({
+			color: "#66cc88",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		const blue = new SDV.MaterialUnlitData({
+			color: "#3366cc",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
 		perf.addBoxes(8, green);
 		for (let i = 0; i < 8; i++) {
 			const geometry = perf.boxGeometry(
@@ -1325,7 +1332,7 @@ test("SS-10390 one mesh stays a mesh and shared transmission stays one batch", a
 			transmission: 0.75,
 			thickness: 0.9,
 			ior: 1.55,
-			side: SDV.MATERIAL_SIDE.FRONT,
+			side: SDV.MATERIAL_SIDE.DOUBLE,
 		});
 		const add = (name: string, material: any, z: number) => {
 			const geometry = perf.boxGeometry(
@@ -1370,6 +1377,101 @@ test("SS-10390 one mesh stays a mesh and shared transmission stays one batch", a
 	expect(result.glassBatched, JSON.stringify(result)).toEqual([true, true]);
 	expect(result.sameBatch, JSON.stringify(result)).toBe(true);
 	expect(result.transmission, JSON.stringify(result)).toBeGreaterThan(0);
+});
+
+test("SS-10390 transparent panes stay individual meshes", async ({page}) => {
+	await open(page);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const glass = new SDV.MaterialStandardData({
+			color: "#d8a15a",
+			opacity: 0.52,
+			side: SDV.MATERIAL_SIDE.DOUBLE,
+		});
+		const add = (name: string, z: number) => {
+			const geometry = perf.boxGeometry(
+				[-0.4, -0.4, z],
+				[0.4, 0.4, z + 0.8],
+			);
+			geometry.material = glass;
+			const node = new SDV.TreeNode(name);
+			node.addData(geometry);
+			SDV.sceneTree.root.addChild(node);
+		};
+		add("paneA", 0);
+		add("paneB", 1.2);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		const meshOf = (name: string) => {
+			const node = SDV.sceneTree.root.children.find(
+				(child: {name: string}) => child.name === name,
+			);
+			return node?.data[0]?.convertedObject[perf.viewport.id];
+		};
+		const paneA = meshOf("paneA");
+		const paneB = meshOf("paneB");
+		return {
+			visible: [paneA?.visible ?? null, paneB?.visible ?? null],
+			batched: [
+				Boolean(paneA?.userData?.batchedMesh),
+				Boolean(paneB?.userData?.batchedMesh),
+			],
+			transparent: paneA?.material?.transparent ?? null,
+		};
+	});
+	expect(result.visible, JSON.stringify(result)).toEqual([true, true]);
+	expect(result.batched, JSON.stringify(result)).toEqual([false, false]);
+	expect(result.transparent, JSON.stringify(result)).toBe(true);
+});
+
+test("SS-10390 double-sided meshes stay individual", async ({page}) => {
+	await open(page);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const metal = new SDV.MaterialStandardData({
+			color: "#6b4d37",
+			metalness: 1,
+			roughness: 0.25,
+			side: SDV.MATERIAL_SIDE.DOUBLE,
+		});
+		const add = (name: string, z: number) => {
+			const geometry = perf.boxGeometry(
+				[-0.4, -0.4, z],
+				[0.4, 0.4, z + 0.8],
+			);
+			geometry.material = metal;
+			const node = new SDV.TreeNode(name);
+			node.addData(geometry);
+			SDV.sceneTree.root.addChild(node);
+		};
+		add("panelA", 0);
+		add("panelB", 1.2);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		const meshOf = (name: string) => {
+			const node = SDV.sceneTree.root.children.find(
+				(child: {name: string}) => child.name === name,
+			);
+			return node?.data[0]?.convertedObject[perf.viewport.id];
+		};
+		const panelA = meshOf("panelA");
+		const panelB = meshOf("panelB");
+		return {
+			visible: [panelA?.visible ?? null, panelB?.visible ?? null],
+			batched: [
+				Boolean(panelA?.userData?.batchedMesh),
+				Boolean(panelB?.userData?.batchedMesh),
+			],
+			side: panelA?.material?.side ?? null,
+		};
+	});
+	expect(result.visible, JSON.stringify(result)).toEqual([true, true]);
+	expect(result.batched, JSON.stringify(result)).toEqual([false, false]);
+	expect(result.side, JSON.stringify(result)).toBe(2);
 });
 
 test("SS-10390 a god ray source stays a visible mesh", async ({page}) => {

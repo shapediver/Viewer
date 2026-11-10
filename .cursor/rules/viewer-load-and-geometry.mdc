@@ -25,14 +25,14 @@ alwaysApply: true
 
 ## Static triangle batches
 
-- Static triangle meshes that share a material, aside from color, are one `BatchedMesh` per chunk. Do not key the batch on `material.id`. Color-only variants keep distinct ids; the tint is `setColorAt`.
+- Static triangle meshes that share a material, aside from color, are one `BatchedMesh` per chunk. Do not key the batch on `material.id`. Color-only variants keep distinct ids; the tint is `setColorAt`. `renderer.sortObjects` does not reorder triangles inside one batch.
 - Lines, points, morph targets, GPU-instanced meshes, and the node being dragged stay individual meshes. Put a dragged node back when the drag ends.
 - A chunk of one mesh stays a mesh. It is already one draw. Wrapping it in a `BatchedMesh` hides the source, and that is what dropped the insect inside the MosquitoInAmber shell.
-- Several meshes that share a transmissive material stay in one batch. Splitting the panes of a glass box into separate transmission draws stacks the volume and darkens everything inside it.
+- Transparent meshes stay individual. Modules Concept's glass is ten double-sided panes with opacity below 1. One batch is one sorted object, so those panes are not drawn far-to-near and the volume goes dark.
+- Double-sided metal stays individual. The cage floor has `side` double and `metalness` 1. As its own mesh it stays brown. In the batch that surface turns black. Transmissive glass still batches when its side is double, so those panes stay one draw.
 - The node passed to god-ray `setLightSource`, and its descendants, stay their own meshes. The effect draws that mesh in a separate pass. A hidden batch member produces no rays. Removing the effect puts the node back in the batch.
 - Picking reads `intersection.batchId` and the batch's node list. The hidden source mesh is not a second hit. Hiding or recoloring one member uses `setVisibleAt` / `setColorAt` and leaves the others in the batch. A material edit other than color draws that object on its own until the next scene rebuild.
 - A node whose world matrix has a negative determinant stays its own mesh. The batch object is identity, and three.js flips winding only from `object.matrixWorld`, so a mirrored instance would drop `FrontSide` faces. A transform-only update that removes the mirror puts the mesh back in the batch and hides it. Leaving that mesh visible draws the surface twice until a full rebuild.
-- Transparent meshes that share a material stay in one batch. `BatchedMesh` sphere-sorts its instances (`sortObjects` defaults to true). Overlapping transparent surfaces can still be wrong. `renderer.sortObjects` does not reorder triangles inside one batch.
 - A transform-only update writes batch matrices from `mesh.matrixWorld`. Apply the node matrix before converting children. Children used to run first, so `matrixWorld` was still the previous pose and descendants stayed there until a full rebuild.
 - Outline and bloom extract the selected node and its descendants. Both effects traverse that subtree. A descendant left in the batch stays hidden, and the batch mesh is not in the selection.
 - The batch material keeps the source `onBeforeCompile`. `Material.copy` does not copy it, and that hook declares the shadow uniforms. The compiled shader is stored on the batch material so soft-shadow updates reach it. Take that source from the material cache. A pulse clone keeps the cache key and drops the hook; building the chunk from the clone publishes hard shadows for the other members.
