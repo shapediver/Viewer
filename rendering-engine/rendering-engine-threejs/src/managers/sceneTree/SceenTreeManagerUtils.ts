@@ -60,7 +60,7 @@ export const removeData = (
 					renderingEngine.pulseEffectManager.remove(o);
 
 					renderingEngine.geometryLoader.removeFromGeometryCache(
-						o.geometry.userData.cacheKey,
+						o.userData.cacheKey,
 					);
 					renderingEngine.materialLoader.removeFromMaterialCache(
 						o.material.userData.cacheKey,
@@ -90,9 +90,9 @@ export const removeData = (
 						} else {
 							if (texture.name === "sphericalNormalMap") {
 								renderingEngine.geometryLoader.removeFromGemSphericalMapsCache(
-									o.geometry.userData.primitiveSDid +
+									o.userData.primitiveSDid +
 										"_" +
-										o.geometry.userData.primitiveSDversion,
+										o.userData.primitiveSDversion,
 								);
 								texture.dispose();
 							} else {
