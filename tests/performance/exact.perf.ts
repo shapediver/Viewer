@@ -1306,6 +1306,108 @@ test("SS-10390 a morph target stays its own draw", async ({page}) => {
 	expect(draw.calls, JSON.stringify(draw.passes)).toBe(2);
 });
 
+test("SS-10390 one mesh and a transmissive material stay meshes", async ({
+	page,
+}) => {
+	await open(page);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const plain = new SDV.MaterialStandardData({
+			color: "#66cc88",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		const glass = new SDV.MaterialStandardData({
+			color: "#d8a15a",
+			roughness: 0.2,
+			metalness: 0,
+			transmission: 0.75,
+			thickness: 0.9,
+			ior: 1.55,
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		const add = (name: string, material: any, z: number) => {
+			const geometry = perf.boxGeometry(
+				[-0.4, -0.4, z],
+				[0.4, 0.4, z + 0.8],
+			);
+			geometry.material = material;
+			const node = new SDV.TreeNode(name);
+			node.addData(geometry);
+			SDV.sceneTree.root.addChild(node);
+		};
+		add("alone", plain, 0);
+		add("glassA", glass, 1.2);
+		add("glassB", glass, 2.4);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		const meshOf = (name: string) => {
+			const node = SDV.sceneTree.root.children.find(
+				(child: {name: string}) => child.name === name,
+			);
+			return node?.data[0]?.convertedObject[perf.viewport.id];
+		};
+		const alone = meshOf("alone");
+		const glassA = meshOf("glassA");
+		const glassB = meshOf("glassB");
+		return {
+			aloneVisible: alone?.visible ?? null,
+			aloneBatched: Boolean(alone?.userData?.batchedMesh),
+			glassVisible: [glassA?.visible ?? null, glassB?.visible ?? null],
+			glassBatched: [
+				Boolean(glassA?.userData?.batchedMesh),
+				Boolean(glassB?.userData?.batchedMesh),
+			],
+			transmission: glassA?.material?.transmission ?? null,
+		};
+	});
+	expect(result.aloneVisible, JSON.stringify(result)).toBe(true);
+	expect(result.aloneBatched, JSON.stringify(result)).toBe(false);
+	expect(result.glassVisible, JSON.stringify(result)).toEqual([true, true]);
+	expect(result.glassBatched, JSON.stringify(result)).toEqual([false, false]);
+	expect(result.transmission, JSON.stringify(result)).toBeGreaterThan(0);
+});
+
+test("SS-10390 a god ray source stays a visible mesh", async ({page}) => {
+	await open(page);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const material = new SDV.MaterialStandardData({
+			color: "#e8d7b0",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		perf.addBoxes(4, material);
+		perf.viewport.update();
+		const node = SDV.sceneTree.root.children.find(
+			(child: {name: string}) => child.name === "box0",
+		);
+		const token = perf.viewport.postProcessing.addEffect({
+			type: SDV.POST_PROCESSING_EFFECT_TYPE.GOD_RAYS,
+			properties: {decay: 1, weight: 0.6},
+		});
+		perf.viewport.postProcessing.godRaysEffects[token].setLightSource(node);
+		const mesh = node?.data[0]?.convertedObject[perf.viewport.id];
+		const sibling = SDV.sceneTree.root.children.find(
+			(child: {name: string}) => child.name === "box1",
+		)?.data[0]?.convertedObject[perf.viewport.id];
+		return {
+			visible: mesh?.visible ?? null,
+			batched: Boolean(mesh?.userData?.batchedMesh),
+			siblingBatched: Boolean(sibling?.userData?.batchedMesh),
+			transparent: mesh?.material?.transparent ?? null,
+			depthWrite: mesh?.material?.depthWrite ?? null,
+		};
+	});
+	expect(result.visible, JSON.stringify(result)).toBe(true);
+	expect(result.batched, JSON.stringify(result)).toBe(false);
+	expect(result.siblingBatched, JSON.stringify(result)).toBe(true);
+	expect(result.transparent, JSON.stringify(result)).toBe(true);
+	expect(result.depthWrite, JSON.stringify(result)).toBe(false);
+});
+
 test("SS-10391 reused primitives share one position buffer", async ({page}) => {
 	await open(page);
 	const shared = await page.evaluate(async () => {
