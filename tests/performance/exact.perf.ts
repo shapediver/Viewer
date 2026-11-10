@@ -882,6 +882,150 @@ test("SS-10390 a batched material keeps the shadow hook", async ({page}) => {
 	expect(shader.errors, JSON.stringify(shader.errors)).toEqual([]);
 });
 
+test("SS-10390 a default color change leaves an authored batch alone", async ({
+	page,
+}) => {
+	await open(page);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const material = new SDV.MaterialStandardData({
+			color: "#66cc88",
+			metalness: 0.2,
+			roughness: 0.15,
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		perf.addBoxes(2, material);
+		perf.viewport.update();
+		perf.viewport.defaultMaterialColor = "#ff0000";
+		const node = SDV.sceneTree.root.children.find(
+			(child: {name: string}) => child.name === "box0",
+		);
+		const mesh = node?.data[0]?.convertedObject[perf.viewport.id];
+		const batch = mesh?.userData?.batchedMesh;
+		return {
+			r: batch?.material?.color?.r ?? null,
+			g: batch?.material?.color?.g ?? null,
+			b: batch?.material?.color?.b ?? null,
+			metalness: batch?.material?.metalness ?? null,
+			roughness: batch?.material?.roughness ?? null,
+		};
+	});
+	expect(result.r, JSON.stringify(result)).toBeCloseTo(1, 5);
+	expect(result.g, JSON.stringify(result)).toBeCloseTo(1, 5);
+	expect(result.b, JSON.stringify(result)).toBeCloseTo(1, 5);
+	expect(result.metalness, JSON.stringify(result)).toBeCloseTo(0.2, 5);
+	expect(result.roughness, JSON.stringify(result)).toBeCloseTo(0.15, 5);
+});
+
+test("SS-10390 a default color change keeps the batch white and updates its tint", async ({
+	page,
+}) => {
+	await open(page);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const geometry = perf.boxGeometry([-0.4, -0.4, 0], [0.4, 0.4, 0.8]);
+		const node = new SDV.TreeNode("plain");
+		node.addData(geometry);
+		const other = perf.boxGeometry([-0.4, -0.4, 2], [0.4, 0.4, 2.8]);
+		const otherNode = new SDV.TreeNode("other");
+		otherNode.addData(other);
+		SDV.sceneTree.root.addChild(node);
+		SDV.sceneTree.root.addChild(otherNode);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		perf.viewport.defaultMaterialColor = "#ff0000";
+		const mesh = geometry.convertedObject[perf.viewport.id];
+		const batch = mesh?.userData?.batchedMesh;
+		const tint = {r: 0, g: 0, b: 0};
+		batch.getColorAt(mesh.userData.batchId, {
+			setRGB(r: number, g: number, b: number) {
+				tint.r = r;
+				tint.g = g;
+				tint.b = b;
+				return this;
+			},
+			fromArray(array: ArrayLike<number>, offset = 0) {
+				tint.r = array[offset];
+				tint.g = array[offset + 1];
+				tint.b = array[offset + 2];
+				return this;
+			},
+		});
+		return {
+			batch: [
+				batch?.material?.color?.r,
+				batch?.material?.color?.g,
+				batch?.material?.color?.b,
+			],
+			tint,
+			source: [
+				mesh?.material?.color?.r,
+				mesh?.material?.color?.g,
+				mesh?.material?.color?.b,
+			],
+		};
+	});
+	expect(result.batch[0], JSON.stringify(result)).toBeCloseTo(1, 5);
+	expect(result.batch[1], JSON.stringify(result)).toBeCloseTo(1, 5);
+	expect(result.batch[2], JSON.stringify(result)).toBeCloseTo(1, 5);
+	expect(result.tint.r, JSON.stringify(result)).toBeCloseTo(result.source[0], 4);
+	expect(result.tint.g, JSON.stringify(result)).toBeCloseTo(result.source[1], 4);
+	expect(result.tint.b, JSON.stringify(result)).toBeCloseTo(result.source[2], 4);
+});
+
+test("SS-10390 a pulsed member does not supply the batch shader", async ({
+	page,
+}) => {
+	await open(page);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: true, softShadows: true});
+		const material = new SDV.MaterialStandardData({
+			color: "#66cc88",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		perf.addBoxes(2, material);
+		perf.viewport.update();
+		perf.viewport.show = true;
+		await new Promise<void>((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+		});
+		const boxes = ["box0", "box1"].map((name) =>
+			SDV.sceneTree.root.children.find(
+				(child: {name: string}) => child.name === name,
+			),
+		);
+		const geometry = boxes[0].data[0];
+		geometry.effectPulses.push({
+			effect: {type: "pulse", color: "#00ff78"},
+			token: "pulse",
+		});
+		geometry.updateVersion();
+		perf.viewport.update();
+		await new Promise<void>((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+		});
+		const pulsed = geometry.convertedObject[perf.viewport.id];
+		const other = boxes[1].data[0].convertedObject[perf.viewport.id];
+		const batch = other?.userData?.batchedMesh;
+		return {
+			pulsedVisible: pulsed?.visible === true,
+			pulsedBatched: Boolean(pulsed?.userData?.batchedMesh),
+			otherBatched: Boolean(batch),
+			blending: batch?.material?.userData?.shader?.uniforms?.blending?.value ?? null,
+		};
+	});
+	expect(result.pulsedVisible, JSON.stringify(result)).toBe(true);
+	expect(result.pulsedBatched, JSON.stringify(result)).toBe(false);
+	expect(result.otherBatched, JSON.stringify(result)).toBe(true);
+	expect(result.blending, JSON.stringify(result)).toBeGreaterThan(0);
+});
+
 test("SS-10390 reusing geometry after a batch does not throw", async ({
 	page,
 }) => {

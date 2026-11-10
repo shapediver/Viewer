@@ -140,6 +140,19 @@ export class MaterialBatchManager {
 		}
 	}
 
+	/**
+	 * The viewport default was copied onto a batch that follows it.
+	 * Instance colors are snapshots of the source color, so write them again.
+	 */
+	public syncBatchColors(material: THREE.Material): void {
+		for (const member of this._members.values()) {
+			if (member.batch.mesh.material !== material) continue;
+			// A default-material copy changes the source. The member can still
+			// be drawn from the batch, so refresh its tint either way.
+			this.writeColor(member);
+		}
+	}
+
 	/** A mesh material was replaced. Stay in the batch when only the color changed. */
 	public syncObject(object: THREE.Object3D): void {
 		const member = this._byMesh.get(object);
@@ -330,13 +343,19 @@ export class MaterialBatchManager {
 	private build(entries: BatchEntry[]): void {
 		const chunks = this.pack(entries);
 		for (const chunk of chunks) {
-			const source = chunk[0].mesh.material as THREE.Material;
+			// A pulse replaces the mesh material with a clone that has no
+			// compile hook. The cache still holds the source material.
+			const displayed = chunk[0].mesh.material as THREE.Material;
+			const record =
+				this._renderingEngine.materialLoader.recordFor(displayed);
+			const source = record?.material ?? displayed;
 			const batchMaterial = this.createBatchMaterial(source);
+			batchMaterial.userData.materialBatch = true;
 			const cacheKey = `material-batch/${this._chunkSerial++}`;
 			this._renderingEngine.materialLoader.trackMaterial(
 				cacheKey,
 				batchMaterial,
-				null,
+				record ? record.materialData : null,
 			);
 			const indexed = chunk[0].indices > 0;
 			const vertices = chunk.reduce(
