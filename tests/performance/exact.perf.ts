@@ -732,6 +732,114 @@ test("SS-10390 a parent transform moves a batched child", async ({page}) => {
 	expect(moved.after).toBeCloseTo(moved.before + 4, 4);
 });
 
+test("SS-10390 a batched triangle is one ray hit", async ({page}) => {
+	await open(page);
+	const hit = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const material = new SDV.MaterialStandardData({
+			color: "#66cc88",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		const triangle = (name: string, x: number) => {
+			const positions = new Float32Array([
+				x, 0, 0, x + 1, 0, 0, x, 1, 0,
+			]);
+			const indices = new Uint16Array([0, 1, 2]);
+			const geometry = new SDV.GeometryData(
+				new SDV.PrimitiveData(
+					{
+						POSITION: new SDV.AttributeData(
+							positions,
+							3,
+							12,
+							0,
+							4,
+							false,
+							positions.length,
+						),
+					},
+					new SDV.AttributeData(
+						indices,
+						1,
+						2,
+						0,
+						2,
+						false,
+						indices.length,
+					),
+				),
+				SDV.PRIMITIVE_MODE.TRIANGLES,
+			);
+			geometry.material = material;
+			const node = new SDV.TreeNode(name);
+			node.addData(geometry);
+			SDV.sceneTree.root.addChild(node);
+			return geometry;
+		};
+		const first = triangle("near", 0);
+		triangle("far", 3);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		const mesh = first.convertedObject[perf.viewport.id];
+		const hits = perf.viewport.raytraceScene([0.2, 0.2, 1], [0, 0, -1]);
+		return {
+			batched: Boolean(mesh?.userData?.batchedMesh),
+			count: hits.length,
+			name: hits[0]?.node?.name ?? null,
+		};
+	});
+	expect(hit.batched).toBe(true);
+	expect(hit.count).toBe(1);
+	expect(hit.name).toBe("near");
+});
+
+test("SS-10390 a mirrored node stays out of the batch", async ({page}) => {
+	await open(page);
+	const mirrored = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const material = new SDV.MaterialStandardData({
+			color: "#66cc88",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		const plain = perf.boxGeometry([-0.4, -0.4, 0], [0.4, 0.4, 0.8]);
+		plain.material = material;
+		const plainNode = new SDV.TreeNode("plain");
+		plainNode.addData(plain);
+		const childGeometry = perf.boxGeometry(
+			[-0.4, -0.4, 2],
+			[0.4, 0.4, 2.8],
+		);
+		childGeometry.material = material;
+		const child = new SDV.TreeNode("child");
+		child.addData(childGeometry);
+		const parent = new SDV.TreeNode("parent");
+		parent.addChild(child);
+		SDV.sceneTree.root.addChild(plainNode);
+		SDV.sceneTree.root.addChild(parent);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		const matrix = new Float32Array([
+			-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+		]);
+		parent.addTransformation({id: "mirror", matrix});
+		perf.viewport.updateNodeTransformation(parent);
+		const childMesh = childGeometry.convertedObject[perf.viewport.id];
+		const plainMesh = plain.convertedObject[perf.viewport.id];
+		return {
+			childBatched: Boolean(childMesh?.userData?.batchedMesh),
+			childVisible: childMesh?.visible === true,
+			plainBatched: Boolean(plainMesh?.userData?.batchedMesh),
+		};
+	});
+	expect(mirrored.childBatched).toBe(false);
+	expect(mirrored.childVisible).toBe(true);
+	expect(mirrored.plainBatched).toBe(true);
+});
+
 test("SS-10397", async ({page}) => {
 	await open(page);
 	const sortObjects = await page.evaluate(async () => {

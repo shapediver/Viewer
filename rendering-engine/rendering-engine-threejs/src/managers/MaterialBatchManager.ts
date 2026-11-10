@@ -254,6 +254,10 @@ export class MaterialBatchManager {
 		if (Object.keys(mesh.geometry.morphAttributes).length > 0) return false;
 		if (mesh.geometry.groups.length > 1) return false;
 		if (!mesh.geometry.getAttribute("position")) return false;
+		// The batch object stays at identity. three.js flips winding only
+		// from object.matrixWorld, so a mirrored instance would drop FrontSide
+		// faces. The source mesh still flips.
+		if (mesh.matrixWorld.determinant() < 0) return false;
 		return true;
 	}
 
@@ -510,7 +514,13 @@ export class MaterialBatchManager {
 		if (Object.keys(member.mesh.geometry.morphAttributes).length > 0)
 			return true;
 		if (Array.isArray(member.mesh.material)) return true;
+		if (this.mirrored(member.mesh)) return true;
 		return this.batchKey(member.mesh) !== member.batch.key;
+	}
+
+	private mirrored(mesh: THREE.Object3D): boolean {
+		mesh.updateWorldMatrix(true, false);
+		return mesh.matrixWorld.determinant() < 0;
 	}
 
 	private hierarchyVisible(mesh: THREE.Object3D): boolean {

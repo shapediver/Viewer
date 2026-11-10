@@ -455,8 +455,12 @@ export class IntersectionEngine implements IIntersectionEngine {
 			viewportId!
 		] as THREE.Object3D;
 		if (threeJsObject) {
-			const intersectionThree =
-				this._raycaster.intersectObject(threeJsObject);
+			// three r184 raycasts visible === false. A batched member is
+			// already returned from the BatchedMesh, so the hidden source
+			// mesh would be a second hit of the same surface.
+			const intersectionThree = this._raycaster
+				.intersectObject(threeJsObject)
+				.filter((hit) => hit.object.userData.batchedMesh == null);
 			intersections = intersections.concat(
 				intersectionThree.map((i) => {
 					const parent = i.object.parent as {
