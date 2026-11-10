@@ -464,6 +464,24 @@ export class MaterialBatchManager {
 		}
 		batchMaterial.userData = {...saved};
 		delete batchMaterial.userData.shader;
+		// Material.copy does not copy onBeforeCompile. That hook declares
+		// the shadow uniforms. It also stores the compiled shader on the
+		// source material, so keep that reference and record the batch program
+		// on this material instead.
+		const compile = source.onBeforeCompile;
+		batchMaterial.onBeforeCompile = (shader, renderer) => {
+			const previous = source.userData.shader;
+			compile.call(source, shader, renderer);
+			if (!shader.uniforms.lightSizeUV) {
+				shader.uniforms.lightSizeUV = {value: 0};
+				shader.uniforms.blending = {value: 0};
+			}
+			batchMaterial.userData.shader = shader;
+			if (source.userData.shader === shader) {
+				if (previous === undefined) delete source.userData.shader;
+				else source.userData.shader = previous;
+			}
+		};
 		if (
 			"color" in batchMaterial &&
 			batchMaterial.color instanceof THREE.Color

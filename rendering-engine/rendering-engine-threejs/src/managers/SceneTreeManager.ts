@@ -232,8 +232,25 @@ export class SceneTreeManager implements IManager {
 									dataChild.parent !== null &&
 									dataChild.parent !== convertedObject
 								) {
-									dataChild =
-										dataChild.clone() as typeof dataChild;
+									// Object3D.clone JSON.stringifies userData.
+									// batchedMesh points at the batch, which
+									// points back through its node list.
+									const original = dataChild;
+									const batchedMesh =
+										original.userData.batchedMesh;
+									const batchId = original.userData.batchId;
+									delete original.userData.batchedMesh;
+									delete original.userData.batchId;
+									try {
+										dataChild =
+											original.clone() as typeof dataChild;
+									} finally {
+										if (batchedMesh) {
+											original.userData.batchedMesh =
+												batchedMesh;
+											original.userData.batchId = batchId;
+										}
+									}
 								}
 
 								// Baked-transform occurrences share the source

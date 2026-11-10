@@ -840,6 +840,91 @@ test("SS-10390 a mirrored node stays out of the batch", async ({page}) => {
 	expect(mirrored.plainBatched).toBe(true);
 });
 
+test("SS-10390 a batched material keeps the shadow hook", async ({page}) => {
+	await open(page);
+	const shader = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		const errors: string[] = [];
+		const report = console.error;
+		console.error = (...args: unknown[]) => {
+			errors.push(args.map((arg) => String(arg)).join(" "));
+			report.apply(console, args);
+		};
+		await perf.create({shadows: true, softShadows: true});
+		perf.addBoxes(
+			2,
+			new SDV.MaterialStandardData({
+				color: "#66cc88",
+				side: SDV.MATERIAL_SIDE.FRONT,
+			}),
+		);
+		perf.viewport.update();
+		perf.viewport.show = true;
+		await new Promise<void>((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+		});
+		const node = SDV.sceneTree.root.children.find(
+			(child: {name: string}) => child.name === "box0",
+		);
+		const mesh = node?.data[0]?.convertedObject[perf.viewport.id];
+		const batch = mesh?.userData?.batchedMesh;
+		const uniforms = batch?.material?.userData?.shader?.uniforms;
+		console.error = report;
+		return {
+			lightSizeUV: Boolean(uniforms?.lightSizeUV),
+			blending: Boolean(uniforms?.blending),
+			errors: errors.filter((line) => /shader|lightSizeUV|compile/i.test(line)),
+		};
+	});
+	expect(shader.lightSizeUV, JSON.stringify(shader)).toBe(true);
+	expect(shader.blending, JSON.stringify(shader)).toBe(true);
+	expect(shader.errors, JSON.stringify(shader.errors)).toEqual([]);
+});
+
+test("SS-10390 reusing geometry after a batch does not throw", async ({
+	page,
+}) => {
+	await open(page);
+	const reused = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const material = new SDV.MaterialStandardData({
+			color: "#66cc88",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		const geometry = perf.boxGeometry([-0.4, -0.4, 0], [0.4, 0.4, 0.8]);
+		geometry.material = material;
+		const first = new SDV.TreeNode("first");
+		first.addData(geometry);
+		SDV.sceneTree.root.addChild(first);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		const second = new SDV.TreeNode("second");
+		second.addData(geometry);
+		SDV.sceneTree.root.addChild(second);
+		SDV.sceneTree.root.updateVersion();
+		let thrown: string | null = null;
+		try {
+			perf.viewport.update();
+		} catch (error) {
+			thrown = String(error);
+		}
+		const mesh = geometry.convertedObject[perf.viewport.id];
+		return {
+			thrown,
+			batched: Boolean(mesh?.userData?.batchedMesh),
+			secondMesh: Boolean(
+				second.convertedObject[perf.viewport.id]?.children?.length,
+			),
+		};
+	});
+	expect(reused.thrown).toBeNull();
+	expect(reused.batched).toBe(true);
+	expect(reused.secondMesh).toBe(true);
+});
+
 test("SS-10397", async ({page}) => {
 	await open(page);
 	const sortObjects = await page.evaluate(async () => {

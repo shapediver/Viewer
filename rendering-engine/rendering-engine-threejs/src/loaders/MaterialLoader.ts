@@ -2115,15 +2115,12 @@ export class MaterialLoader implements ILoader {
 		this._lightSizeUV = lightSizeUV;
 		this._blending = blending;
 		for (const cacheKey in this._materialCache) {
-			if (this._materialCache[cacheKey].material.userData.shader) {
-				this._materialCache[
-					cacheKey
-				].material.userData.shader.uniforms.lightSizeUV.value =
-					lightSizeUV;
-				this._materialCache[
-					cacheKey
-				].material.userData.shader.uniforms.blending.value = blending;
-			}
+			const uniforms =
+				this._materialCache[cacheKey].material.userData.shader
+					?.uniforms;
+			if (!uniforms?.lightSizeUV || !uniforms.blending) continue;
+			uniforms.lightSizeUV.value = lightSizeUV;
+			uniforms.blending.value = blending;
 		}
 	}
 
