@@ -288,18 +288,26 @@ export class GeometryLoader implements ILoader {
 
 		if (incomingMaterialData instanceof MaterialGemData) {
 			const gemMaterialData = <MaterialGemData>incomingMaterialData;
-			// Only compute if not already computed
-			if (!threeGeometry.boundingSphere) {
-				threeGeometry.computeBoundingSphere();
-			}
+			// Gem shading wants the tight sphere around the vertices. The
+			// shared geometry keeps the AABB sphere createMesh stores for
+			// culling. Leaving the tight sphere on the geometry makes the
+			// next gem read whichever sphere was stored first.
+			const savedSphere = threeGeometry.boundingSphere;
+			const savedBox = threeGeometry.boundingBox;
+			const gemSphere = new THREE.Sphere();
+			threeGeometry.boundingSphere = gemSphere;
+			threeGeometry.boundingBox = null;
+			threeGeometry.computeBoundingSphere();
+			threeGeometry.boundingSphere = savedSphere;
+			threeGeometry.boundingBox = savedBox;
 
 			const sphericalNormalMap = this.createCubeNormalMap(
 				geometry,
 				threeGeometry,
 			);
 
-			const center = threeGeometry.boundingSphere!.center,
-				radius = threeGeometry.boundingSphere!.radius;
+			const center = gemSphere.center,
+				radius = gemSphere.radius;
 
 			gemMaterialData.side = MATERIAL_SIDE.FRONT;
 
