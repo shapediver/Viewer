@@ -275,6 +275,10 @@ export class MaterialBatchManager {
 	private isBatchable(mesh: THREE.Mesh, geometry: GeometryData): boolean {
 		if (Array.isArray(mesh.material)) return false;
 		if (mesh.material instanceof GemMaterial) return false;
+		// Transparent objects are sorted one mesh at a time. A batch is
+		// one object, so the double-sided panes of a glass box are not
+		// drawn far-to-near and the volume goes dark.
+		if (mesh.material.transparent) return false;
 		if (geometry.mode !== PRIMITIVE_MODE.TRIANGLES) return false;
 		if (geometry.morphWeights.length > 0) return false;
 		if (Object.keys(mesh.geometry.morphAttributes).length > 0) return false;
