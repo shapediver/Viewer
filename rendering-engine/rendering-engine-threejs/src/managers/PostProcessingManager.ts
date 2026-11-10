@@ -1649,7 +1649,10 @@ export class PostProcessingManager implements IManager {
 				1,
 			);
 
-		if (this._godRaysManagers[token]) delete this._godRaysManagers[token];
+		if (this._godRaysManagers[token]) {
+			delete this._godRaysManagers[token];
+			this._renderingEngine.materialBatchManager.syncLightSources();
+		}
 		if (this._outlineManagers[token]) {
 			this._outlineManagers[token].clearSelection();
 			delete this._outlineManagers[token];

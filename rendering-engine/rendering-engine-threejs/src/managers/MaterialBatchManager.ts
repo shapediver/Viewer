@@ -69,6 +69,7 @@ export class MaterialBatchManager {
 	private readonly _batches: MaterialBatch[] = [];
 	private readonly _dragged = new Set<string>();
 	private readonly _held = new Set<string>();
+	private readonly _lightSources = new Set<string>();
 	private readonly _matrix = new THREE.Matrix4();
 	private readonly _color = new THREE.Color();
 	private readonly _materialKeys = new WeakMap<
@@ -98,6 +99,7 @@ export class MaterialBatchManager {
 	/** Rebuild membership after the scene tree has been converted. */
 	public rebuild(): void {
 		if (this._closed) return;
+		this.refreshLightSources();
 		const scene = this._renderingEngine.sceneTreeManager.scene;
 		if (this.root.parent !== scene) scene.add(this.root);
 		scene.updateMatrixWorld(true);
@@ -156,6 +158,19 @@ export class MaterialBatchManager {
 		const member = this._byMesh.get(object);
 		if (!member || !this._members.has(member.id)) return;
 		this.applyMember(member);
+	}
+
+	/**
+	 * God rays draw the light source mesh in their own pass. A member left
+	 * in the batch is hidden, so that pass has nothing to draw.
+	 */
+	public syncLightSources(): void {
+		if (this._closed) return;
+		const next = this.lightSourceIds();
+		if (this.sameIds(next, this._lightSources)) return;
+		this._lightSources.clear();
+		for (const id of next) this._lightSources.add(id);
+		for (const member of this._members.values()) this.applyMember(member);
 	}
 
 	/**
@@ -265,6 +280,13 @@ export class MaterialBatchManager {
 		if (Object.keys(mesh.geometry.morphAttributes).length > 0) return false;
 		if (mesh.geometry.groups.length > 1) return false;
 		if (!mesh.geometry.getAttribute("position")) return false;
+		// The amber shell in MosquitoInAmber is one transmissive mesh. A
+		// BatchedMesh of that shell no longer shows the insect inside it.
+		if (
+			"transmission" in mesh.material &&
+			(mesh.material as {transmission: number}).transmission > 0
+		)
+			return false;
 		// The batch object stays at identity. three.js flips winding only
 		// from object.matrixWorld, so a mirrored instance would drop FrontSide
 		// faces. The source mesh still flips.
@@ -341,6 +363,10 @@ export class MaterialBatchManager {
 	private build(entries: BatchEntry[]): void {
 		const chunks = this.pack(entries);
 		for (const chunk of chunks) {
+			// One mesh is already one draw. Wrapping it hides the source
+			// and draws a BatchedMesh instead, which drops the insect
+			// inside a transmissive shell.
+			if (chunk.length < 2) continue;
 			// A pulse replaces the mesh material with a clone that has no
 			// compile hook. The cache still holds the source material.
 			const displayed = chunk[0].mesh.material as THREE.Material;
@@ -543,6 +569,7 @@ export class MaterialBatchManager {
 	private isIndividual(member: BatchMember): boolean {
 		if (this._dragged.has(member.node.id)) return true;
 		if (this._held.has(member.node.id)) return true;
+		if (this._lightSources.has(member.node.id)) return true;
 		if (member.geometry.effectMaterials.length > 0) return true;
 		if (member.geometry.effectPulses.length > 0) return true;
 		if (member.geometry.morphWeights.length > 0) return true;
@@ -551,6 +578,32 @@ export class MaterialBatchManager {
 		if (Array.isArray(member.mesh.material)) return true;
 		if (this.mirrored(member.mesh)) return true;
 		return this.batchKey(member.mesh) !== member.batch.key;
+	}
+
+	private refreshLightSources(): void {
+		const next = this.lightSourceIds();
+		this._lightSources.clear();
+		for (const id of next) this._lightSources.add(id);
+	}
+
+	private lightSourceIds(): Set<string> {
+		const ids = new Set<string>();
+		const managers =
+			this._renderingEngine.postProcessingManager.godRaysManagers;
+		for (const token in managers) {
+			const node = managers[token].lightSourceNode;
+			if (!node) continue;
+			node.traverse((child) => {
+				ids.add(child.id);
+			});
+		}
+		return ids;
+	}
+
+	private sameIds(a: Set<string>, b: Set<string>): boolean {
+		if (a.size !== b.size) return false;
+		for (const id of a) if (!b.has(id)) return false;
+		return true;
 	}
 
 	private mirrored(mesh: THREE.Object3D): boolean {

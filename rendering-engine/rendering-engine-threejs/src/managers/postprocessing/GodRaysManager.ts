@@ -8,6 +8,7 @@ export class GodRaysManager {
 
 	private _godRaysEffect!: GodRaysEffect;
 	private _lightSource: THREE.Mesh | THREE.Points | null = null;
+	private _node: ITreeNode | null = null;
 
 	// #endregion Properties (2)
 
@@ -19,7 +20,14 @@ export class GodRaysManager {
 
 	// #region Public Methods (3)
 
+	public get lightSourceNode(): ITreeNode | null {
+		return this._node;
+	}
+
 	public removeLightSource(): void {
+		this._node = null;
+		this._lightSource = null;
+		this._renderingEngine.materialBatchManager.syncLightSources();
 		this._godRaysEffect.lightSource = new THREE.Mesh();
 	}
 
@@ -29,6 +37,10 @@ export class GodRaysManager {
 	}
 
 	public setLightSource(node: ITreeNode): void {
+		// The batch hides a member. This effect draws that mesh itself, so
+		// the node has to leave the batch before the pass runs.
+		this._node = node;
+		this._renderingEngine.materialBatchManager.syncLightSources();
 		this._lightSource = null;
 		(
 			node.convertedObject[this._renderingEngine.id] as THREE.Object3D
