@@ -279,10 +279,22 @@ export class MaterialBatchManager {
 		// one object, so the double-sided panes of a glass box are not
 		// drawn far-to-near and the volume goes dark.
 		if (mesh.material.transparent) return false;
-		// A double-sided surface in the batch does not light like the
-		// source mesh. The cage's metal floor stays brown as its own mesh
-		// and turns black in the batch.
-		if (mesh.material.side === THREE.DoubleSide) return false;
+		// Double-sided metal has no diffuse term. In the batch that
+		// surface turns black; the cage floor is that case. Transmissive
+		// glass stays in the batch, even when its side is the default
+		// double, so the panes remain one draw.
+		if (
+			mesh.material.side === THREE.DoubleSide &&
+			"metalness" in mesh.material &&
+			typeof mesh.material.metalness === "number" &&
+			mesh.material.metalness > 0 &&
+			!(
+				"transmission" in mesh.material &&
+				typeof mesh.material.transmission === "number" &&
+				mesh.material.transmission > 0
+			)
+		)
+			return false;
 		if (geometry.mode !== PRIMITIVE_MODE.TRIANGLES) return false;
 		if (geometry.morphWeights.length > 0) return false;
 		if (Object.keys(mesh.geometry.morphAttributes).length > 0) return false;

@@ -1332,7 +1332,7 @@ test("SS-10390 one mesh stays a mesh and shared transmission stays one batch", a
 			transmission: 0.75,
 			thickness: 0.9,
 			ior: 1.55,
-			side: SDV.MATERIAL_SIDE.FRONT,
+			side: SDV.MATERIAL_SIDE.DOUBLE,
 		});
 		const add = (name: string, material: any, z: number) => {
 			const geometry = perf.boxGeometry(
