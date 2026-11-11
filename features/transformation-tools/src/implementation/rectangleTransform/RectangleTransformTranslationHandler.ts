@@ -315,9 +315,11 @@ export class RectangleTransformTranslationHandler
 
 	/**
 	 * The claim of the pointer (see InteractionEngine.addPointerDownClaim).
-	 * Over the plane its distance is the closest hit of the plane or of the
-	 * transformed objects: an object of this handler in front of its plane
-	 * still belongs to it, an object of another tool in front of both wins.
+	 * Over the plane its distance is the closest hit of the rectangle's base
+	 * plane or of the transformed objects: an object of this handler in front
+	 * of its plane still belongs to it, an object of another tool in front of
+	 * both wins. The plane mesh is offset toward the camera, so an object
+	 * lying within that offset (e.g. text on a banner) must not lose to it.
 	 */
 	private pointerClaim(event: PointerEvent, ray: IRay): PointerClaim {
 		if (this.#interactionEngine.paused) return false;
@@ -333,8 +335,28 @@ export class RectangleTransformTranslationHandler
 		const planeDistance = this.planeDistance(ray);
 		if (planeDistance === Infinity && !this.#options.translateOnObjects)
 			return false;
-		const distance = Math.min(planeDistance, this.objectDistance(ray));
+		const distance = Math.min(
+			this.basePlaneDistance(ray, planeDistance),
+			this.objectDistance(ray),
+		);
 		return distance === Infinity ? false : distance;
+	}
+
+	/**
+	 * The distance along the ray to the rectangle's plane without the
+	 * PLANE_Z_OFFSET of the plane mesh, given the hit distance of the mesh.
+	 */
+	private basePlaneDistance(ray: IRay, planeDistance: number): number {
+		if (planeDistance === Infinity) return Infinity;
+		const M = this.#parentNode.worldMatrix;
+		const normal = vec3.normalize(
+			vec3.create(),
+			vec3.fromValues(M[8], M[9], M[10]),
+		);
+		const direction = vec3.normalize(vec3.create(), ray.direction);
+		const cos = vec3.dot(normal, direction);
+		if (Math.abs(cos) < 1e-9) return planeDistance;
+		return Math.max(0, planeDistance - PLANE_Z_OFFSET / cos);
 	}
 
 	/**
