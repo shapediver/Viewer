@@ -1,6 +1,6 @@
 ---
-description: Viewer load timing, visibility, and geometry performance pitfalls
-alwaysApply: true
+description: Viewer load timing, visibility, and geometry performance pitfalls. Read when changing or measuring load time, viewport visibility, glTF loading, bounding boxes, or geometry performance.
+alwaysApply: false
 ---
 
 # Viewer load and geometry

@@ -1,6 +1,6 @@
 ---
-description: Geometry restriction grids and placement picking
-alwaysApply: true
+description: Geometry restriction grids and placement picking. Read when changing restriction grids, snapping, or placement picking.
+alwaysApply: false
 ---
 
 # Geometry restriction grids

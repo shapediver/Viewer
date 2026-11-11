@@ -11,7 +11,7 @@ When you learn something that the next agent will need (workflow, build/test pit
 
 - **Update** the matching rule in `.cursor/rules/` if the topic already exists.
 - **Create** a new `.mdc` there if it is a distinct concern (one topic per file, keep it short and actionable).
-- Prefer `alwaysApply: true` for repo-wide usage; use `globs` when it only matters for certain paths.
+- Use `alwaysApply: true` only for repo-wide workflow (how to build, run, test). Topic rules get `alwaysApply: false` (or `globs`) and a description that says when to read them. Add each new topic rule to the table in `CLAUDE.md`.
 - Do not dump a one-off bugfix into a rule. Do record the reusable constraint that would have prevented the bug.
 
 Do this in the same session you learned it. Do not wait for the user to ask.

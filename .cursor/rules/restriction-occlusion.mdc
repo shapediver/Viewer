@@ -1,6 +1,6 @@
 ---
-description: Hideable snap occlusion must ignore the object being dragged
-alwaysApply: true
+description: Hideable snap occlusion must ignore the object being dragged. Read when changing restriction occlusion, snapping, or drag interaction.
+alwaysApply: false
 ---
 
 # Restriction occlusion

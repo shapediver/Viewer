@@ -1,6 +1,6 @@
 ---
-description: How viewer texture downloads choose the Geometry Backend proxy or a direct fetch
-alwaysApply: true
+description: How viewer texture downloads choose the Geometry Backend proxy or a direct fetch. Read when changing texture or image loading.
+alwaysApply: false
 ---
 
 # Texture downloads
