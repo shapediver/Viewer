@@ -22,15 +22,13 @@ import {
 
 import {InteractionData} from "./InteractionData";
 
-const LINE_OR_POINT_TYPES = new Set([
-	"Line",
-	"LineLoop",
-	"LineSegments",
-	"Line2",
-	"Points",
-]);
-
-function isInvisibleLineOrPoint(
+/**
+ * Whether the hit is on a primitive that is not visible (material opacity at
+ * or below the threshold). Such a primitive, e.g. the invisible pick mesh of
+ * a transform tool, is still raycastable but must not hide interactive
+ * geometry behind it.
+ */
+function isInvisiblePrimitive(
 	hit: IIntersectionDefinition,
 	opacityThreshold: number,
 ): boolean {
@@ -42,8 +40,7 @@ function isInvisibleLineOrPoint(
 			};
 		}
 	).occludePrimitive;
-	if (!primitive || !LINE_OR_POINT_TYPES.has(primitive.objectType))
-		return false;
+	if (!primitive) return false;
 	const opacity = primitive.materialOpacity;
 	if (opacity === undefined) return false;
 	if (Array.isArray(opacity))
@@ -108,8 +105,8 @@ export class IntersectionManager implements IIntersectionEngine {
 	 * ray, regardless of whether it has InteractionData. Used to occlude
 	 * interactive intersections that are behind solid non-interactive geometry.
 	 *
-	 * Lines and points whose material opacity is at or below `opacityThreshold`
-	 * are skipped. Meshes, and lines or points above that opacity, still occlude.
+	 * Primitives (meshes, lines, points) whose material opacity is at or below
+	 * `opacityThreshold` are skipped. Everything above that opacity still occludes.
 	 */
 	public closestSceneGeometryDistance(
 		ray: IRay,
@@ -127,7 +124,7 @@ export class IntersectionManager implements IIntersectionEngine {
 		);
 		for (const hit of hits) {
 			if (hit.type !== "RayTracingIntersection") continue;
-			if (isInvisibleLineOrPoint(hit, opacityThreshold)) continue;
+			if (isInvisiblePrimitive(hit, opacityThreshold)) continue;
 			return (hit as IRayTracingIntersection).distance;
 		}
 		return Infinity;
