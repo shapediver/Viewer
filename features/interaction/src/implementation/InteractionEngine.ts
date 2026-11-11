@@ -28,6 +28,7 @@ import {
 	INTERACTION_STATE,
 	type PointerClaim} from "../interfaces/IInteractionEngine";
 import {type IInteractionManager} from "../interfaces/IInteractionManager";
+import {InteractionData} from "./InteractionData";
 import {IntersectionManager} from "./IntersectionManager";
 import {MultiSelectManager} from "./managers/MultiSelectManager";
 
@@ -624,26 +625,91 @@ export class InteractionEngine implements IInteractionEngine {
 	 * nodes, Infinity if none is hit. A claim can report it as its distance
 	 * (see {@link addPointerDownClaim}).
 	 */
-	public closestHitDistance(ray: IRay, nodes: ITreeNode[]): number {
-		let closest = Infinity;
-		for (const node of nodes) {
-			const geometryData: {[key: string]: GeometryData} = {};
-			node.traverseData((data) => {
-				if (data instanceof GeometryData)
-					geometryData[`${data.id}_${data.version}`] = data;
-			});
-			const hits = IntersectionEngine.instance.intersectNode(
-				ray,
-				node,
-				geometryData,
-				this.#viewport.id,
-				undefined,
-				this.#rayCasterParams,
-			);
-			if (hits && hits.length > 0)
-				closest = Math.min(closest, hits[0].distance);
+	public closestHitDistance(
+		ray: IRay,
+		nodes: ITreeNode[],
+		options?: {excludeInteractiveDescendants?: boolean},
+	): number {
+		// a child with its own interaction (text on a banner) is another
+		// object. While it is measured, its meshes do not count as this node.
+		const excluded = options?.excludeInteractiveDescendants
+			? this.interactiveDescendantRoots(nodes)
+			: [];
+		const restore =
+			excluded.length > 0 ? this.silenceRaycast(excluded) : undefined;
+		try {
+			let closest = Infinity;
+			for (const node of nodes) {
+				const geometryData: {[key: string]: GeometryData} = {};
+				node.traverse((current) => {
+					if (this.isExcluded(current, excluded)) return;
+					for (const data of current.data)
+						if (data instanceof GeometryData)
+							geometryData[`${data.id}_${data.version}`] = data;
+				});
+				const hits = IntersectionEngine.instance.intersectNode(
+					ray,
+					node,
+					geometryData,
+					this.#viewport.id,
+					undefined,
+					this.#rayCasterParams,
+				);
+				if (hits && hits.length > 0)
+					closest = Math.min(closest, hits[0].distance);
+			}
+			return closest;
+		} finally {
+			restore?.();
 		}
-		return closest;
+	}
+
+	/**
+	 * Descendants that carry their own interaction data. Their geometry is
+	 * another object, not the surface of the node a claim is measuring.
+	 */
+	private interactiveDescendantRoots(roots: ITreeNode[]): ITreeNode[] {
+		const found: ITreeNode[] = [];
+		const walk = (node: ITreeNode, isRoot: boolean) => {
+			if (
+				!isRoot &&
+				node.data.some((data) => data instanceof InteractionData)
+			) {
+				found.push(node);
+				return;
+			}
+			node.children.forEach((child) => walk(child, false));
+		};
+		roots.forEach((root) => walk(root, true));
+		return found;
+	}
+
+	private isExcluded(node: ITreeNode, excluded: ITreeNode[]): boolean {
+		let current: ITreeNode | undefined = node;
+		while (current) {
+			if (excluded.includes(current)) return true;
+			current = current.parent;
+		}
+		return false;
+	}
+
+	/** Stop the raycaster on these nodes until the returned call. */
+	private silenceRaycast(nodes: ITreeNode[]): () => void {
+		type Raycastable = {raycast: () => void};
+		const saved: {object: Raycastable; raycast: () => void}[] = [];
+		for (const node of nodes) {
+			node.traverse((current) => {
+				const object = current.convertedObject[this.#viewport.id] as
+					| Raycastable
+					| undefined;
+				if (!object?.raycast) return;
+				saved.push({object, raycast: object.raycast});
+				object.raycast = () => {};
+			});
+		}
+		return () => {
+			for (const entry of saved) entry.object.raycast = entry.raycast;
+		};
 	}
 
 	private isPointerClaimed(

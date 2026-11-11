@@ -320,6 +320,8 @@ export class RectangleTransformTranslationHandler
 	 * of its plane still belongs to it, an object of another tool in front of
 	 * both wins. The plane mesh is offset toward the camera, so an object
 	 * lying within that offset (e.g. text on a banner) must not lose to it.
+	 * Geometry of a nested interactive object is not this rectangle's
+	 * surface: it stays in front of the claim and receives the pointer.
 	 */
 	private pointerClaim(event: PointerEvent, ray: IRay): PointerClaim {
 		if (this.#interactionEngine.paused) return false;
@@ -337,7 +339,7 @@ export class RectangleTransformTranslationHandler
 			return false;
 		const distance = Math.min(
 			this.basePlaneDistance(ray, planeDistance),
-			this.objectDistance(ray),
+			this.ownSurfaceDistance(ray),
 		);
 		return distance === Infinity ? false : distance;
 	}
@@ -377,6 +379,18 @@ export class RectangleTransformTranslationHandler
 
 	private planeDistance(ray: IRay): number {
 		return this.#interactionEngine.closestHitDistance(ray, [this.#node]);
+	}
+
+	/**
+	 * The rectangle's own surface. A nested object with its own interaction
+	 * (the text on a banner) is not part of it, so it can win the pointer.
+	 */
+	private ownSurfaceDistance(ray: IRay): number {
+		return this.#interactionEngine.closestHitDistance(
+			ray,
+			this.#transformedNodes,
+			{excludeInteractiveDescendants: true},
+		);
 	}
 
 	/** The distance of the closest hit of the transformed objects. */
