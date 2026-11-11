@@ -38,6 +38,19 @@ const EPSILON = 1e-4;
 type PointerClaimEntry = {
 	claim: (event: PointerEvent, ray: IRay) => PointerClaim;
 	owner?: InteractionEngine;
+	// the nodes the claimer acts on: the press is not handed on to the
+	// managers of these nodes (see addPointerDownClaim)
+	nodes?: ITreeNode[];
+};
+
+/**
+ * A press another tool won, whose release is handed on to the managers of
+ * the nodes under it.
+ */
+type ClaimedPress = {
+	event: PointerEvent;
+	ray: IRay;
+	lists: {[key: string]: IIntersectionDefinition[]};
 };
 
 /** The claims of one pointer event, shared by the engines of the viewport. */
@@ -141,6 +154,7 @@ export class InteractionEngine implements IInteractionEngine {
 	readonly #outAfterUpPointers = new Set<number>();
 	#pointerDownClaimed: boolean = false;
 	#pointerDownFilter?: (event: PointerEvent) => boolean;
+	#claimedPress?: ClaimedPress;
 	// the intersections of the managers for the latest pointer event, shared
 	// by the claim decision and the delivery to the managers
 	#intersectionCache?: {
@@ -420,18 +434,26 @@ export class InteractionEngine implements IInteractionEngine {
 	 * A claim made for an `owner` engine does not apply to that engine: its
 	 * own managers keep seeing the pointer, unless the claim loses against a
 	 * closer candidate or against a claim of another owner.
+	 *
+	 * A distance claim which wins the press does not take it from the nodes
+	 * under the pointer for good: once the pointer is released, whether or not
+	 * it moved, the managers of those nodes select them (see
+	 * {@link IInteractionManager.onClaimedPress}), so the object acted on by
+	 * the claimer can still be clicked or dragged to select it. The `nodes`
+	 * of the claimer are left out, it acts on them itself.
 	 */
 	public static addPointerDownClaim(
 		viewportId: string,
 		claim: (event: PointerEvent, ray: IRay) => PointerClaim,
 		owner?: InteractionEngine,
+		options?: {nodes?: ITreeNode[]},
 	): () => void {
 		let claims = InteractionEngine.#pointerDownClaims.get(viewportId);
 		if (!claims) {
 			claims = new Set();
 			InteractionEngine.#pointerDownClaims.set(viewportId, claims);
 		}
-		const entry = {claim, owner};
+		const entry: PointerClaimEntry = {claim, owner, nodes: options?.nodes};
 		claims.add(entry);
 		return () => {
 			claims.delete(entry);
@@ -456,8 +478,85 @@ export class InteractionEngine implements IInteractionEngine {
 		this.#pointerDownClaimed =
 			this.filtersPointer(event) ||
 			this.isPointerClaimed(event, ray, INTERACTION_STATE.DOWN);
-		if (this.#pointerDownClaimed) return;
+		this.#claimedPress = undefined;
+		if (this.#pointerDownClaimed) {
+			this.holdClaimedPress(event, ray);
+			return;
+		}
 		this.onDown(event, ray);
+	}
+
+	/**
+	 * A press won by a distance claim while a node of this engine is under the
+	 * pointer: remember the nodes (the intersections at the press) to select
+	 * them when the pointer is released, see {@link releaseClaimedPress}.
+	 */
+	private holdClaimedPress(event: PointerEvent, ray: IRay): void {
+		if (this.filtersPointer(event)) return;
+		const decision = this.pointerClaimDecision(
+			event,
+			ray,
+			INTERACTION_STATE.DOWN,
+		);
+		const winner = decision?.winner;
+		if (!decision || !winner || winner.owner === this) return;
+		// a claim of a tool which draws in screen space (a handle) keeps the
+		// press for itself
+		if (decision.unconditionalOwners.length > 0) return;
+		const candidate = decision.candidateDistances.get(this) ?? Infinity;
+		if (candidate === Infinity) return;
+
+		// only the closest object is pressed: an object behind it must not be
+		// selected. The claimer's own nodes are left out after that, so the
+		// object behind a transformed object stays untouched too.
+		const excluded = winner.nodes ?? [];
+		const intersections = this.managerIntersections(ray, [
+			INTERACTION_STATE.DOWN,
+			INTERACTION_STATE.UP,
+		]);
+		const lists: {[key: string]: IIntersectionDefinition[]} = {};
+		for (const m in this.#managers) {
+			const hits = intersections[m].filter(
+				(i) => i.type === "RayTracingIntersection",
+			) as IRayTracingIntersection[];
+			// several nodes can share one surface (an object and the node it
+			// holds): they are hit at the same distance
+			lists[m] =
+				hits.length > 0
+					? hits.filter(
+							(i) =>
+								i.distance <= hits[0].distance + EPSILON &&
+								!excluded.includes(i.node),
+						)
+					: [];
+		}
+		this.#claimedPress = {event, ray, lists};
+	}
+
+	/**
+	 * The pointer of a press which another tool won is released: the managers
+	 * select the nodes which were under the pointer at the press. A node a
+	 * computation removed since is skipped.
+	 */
+	private releaseClaimedPress(event: PointerEvent): void {
+		const press = this.#claimedPress;
+		this.#claimedPress = undefined;
+		if (!press || press.event.pointerId !== event.pointerId) return;
+		for (const m in this.#managers)
+			this.#managers[m].onClaimedPress?.(
+				press.event,
+				press.ray,
+				press.lists[m].filter((i) => this.isInScene(i.node)),
+			);
+	}
+
+	private isInScene(node: ITreeNode): boolean {
+		let current: ITreeNode | undefined = node;
+		while (current) {
+			if (current === sceneTree.root) return true;
+			current = current.parent;
+		}
+		return false;
 	}
 
 	/**
@@ -471,6 +570,7 @@ export class InteractionEngine implements IInteractionEngine {
 		const pressed = this.#pressedPointers.has(event.pointerId);
 		const interrupted = this.endGesture(event.pointerId);
 		this.#pointerDownClaimed = false;
+		this.#claimedPress = undefined;
 		this.#outAfterUpPointers.add(event.pointerId);
 		if (this.#paused || interrupted || !pressed) return;
 		for (const m in this.#managers) this.#managers[m].cancelInteraction?.();
@@ -519,6 +619,7 @@ export class InteractionEngine implements IInteractionEngine {
 		this.#interruptedPointers.delete(event.pointerId);
 		this.#outAfterUpPointers.delete(event.pointerId);
 		this.#pointerDownClaimed = false;
+		this.#claimedPress = undefined;
 		return true;
 	}
 
@@ -556,6 +657,7 @@ export class InteractionEngine implements IInteractionEngine {
 		) {
 			this.endGesture(event.pointerId);
 			this.#pointerDownClaimed = false;
+			this.#claimedPress = undefined;
 		}
 		// a hovering pointer (e.g. a pen) after an interrupted tap
 		this.#outAfterUpPointers.delete(event.pointerId);
@@ -584,6 +686,7 @@ export class InteractionEngine implements IInteractionEngine {
 		}
 		if (this.#pointerDownClaimed) {
 			this.#pointerDownClaimed = false;
+			this.#claimedPress = undefined;
 			return;
 		}
 		const ray = this.#viewport.pointerEventToRay(event);
@@ -601,10 +704,12 @@ export class InteractionEngine implements IInteractionEngine {
 			this.#outAfterUpPointers.add(event.pointerId);
 		if (this.#paused || interrupted || !pressed) {
 			this.#pointerDownClaimed = false;
+			this.#claimedPress = undefined;
 			return;
 		}
 		if (this.#pointerDownClaimed) {
 			this.#pointerDownClaimed = false;
+			this.releaseClaimedPress(event);
 			return;
 		}
 		const ray = this.#viewport.pointerEventToRay(event);
@@ -725,6 +830,11 @@ export class InteractionEngine implements IInteractionEngine {
 		if (distanceOwners.has(this)) return decision.winner?.owner !== this;
 		if (!decision.winner) return false;
 		const distance = decision.candidateDistances.get(this) ?? Infinity;
+		// a claim which only ties with an object's surface (the plane of a
+		// rectangle on its object) takes the press, but not the hover: the
+		// object keeps its hover effect next to the claimer's own hover
+		if (state === INTERACTION_STATE.MOVE)
+			return decision.closestClaimDistance < distance - EPSILON;
 		return decision.closestClaimDistance <= distance + EPSILON;
 	}
 

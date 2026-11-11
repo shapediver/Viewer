@@ -144,6 +144,43 @@ export class SelectManager extends AbstractInteractionManager {
 		}
 	}
 
+	/**
+	 * A press on a node of this manager was won by another tool: select the
+	 * node, never deselect it (the other tool acts on the press).
+	 */
+	public onClaimedPress(
+		event: PointerEvent,
+		ray: IRay,
+		intersection: IIntersectionDefinition[],
+	): void {
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
+			return;
+		const state =
+			this.#selectOn === "down"
+				? INTERACTION_STATE.DOWN
+				: INTERACTION_STATE.UP;
+		const first = intersection.find(
+			(i) =>
+				this.filter(state)(i.node) &&
+				i.type === "RayTracingIntersection" &&
+				InteractionManagerUtils.getInteractionData(
+					i.node,
+					true,
+					this.id,
+					"select",
+				),
+		) as IRayTracingIntersection | undefined;
+		if (!first || first.node === this.#node || this.#keyPressed.removal)
+			return;
+		if (this.#node) this.deactivateNode(event);
+		this.activateNode(first, event, ray);
+	}
+
 	public onKeyDown(event: KeyboardEvent, pointerInCanvas: boolean): void {
 		if (event.key === this.#removalKey) this.#keyPressed.removal = true;
 	}

@@ -141,6 +141,9 @@ export class RectangleTransformTranslationHandler
 			viewport.id,
 			(event, ray) => this.pointerClaim(event, ray),
 			this.#interactionEngine,
+			// the transformed nodes are selected by the press itself (a press
+			// on the object acts on it)
+			{nodes: this.#transformedNodes},
 		);
 		this.#interactionEngine.pointerDownFilter = (event) =>
 			this.pointerDownAllowed(event);

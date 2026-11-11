@@ -222,6 +222,44 @@ export class MultiSelectManager extends AbstractInteractionManager {
 			this.#keyPressed.boxSelection = true;
 	}
 
+	/**
+	 * A press on a node of this manager was won by another tool: select the
+	 * node, never deselect it (the other tool acts on the press).
+	 */
+	public onClaimedPress(
+		event: PointerEvent,
+		ray: IRay,
+		intersection: IIntersectionDefinition[],
+	): void {
+		if (
+			!InteractionManagerUtils.validateViewport(
+				this.viewport,
+				this.#logger,
+			)
+		)
+			return;
+		const first = intersection.find(
+			(i) =>
+				this.filter(INTERACTION_STATE.DOWN)(i.node) &&
+				i.type === "RayTracingIntersection" &&
+				InteractionManagerUtils.getInteractionData(
+					i.node,
+					true,
+					this.id,
+					"select",
+				),
+		);
+		if (!first || this.#keyPressed.removal) return;
+		const grouped = this.#groupedNodes.some(
+			(array) =>
+				array.includes(first.node) &&
+				this.#nodes.some((n) => array.includes(n)),
+		);
+		if (this.#nodes.includes(first.node) || grouped) return;
+		this.activateNode(first, event, ray);
+		this.emitSelectionEvents(event);
+	}
+
 	public onKeyUp(event: KeyboardEvent, pointerInCanvas: boolean): void {
 		if (event.key === this.#insertionKey)
 			this.#keyPressed.insertion = false;
