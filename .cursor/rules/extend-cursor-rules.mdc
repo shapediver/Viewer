@@ -9,9 +9,9 @@ alwaysApply: true
 
 When you learn something that the next agent will need (workflow, build/test pitfalls, load semantics, package boundaries, “do not do X”), **write it down**:
 
-- **Update** the matching rule in `.cursor/rules/` if the topic already exists.
-- **Create** a new `.mdc` there if it is a distinct concern (one topic per file, keep it short and actionable).
-- Use `alwaysApply: true` only for repo-wide workflow (how to build, run, test). Topic rules get `alwaysApply: false` (or `globs`) and a description that says when to read them. Add each new topic rule to the table in `CLAUDE.md`.
+- **Update** the matching rule in `.claude/rules/` if the topic already exists.
+- **Create** a new `.claude/rules/<topic>.md` with `paths:` set if it is a distinct concern (one topic per file, keep it short and actionable).
+- Mirror every change to the matching `.mdc` in `.cursor/rules/` (new rule → new `.mdc` with `globs:` set to the same paths), as `CLAUDE.md` describes. Use `alwaysApply: true` only for repo-wide workflow (how to build, run, test).
 - Do not dump a one-off bugfix into a rule. Do record the reusable constraint that would have prevented the bug.
 
 Do this in the same session you learned it. Do not wait for the user to ask.

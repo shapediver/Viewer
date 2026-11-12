@@ -16,7 +16,7 @@ Packages publish from `dist/` (`main` → `dist/index.js`). Examples and other p
 ## Tests
 
 - E2E: `e2e-testing` skill.
-- Root `pnpm test` runs Playwright against the hosted viewer (`https://viewer.shapediver.com/v3/latest/`), not your `src/` or `dist/`. To check uncommitted code, drive `localhost:8080` or `test-cdn`.
+- Root `pnpm test` runs Playwright against the hosted viewer (`https://viewer.shapediver.com/v3/latest/`), not your `src/` or `dist/`. For a manual check of uncommitted code, drive `localhost:8080` or `test-cdn`; for suite runs against the working tree, use the `e2e-testing` skill.
 - `VIEWER_TEST_ENV=staging` targets the staging CDN. Tests load `test-cdn/index.html`, which exposes `SDV` without creating a session.
 
 ## Don't read
