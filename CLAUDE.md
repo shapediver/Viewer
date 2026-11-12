@@ -1,5 +1,7 @@
 # Viewer (pnpm + Lerna monorepo)
 
+Base branch: `staging` (task branches start from `origin/staging`; `development` doesn't have this Claude setup yet).
+
 Packages publish from `dist/` (`main` → `dist/index.js`). Examples and other packages consume built output, not `src/`: after editing a package, run `pnpm build` in it before anything downstream sees the change.
 
 ## Commands (changed package and files only)
