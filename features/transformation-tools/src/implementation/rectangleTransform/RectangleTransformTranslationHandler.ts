@@ -331,10 +331,6 @@ export class RectangleTransformTranslationHandler
 		if (this.#isDragging) return true;
 		// a hovered or dragged handle claims the pointer itself
 		if (this.#isInteractionBlocked()) return false;
-		// a preview leaves the hover to the objects (e.g. its own object keeps
-		// its hover effect)
-		if (this.#options.isPreview?.() && event.type === "pointermove")
-			return false;
 		if (event.type === "pointerdown" && !this.pointerDownAllowed(event))
 			return false;
 		const planeDistance = this.planeDistance(ray);

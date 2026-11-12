@@ -974,6 +974,7 @@ export class InteractionEngine implements IInteractionEngine {
 					this.#viewport.id,
 					this.#rayCasterParams,
 					this.#intersectionOpacity,
+					Object.values(this.#managers).map((m) => m.id),
 				)
 			: Infinity;
 		const lists: {[key: string]: IIntersectionDefinition[]} = {};

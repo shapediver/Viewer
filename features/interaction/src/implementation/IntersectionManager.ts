@@ -22,6 +22,44 @@ import {
 
 import {InteractionData} from "./InteractionData";
 
+const LINE_OR_POINT_TYPES = new Set([
+	"Line",
+	"LineLoop",
+	"LineSegments",
+	"Line2",
+	"Points",
+]);
+
+function isLineOrPoint(hit: IIntersectionDefinition): boolean {
+	const primitive = (
+		hit as IRayTracingIntersection & {
+			occludePrimitive?: {objectType: string};
+		}
+	).occludePrimitive;
+	return !!primitive && LINE_OR_POINT_TYPES.has(primitive.objectType);
+}
+
+/**
+ * Whether the node, or one of its ancestors, carries interaction data of one
+ * of the given managers (or of all managers, if it is not restricted).
+ */
+function isInteractiveFor(node: ITreeNode, managerIds: string[]): boolean {
+	let current: ITreeNode | undefined = node;
+	while (current) {
+		for (const data of current.data)
+			if (
+				data instanceof InteractionData &&
+				(data.restrictedManagers.length === 0 ||
+					data.restrictedManagers.some((id) =>
+						managerIds.includes(id),
+					))
+			)
+				return true;
+		current = current.parent;
+	}
+	return false;
+}
+
 /**
  * Whether the hit is on a primitive that is not visible (material opacity at
  * or below the threshold). Such a primitive, e.g. the invisible pick mesh of
@@ -107,12 +145,15 @@ export class IntersectionManager implements IIntersectionEngine {
 	 *
 	 * Primitives (meshes, lines, points) whose material opacity is at or below
 	 * `opacityThreshold` are skipped. Everything above that opacity still occludes.
+	 * An invisible mesh of an interactive node of the given managers (e.g. the
+	 * hover area of a text) still occludes: it is the closest object there.
 	 */
 	public closestSceneGeometryDistance(
 		ray: IRay,
 		viewportId: string,
 		rayCasterParams?: RaycasterParameters,
 		opacityThreshold: number = 0.01,
+		managerIds: string[] = [],
 	): number {
 		const hits = this._intersectionEngine.intersect(
 			ray,
@@ -124,7 +165,11 @@ export class IntersectionManager implements IIntersectionEngine {
 		);
 		for (const hit of hits) {
 			if (hit.type !== "RayTracingIntersection") continue;
-			if (isInvisiblePrimitive(hit, opacityThreshold)) continue;
+			if (
+				isInvisiblePrimitive(hit, opacityThreshold) &&
+				(isLineOrPoint(hit) || !isInteractiveFor(hit.node, managerIds))
+			)
+				continue;
 			return (hit as IRayTracingIntersection).distance;
 		}
 		return Infinity;
