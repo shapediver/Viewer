@@ -842,7 +842,7 @@ export class PostProcessingManager implements IManager {
 								resolutionScale:
 									properties.resolutionScale !== undefined
 										? properties.resolutionScale
-										: 1,
+										: 0.5,
 								spp:
 									properties.spp !== undefined
 										? properties.spp
@@ -1209,7 +1209,7 @@ export class PostProcessingManager implements IManager {
 				};
 			case POST_PROCESSING_EFFECT_TYPE.SSAO:
 				return {
-					resolutionScale: 1,
+					resolutionScale: 0.5,
 					spp: 16,
 					distance: 1,
 					distanceIntensity: 1,

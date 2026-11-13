@@ -191,11 +191,19 @@ class AOEffect extends Effect {
 		}
 
 		this.normalPass?.setSize(width, height);
+		// An odd drawing buffer at a fractional scale is not a whole number
+		// of pixels. The target and the texSize uniform must agree.
 		this.aoPass.setSize(
-			width * this.resolutionScale,
-			height * this.resolutionScale,
+			Math.max(1, Math.round(width * this.resolutionScale)),
+			Math.max(1, Math.round(height * this.resolutionScale)),
 		);
 
+		// The denoise pass stays full size. It is the depth-aware upsample
+		// of a smaller ambient occlusion target.
+		this.poissionDenoisePass.inputSize.set(
+			this.aoPass.renderTarget.width,
+			this.aoPass.renderTarget.height,
+		);
 		this.poissionDenoisePass.setSize(width, height);
 
 		this.lastSize = {

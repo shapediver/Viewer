@@ -281,7 +281,7 @@ export interface ISSAOEffectDefinition extends IPostProcessingEffectDefinition {
 	// #region Properties (15)
 
 	properties?: {
-		/** The resolution scale of the ambient occlusion. (default: 1) */
+		/** The resolution scale of the ambient occlusion. (default: 0.5) */
 		resolutionScale?: number;
 		/** The samples that are taken per pixel to compute the ambient occlusion. (default: 16) */
 		spp?: number;
