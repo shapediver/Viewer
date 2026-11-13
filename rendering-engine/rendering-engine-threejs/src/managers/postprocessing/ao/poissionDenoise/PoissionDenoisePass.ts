@@ -44,6 +44,11 @@ export class PoissionDenoisePass extends Pass {
 	public static blueNoiseTexture?: Texture;
 
 	public index = 0;
+	/**
+	 * The size of the input texture. When it is smaller than this pass,
+	 * the first step upsamples it against the full size depth.
+	 */
+	public inputSize = new Vector2();
 	public inputTexture: Texture;
 	public iterations = defaultPoissonBlurOptions.iterations;
 	public radius = 12;
@@ -93,6 +98,7 @@ export class PoissionDenoisePass extends Pass {
 				blueNoiseTexture: {value: null},
 				index: {value: 0},
 				blueNoiseRepeat: {value: new Vector2()},
+				inputSize: {value: new Vector2()},
 			},
 		});
 
@@ -256,6 +262,16 @@ export class PoissionDenoisePass extends Pass {
 		for (let i = 0; i < 2 * this.iterations; i++) {
 			const horizontal = i % 2 === 0;
 
+			// only the first step reads the smaller input
+			const inputSize = (this.fullscreenMaterial as ShaderMaterial)
+				.uniforms.inputSize.value as Vector2;
+			if (i === 0) inputSize.copy(this.inputSize);
+			else
+				inputSize.set(
+					this.renderTargetA.width,
+					this.renderTargetA.height,
+				);
+
 			const inputRenderTarget = horizontal
 				? this.renderTargetB
 				: this.renderTargetA;
@@ -285,6 +301,14 @@ export class PoissionDenoisePass extends Pass {
 		(
 			this.fullscreenMaterial as ShaderMaterial
 		).uniforms.resolution.value.set(width, height);
+
+		const defines = (this.fullscreenMaterial as ShaderMaterial).defines;
+		if (
+			this.inputSize.x > 0 &&
+			(this.inputSize.x < width || this.inputSize.y < height)
+		)
+			defines.UPSAMPLE = "";
+		else delete defines.UPSAMPLE;
 
 		const poissonDisk = this.generateDenoiseSamples(
 			this.samples,
