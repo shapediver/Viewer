@@ -353,4 +353,56 @@ describe("scene graph node - test", () => {
 				child3.name,
 		);
 	});
+
+	const versionTree = () => {
+		const root = new TreeNode("root");
+		const children = [new TreeNode("a", root), new TreeNode("b", root)];
+		const leaves = children.flatMap((child) => [
+			new TreeNode(child.name + "0", child),
+			new TreeNode(child.name + "1", child),
+		]);
+		const nodes = [root, ...children, ...leaves];
+		const changes = new Map<ITreeNode, number>();
+		for (const node of nodes) {
+			changes.set(node, 0);
+			node.updateCallback = () =>
+				changes.set(node, changes.get(node)! + 1);
+		}
+		return {root, children, leaves, nodes, changes};
+	};
+
+	test("updateVersion on the root changes every node exactly once", async () => {
+		const {root, nodes, changes} = versionTree();
+		const before = nodes.map((node) => node.version);
+
+		root.updateVersion();
+
+		nodes.forEach((node, i) => {
+			expect(node.version).not.toBe(before[i]);
+			expect(changes.get(node)).toBe(1);
+		});
+	});
+
+	test("updateVersion on a leaf changes the leaf and its ancestors once", async () => {
+		const {root, children, leaves, nodes, changes} = versionTree();
+		const before = new Map(nodes.map((node) => [node, node.version]));
+		const changed = [leaves[0], children[0], root];
+
+		leaves[0].updateVersion();
+
+		for (const node of nodes) {
+			const expected = changed.includes(node) ? 1 : 0;
+			expect(changes.get(node)).toBe(expected);
+			expect(node.version !== before.get(node)).toBe(expected === 1);
+		}
+	});
+
+	test("updateVersion without parents and children changes one node", async () => {
+		const {children, nodes, changes} = versionTree();
+
+		children[0].updateVersion(false, false);
+
+		for (const node of nodes)
+			expect(changes.get(node)).toBe(node === children[0] ? 1 : 0);
+	});
 });

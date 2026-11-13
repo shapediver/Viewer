@@ -90,13 +90,15 @@ export class UtilsManager {
 	}
 
 	/**
-	 * Adds a node to the scene tree and updates the root version.
+	 * Adds a node to the scene tree and updates the versions of the added
+	 * node, its descendants and its ancestors. Other branches keep their
+	 * versions.
 	 *
 	 * @param node The tree node to add
 	 */
 	public addToSceneTree(node: ITreeNode) {
 		this._sceneTree.addNode(node);
-		this._sceneTree.root.updateVersion();
+		node.updateVersion();
 	}
 
 	/**
@@ -436,12 +438,13 @@ export class UtilsManager {
 
 	/**
 	 * Removes a node from the scene tree and updates the root version.
+	 * The remaining branches keep their versions.
 	 *
 	 * @param node The tree node to remove
 	 */
 	public removeFromSceneTree(node: ITreeNode) {
 		this._sceneTree.removeNode(node);
-		this._sceneTree.root.updateVersion();
+		this._sceneTree.root.updateVersion(false, false);
 	}
 
 	/**
