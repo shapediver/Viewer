@@ -1,10 +1,16 @@
 import {defineConfig} from "@playwright/test";
 import path from "path";
+import {acquireBenchLock} from "./lock";
 
 /**
  * Timing benchmark for two builds of examples/test-cdn. See README.md.
  * It reports numbers. It does not assert them.
  */
+
+// Playwright starts the web servers before any global setup, so the lock is
+// taken here. Workers load this file too; only the runner takes the lock.
+if (process.env.TEST_WORKER_INDEX === undefined) acquireBenchLock();
+
 const repo = path.join(__dirname, "../../..");
 const defaultDist = path.join(repo, "examples/test-cdn/dist");
 const base = path.resolve(process.env.BENCH_BASE ?? defaultDist);
