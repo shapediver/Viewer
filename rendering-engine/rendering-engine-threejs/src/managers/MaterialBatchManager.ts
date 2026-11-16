@@ -78,6 +78,7 @@ export class MaterialBatchManager {
 	>();
 
 	private readonly _keyIds = new Map<string, number>();
+	private readonly _memberByData = new Map<string, BatchMember>();
 	private _signature: string | undefined;
 	private _chunkSerial = 0;
 	private _closed = false;
@@ -135,7 +136,10 @@ export class MaterialBatchManager {
 			entry.geometry.effectPulses.length === 0
 		)
 			return entry.key;
-		return this._members.get(entry.id)?.batch.key ?? entry.key;
+		return (
+			this._memberByData.get(`${entry.node.id}:${entry.geometry.id}`)
+				?.batch.key ?? entry.key
+		);
 	}
 
 	/** A short id per batch key, so the signature stays small. */
@@ -249,6 +253,14 @@ export class MaterialBatchManager {
 	private collect(): BatchEntry[] {
 		const entries: BatchEntry[] = [];
 		const viewportId = this._renderingEngine.id;
+		// Batch membership by node and geometry, ignoring the version: an
+		// effect can bump the version of a member.
+		this._memberByData.clear();
+		for (const member of this._members.values())
+			this._memberByData.set(
+				`${member.node.id}:${member.geometry.id}`,
+				member,
+			);
 		Tree.instance.root.traverse((node) => {
 			const converted = node.convertedObject[viewportId] as
 				| THREE.Object3D
@@ -265,7 +277,7 @@ export class MaterialBatchManager {
 				if (
 					(data.effectMaterials.length > 0 ||
 						data.effectPulses.length > 0) &&
-					!this._members.has(id)
+					!this._memberByData.has(`${node.id}:${data.id}`)
 				)
 					continue;
 				const position = mesh.geometry.getAttribute("position");
