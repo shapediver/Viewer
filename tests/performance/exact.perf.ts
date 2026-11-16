@@ -714,7 +714,8 @@ test("SS-10390 a parent transform moves a batched child", async ({page}) => {
 			batch.getMatrixAt(mesh.userData.batchId, {
 				elements,
 				fromArray(array: ArrayLike<number>, offset = 0) {
-					for (let i = 0; i < 16; i++) elements[i] = array[i + offset];
+					for (let i = 0; i < 16; i++)
+						elements[i] = array[i + offset];
 					return this;
 				},
 			});
@@ -743,9 +744,7 @@ test("SS-10390 a batched triangle is one ray hit", async ({page}) => {
 			side: SDV.MATERIAL_SIDE.FRONT,
 		});
 		const triangle = (name: string, x: number) => {
-			const positions = new Float32Array([
-				x, 0, 0, x + 1, 0, 0, x, 1, 0,
-			]);
+			const positions = new Float32Array([x, 0, 0, x + 1, 0, 0, x, 1, 0]);
 			const indices = new Uint16Array([0, 1, 2]);
 			const geometry = new SDV.GeometryData(
 				new SDV.PrimitiveData(
@@ -937,7 +936,9 @@ test("SS-10390 a batched material keeps the shadow hook", async ({page}) => {
 		return {
 			lightSizeUV: Boolean(uniforms?.lightSizeUV),
 			blending: Boolean(uniforms?.blending),
-			errors: errors.filter((line) => /shader|lightSizeUV|compile/i.test(line)),
+			errors: errors.filter((line) =>
+				/shader|lightSizeUV|compile/i.test(line),
+			),
 		};
 	});
 	expect(shader.lightSizeUV, JSON.stringify(shader)).toBe(true);
@@ -1036,9 +1037,18 @@ test("SS-10390 a default color change keeps the batch white and updates its tint
 	expect(result.batch[0], JSON.stringify(result)).toBeCloseTo(1, 5);
 	expect(result.batch[1], JSON.stringify(result)).toBeCloseTo(1, 5);
 	expect(result.batch[2], JSON.stringify(result)).toBeCloseTo(1, 5);
-	expect(result.tint.r, JSON.stringify(result)).toBeCloseTo(result.source[0], 4);
-	expect(result.tint.g, JSON.stringify(result)).toBeCloseTo(result.source[1], 4);
-	expect(result.tint.b, JSON.stringify(result)).toBeCloseTo(result.source[2], 4);
+	expect(result.tint.r, JSON.stringify(result)).toBeCloseTo(
+		result.source[0],
+		4,
+	);
+	expect(result.tint.g, JSON.stringify(result)).toBeCloseTo(
+		result.source[1],
+		4,
+	);
+	expect(result.tint.b, JSON.stringify(result)).toBeCloseTo(
+		result.source[2],
+		4,
+	);
 });
 
 test("SS-10390 a pulsed member does not supply the batch shader", async ({
@@ -1081,7 +1091,9 @@ test("SS-10390 a pulsed member does not supply the batch shader", async ({
 			pulsedVisible: pulsed?.visible === true,
 			pulsedBatched: Boolean(pulsed?.userData?.batchedMesh),
 			otherBatched: Boolean(batch),
-			blending: batch?.material?.userData?.shader?.uniforms?.blending?.value ?? null,
+			blending:
+				batch?.material?.userData?.shader?.uniforms?.blending?.value ??
+				null,
 		};
 	});
 	expect(result.pulsedVisible, JSON.stringify(result)).toBe(true);
@@ -1367,7 +1379,8 @@ test("SS-10390 one mesh stays a mesh and shared transmission stays one batch", a
 				Boolean(glassA?.userData?.batchedMesh),
 				Boolean(glassB?.userData?.batchedMesh),
 			],
-			sameBatch: glassA?.userData?.batchedMesh === glassB?.userData?.batchedMesh,
+			sameBatch:
+				glassA?.userData?.batchedMesh === glassB?.userData?.batchedMesh,
 			transmission: batch?.material?.transmission ?? null,
 		};
 	});
@@ -1419,14 +1432,95 @@ test("SS-10390 transparent panes stay individual meshes", async ({page}) => {
 				Boolean(paneB?.userData?.batchedMesh),
 			],
 			transparent: paneA?.material?.transparent ?? null,
+			depthWrite: paneA?.material?.depthWrite ?? null,
 		};
 	});
 	expect(result.visible, JSON.stringify(result)).toEqual([true, true]);
 	expect(result.batched, JSON.stringify(result)).toEqual([false, false]);
 	expect(result.transparent, JSON.stringify(result)).toBe(true);
+	expect(result.depthWrite, JSON.stringify(result)).toBe(true);
 });
 
-test("SS-10390 double-sided meshes stay individual", async ({page}) => {
+test("SS-10390 blended panes without depth write are one visible batch", async ({
+	page,
+}) => {
+	await open(page);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const glass = new SDV.MaterialStandardData({
+			color: "#88bbdd",
+			opacity: 0.35,
+			alphaMode: SDV.MATERIAL_ALPHA.BLEND,
+			side: SDV.MATERIAL_SIDE.DOUBLE,
+		});
+		const count = perf.addBoxes(6, glass);
+		perf.viewport.update();
+		perf.viewport.show = true;
+		await perf.viewport.camera.set([0, 0, -4], [0, 0, 2], {duration: 0});
+		perf.renders.length = 0;
+		await new Promise<void>((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+		});
+		const pass = perf.renders.find(
+			(item: any) => item.target === null && item.triangles > 0,
+		);
+		const meshes = SDV.sceneTree.root.children
+			.map((node: any) => node.data[0]?.convertedObject[perf.viewport.id])
+			.filter((mesh: any) => mesh?.isMesh === true);
+		const batches = new Set(
+			meshes.map((mesh: any) => mesh?.userData?.batchedMesh),
+		);
+		const batch = meshes[0]?.userData?.batchedMesh;
+		const url = perf.viewport.getScreenshot();
+		const bitmap = await createImageBitmap(await (await fetch(url)).blob());
+		const canvas = document.createElement("canvas");
+		canvas.width = bitmap.width;
+		canvas.height = bitmap.height;
+		const context = canvas.getContext("2d")!;
+		context.drawImage(bitmap, 0, 0);
+		const pixel = context.getImageData(
+			Math.floor(bitmap.width / 2),
+			Math.floor(bitmap.height / 2),
+			1,
+			1,
+		).data;
+		return {
+			count,
+			sourceVisible: meshes.map((mesh: any) => mesh?.visible ?? null),
+			batches: batches.size,
+			instances: batch?.instanceCount ?? null,
+			transparent: batch?.material?.transparent ?? null,
+			depthWrite: batch?.material?.depthWrite ?? null,
+			side: batch?.material?.side ?? null,
+			calls: pass?.calls ?? null,
+			pixel: [pixel[0], pixel[1], pixel[2]],
+			passes: perf.renders.map((item: any) => ({
+				calls: item.calls,
+				triangles: item.triangles,
+				target: item.target,
+			})),
+		};
+	});
+	expect(result.sourceVisible, JSON.stringify(result)).toEqual(
+		new Array(result.count).fill(false),
+	);
+	expect(result.batches, JSON.stringify(result)).toBe(1);
+	expect(result.instances, JSON.stringify(result)).toBe(6);
+	expect(result.transparent, JSON.stringify(result)).toBe(true);
+	expect(result.depthWrite, JSON.stringify(result)).toBe(false);
+	expect(result.side, JSON.stringify(result)).toBe(2);
+	// three.js draws a transparent double-sided object back faces first,
+	// then front faces. The batch is that one object.
+	expect(result.calls, JSON.stringify(result.passes)).toBe(2);
+	// The background is #101010. Six blue panes in front of it are brighter.
+	expect(result.pixel[2], JSON.stringify(result)).toBeGreaterThan(40);
+});
+
+test("SS-10390 double-sided metal is one batch and keeps its shading", async ({
+	page,
+}) => {
 	await open(page);
 	const result = await page.evaluate(async () => {
 		const perf = (window as any).__perf;
@@ -1460,18 +1554,52 @@ test("SS-10390 double-sided meshes stay individual", async ({page}) => {
 		};
 		const panelA = meshOf("panelA");
 		const panelB = meshOf("panelB");
+		const batch = panelA?.userData?.batchedMesh;
+		perf.viewport.show = true;
+		await perf.viewport.camera.set([2, 2, -3], [0, 0, 0.4], {duration: 0});
+		await new Promise<void>((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+		});
+		const url = perf.viewport.getScreenshot();
+		const bitmap = await createImageBitmap(await (await fetch(url)).blob());
+		const canvas = document.createElement("canvas");
+		canvas.width = bitmap.width;
+		canvas.height = bitmap.height;
+		const context = canvas.getContext("2d")!;
+		context.drawImage(bitmap, 0, 0);
+		const pixel = context.getImageData(
+			Math.floor(bitmap.width / 2),
+			Math.floor(bitmap.height / 2),
+			1,
+			1,
+		).data;
 		return {
 			visible: [panelA?.visible ?? null, panelB?.visible ?? null],
 			batched: [
 				Boolean(panelA?.userData?.batchedMesh),
 				Boolean(panelB?.userData?.batchedMesh),
 			],
-			side: panelA?.material?.side ?? null,
+			sameBatch: batch === panelB?.userData?.batchedMesh,
+			side: batch?.material?.side ?? null,
+			metalness: batch?.material?.metalness ?? null,
+			sourceDefines: Object.keys(panelA?.material?.defines ?? {}).sort(),
+			batchDefines: Object.keys(batch?.material?.defines ?? {}).sort(),
+			pixel: [pixel[0], pixel[1], pixel[2]],
 		};
 	});
-	expect(result.visible, JSON.stringify(result)).toEqual([true, true]);
-	expect(result.batched, JSON.stringify(result)).toEqual([false, false]);
+	expect(result.visible, JSON.stringify(result)).toEqual([false, false]);
+	expect(result.batched, JSON.stringify(result)).toEqual([true, true]);
+	expect(result.sameBatch, JSON.stringify(result)).toBe(true);
 	expect(result.side, JSON.stringify(result)).toBe(2);
+	expect(result.metalness, JSON.stringify(result)).toBe(1);
+	// Material.copy resets defines. Without the legacy PBR define the
+	// batch is shaded by stock three.js and this metal is black, because
+	// the viewport has no environment map.
+	expect(result.sourceDefines, JSON.stringify(result)).toContain("legacy");
+	expect(result.batchDefines, JSON.stringify(result)).toEqual(
+		result.sourceDefines,
+	);
+	expect(result.pixel[0], JSON.stringify(result)).toBeGreaterThan(30);
 });
 
 test("SS-10390 a god ray source stays a visible mesh", async ({page}) => {
@@ -1511,6 +1639,76 @@ test("SS-10390 a god ray source stays a visible mesh", async ({page}) => {
 	expect(result.siblingBatched, JSON.stringify(result)).toBe(true);
 	expect(result.transparent, JSON.stringify(result)).toBe(true);
 	expect(result.depthWrite, JSON.stringify(result)).toBe(false);
+});
+
+test("SS-10390 meshes that share a primitive are one geometry in the batch", async ({
+	page,
+}) => {
+	await open(page);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const material = new SDV.MaterialStandardData({
+			color: "#66cc88",
+			side: SDV.MATERIAL_SIDE.FRONT,
+		});
+		const first = perf.boxGeometry([-0.4, -0.4, 0], [0.4, 0.4, 0.8]);
+		const other = perf.boxGeometry([-0.4, -0.4, 0], [0.4, 0.4, 0.8]);
+		const add = (name: string, primitive: any, x: number) => {
+			const geometry = new SDV.GeometryData(
+				primitive,
+				SDV.PRIMITIVE_MODE.TRIANGLES,
+			);
+			geometry.material = material;
+			const node = new SDV.TreeNode(name);
+			node.addData(geometry);
+			node.addTransformation({
+				id: name,
+				matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, 0, 0, 1],
+			});
+			SDV.sceneTree.root.addChild(node);
+		};
+		for (let i = 0; i < 6; i++) add(`shared${i}`, first.primitive, i * 1.2);
+		add("other", other.primitive, 7.2);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		perf.viewport.show = true;
+		perf.renders.length = 0;
+		await new Promise<void>((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+		});
+		const pass = perf.renders.find(
+			(item: any) => item.target === null && item.triangles === 84,
+		);
+		const meshes = SDV.sceneTree.root.children
+			.map((node: any) => node.data[0]?.convertedObject[perf.viewport.id])
+			.filter((mesh: any) => mesh?.isMesh === true);
+		const batch = meshes[0]?.userData?.batchedMesh;
+		const hits = perf.viewport.raytraceScene([3.6, 0, -1], [0, 0, 1]);
+		return {
+			batches: new Set(
+				meshes.map((mesh: any) => mesh?.userData?.batchedMesh),
+			).size,
+			instances: batch?.instanceCount ?? null,
+			vertices: batch?.geometry?.attributes?.position?.count ?? null,
+			indices: batch?.geometry?.index?.count ?? null,
+			calls: pass?.calls ?? null,
+			hit: hits[0]?.node?.name ?? null,
+			passes: perf.renders.map((item: any) => ({
+				calls: item.calls,
+				triangles: item.triangles,
+				target: item.target,
+			})),
+		};
+	});
+	expect(result.batches, JSON.stringify(result)).toBe(1);
+	expect(result.instances, JSON.stringify(result)).toBe(7);
+	// Two unique boxes: 8 vertices and 36 indices each.
+	expect(result.vertices, JSON.stringify(result)).toBe(16);
+	expect(result.indices, JSON.stringify(result)).toBe(72);
+	expect(result.calls, JSON.stringify(result)).toBe(1);
+	expect(result.hit, JSON.stringify(result)).toBe("shared3");
 });
 
 test("SS-10391 reused primitives share one position buffer", async ({page}) => {
@@ -1668,8 +1866,8 @@ test("SS-10391 gems that share a primitive keep the tight sphere", async ({
 			0.5, 0.5, 1,
 		]);
 		const indices = new Uint16Array([
-			4, 0, 2, 4, 2, 1, 4, 1, 3, 4, 3, 0, 5, 2, 0, 5, 1, 2, 5, 3, 1, 5,
-			0, 3,
+			4, 0, 2, 4, 2, 1, 4, 1, 3, 4, 3, 0, 5, 2, 0, 5, 1, 2, 5, 3, 1, 5, 0,
+			3,
 		]);
 		const primitive = new SDV.PrimitiveData(
 			{
@@ -1698,7 +1896,9 @@ test("SS-10391 gems that share a primitive keep the tight sphere", async ({
 		);
 		second.material = secondMaterial;
 		for (const geometry of [first, second]) {
-			const node = new SDV.TreeNode(geometry === first ? "gem-a" : "gem-b");
+			const node = new SDV.TreeNode(
+				geometry === first ? "gem-a" : "gem-b",
+			);
 			node.addData(geometry);
 			SDV.sceneTree.root.addChild(node);
 		}

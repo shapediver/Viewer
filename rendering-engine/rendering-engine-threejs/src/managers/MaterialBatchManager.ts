@@ -275,26 +275,12 @@ export class MaterialBatchManager {
 	private isBatchable(mesh: THREE.Mesh, geometry: GeometryData): boolean {
 		if (Array.isArray(mesh.material)) return false;
 		if (mesh.material instanceof GemMaterial) return false;
-		// Transparent objects are sorted one mesh at a time. A batch is
-		// one object, so the double-sided panes of a glass box are not
-		// drawn far-to-near and the volume goes dark.
-		if (mesh.material.transparent) return false;
-		// Double-sided metal has no diffuse term. In the batch that
-		// surface turns black; the cage floor is that case. Transmissive
-		// glass stays in the batch, even when its side is the default
-		// double, so the panes remain one draw.
-		if (
-			mesh.material.side === THREE.DoubleSide &&
-			"metalness" in mesh.material &&
-			typeof mesh.material.metalness === "number" &&
-			mesh.material.metalness > 0 &&
-			!(
-				"transmission" in mesh.material &&
-				typeof mesh.material.transmission === "number" &&
-				mesh.material.transmission > 0
-			)
-		)
-			return false;
+		// Blended panes that do not write depth batch: the batch sorts its
+		// instances far-to-near and three.js draws their back faces, then
+		// their front faces. A transparent material that writes depth
+		// stays one mesh per pane. Drawn batch-wide, the back faces of a
+		// near pane would hide the front faces of a far one.
+		if (mesh.material.transparent && mesh.material.depthWrite) return false;
 		if (geometry.mode !== PRIMITIVE_MODE.TRIANGLES) return false;
 		if (geometry.morphWeights.length > 0) return false;
 		if (Object.keys(mesh.geometry.morphAttributes).length > 0) return false;
@@ -396,14 +382,17 @@ export class MaterialBatchManager {
 				record ? record.materialData : null,
 			);
 			const indexed = chunk[0].indices > 0;
-			const vertices = chunk.reduce(
-				(sum, entry) => sum + entry.vertices,
-				0,
-			);
-			const indices = chunk.reduce(
-				(sum, entry) => sum + entry.indices,
-				0,
-			);
+			// Meshes that share a primitive share its BufferGeometry. The
+			// batch stores each one once and draws it per instance.
+			const geometryIds = new Map<THREE.BufferGeometry, number>();
+			let vertices = 0;
+			let indices = 0;
+			for (const entry of chunk) {
+				if (geometryIds.has(entry.mesh.geometry)) continue;
+				geometryIds.set(entry.mesh.geometry, -1);
+				vertices += entry.vertices;
+				indices += entry.indices;
+			}
 			const batchMesh = new THREE.BatchedMesh(
 				chunk.length,
 				vertices,
@@ -433,12 +422,15 @@ export class MaterialBatchManager {
 
 			for (const entry of chunk) {
 				this.rememberBounds(entry);
-				let geometryId: number;
-				try {
-					geometryId = batchMesh.addGeometry(entry.mesh.geometry);
-				} catch {
-					entry.mesh.visible = true;
-					continue;
+				let geometryId = geometryIds.get(entry.mesh.geometry) ?? -1;
+				if (geometryId < 0) {
+					try {
+						geometryId = batchMesh.addGeometry(entry.mesh.geometry);
+					} catch {
+						entry.mesh.visible = true;
+						continue;
+					}
+					geometryIds.set(entry.mesh.geometry, geometryId);
 				}
 				const instanceId = batchMesh.addInstance(geometryId);
 				const nodes = batchMesh.userData.batchNodes as (
@@ -483,27 +475,34 @@ export class MaterialBatchManager {
 		const chunks: {
 			key: string;
 			entries: BatchEntry[];
+			geometries: Set<THREE.BufferGeometry>;
 			vertices: number;
 			indices: number;
 		}[] = [];
 		for (const entry of entries) {
+			// A geometry the chunk already holds adds an instance and no
+			// vertices.
 			let chunk = chunks.find(
 				(candidate) =>
 					candidate.key === entry.key &&
 					candidate.entries.length < MAX_INSTANCES &&
-					candidate.vertices + entry.vertices <= MAX_VERTICES &&
-					candidate.indices + entry.indices <= MAX_INDICES,
+					(candidate.geometries.has(entry.mesh.geometry) ||
+						(candidate.vertices + entry.vertices <= MAX_VERTICES &&
+							candidate.indices + entry.indices <= MAX_INDICES)),
 			);
 			if (!chunk) {
 				chunk = {
 					key: entry.key,
 					entries: [],
+					geometries: new Set(),
 					vertices: 0,
 					indices: 0,
 				};
 				chunks.push(chunk);
 			}
 			chunk.entries.push(entry);
+			if (chunk.geometries.has(entry.mesh.geometry)) continue;
+			chunk.geometries.add(entry.mesh.geometry);
 			chunk.vertices += entry.vertices;
 			chunk.indices += entry.indices;
 		}
@@ -521,6 +520,12 @@ export class MaterialBatchManager {
 		}
 		batchMaterial.userData = {...saved};
 		delete batchMaterial.userData.shader;
+		// MeshStandardMaterial.copy and MeshPhysicalMaterial.copy reset
+		// defines to STANDARD / PHYSICAL. The source also carries the
+		// environment map type and the legacy PBR mode. Without them the
+		// batch is shaded by the stock three.js path, and a metal with no
+		// environment map turns black.
+		if (source.defines) batchMaterial.defines = {...source.defines};
 		// Material.copy does not copy onBeforeCompile. That hook declares
 		// the shadow uniforms. It also stores the compiled shader on the
 		// source material, so keep that reference and record the batch program
