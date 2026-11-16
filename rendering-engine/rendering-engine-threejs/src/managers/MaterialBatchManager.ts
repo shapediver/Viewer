@@ -672,9 +672,18 @@ export class MaterialBatchManager {
 	 * an opaque batch. That is vertex work only: the rasterizer clips them.
 	 */
 	private applyDrawOrder(mesh: THREE.BatchedMesh): void {
-		const material = mesh.material as THREE.Material;
-		mesh.sortObjects = material.transparent;
-		mesh.perObjectFrustumCulled = material.transparent;
+		const transparent = (mesh.material as THREE.Material).transparent;
+		if (
+			mesh.sortObjects === transparent &&
+			mesh.perObjectFrustumCulled === transparent
+		)
+			return;
+		mesh.sortObjects = transparent;
+		mesh.perObjectFrustumCulled = transparent;
+		// The last list was culled for the previous camera. With culling
+		// off, three.js keeps it until visibility changes, so mark it.
+		(mesh as unknown as {_visibilityChanged: boolean})._visibilityChanged =
+			true;
 	}
 
 	private rememberBounds(entry: BatchEntry): void {
