@@ -77,6 +77,7 @@ export class MaterialBatchManager {
 		{version: number; key: string}
 	>();
 
+	private readonly _keyIds = new Map<string, number>();
 	private _signature: string | undefined;
 	private _chunkSerial = 0;
 	private _closed = false;
@@ -105,11 +106,16 @@ export class MaterialBatchManager {
 		scene.updateMatrixWorld(true);
 
 		const entries = this.collect();
-		// The signature is geometry identity. A material edit other than color
-		// draws that one object on its own until the next full rebuild, so a
-		// hover does not recopy every vertex in the batch.
+		// The signature is geometry identity plus the batch key. A material
+		// replacement, such as the attribute visualization, rebuilds the
+		// batches. Hover, selection, and pulse effects keep the key of the
+		// batch the member is in, so they draw that one object on its own
+		// and do not recopy every vertex in the batch.
 		const signature = entries
-			.map((entry) => entry.id)
+			.map(
+				(entry) =>
+					`${entry.id}|${this.keyId(this.signatureKey(entry))}`,
+			)
 			.sort()
 			.join("\n");
 		if (this._signature === signature) {
@@ -121,6 +127,25 @@ export class MaterialBatchManager {
 		this.disposeBatches();
 		this.build(entries);
 		this._renderingEngine.postProcessingManager.refreshInstancedEffectSelections();
+	}
+
+	private signatureKey(entry: BatchEntry): string {
+		if (
+			entry.geometry.effectMaterials.length === 0 &&
+			entry.geometry.effectPulses.length === 0
+		)
+			return entry.key;
+		return this._members.get(entry.id)?.batch.key ?? entry.key;
+	}
+
+	/** A short id per batch key, so the signature stays small. */
+	private keyId(key: string): number {
+		let id = this._keyIds.get(key);
+		if (id === undefined) {
+			id = this._keyIds.size;
+			this._keyIds.set(key, id);
+		}
+		return id;
 	}
 
 	/**
