@@ -470,11 +470,7 @@ export class RenderingManager implements IManager {
 		if (runningAnimation !== this._runningAnimation) this.render();
 		this._runningAnimation = runningAnimation;
 		if (this._runningAnimation)
-			this._renderingEngine.sceneTreeManager.updateNode(
-				undefined,
-				undefined,
-				{transformationOnly: true},
-			);
+			this._renderingEngine.sceneTreeManager.updateTransformations();
 		if (this._runningAnimation)
 			updateMorphWeights(
 				this._tree.root,
@@ -709,11 +705,7 @@ export class RenderingManager implements IManager {
 				}
 			}
 			updateShadowMap = true;
-			this._renderingEngine.sceneTreeManager.updateNode(
-				undefined,
-				undefined,
-				{transformationOnly: true},
-			);
+			this._renderingEngine.sceneTreeManager.updateTransformations();
 		}
 
 		// animation loop - part 10: adjust the anchor elements

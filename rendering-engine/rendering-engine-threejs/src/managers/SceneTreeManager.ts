@@ -56,6 +56,11 @@ export class SceneTreeManager implements IManager {
 	private _suspendSceneUpdates: boolean = false;
 	private _deferBatch = false;
 	private _batchDepth = 0;
+	// Number of nodes on the current update path whose transformation or
+	// visibility changed. Everything below such a node has to be updated.
+	private _dirtyDepth = 0;
+	// Set while a pass over the whole tree may leave out unchanged branches.
+	private _skipUnchanged = false;
 
 	constructor(private readonly _renderingEngine: RenderingEngine) {
 		this._scene.background = new THREE.Color("#ffffff");
@@ -399,6 +404,42 @@ export class SceneTreeManager implements IManager {
 		this._batchDepth++;
 		try {
 			const convertedObject = <SDObject>obj;
+			const nodeMatrix = treeNode.nodeMatrix;
+			const isVisible = this.isNodeVisible(treeNode);
+			const isVisibleInHierarchy = visibleInHierarchy && isVisible;
+
+			// The transformation and the visibility are inherited by the
+			// whole branch (world matrices, bounding boxes, instances and
+			// batches), so a change here forces an update of everything below.
+			const dirty =
+				!convertedObject.hasTransformation(nodeMatrix) ||
+				convertedObject.visible !== isVisible ||
+				convertedObject.SDvisibleInHierarchy !== isVisibleInHierarchy;
+
+			// A transformation-only pass over the whole tree only has to
+			// find the nodes that moved. An unchanged node below unchanged
+			// ancestors is left as it is, only its children are checked.
+			if (
+				this._skipUnchanged &&
+				filter.transformationOnly &&
+				!dirty &&
+				this._dirtyDepth === 0
+			) {
+				for (let i = 0, len = treeNode.children.length; i < len; i++) {
+					const treeNodeChild = treeNode.children[i];
+					const child = treeNodeChild.convertedObject[
+						this._renderingEngine.id
+					] as SDObject | undefined;
+					this.processChildTreeNode(
+						treeNodeChild,
+						convertedObject,
+						child?.parent === convertedObject ? child : undefined,
+						filter,
+						isVisibleInHierarchy,
+					);
+				}
+				return;
+			}
 
 			// reset bounding boxes
 			this.resetBoundingBoxes(treeNode);
@@ -408,9 +449,6 @@ export class SceneTreeManager implements IManager {
 				this.cleanupObsoleteData(treeNode, convertedObject);
 				this.cleanupObsoleteChildren(treeNode, convertedObject);
 			}
-
-			const isVisible = this.isNodeVisible(treeNode);
-			const isVisibleInHierarchy = visibleInHierarchy && isVisible;
 
 			// convert all data items of the current node
 			// old versions will be replaced by new ones
@@ -423,8 +461,15 @@ export class SceneTreeManager implements IManager {
 				}
 			}
 
+			// Lights and three.js objects are read on every scene update.
+			let alwaysUpdate = false;
 			for (let i = 0, len = treeNode.data.length; i < len; i++) {
 				const dataItem = treeNode.data[i];
+				if (
+					dataItem instanceof AbstractLight ||
+					dataItem instanceof ThreejsData
+				)
+					alwaysUpdate = true;
 				const convertedObjectData = convertedChildrenMap.get(
 					dataItem.id,
 				);
@@ -455,28 +500,57 @@ export class SceneTreeManager implements IManager {
 			// ancestors. Apply this node's matrix first, or a transform-only
 			// update leaves descendants at the previous pose until a rebuild.
 			convertedObject.visible = isVisible;
-			convertedObject.applyTransformation(treeNode.nodeMatrix);
+			convertedObject.applyTransformation(nodeMatrix);
+			convertedObject.SDvisibleInHierarchy = isVisibleInHierarchy;
+
+			// A transformation-only pass does not union the bounding boxes of
+			// the ancestors that it only checks, so the next scene update has
+			// to come back to this branch.
+			if (filter.transformationOnly) {
+				this.flagAncestors(treeNode, convertedObject, "SDboundsStale");
+			} else {
+				convertedObject.SDboundsStale = false;
+			}
 
 			// Update or create child nodes
-			for (let i = 0, len = treeNode.children.length; i < len; i++) {
-				const treeNodeChild = treeNode.children[i];
-				const childConvertedObject = convertedChildrenMap.get(
-					treeNodeChild.id,
-				);
+			if (dirty) this._dirtyDepth++;
+			try {
+				for (let i = 0, len = treeNode.children.length; i < len; i++) {
+					const treeNodeChild = treeNode.children[i];
+					const childConvertedObject = convertedChildrenMap.get(
+						treeNodeChild.id,
+					);
 
-				this.processChildTreeNode(
-					treeNodeChild,
-					convertedObject,
-					childConvertedObject,
-					filter,
-					isVisibleInHierarchy,
-				);
+					this.processChildTreeNode(
+						treeNodeChild,
+						convertedObject,
+						childConvertedObject,
+						filter,
+						isVisibleInHierarchy,
+					);
 
-				this.unionChildBoundingBoxes(
-					treeNode,
-					treeNodeChild,
-					isVisible,
-				);
+					this.unionChildBoundingBoxes(
+						treeNode,
+						treeNodeChild,
+						isVisible,
+					);
+
+					if (
+						(<SDObject | undefined>(
+							treeNodeChild.convertedObject[
+								this._renderingEngine.id
+							]
+						))?.SDalwaysUpdate
+					)
+						alwaysUpdate = true;
+				}
+			} finally {
+				if (dirty) this._dirtyDepth--;
+			}
+			if (alwaysUpdate) {
+				this.flagAncestors(treeNode, convertedObject, "SDalwaysUpdate");
+			} else {
+				convertedObject.SDalwaysUpdate = false;
 			}
 			this._renderingEngine.instanceGroupManager.updateNode(treeNode);
 			this._renderingEngine.instanceGroupManager.setNodeVisible(
@@ -569,12 +643,20 @@ export class SceneTreeManager implements IManager {
 
 		this._currentSDTFOverview = createSDTFOverview(rootTreeNode);
 		this._deferBatch = true;
+		// Branches whose version, transformation and visibility are unchanged
+		// are left out. A renderer type or instancing switch and the
+		// attribute visualization, which depends on data of the whole tree,
+		// update every node.
+		this._skipUnchanged =
+			!this._newRendererType &&
+			this._renderingEngine.type === RENDERER_TYPE.STANDARD;
 		this._renderingEngine.instanceGroupManager.beginBoundsUpdate();
 		try {
 			this.updateNode(rootTreeNode, this._mainConvertedObject);
 		} finally {
 			this._renderingEngine.instanceGroupManager.endBoundsUpdate();
 			this._deferBatch = false;
+			this._skipUnchanged = false;
 		}
 		this._renderingEngine.materialBatchManager.rebuild();
 		this._boundingBox =
@@ -688,6 +770,71 @@ export class SceneTreeManager implements IManager {
 		this._performanceEvaluator.endSection(
 			"sceneTreeUpdate." + this._lastRootVersion,
 		);
+	}
+
+	/**
+	 * Apply changed node transformations of the whole tree, without
+	 * converting data. Nodes that did not move are only checked.
+	 */
+	public updateTransformations(): void {
+		const skipUnchanged = this._skipUnchanged;
+		this._skipUnchanged =
+			this._renderingEngine.type === RENDERER_TYPE.STANDARD;
+		try {
+			this.updateNode(undefined, undefined, {transformationOnly: true});
+		} finally {
+			this._skipUnchanged = skipUnchanged;
+		}
+	}
+
+	/**
+	 * Whether the branch of an already converted child can be left out of
+	 * the current scene update: nothing it depends on has changed.
+	 */
+	private canSkipChild(
+		treeNodeChild: ITreeNode,
+		childConvertedObject: SDObject,
+		filter: UpdateFilter,
+		isVisibleInHierarchy: boolean,
+	): boolean {
+		if (
+			!this._skipUnchanged ||
+			filter.transformationOnly ||
+			this._dirtyDepth > 0 ||
+			childConvertedObject.SDalwaysUpdate ||
+			childConvertedObject.SDboundsStale
+		)
+			return false;
+
+		const isVisible = this.isNodeVisible(treeNodeChild);
+		return (
+			childConvertedObject.visible === isVisible &&
+			childConvertedObject.SDvisibleInHierarchy ===
+				(isVisibleInHierarchy && isVisible) &&
+			childConvertedObject.hasTransformation(treeNodeChild.nodeMatrix)
+		);
+	}
+
+	/**
+	 * Set a flag on the converted object of a node and of its ancestors,
+	 * so that a scene update that starts at the root reaches the node.
+	 */
+	private flagAncestors(
+		treeNode: ITreeNode,
+		convertedObject: SDObject,
+		flag: "SDalwaysUpdate" | "SDboundsStale",
+	): void {
+		if (convertedObject[flag]) return;
+		convertedObject[flag] = true;
+		let parent = treeNode.parent;
+		while (parent) {
+			const parentObject = parent.convertedObject[
+				this._renderingEngine.id
+			] as SDObject | undefined;
+			if (!parentObject || parentObject[flag]) return;
+			parentObject[flag] = true;
+			parent = parent.parent;
+		}
 	}
 
 	/**
@@ -844,7 +991,18 @@ export class SceneTreeManager implements IManager {
 				filter,
 				isVisibleInHierarchy,
 			);
-			childConvertedObject.SDversion = treeNodeChild.version;
+			// A transformation-only update did not convert the new content.
+			if (filter.transformationOnly === false)
+				childConvertedObject.SDversion = treeNodeChild.version;
+		} else if (
+			this.canSkipChild(
+				treeNodeChild,
+				childConvertedObject,
+				filter,
+				isVisibleInHierarchy,
+			)
+		) {
+			// nothing this branch depends on has changed
 		} else {
 			this.updateNode(
 				treeNodeChild,

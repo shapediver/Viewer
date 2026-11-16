@@ -22,6 +22,22 @@ export class SDObject extends Object3D implements ISDObject {
 	#SDid: string;
 	#SDversion: string;
 	#SDtype: SD_DATA_TYPE;
+	#appliedTransformation?: mat4;
+	readonly #appliedMatrix = new THREE.Matrix4();
+
+	/**
+	 * State of the last scene tree update of this node, used to skip
+	 * branches that did not change (see SceneTreeManager).
+	 *
+	 * - SDvisibleInHierarchy: the inherited visibility that was applied
+	 * - SDalwaysUpdate: the branch has data that is read on every scene
+	 *   update (lights, three.js objects)
+	 * - SDboundsStale: a transformation-only update moved a node in this
+	 *   branch without updating the bounding boxes of its ancestors
+	 */
+	public SDvisibleInHierarchy?: boolean;
+	public SDalwaysUpdate = false;
+	public SDboundsStale = false;
 
 	constructor(
 		SDid: string,
@@ -41,6 +57,24 @@ export class SDObject extends Object3D implements ISDObject {
 		this.scale.set(1, 1, 1);
 		this.quaternion.set(0, 0, 0, 1);
 		this.applyMatrix4(new THREE.Matrix4().fromArray(transformation));
+		// The matrix three.js composes from position, quaternion and scale
+		// before rendering.
+		this.matrix.compose(this.position, this.quaternion, this.scale);
+		this.#appliedTransformation = mat4.clone(transformation);
+		this.#appliedMatrix.copy(this.matrix);
+	}
+
+	/**
+	 * Whether the given transformation is the one that was applied last and
+	 * nothing has written the matrix of this object since (the
+	 * transformation tools do that while dragging).
+	 */
+	public hasTransformation(transformation: mat4): boolean {
+		return (
+			this.#appliedTransformation !== undefined &&
+			mat4.exactEquals(this.#appliedTransformation, transformation) &&
+			this.matrix.equals(this.#appliedMatrix)
+		);
 	}
 
 	// #endregion Constructors (1)
