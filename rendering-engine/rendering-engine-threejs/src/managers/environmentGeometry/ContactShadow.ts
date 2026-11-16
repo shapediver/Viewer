@@ -159,60 +159,70 @@ export class ContactShadow implements IEnvironmentGeometry {
 	 * Start the programs that {@link render} uses, without drawing.
 	 *
 	 * The programs depend on the render target and on the swapped depth
-	 * materials, so a compile of the scene alone does not cover them.
-	 * Lines and points are hidden in {@link render} and skipped here.
+	 * materials, so a compile of the scene alone does not cover them. Hide
+	 * what {@link render} hides and skip what it does not draw, so that no
+	 * program is compiled that the contact shadow never uses.
 	 */
-	public compile(): Set<THREE.Material> {
-		const renderer = this._renderingEngine.renderer;
-		const scene = this._renderingEngine.scene;
-		const materials = new Set<THREE.Material>();
+	public compile(): void {
+		const engine = this._renderingEngine;
+		const renderer = engine.renderer;
+		const scene = engine.scene;
 		const initialRenderTarget = renderer.getRenderTarget();
-		// Read before the traverse: the blur plane is a scene mesh as well.
+		// Read before the swap: the blur plane is a scene mesh as well.
 		const initialBlurMaterial = this._blurPlane.material;
 
-		const swapped = new Map<
-			THREE.Object3D,
-			THREE.Material | THREE.Material[] | null
-		>();
+		const initialGridVisibility = engine.gridVisibility;
+		const initialGroundPlaneVisibility = engine.groundPlaneVisibility;
+		const initialGroundPlaneShadowVisibility =
+			engine.groundPlaneShadowVisibility;
+		engine.gridVisibility = false;
+		engine.groundPlaneVisibility = false;
+		engine.groundPlaneShadowVisibility = false;
+		const planes = [this._blurPlane, this._fillPlane, this._plane];
+		const planeVisibility = planes.map((plane) => plane.visible);
+		planes.forEach((plane) => (plane.visible = false));
+
+		// One material for all meshes: the program does not depend on the
+		// darkness or opacity a render() gives each mesh.
+		const depthMaterial = this.createTransparencyAwareDepthMaterial([]);
+		const drawn = new Set<THREE.Object3D>();
+		scene.traverseVisible((object) => drawn.add(object));
+		const swapped = new Map<THREE.Object3D, unknown>();
 		scene.traverse((object) => {
-			if (
+			const withMaterial = object as unknown as {material: unknown};
+			if (!withMaterial.material) return;
+			const skip =
+				!drawn.has(object) ||
 				object instanceof THREE.Line ||
-				object instanceof THREE.Points
-			) {
-				swapped.set(object, object.material);
-				// three.js skips objects without a material in compile
-				(object as unknown as {material: unknown}).material = null;
-			} else if (object instanceof THREE.Mesh && object.material) {
-				swapped.set(object, object.material);
-				object.material = this.createTransparencyAwareDepthMaterial(
-					object.material,
-				);
-			}
+				object instanceof THREE.Points;
+			if (!skip && !(object instanceof THREE.Mesh)) return;
+			swapped.set(object, withMaterial.material);
+			// three.js skips objects without a material in compile
+			withMaterial.material = skip ? null : depthMaterial;
 		});
 
 		try {
 			renderer.setRenderTarget(this._renderTarget);
-			renderer
-				.compile(scene, this._shadowCamera)
-				.forEach((m) => materials.add(m));
+			renderer.compile(scene, this._shadowCamera);
 			for (const blurMaterial of [
 				this._horizontalBlurMaterial,
 				this._verticalBlurMaterial,
 			]) {
 				this._blurPlane.material = blurMaterial;
-				renderer
-					.compile(this._blurPlane, this._shadowCamera)
-					.forEach((m) => materials.add(m));
+				renderer.compile(this._blurPlane, this._shadowCamera);
 			}
 		} finally {
 			swapped.forEach((material, object) => {
 				(object as unknown as {material: unknown}).material = material;
 			});
 			this._blurPlane.material = initialBlurMaterial;
+			planes.forEach((plane, i) => (plane.visible = planeVisibility[i]));
+			engine.gridVisibility = initialGridVisibility;
+			engine.groundPlaneVisibility = initialGroundPlaneVisibility;
+			engine.groundPlaneShadowVisibility =
+				initialGroundPlaneShadowVisibility;
 			renderer.setRenderTarget(initialRenderTarget);
 		}
-
-		return materials;
 	}
 
 	public render() {

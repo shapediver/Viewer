@@ -29,6 +29,11 @@ import {RenderingEngine} from "../RenderingEngine";
 import {updateMorphWeights} from "./sceneTree/SceenTreeManagerUtils";
 import {SceneTreeManager} from "./SceneTreeManager";
 
+/** The part of a three.js WebGLProgram that the compile gate reads. */
+interface IProgramStatus {
+	isReady(): boolean;
+}
+
 export class RenderingManager implements IManager {
 	// #region Properties (31)
 
@@ -46,7 +51,7 @@ export class RenderingManager implements IManager {
 	private _activeRendering: boolean = true;
 	private _cameraChanged: boolean = false;
 	private _compileSkippedFrame: boolean = false;
-	private _compilingMaterials: Set<THREE.Material> | null = null;
+	private _compilingPrograms: Set<IProgramStatus> | null = null;
 	private _continuousRendering: boolean = false;
 	private _continuousShadowMapUpdate: boolean = false;
 	private _height: number = 0;
@@ -282,16 +287,18 @@ export class RenderingManager implements IManager {
 	 */
 	public compileShaders(scene: THREE.Object3D, camera: THREE.Camera): void {
 		const renderer = this._renderingEngine.renderer;
-		const materials = renderer.compile(scene, camera);
+		const before = new Set(this.livePrograms());
+		renderer.compile(scene, camera);
 		// The contact shadow draws its own passes in the same frame.
-		this._renderingEngine.environmentGeometryManager.contactShadow
-			?.compile()
-			.forEach((material) => materials.add(material));
-		this._compilingMaterials = renderer.extensions.has(
-			"KHR_parallel_shader_compile",
-		)
-			? materials
-			: null;
+		this._renderingEngine.environmentGeometryManager.contactShadow?.compile();
+		if (!renderer.extensions.has("KHR_parallel_shader_compile")) return;
+
+		// Wait for the programs this update created. Those of an earlier
+		// update that are still compiling stay in the set.
+		const pending = this._compilingPrograms ?? new Set<IProgramStatus>();
+		for (const program of this.livePrograms())
+			if (!before.has(program)) pending.add(program);
+		this._compilingPrograms = pending.size > 0 ? pending : null;
 	}
 
 	public getScreenshot(
@@ -1161,28 +1168,27 @@ export class RenderingManager implements IManager {
 	 * Whether the programs started by {@link compileShaders} can be used
 	 * without waiting for the driver. Restarts the rendering once they can.
 	 */
-	private shadersCompiled(): boolean {
-		const materials = this._compilingMaterials;
-		if (!materials) return true;
+	/** The programs three.js currently keeps; released ones are gone. */
+	private livePrograms(): IProgramStatus[] {
+		return (this._renderingEngine.renderer.info.programs ??
+			[]) as unknown as IProgramStatus[];
+	}
 
-		const properties = this._renderingEngine.renderer.properties;
-		for (const material of materials) {
-			// a disposed material has no program left to wait for
-			const program = properties.has(material)
-				? (
-						properties.get(material) as {
-							currentProgram?: {isReady(): boolean};
-						}
-					).currentProgram
-				: undefined;
-			if (program && !program.isReady()) {
+	private shadersCompiled(): boolean {
+		const programs = this._compilingPrograms;
+		if (!programs) return true;
+
+		const live = this.livePrograms();
+		for (const program of programs) {
+			// a released program has nothing left to wait for
+			if (live.includes(program) && !program.isReady()) {
 				this._compileSkippedFrame = true;
 				return false;
 			}
-			materials.delete(material);
+			programs.delete(program);
 		}
 
-		this._compilingMaterials = null;
+		this._compilingPrograms = null;
 		// Frames were skipped. Draw the next one; render() would also restart
 		// the beauty countdown that may already have run out meanwhile.
 		if (this._compileSkippedFrame) this._activeRendering = true;

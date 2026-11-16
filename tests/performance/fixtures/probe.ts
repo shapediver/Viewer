@@ -26,6 +26,11 @@ export interface PassRecord {
 	materialUpdates: number;
 	/** Synchronous time inside `renderer.render`. Not GPU time. */
 	ms: number;
+	/**
+	 * Programs three.js created during this call. A program created inside
+	 * a draw is compiled and linked there, and the frame waits for it.
+	 */
+	programsCreated: number;
 }
 
 /**
@@ -59,6 +64,7 @@ export function installProbe() {
 			const callsBefore = info.render.calls;
 			const trianglesBefore = info.render.triangles;
 			const updatesBefore = updatesInRender;
+			const programsBefore = info.programs ? info.programs.length : 0;
 			const start = performance.now();
 			renderDepth++;
 			let result;
@@ -80,6 +86,10 @@ export function installProbe() {
 					: info.render.triangles - trianglesBefore,
 				materialUpdates: updatesInRender - updatesBefore,
 				ms,
+				programsCreated: Math.max(
+					0,
+					(info.programs ? info.programs.length : 0) - programsBefore,
+				),
 			});
 			return result;
 		};
@@ -492,6 +502,21 @@ export function installProbe() {
 		(window as any).__probe.viewport.type = SDV.RENDERER_TYPE.STANDARD;
 	}
 
+	/**
+	 * Whether every program has finished compiling. With
+	 * KHR_parallel_shader_compile the driver compiles in real time, also
+	 * while the page clock is paused. The query does not block.
+	 */
+	function programsReady() {
+		const probe = (window as any).__probe;
+		const gl = probe.gl;
+		if (!gl.getExtension("KHR_parallel_shader_compile")) return true;
+		const COMPLETION_STATUS_KHR = 0x91b1;
+		return (probe.renderer.info.programs ?? []).every((item: any) =>
+			gl.getProgramParameter(item.program, COMPLETION_STATUS_KHR),
+		);
+	}
+
 	/** Passes grouped by animation frame, oldest first. */
 	function frames() {
 		const grouped: {frame: number; passes: any[]}[] = [];
@@ -549,6 +574,7 @@ export function installProbe() {
 		orbit,
 		frames,
 		passes,
+		programsReady,
 		setupInteraction,
 		setupAttributes,
 		showAttribute,
