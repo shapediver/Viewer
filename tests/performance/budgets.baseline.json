@@ -31,7 +31,8 @@
 		"scene.matrixAutoUpdate": 12947,
 		"scene.meshes": 3867,
 		"scene.objects": 16811,
-		"scene.treeNodes": 12924
+		"scene.treeNodes": 12924,
+		"versionUpdate.idsCreated": 12922
 	},
 	"ssao": {
 		"beautyFrame.drawCalls": 2574,
@@ -69,7 +70,8 @@
 		"scene.matrixAutoUpdate": 12947,
 		"scene.meshes": 3867,
 		"scene.objects": 16811,
-		"scene.treeNodes": 12924
+		"scene.treeNodes": 12924,
+		"versionUpdate.idsCreated": 12922
 	},
 	"noShadows": {
 		"beautyFrame.drawCalls": 2564,
@@ -103,7 +105,8 @@
 		"scene.matrixAutoUpdate": 12947,
 		"scene.meshes": 3867,
 		"scene.objects": 16811,
-		"scene.treeNodes": 12924
+		"scene.treeNodes": 12924,
+		"versionUpdate.idsCreated": 12922
 	},
 	"noShadowsSsao": {
 		"beautyFrame.drawCalls": 2574,
@@ -141,7 +144,8 @@
 		"scene.matrixAutoUpdate": 12947,
 		"scene.meshes": 3867,
 		"scene.objects": 16811,
-		"scene.treeNodes": 12924
+		"scene.treeNodes": 12924,
+		"versionUpdate.idsCreated": 12922
 	},
 	"interaction": {
 		"final.geometries": 6,

@@ -217,6 +217,11 @@ async function collect(page: Page, variant: SceneVariant): Promise<Counters> {
 	counters["final.programs"] = after.programs;
 	counters["final.geometries"] = after.geometries;
 	counters["final.textures"] = after.textures;
+
+	// Last: the whole fixture is re-versioned, as adding a session does.
+	counters["versionUpdate.idsCreated"] = await page.evaluate(() =>
+		(window as any).__probe.versionUpdate(),
+	);
 	return counters;
 }
 
