@@ -321,9 +321,7 @@ test("SS-10383 hidden contact shadow does not render the scene", async ({
 		perf.viewport.update();
 		perf.viewport.show = true;
 		perf.renders.length = 0;
-		await new Promise<void>((resolve) => {
-			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-		});
+		await perf.nextFrame();
 		const passes = perf.renders.map((pass: any) => ({
 			calls: pass.calls,
 			triangles: pass.triangles,
@@ -355,9 +353,7 @@ test("SS-10384 scene update does not compile shaders synchronously", async ({
 		const gpu = await perf.create({shadows: false});
 		perf.viewport.show = true;
 		perf.viewport.update();
-		await new Promise<void>((resolve) => {
-			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-		});
+		await perf.nextFrame();
 		const gl = perf.gl;
 		const parallel = Boolean(
 			gl.getExtension("KHR_parallel_shader_compile"),
@@ -431,9 +427,7 @@ test("SS-10384 a screenshot in the turn of a scene update shows the update", asy
 		await perf.create({shadows: false});
 		perf.viewport.show = true;
 		perf.viewport.update();
-		await new Promise<void>((resolve) => {
-			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-		});
+		await perf.nextFrame();
 		perf.addBoxes(
 			4,
 			new SDV.MaterialStandardData({
@@ -480,9 +474,7 @@ test("SS-10385 blending 0 returns before the PCSS kernel", async ({page}) => {
 		);
 		perf.viewport.update();
 		perf.viewport.show = true;
-		await new Promise<void>((resolve) => {
-			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-		});
+		await perf.nextFrame();
 		const gl = perf.gl;
 		const programs = perf.renderer.info.programs ?? [];
 		const sources = programs.map(
@@ -791,9 +783,7 @@ test("SS-10389 drawing buffer is not preserved and the screenshot still has the 
 		perf.viewport.update();
 		perf.viewport.show = true;
 		await perf.viewport.camera.set([0, 0, 8], [0, 0, 0], {duration: 0});
-		await new Promise<void>((resolve) => {
-			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-		});
+		await perf.nextFrame();
 		const url = perf.viewport.getScreenshot();
 		const bitmap = await createImageBitmap(await (await fetch(url)).blob());
 		const canvas = document.createElement("canvas");
@@ -1052,9 +1042,7 @@ test("SS-10390 un-mirroring a node returns it to the batch once", async ({
 		perf.viewport.updateNodeTransformation(parent);
 		perf.viewport.show = true;
 		perf.renders.length = 0;
-		await new Promise<void>((resolve) => {
-			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-		});
+		await perf.nextFrame();
 		const childMesh = childGeometry.convertedObject[perf.viewport.id];
 		const plainMesh = plain.convertedObject[perf.viewport.id];
 		const pass = perf.renders.find(
@@ -1095,9 +1083,7 @@ test("SS-10390 a batched material keeps the shadow hook", async ({page}) => {
 		);
 		perf.viewport.update();
 		perf.viewport.show = true;
-		await new Promise<void>((resolve) => {
-			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-		});
+		await perf.nextFrame();
 		const node = SDV.sceneTree.root.children.find(
 			(child: {name: string}) => child.name === "box0",
 		);
@@ -1460,11 +1446,7 @@ test("SS-10390 color variants stay one draw and a ray hits that box", async ({
 		const hits = perf.viewport.raytraceScene([0, 0, -1], [0, 0, 1]);
 		const centerPixel = async (eye: number[], target: number[]) => {
 			await perf.viewport.camera.set(eye, target, {duration: 0});
-			await new Promise<void>((resolve) => {
-				requestAnimationFrame(() =>
-					requestAnimationFrame(() => resolve()),
-				);
-			});
+			await perf.nextFrame();
 			const url = perf.viewport.getScreenshot();
 			const bitmap = await createImageBitmap(
 				await (await fetch(url)).blob(),

@@ -167,6 +167,8 @@ export class ContactShadow implements IEnvironmentGeometry {
 		const scene = this._renderingEngine.scene;
 		const materials = new Set<THREE.Material>();
 		const initialRenderTarget = renderer.getRenderTarget();
+		// Read before the traverse: the blur plane is a scene mesh as well.
+		const initialBlurMaterial = this._blurPlane.material;
 
 		const swapped = new Map<
 			THREE.Object3D,
@@ -188,7 +190,6 @@ export class ContactShadow implements IEnvironmentGeometry {
 			}
 		});
 
-		const initialBlurMaterial = this._blurPlane.material;
 		try {
 			renderer.setRenderTarget(this._renderTarget);
 			renderer
