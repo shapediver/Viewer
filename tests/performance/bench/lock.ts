@@ -24,11 +24,41 @@ function isAlive(pid: number) {
 	}
 }
 
-function readOwner(): {pid: number; since: string} | undefined {
+function parseOwner(content: string): {pid: number; since: string} | undefined {
 	try {
-		return JSON.parse(fs.readFileSync(LOCK, "utf8"));
+		return JSON.parse(content);
 	} catch {
 		return undefined;
+	}
+}
+
+function readOwner() {
+	try {
+		return parseOwner(fs.readFileSync(LOCK, "utf8"));
+	} catch {
+		return undefined;
+	}
+}
+
+/**
+ * Creates the lock with its content in one step, so no other process ever
+ * sees it empty: the content goes to a file of our own, which is then
+ * hard-linked to the lock name. The link fails if the lock exists.
+ */
+function tryCreate() {
+	const temp = `${LOCK}.${process.pid}`;
+	fs.writeFileSync(
+		temp,
+		JSON.stringify({pid: process.pid, since: new Date().toISOString()}),
+	);
+	try {
+		fs.linkSync(temp, LOCK);
+		return true;
+	} catch (error) {
+		if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+		return false;
+	} finally {
+		fs.rmSync(temp, {force: true});
 	}
 }
 
@@ -40,32 +70,23 @@ function sleep(ms: number) {
 export function acquireBenchLock() {
 	let announced = false;
 	for (;;) {
+		if (tryCreate()) break;
+		let content: string;
 		try {
-			const fd = fs.openSync(LOCK, "wx");
-			fs.writeSync(
-				fd,
-				JSON.stringify({
-					pid: process.pid,
-					since: new Date().toISOString(),
-				}),
-			);
-			fs.closeSync(fd);
-			break;
-		} catch (error) {
-			if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+			content = fs.readFileSync(LOCK, "utf8");
+		} catch {
+			continue; // Released in the meantime.
 		}
-		const owner = readOwner();
+		const owner = parseOwner(content);
 		if (owner?.pid === process.pid) return;
 		if (!owner || !isAlive(owner.pid)) {
-			// Stale, or written half by an owner that is starting up.
-			// Remove it only if it is still the same file after a pause.
+			// Stale: its process is gone. Remove it only if no other waiter
+			// has replaced it with a live lock in the meantime.
 			try {
-				const before = fs.readFileSync(LOCK, "utf8");
-				sleep(200);
-				if (fs.readFileSync(LOCK, "utf8") === before)
+				if (fs.readFileSync(LOCK, "utf8") === content)
 					fs.unlinkSync(LOCK);
 			} catch {
-				// Someone else removed or replaced it. Try again.
+				// Someone else removed it. Try again.
 			}
 			continue;
 		}
