@@ -31,6 +31,13 @@ const VARIANTS: SceneVariant[] = [
 	{id: "noShadowsSsao", shadows: false, ssao: true},
 ];
 
+// Scenes that are not a rendering variant. Both run without shadows, so they
+// also run on a software renderer.
+const SCENARIOS = ["interaction", "attributes"];
+const BASELINE_IDS = [...VARIANTS.map((v) => v.id), ...SCENARIOS];
+
+const ATTRIBUTE_SCENE = {...AEC_DEFAULT, floors: 4};
+
 type Counters = Record<string, number>;
 type Frame = {frame: number; passes: PassRecord[]};
 
@@ -46,7 +53,7 @@ function writeBaseline(variant: string, counters: Counters) {
 	const baseline = readBaseline();
 	baseline[variant] = counters;
 	const sorted: Record<string, Counters> = {};
-	for (const id of VARIANTS.map((v) => v.id)) {
+	for (const id of BASELINE_IDS) {
 		if (!baseline[id]) continue;
 		sorted[id] = {};
 		for (const key of Object.keys(baseline[id]).sort())
@@ -228,5 +235,241 @@ for (const variant of VARIANTS) {
 			return;
 		}
 		expect(compare(variant.id, counters).join("\n")).toBe("");
+	});
+}
+
+/** Time moves only through runFor. See `collect`. */
+async function settle(page: Page) {
+	await page.clock.pauseAt(new Date("2026-01-01T01:00:00Z"));
+	await page.clock.runFor(SETTLE_MS);
+	// Image decoding is real time. Let late textures arrive before counting.
+	await page.waitForTimeout(1500);
+	await page.clock.runFor(SETTLE_MS);
+}
+
+async function createScene(
+	page: Page,
+	variant: SceneVariant,
+	options: typeof AEC_DEFAULT = AEC_DEFAULT,
+) {
+	const gpu = await page.evaluate(
+		([v, o]) => (window as any).__probe.create(v, o),
+		[variant, options] as const,
+	);
+	test.info().annotations.push({type: "gpu", description: gpu});
+}
+
+/** What happened while `action` ran and the viewer settled afterwards. */
+async function measure(
+	page: Page,
+	prefix: string,
+	action: () => Promise<void>,
+): Promise<Counters> {
+	await page.evaluate(() => {
+		(window as any).__probe.reset();
+		(window as any).__probe.snapshotMaterials();
+	});
+	await action();
+	await page.clock.runFor(SETTLE_MS);
+	const result = await page.evaluate(() => {
+		const probe = (window as any).__probe;
+		return {
+			frames: probe.frames(),
+			materials: probe.materialChanges(),
+			picks: probe.picks(),
+			stats: probe.stats(),
+		};
+	});
+	const frames = result.frames as Frame[];
+	return {
+		...frameCounters(`${prefix}.firstFrame`, frames[0]),
+		...frameCounters(`${prefix}.lastFrame`, frames[frames.length - 1]),
+		[`${prefix}.framesRendered`]: frames.length,
+		[`${prefix}.materialUpdatesOutsideRender`]:
+			result.materials.updatesOutsideRender,
+		[`${prefix}.materialsCreated`]: result.materials.created,
+		[`${prefix}.raycastCalls`]: result.picks.raycastCalls,
+		[`${prefix}.treeDataReads`]: result.picks.treeDataReads,
+		[`${prefix}.materialsInScene`]: result.stats.materials,
+		[`${prefix}.batchedMeshes`]: result.stats.batchedMeshes,
+	};
+}
+
+async function idleRenderCalls(page: Page) {
+	await page.evaluate(() => (window as any).__probe.reset());
+	await page.clock.runFor(1000);
+	return page.evaluate(() => (window as any).__probe.passes.length);
+}
+
+async function finalStats(page: Page, counters: Counters) {
+	await page.clock.runFor(500);
+	const after = await page.evaluate(() => (window as any).__probe.stats());
+	counters["final.programs"] = after.programs;
+	counters["final.geometries"] = after.geometries;
+	counters["final.textures"] = after.textures;
+}
+
+/** One orbit step, so the plain scene has a frame to compare with. */
+async function orbitStep(page: Page) {
+	await page.evaluate(() => (window as any).__probe.orbit(1));
+	await page.clock.runFor(40);
+}
+
+/**
+ * Hover and select on 3860 meshes. Looks for screen points that hit a glass
+ * pane, sweeps the pointer over them, clicks them, and counts the cost.
+ */
+async function collectInteraction(page: Page): Promise<Counters> {
+	await createScene(page, {id: "interaction", shadows: false, ssao: false});
+	await page.evaluate(() => (window as any).__probe.setupInteraction());
+	await settle(page);
+
+	const box = await page.evaluate(() => (window as any).__probe.canvasRect());
+	const corner: [number, number] = [box.x + 2, box.y + 2];
+	const points: [number, number][] = [];
+	for (let row = 1; row <= 10 && points.length < 3; row++)
+		for (let column = 1; column <= 12 && points.length < 3; column++) {
+			const x = box.x + (box.width * column) / 13;
+			const y = box.y + (box.height * row) / 11;
+			await page.evaluate(() => (window as any).__probe.reset());
+			await page.mouse.move(x, y);
+			await page.clock.runFor(32);
+			const picks = await page.evaluate(() =>
+				(window as any).__probe.picks(),
+			);
+			if (picks.events.hoverOn > 0) points.push([x, y]);
+		}
+	expect(points.length, "no pane was hit by the hover scan").toBe(3);
+	await page.mouse.move(...corner);
+	await page.clock.runFor(SETTLE_MS);
+
+	const counters: Counters = {};
+	// The first pass creates the effect materials. Count the second one.
+	for (const point of points) {
+		await page.mouse.move(...point);
+		await page.clock.runFor(64);
+	}
+	await page.mouse.move(...corner);
+	await page.clock.runFor(SETTLE_MS);
+
+	Object.assign(
+		counters,
+		await measure(page, "hover", async () => {
+			for (const point of points) {
+				await page.mouse.move(...point);
+				await page.clock.runFor(64);
+			}
+			await page.mouse.move(...corner);
+		}),
+	);
+	counters["hover.events"] = await page.evaluate(() => {
+		const events = (window as any).__probe.picks().events;
+		return (events.hoverOn ?? 0) * 100 + (events.hoverOff ?? 0);
+	});
+
+	// A hover that stays on a pane must not keep the loop busy.
+	await page.mouse.move(...points[0]);
+	await page.clock.runFor(SETTLE_MS);
+	counters["hover.idleRenderCalls"] = await idleRenderCalls(page);
+	await page.mouse.move(...corner);
+	await page.clock.runFor(SETTLE_MS);
+
+	const click = async (point: [number, number]) => {
+		await page.mouse.move(...point);
+		await page.clock.runFor(32);
+		await page.mouse.down();
+		await page.clock.runFor(16);
+		await page.mouse.up();
+		await page.clock.runFor(64);
+	};
+	// Warm up the select effect once, then measure select and deselect.
+	for (const point of points) await click(point);
+	await click(corner);
+	await page.clock.runFor(SETTLE_MS);
+	Object.assign(
+		counters,
+		await measure(page, "select", async () => {
+			for (const point of points) await click(point);
+			await click(corner);
+		}),
+	);
+	counters["select.events"] = await page.evaluate(() => {
+		const events = (window as any).__probe.picks().events;
+		return (events.selectOn ?? 0) * 100 + (events.selectOff ?? 0);
+	});
+	counters["select.idleRenderCalls"] = await idleRenderCalls(page);
+
+	await finalStats(page, counters);
+	return counters;
+}
+
+/**
+ * Every item gets two sdTF attributes. The test turns the attribute
+ * visualization on, switches the attribute, clears it, and leaves the mode.
+ */
+async function collectAttributes(page: Page): Promise<Counters> {
+	// A smaller tower: the visualization takes minutes on the full one (see
+	// the counters). Per-mesh counts are comparable, the totals are not.
+	await createScene(
+		page,
+		{id: "attributes", shadows: false, ssao: false},
+		ATTRIBUTE_SCENE,
+	);
+	await settle(page);
+	const counters: Counters = {};
+	Object.assign(
+		counters,
+		await measure(page, "attributes.plain", () => orbitStep(page)),
+	);
+
+	await page.evaluate(() => (window as any).__probe.setupAttributes());
+	await page.clock.runFor(SETTLE_MS);
+	const step = (prefix: string, key: string | null) =>
+		measure(page, `attributes.${prefix}`, async () => {
+			await page.evaluate(
+				(k) => (window as any).__probe.showAttribute(k),
+				key,
+			);
+		});
+	Object.assign(counters, await step("show", "load"));
+	// Texture decoding and compiles are real time.
+	await page.waitForTimeout(500);
+	Object.assign(counters, await step("switch", "zone"));
+	// No attribute selected. The viewport still renders in attribute mode.
+	Object.assign(counters, await step("clear", null));
+	// Back to the standard renderer.
+	Object.assign(
+		counters,
+		await measure(page, "attributes.leave", async () => {
+			await page.evaluate(() =>
+				(window as any).__probe.leaveAttributes(),
+			);
+		}),
+	);
+	Object.assign(
+		counters,
+		await measure(page, "attributes.afterLeave", () => orbitStep(page)),
+	);
+	counters["attributes.idleRenderCalls"] = await idleRenderCalls(page);
+
+	await finalStats(page, counters);
+	return counters;
+}
+
+for (const scenario of SCENARIOS) {
+	test(`budget: AEC facade, ${scenario}`, async ({page}) => {
+		await page.clock.install({time: new Date("2026-01-01T00:00:00Z")});
+		await openViewer(page);
+		if (await isSoftwareRenderer(page)) test.setTimeout(900_000);
+
+		const counters =
+			scenario === "interaction"
+				? await collectInteraction(page)
+				: await collectAttributes(page);
+		if (UPDATE) {
+			writeBaseline(scenario, counters);
+			return;
+		}
+		expect(compare(scenario, counters).join("\n")).toBe("");
 	});
 }

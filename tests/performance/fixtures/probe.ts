@@ -293,6 +293,149 @@ export function installProbe() {
 		];
 	}
 
+	let raycastCalls = 0;
+	let treeDataReads = 0;
+	const events: Record<string, number> = {};
+
+	/**
+	 * Counts reads of `node.data`. An algorithm that visits every node once
+	 * reads it about once per node. One that does so per node, per node, shows
+	 * up as a count that grows with the square of the scene.
+	 */
+	function trackTreeDataReads() {
+		const probe = (window as any).__probe;
+		let proto = Object.getPrototypeOf(probe.aec.root);
+		while (proto && !Object.getOwnPropertyDescriptor(proto, "data"))
+			proto = Object.getPrototypeOf(proto);
+		if (!proto) throw new Error("TreeNode.data was not found");
+		const descriptor = Object.getOwnPropertyDescriptor(proto, "data")!;
+		Object.defineProperty(proto, "data", {
+			configurable: true,
+			get() {
+				treeDataReads++;
+				return descriptor.get!.call(this);
+			},
+			set: descriptor.set,
+		});
+	}
+
+	function canvasRect() {
+		const rect = (
+			window as any
+		).__probe.renderer.domElement.getBoundingClientRect();
+		return {x: rect.x, y: rect.y, width: rect.width, height: rect.height};
+	}
+
+	/**
+	 * Counts `raycast` calls on meshes. Every pick tests the objects its
+	 * broad phase lets through, so the count grows with the scene.
+	 */
+	function trackRaycasts() {
+		const probe = (window as any).__probe;
+		const wrapped = new Set<any>();
+		probe.scene.traverse((object: any) => {
+			if (!object.isMesh && !object.isBatchedMesh) return;
+			let proto = Object.getPrototypeOf(object);
+			while (proto && !Object.getOwnPropertyDescriptor(proto, "raycast"))
+				proto = Object.getPrototypeOf(proto);
+			if (!proto || wrapped.has(proto)) return;
+			wrapped.add(proto);
+			const original = proto.raycast;
+			proto.raycast = function (...args: any[]) {
+				raycastCalls++;
+				return original.apply(this, args);
+			};
+		});
+	}
+
+	/**
+	 * Hover and select on every glass pane, through the public interaction
+	 * feature. `events` counts what the managers report.
+	 */
+	function setupInteraction() {
+		const probe = (window as any).__probe;
+		const {
+			InteractionEngine,
+			HoverManager,
+			SelectManager,
+			InteractionData,
+		} = (window as any).SDVInteractions;
+		for (const item of probe.aec.glassItems)
+			item.addData(new InteractionData({hover: true, select: true}));
+		const engine = new InteractionEngine(probe.viewport);
+		const hover = new HoverManager();
+		hover.effectMaterial = new SDV.MaterialStandardData({color: "#dddddd"});
+		engine.addInteractionManager(hover);
+		const select = new SelectManager();
+		select.effectMaterial = new SDV.MaterialStandardData({
+			color: "#ff8800",
+		});
+		engine.addInteractionManager(select);
+		for (const [name, type] of [
+			["hoverOn", SDV.EVENTTYPE.INTERACTION.HOVER_ON],
+			["hoverOff", SDV.EVENTTYPE.INTERACTION.HOVER_OFF],
+			["selectOn", SDV.EVENTTYPE.INTERACTION.SELECT_ON],
+			["selectOff", SDV.EVENTTYPE.INTERACTION.SELECT_OFF],
+		])
+			SDV.addListener(type, () => {
+				events[name] = (events[name] ?? 0) + 1;
+			});
+		probe.viewport.update();
+		trackRaycasts();
+	}
+
+	/**
+	 * Gives every item an sdTF attribute set and switches the viewport to the
+	 * attribute visualization. `zone` has 8 values, `load` is a number.
+	 */
+	function setupAttributes() {
+		const probe = (window as any).__probe;
+		const SDVAV = (window as any).SDVAttributeVisualization;
+		probe.aec.items.forEach((item: any, index: number) => {
+			item.addData(
+				new SDV.SDTFItemData("string", `item${index}`, {
+					zone: {typeHint: "string", value: `zone${index % 8}`},
+					load: {typeHint: "double", value: index % 100},
+				}),
+			);
+		});
+		SDV.sceneTree.root.updateVersion();
+		probe.viewport.update();
+		probe.attributes = {SDVAV};
+		trackTreeDataReads();
+	}
+
+	function showAttribute(key: string | null) {
+		const probe = (window as any).__probe;
+		const SDVAV = probe.attributes.SDVAV;
+		if (!probe.engine) {
+			probe.viewport.type = SDV.RENDERER_TYPE.ATTRIBUTES;
+			probe.engine = new SDVAV.AttributeVisualizationEngine(
+				probe.viewport,
+			);
+		}
+		probe.engine.updateAttributes(
+			key === null
+				? []
+				: [
+						{
+							key,
+							type:
+								key === "load"
+									? SDV.SDTF_TYPEHINT.DOUBLE
+									: SDV.SDTF_TYPEHINT.STRING,
+							visualization:
+								SDVAV.ATTRIBUTE_VISUALIZATION.GREEN_WHITE_RED,
+						},
+					],
+		);
+	}
+
+	/** Back to the standard renderer. The engine and its materials stay. */
+	function leaveAttributes() {
+		(window as any).__probe.viewport.type = SDV.RENDERER_TYPE.STANDARD;
+	}
+
 	/** Passes grouped by animation frame, oldest first. */
 	function frames() {
 		const grouped: {frame: number; passes: any[]}[] = [];
@@ -315,8 +458,18 @@ export function installProbe() {
 		orbit,
 		frames,
 		passes,
+		setupInteraction,
+		setupAttributes,
+		showAttribute,
+		leaveAttributes,
+		/** Raycast and event counts since the last reset. */
+		picks: () => ({raycastCalls, treeDataReads, events: {...events}}),
+		canvasRect,
 		reset: () => {
 			passes.length = 0;
+			raycastCalls = 0;
+			treeDataReads = 0;
+			for (const key of Object.keys(events)) delete events[key];
 		},
 	};
 }

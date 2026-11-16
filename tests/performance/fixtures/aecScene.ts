@@ -194,6 +194,9 @@ export function installAecScene() {
 
 		const root = new SDV.TreeNode("aec");
 		const glassNodes: any[] = [];
+		// Item nodes carry interaction and sdTF data, as in a session model.
+		const glassItems: any[] = [];
+		const items: any[] = [];
 		let meshes = 0;
 		let treeNodes = 1;
 
@@ -250,7 +253,11 @@ export function installAecScene() {
 							part.material,
 							item,
 						);
-						if (part.name === "glass") glassNodes.push(node);
+						items.push(item);
+						if (part.name === "glass") {
+							glassNodes.push(node);
+							glassItems.push(item);
+						}
 					}
 				}
 			}
@@ -263,6 +270,8 @@ export function installAecScene() {
 		return {
 			root,
 			glassNodes,
+			glassItems,
+			items,
 			meshes,
 			treeNodes,
 			// A fixed three-quarter view of the whole tower.
