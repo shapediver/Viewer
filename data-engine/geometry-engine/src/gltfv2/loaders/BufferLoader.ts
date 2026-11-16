@@ -87,7 +87,8 @@ export class BufferLoader {
 				}
 				this._loaded[bufferId] = this._body;
 				if (this._bodyRange) this._ranges[bufferId] = this._bodyRange;
-				return;
+				// The other buffers still have to load.
+				continue;
 			}
 			if (buffer.uri === undefined) {
 				if (skipErrorsForBuffers.has(bufferId)) continue;

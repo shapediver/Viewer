@@ -3140,3 +3140,41 @@ test("SS-10396 a large glb load yields to the browser", async ({page}) => {
 	// The bound leaves room for a garbage collection, not for a whole load.
 	expect(result.longestTask, JSON.stringify(result)).toBeLessThan(500);
 });
+
+test("SS-10396 a glb with a second buffer loads it", async ({page}) => {
+	// Buffer 0 is the GLB body; buffer 1 is a data URI. Both are required.
+	const glb = syntheticGlb({
+		meshes: 2,
+		instancesPerMesh: 1,
+		gridSize: 4,
+		extraDataUriBuffers: 1,
+	});
+	await page.route(`${ASSET_HOST}/synthetic-two-buffers.glb`, (route) =>
+		route.fulfill({
+			status: 200,
+			contentType: "model/gltf-binary",
+			body: glb,
+		}),
+	);
+	await open(page);
+	const result = await page.evaluate(async (host) => {
+		const SDV = (window as any).SDV;
+		try {
+			const node = await SDV.DataEngine.instance.loadContent({
+				format: "glb",
+				href: `${host}/synthetic-two-buffers.glb`,
+			});
+			let primitives = 0;
+			node.traverse((treeNode: any) => {
+				treeNode.data?.forEach?.((data: any) => {
+					if (data.primitive) primitives++;
+				});
+			});
+			return {primitives, error: null};
+		} catch (error) {
+			return {primitives: 0, error: String(error)};
+		}
+	}, ASSET_HOST);
+	expect(result.error).toBeNull();
+	expect(result.primitives).toBe(2);
+});
