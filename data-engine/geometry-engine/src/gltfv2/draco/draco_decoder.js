@@ -1,11 +1,13 @@
 var DracoDecoderModule = (() => {
-	var _scriptDir =
-		typeof document !== "undefined" && document.currentScript
-			? document.currentScript.src
-			: undefined;
-	if (typeof __filename !== "undefined")
-		_scriptDir = _scriptDir || __filename;
+	// SS-10396: the factory references nothing outside itself, so a worker
+	// can be created from its source (DracoWorkerDecoder).
 	return function (DracoDecoderModule) {
+		var _scriptDir =
+			typeof document !== "undefined" && document.currentScript
+				? document.currentScript.src
+				: undefined;
+		if (typeof __filename !== "undefined")
+			_scriptDir = _scriptDir || __filename;
 		DracoDecoderModule = DracoDecoderModule || {};
 
 		var Module =
