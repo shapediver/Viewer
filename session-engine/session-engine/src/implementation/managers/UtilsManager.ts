@@ -437,14 +437,16 @@ export class UtilsManager {
 	}
 
 	/**
-	 * Removes a node from the scene tree and updates the root version.
-	 * The remaining branches keep their versions.
+	 * Removes a node from the scene tree and updates the version of its
+	 * former parent and that parent's ancestors, so the next scene update
+	 * removes the converted node. The remaining branches keep their versions.
 	 *
 	 * @param node The tree node to remove
 	 */
 	public removeFromSceneTree(node: ITreeNode) {
+		const parent = node.parent ?? this._sceneTree.root;
 		this._sceneTree.removeNode(node);
-		this._sceneTree.root.updateVersion(false, false);
+		parent.updateVersion(true, false);
 	}
 
 	/**
