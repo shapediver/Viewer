@@ -78,6 +78,19 @@ export class MaterialBatchManager {
 	>();
 
 	private readonly _keyIds = new Map<string, number>();
+	private readonly _batchKeys = new WeakMap<
+		THREE.Mesh,
+		{
+			material: THREE.Material;
+			version: number;
+			geometry: THREE.BufferGeometry;
+			attributes: number;
+			renderOrder: number;
+			castShadow: boolean;
+			receiveShadow: boolean;
+			key: string;
+		}
+	>();
 	private readonly _memberByData = new Map<string, BatchMember>();
 	private _signature: string | undefined;
 	private _chunkSerial = 0;
@@ -347,13 +360,46 @@ export class MaterialBatchManager {
 	 */
 	private batchKey(mesh: THREE.Mesh): string {
 		const material = mesh.material as THREE.Material;
-		return [
+		// The same string object for an unchanged mesh. A rebuild compares
+		// and looks up keys of about a kilobyte for every entry, and a new
+		// string has to be hashed again each time.
+		const cached = this._batchKeys.get(mesh);
+		if (
+			cached &&
+			cached.material === material &&
+			cached.version === material.version &&
+			cached.geometry === mesh.geometry &&
+			cached.attributes === this.attributeCount(mesh.geometry) &&
+			cached.renderOrder === mesh.renderOrder &&
+			cached.castShadow === mesh.castShadow &&
+			cached.receiveShadow === mesh.receiveShadow
+		)
+			return cached.key;
+		const key = [
 			this.materialKey(material),
 			this.geometryKey(mesh.geometry),
 			mesh.renderOrder,
 			mesh.castShadow ? 1 : 0,
 			mesh.receiveShadow ? 1 : 0,
 		].join("|");
+		this._batchKeys.set(mesh, {
+			material,
+			version: material.version,
+			geometry: mesh.geometry,
+			attributes: this.attributeCount(mesh.geometry),
+			renderOrder: mesh.renderOrder,
+			castShadow: mesh.castShadow,
+			receiveShadow: mesh.receiveShadow,
+			key,
+		});
+		return key;
+	}
+
+	/** Changes when an attribute or the index is added or removed. */
+	private attributeCount(geometry: THREE.BufferGeometry): number {
+		let count = geometry.getIndex() ? 1 : 0;
+		for (const name in geometry.attributes) if (name) count += 2;
+		return count;
 	}
 
 	private materialKey(material: THREE.Material): string {
