@@ -469,6 +469,37 @@ export function installProbe() {
 		return grouped;
 	}
 
+	let batchBoundsReads = 0;
+	let batchBoundsTracked = false;
+
+	/**
+	 * Counts `BatchedMesh.getBoundingSphereAt`. three.js calls it once per
+	 * instance and render pass while it sorts or culls a batch, so the count
+	 * is the per-instance work the batches do. Wrapped once a batch exists.
+	 */
+	function trackBatchBounds() {
+		if (batchBoundsTracked) return;
+		const probe = (window as any).__probe;
+		let batch: any;
+		probe.scene?.traverse((object: any) => {
+			if (!batch && object.isBatchedMesh) batch = object;
+		});
+		if (!batch) return;
+		let proto = Object.getPrototypeOf(batch);
+		while (
+			proto &&
+			!Object.prototype.hasOwnProperty.call(proto, "getBoundingSphereAt")
+		)
+			proto = Object.getPrototypeOf(proto);
+		if (!proto) return;
+		const original = proto.getBoundingSphereAt;
+		proto.getBoundingSphereAt = function (...args: any[]) {
+			batchBoundsReads++;
+			return original.apply(this, args);
+		};
+		batchBoundsTracked = true;
+	}
+
 	(window as any).__probe = {
 		create,
 		createViewport,
@@ -490,7 +521,10 @@ export function installProbe() {
 		/** Raycast and event counts since the last reset. */
 		picks: () => ({raycastCalls, treeDataReads, events: {...events}}),
 		canvasRect,
+		batchBoundsReads: () => batchBoundsReads,
 		reset: () => {
+			trackBatchBounds();
+			batchBoundsReads = 0;
 			passes.length = 0;
 			raycastCalls = 0;
 			treeDataReads = 0;
