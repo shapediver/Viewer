@@ -349,27 +349,120 @@ test("SS-10384 scene update does not compile shaders synchronously", async ({
 	page,
 }) => {
 	await open(page);
-	const syncCompile = await page.evaluate(async () => {
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		const gpu = await perf.create({shadows: false});
+		perf.viewport.show = true;
+		perf.viewport.update();
+		await new Promise<void>((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+		});
+		const gl = perf.gl;
+		const parallel = Boolean(
+			gl.getExtension("KHR_parallel_shader_compile"),
+		);
+		// three.js r184 compileAsync calls renderer.compile itself to start
+		// the programs, so counting compile calls says nothing. What blocks
+		// the page is a program query other than COMPLETION_STATUS_KHR while
+		// the driver is still compiling. Count those for the new programs.
+		const COMPLETION_STATUS_KHR = 0x91b1;
+		const query = gl.getProgramParameter.bind(gl);
+		const before = new Set(
+			(perf.renderer.info.programs ?? []).map(
+				(item: any) => item.program,
+			),
+		);
+		const created = new Set<WebGLProgram>();
+		let blockingQueries = 0;
+		gl.getProgramParameter = (program: WebGLProgram, pname: number) => {
+			if (!before.has(program)) {
+				created.add(program);
+				if (
+					pname !== COMPLETION_STATUS_KHR &&
+					!query(program, COMPLETION_STATUS_KHR)
+				)
+					blockingQueries++;
+			}
+			return query(program, pname);
+		};
+		perf.renders.length = 0;
+		// The animation loop sees the new root version, updates the scene
+		// and asks for a frame in the same callback.
+		perf.addBoxes(
+			4,
+			new SDV.MaterialStandardData({
+				color: "#44aaff",
+				side: SDV.MATERIAL_SIDE.FRONT,
+			}),
+		);
+		await new Promise<void>((resolve) => {
+			const check = () => {
+				const drawn = perf.renders.some(
+					(pass: any) => pass.target === null && pass.triangles >= 12,
+				);
+				if (drawn) resolve();
+				else requestAnimationFrame(check);
+			};
+			check();
+		});
+		return {
+			gpu,
+			parallel,
+			created: created.size,
+			blockingQueries,
+			screenshot: perf.viewport.getScreenshot().length,
+		};
+	});
+	expect(result.gpu.toLowerCase(), result.gpu).not.toContain("swiftshader");
+	expect(result.parallel, JSON.stringify(result)).toBe(true);
+	expect(result.created, JSON.stringify(result)).toBeGreaterThan(0);
+	expect(result.blockingQueries, JSON.stringify(result)).toBe(0);
+	expect(result.screenshot, JSON.stringify(result)).toBeGreaterThan(1000);
+});
+
+test("SS-10384 a screenshot in the turn of a scene update shows the update", async ({
+	page,
+}) => {
+	await open(page);
+	const result = await page.evaluate(async () => {
 		const perf = (window as any).__perf;
 		const SDV = (window as any).SDV;
 		await perf.create({shadows: false});
+		perf.viewport.show = true;
 		perf.viewport.update();
-		let syncCompile = 0;
-		const compile = perf.renderer.compile.bind(perf.renderer);
-		perf.renderer.compile = (...args: any[]) => {
-			syncCompile++;
-			return compile(...args);
-		};
-		const material = new SDV.MaterialStandardData({
-			color: "#44aaff",
-			side: SDV.MATERIAL_SIDE.FRONT,
+		await new Promise<void>((resolve) => {
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
 		});
-		perf.addBoxes(4, material);
-		syncCompile = 0;
+		perf.addBoxes(
+			4,
+			new SDV.MaterialStandardData({
+				color: "#44aaff",
+				side: SDV.MATERIAL_SIDE.FRONT,
+			}),
+		);
+		perf.renders.length = 0;
 		perf.viewport.update();
-		return syncCompile;
+		const screenshot = perf.viewport.getScreenshot();
+		// The screenshot draws in the same turn, with the programs of the
+		// update, whether or not their parallel compile has finished. The
+		// camera has not moved yet, so not every box is inside the frustum.
+		const drawn = perf.renders.some(
+			(pass: any) => pass.target === null && pass.triangles >= 12,
+		);
+		// Closing while programs may still be compiling leaves nothing
+		// behind that fires later.
+		const errors: string[] = [];
+		window.addEventListener("error", (event) =>
+			errors.push(String(event.message)),
+		);
+		await perf.viewport.close();
+		await new Promise((resolve) => setTimeout(resolve, 100));
+		return {drawn, screenshot: screenshot.length, errors};
 	});
-	expect(syncCompile).toBe(0);
+	expect(result.drawn, JSON.stringify(result)).toBe(true);
+	expect(result.screenshot, JSON.stringify(result)).toBeGreaterThan(1000);
+	expect(result.errors, JSON.stringify(result)).toEqual([]);
 });
 
 test("SS-10385 blending 0 returns before the PCSS kernel", async ({page}) => {
@@ -428,11 +521,7 @@ test.describe("SS-10386 drawing buffer is capped in physical pixels", () => {
 			);
 			perf.viewport.update();
 			perf.viewport.show = true;
-			await new Promise<void>((resolve) => {
-				requestAnimationFrame(() =>
-					requestAnimationFrame(() => resolve()),
-				);
-			});
+			await perf.nextFrame();
 			const canvas = perf.renderer.domElement as HTMLCanvasElement;
 			const cssWidth = canvas.parentElement!.clientWidth;
 			const cssHeight = canvas.parentElement!.clientHeight;
@@ -483,11 +572,7 @@ test.describe("SS-10386 device pixel ratio 1 is unchanged", () => {
 			);
 			perf.viewport.update();
 			perf.viewport.show = true;
-			await new Promise<void>((resolve) => {
-				requestAnimationFrame(() =>
-					requestAnimationFrame(() => resolve()),
-				);
-			});
+			await perf.nextFrame();
 			const canvas = perf.renderer.domElement as HTMLCanvasElement;
 			return {
 				buffer: [canvas.width, canvas.height],
@@ -750,9 +835,7 @@ test("SS-10390 one material is one draw", async ({page}) => {
 		perf.viewport.update();
 		perf.viewport.show = true;
 		perf.renders.length = 0;
-		await new Promise<void>((resolve) => {
-			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-		});
+		await perf.nextFrame();
 		const triangles = count * 12;
 		const pass = perf.renders.find(
 			(item: any) => item.target === null && item.triangles === triangles,
@@ -1155,9 +1238,7 @@ test("SS-10390 a pulsed member does not supply the batch shader", async ({
 		perf.addBoxes(2, material);
 		perf.viewport.update();
 		perf.viewport.show = true;
-		await new Promise<void>((resolve) => {
-			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-		});
+		await perf.nextFrame();
 		const boxes = ["box0", "box1"].map((name) =>
 			SDV.sceneTree.root.children.find(
 				(child: {name: string}) => child.name === name,
@@ -1170,9 +1251,7 @@ test("SS-10390 a pulsed member does not supply the batch shader", async ({
 		});
 		geometry.updateVersion();
 		perf.viewport.update();
-		await new Promise<void>((resolve) => {
-			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-		});
+		await perf.nextFrame();
 		const pulsed = geometry.convertedObject[perf.viewport.id];
 		const other = boxes[1].data[0].convertedObject[perf.viewport.id];
 		const batch = other?.userData?.batchedMesh;
@@ -1374,9 +1453,7 @@ test("SS-10390 color variants stay one draw and a ray hits that box", async ({
 		perf.viewport.update();
 		perf.viewport.show = true;
 		perf.renders.length = 0;
-		await new Promise<void>((resolve) => {
-			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-		});
+		await perf.nextFrame();
 		const pass = perf.renders.find(
 			(item: any) => item.target === null && item.triangles === 192,
 		);
@@ -1456,9 +1533,7 @@ test("SS-10390 hiding one box keeps the batch and drops its triangles", async ({
 		perf.viewport.update();
 		perf.viewport.show = true;
 		perf.renders.length = 0;
-		await new Promise<void>((resolve) => {
-			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-		});
+		await perf.nextFrame();
 		const pass = perf.renders.find(
 			(item: any) => item.target === null && item.triangles === 180,
 		);
@@ -1495,9 +1570,7 @@ test("SS-10390 a morph target stays its own draw", async ({page}) => {
 		perf.viewport.update();
 		perf.viewport.show = true;
 		perf.renders.length = 0;
-		await new Promise<void>((resolve) => {
-			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-		});
+		await perf.nextFrame();
 		const pass = perf.renders.find(
 			(item: any) => item.target === null && item.triangles === 204,
 		);

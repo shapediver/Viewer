@@ -45,6 +45,8 @@ export class RenderingManager implements IManager {
 
 	private _activeRendering: boolean = true;
 	private _cameraChanged: boolean = false;
+	private _compileSkippedFrame: boolean = false;
+	private _compilingMaterials: Set<THREE.Material> | null = null;
 	private _continuousRendering: boolean = false;
 	private _continuousShadowMapUpdate: boolean = false;
 	private _height: number = 0;
@@ -267,6 +269,29 @@ export class RenderingManager implements IManager {
 		} else {
 			this._renderingEngine.lightLoader.forceDisabledShadows = false;
 		}
+	}
+
+	/**
+	 * Start compiling the programs of the scene without waiting for them.
+	 *
+	 * With KHR_parallel_shader_compile the driver compiles in the background
+	 * and the animation loop does not draw until {@link shadersCompiled}.
+	 * This is what `WebGLRenderer.compileAsync` does (r184), without its
+	 * timer: that one throws when a material is disposed while it waits.
+	 * Without the extension the first draw compiles, as it always did.
+	 */
+	public compileShaders(scene: THREE.Object3D, camera: THREE.Camera): void {
+		const renderer = this._renderingEngine.renderer;
+		const materials = renderer.compile(scene, camera);
+		// The contact shadow draws its own passes in the same frame.
+		this._renderingEngine.environmentGeometryManager.contactShadow
+			?.compile()
+			.forEach((material) => materials.add(material));
+		this._compilingMaterials = renderer.extensions.has(
+			"KHR_parallel_shader_compile",
+		)
+			? materials
+			: null;
 	}
 
 	public getScreenshot(
@@ -505,11 +530,17 @@ export class RenderingManager implements IManager {
 		// animation loop - part 4: evaluating state
 		const states = this.evaluateRenderingState();
 
+		// A draw would wait for programs that are still compiling. Keep the
+		// frame that is on screen (or the logo) until they are ready.
+		const compiling = !this.shadersCompiled();
+		if (compiling && states.updateShadowMap)
+			this._updateShadowMapInNextRender = true;
+
 		// toggle the blurring
 		this.toggleBusyMode(states.busyMode);
 
 		// animation loop - part 5: the scene is not even shown
-		if (states.showScene === false) {
+		if (states.showScene === false || (compiling && this._hidden)) {
 			// toggle on logo
 			this.toggleLogo(true);
 
@@ -542,7 +573,11 @@ export class RenderingManager implements IManager {
 		}
 
 		// animation loop - part 6: the scene is shown, but there is no active rendering happening
-		if (states.rendering === false || this._renderingEngine.pause === true)
+		if (
+			states.rendering === false ||
+			this._renderingEngine.pause === true ||
+			compiling
+		)
 			return;
 
 		// animation loop - part 7: there is actual rendering happening
@@ -1120,6 +1155,39 @@ export class RenderingManager implements IManager {
 			busyMode,
 			softShadowRendering,
 		};
+	}
+
+	/**
+	 * Whether the programs started by {@link compileShaders} can be used
+	 * without waiting for the driver. Restarts the rendering once they can.
+	 */
+	private shadersCompiled(): boolean {
+		const materials = this._compilingMaterials;
+		if (!materials) return true;
+
+		const properties = this._renderingEngine.renderer.properties;
+		for (const material of materials) {
+			// a disposed material has no program left to wait for
+			const program = properties.has(material)
+				? (
+						properties.get(material) as {
+							currentProgram?: {isReady(): boolean};
+						}
+					).currentProgram
+				: undefined;
+			if (program && !program.isReady()) {
+				this._compileSkippedFrame = true;
+				return false;
+			}
+			materials.delete(material);
+		}
+
+		this._compilingMaterials = null;
+		// Frames were skipped. Draw the next one; render() would also restart
+		// the beauty countdown that may already have run out meanwhile.
+		if (this._compileSkippedFrame) this._activeRendering = true;
+		this._compileSkippedFrame = false;
+		return true;
 	}
 
 	private setShaderProperties() {

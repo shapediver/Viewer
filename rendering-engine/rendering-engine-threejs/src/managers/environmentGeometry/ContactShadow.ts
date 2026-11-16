@@ -155,6 +155,65 @@ export class ContactShadow implements IEnvironmentGeometry {
 		this._renderingEngine.renderingManager.updateShadowMap();
 	}
 
+	/**
+	 * Start the programs that {@link render} uses, without drawing.
+	 *
+	 * The programs depend on the render target and on the swapped depth
+	 * materials, so a compile of the scene alone does not cover them.
+	 * Lines and points are hidden in {@link render} and skipped here.
+	 */
+	public compile(): Set<THREE.Material> {
+		const renderer = this._renderingEngine.renderer;
+		const scene = this._renderingEngine.scene;
+		const materials = new Set<THREE.Material>();
+		const initialRenderTarget = renderer.getRenderTarget();
+
+		const swapped = new Map<
+			THREE.Object3D,
+			THREE.Material | THREE.Material[] | null
+		>();
+		scene.traverse((object) => {
+			if (
+				object instanceof THREE.Line ||
+				object instanceof THREE.Points
+			) {
+				swapped.set(object, object.material);
+				// three.js skips objects without a material in compile
+				(object as unknown as {material: unknown}).material = null;
+			} else if (object instanceof THREE.Mesh && object.material) {
+				swapped.set(object, object.material);
+				object.material = this.createTransparencyAwareDepthMaterial(
+					object.material,
+				);
+			}
+		});
+
+		const initialBlurMaterial = this._blurPlane.material;
+		try {
+			renderer.setRenderTarget(this._renderTarget);
+			renderer
+				.compile(scene, this._shadowCamera)
+				.forEach((m) => materials.add(m));
+			for (const blurMaterial of [
+				this._horizontalBlurMaterial,
+				this._verticalBlurMaterial,
+			]) {
+				this._blurPlane.material = blurMaterial;
+				renderer
+					.compile(this._blurPlane, this._shadowCamera)
+					.forEach((m) => materials.add(m));
+			}
+		} finally {
+			swapped.forEach((material, object) => {
+				(object as unknown as {material: unknown}).material = material;
+			});
+			this._blurPlane.material = initialBlurMaterial;
+			renderer.setRenderTarget(initialRenderTarget);
+		}
+
+		return materials;
+	}
+
 	public render() {
 		// three.js 0.162 does not guard against `gl.getProgramInfoLog` returning null,
 		// which Safari's WebGL implementation does for valid programs (fixed in r163+).
