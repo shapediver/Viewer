@@ -434,6 +434,9 @@ async function collectAttributes(page: Page): Promise<Counters> {
 	Object.assign(counters, await step("show", "load"));
 	// Texture decoding and compiles are real time.
 	await page.waitForTimeout(500);
+	// The clock is paused. Run the frames the decoded textures queued, so
+	// they are not counted in the next step.
+	await page.clock.runFor(SETTLE_MS);
 	Object.assign(counters, await step("switch", "zone"));
 	// No attribute selected. The viewport still renders in attribute mode.
 	Object.assign(counters, await step("clear", null));
