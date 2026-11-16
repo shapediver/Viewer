@@ -5,12 +5,26 @@
  *
  * Used by the SS-10396 load tests so that no binary fixture is committed.
  */
+/** Deterministic value in [-1, 1) from an integer (32-bit integer hash). */
+function randomUnit(seed: number): number {
+	let h = Math.imul(seed ^ 0x9e3779b9, 0x85ebca6b);
+	h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
+	h ^= h >>> 16;
+	return (h >>> 0) / 2 ** 31 - 1;
+}
+
 export function syntheticGlb(options: {
 	meshes: number;
 	instancesPerMesh: number;
 	gridSize: number;
 	/** Distinct vertex positions per mesh, so meshes are not rigid copies. */
 	jitter?: boolean;
+	/**
+	 * Independent pseudo-random heights in [-0.5, 0.5) per vertex and mesh.
+	 * `jitter` only shifts one wave per mesh, so many meshes stay within
+	 * the copy tolerance of a neighbor; these meshes do not.
+	 */
+	randomJitter?: boolean;
 	/** Extra external buffers, written as data URIs after the GLB body. */
 	extraDataUriBuffers?: number;
 }): Buffer {
@@ -48,9 +62,11 @@ export function syntheticGlb(options: {
 		for (let i = 0; i < vertexCount; i++) {
 			const x = (i % gridSize) / (gridSize - 1);
 			const y = Math.floor(i / gridSize) / (gridSize - 1);
-			const z = options.jitter
-				? 0.05 * Math.sin(i * 12.9898 + m * 78.233)
-				: 0.05 * Math.sin((x + y + m) * 6.283);
+			const z = options.randomJitter
+				? 0.5 * randomUnit(m * vertexCount + i)
+				: options.jitter
+					? 0.05 * Math.sin(i * 12.9898 + m * 78.233)
+					: 0.05 * Math.sin((x + y + m) * 6.283);
 			positions.set([x, y, z], i * 3);
 			normals.set([0, 0, 1], i * 3);
 			[x, y, z].forEach((v, k) => {
