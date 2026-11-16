@@ -233,6 +233,16 @@ export class MaterialBatchManager {
 				if (!(data instanceof GeometryData)) continue;
 				const mesh = this.findMesh(converted, data);
 				if (!mesh || !this.isBatchable(mesh, data)) continue;
+				const id = `${node.id}:${data.id}:${data.version}`;
+				// A hover or selection material is temporary. A mesh that is
+				// batchable only while it wears one would change the
+				// signature and rebuild every batch on each hover.
+				if (
+					(data.effectMaterials.length > 0 ||
+						data.effectPulses.length > 0) &&
+					!this._members.has(id)
+				)
+					continue;
 				const position = mesh.geometry.getAttribute("position");
 				const vertices = position?.count ?? 0;
 				if (vertices === 0 || vertices > MAX_VERTICES) continue;
@@ -240,7 +250,7 @@ export class MaterialBatchManager {
 				const indices = index ? index.count : 0;
 				if (indices > MAX_INDICES) continue;
 				entries.push({
-					id: `${node.id}:${data.id}:${data.version}`,
+					id,
 					key: this.batchKey(mesh),
 					mesh,
 					node,
