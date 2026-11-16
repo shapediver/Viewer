@@ -402,5 +402,15 @@
 		"final.geometries": 6,
 		"final.programs": 16,
 		"final.textures": 11
+	},
+	"gltf": {
+		"draco.decodesInWorker": 1,
+		"draco.decodesOnMainThread": 0,
+		"draco.secondLoad.decodesInWorker": 2,
+		"draco.secondLoad.workersCreated": 1,
+		"draco.workersCreated": 1,
+		"plain.bodyCopies": 0,
+		"plain.conversionYielded": 1,
+		"plain.workersCreated": 0
 	}
 }
