@@ -9,6 +9,11 @@ describe("scene graph engine - test", () => {
 		root = tree.root;
 	});
 
+	// Tree is a singleton, so remove whatever a test added to the root
+	afterEach(() => {
+		[...root.children].forEach((child) => tree.removeNode(child));
+	});
+
 	test("add a child", async () => {
 		const name = "test";
 		const node = new TreeNode(name);
