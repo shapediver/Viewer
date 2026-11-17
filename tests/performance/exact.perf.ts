@@ -63,6 +63,20 @@ function installApi() {
 	(window as any).__THREE_DEVTOOLS__ = devtools;
 
 	const renders: any[] = [];
+	let canvasFrames = 0;
+
+	// SS-10384: the first frame after a scene update waits until the
+	// parallel shader compile is done, which can take more than two
+	// animation frames. Wait for that frame, then one more.
+	async function nextFrame(limit = 300) {
+		const start = canvasFrames;
+		const frame = () =>
+			new Promise<void>((resolve) =>
+				requestAnimationFrame(() => resolve()),
+			);
+		for (let i = 0; i < limit && canvasFrames === start; i++) await frame();
+		await frame();
+	}
 
 	function track(renderer: any) {
 		const original = renderer.render.bind(renderer);
@@ -92,6 +106,7 @@ function installApi() {
 				target: target ? [target.width, target.height] : null,
 				time: performance.now(),
 			});
+			if (!target) canvasFrames++;
 			return result;
 		};
 	}
@@ -179,6 +194,7 @@ function installApi() {
 		create,
 		addBoxes,
 		boxGeometry,
+		nextFrame,
 		renders,
 		renderers,
 	};
@@ -1460,9 +1476,7 @@ test("SS-10390 blended panes without depth write are one visible batch", async (
 		perf.viewport.show = true;
 		await perf.viewport.camera.set([0, 0, -4], [0, 0, 2], {duration: 0});
 		perf.renders.length = 0;
-		await new Promise<void>((resolve) => {
-			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-		});
+		await perf.nextFrame();
 		const pass = perf.renders.find(
 			(item: any) => item.target === null && item.triangles > 0,
 		);
@@ -1557,9 +1571,7 @@ test("SS-10390 double-sided metal is one batch and keeps its shading", async ({
 		const batch = panelA?.userData?.batchedMesh;
 		perf.viewport.show = true;
 		await perf.viewport.camera.set([2, 2, -3], [0, 0, 0.4], {duration: 0});
-		await new Promise<void>((resolve) => {
-			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-		});
+		await perf.nextFrame();
 		const url = perf.viewport.getScreenshot();
 		const bitmap = await createImageBitmap(await (await fetch(url)).blob());
 		const canvas = document.createElement("canvas");
@@ -1675,9 +1687,7 @@ test("SS-10390 meshes that share a primitive are one geometry in the batch", asy
 		perf.viewport.update();
 		perf.viewport.show = true;
 		perf.renders.length = 0;
-		await new Promise<void>((resolve) => {
-			requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-		});
+		await perf.nextFrame();
 		const pass = perf.renders.find(
 			(item: any) => item.target === null && item.triangles === 84,
 		);
