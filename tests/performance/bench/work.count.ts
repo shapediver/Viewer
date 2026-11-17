@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import {AEC_DEFAULT, aecSceneCounts} from "../fixtures/aecScene";
 import {openViewer, type SceneVariant} from "../fixtures/probe";
+import {syntheticGlb} from "../syntheticGlb";
 
 /**
  * Counts the work two builds of examples/test-cdn do on the AEC fixture:
@@ -30,6 +31,16 @@ const SCENE = {
 /** COUNT_ATTRIBUTES=1 adds the attribute switch, on a smaller tower. */
 const ATTRIBUTES = process.env.COUNT_ATTRIBUTES === "1";
 const ATTRIBUTE_SCENE = {...SCENE, floors: 1};
+/** Files for the glTF load sections, served from memory by a route. */
+const ASSET_HOST = "https://count-assets.viewertests.invalid";
+const ASSETS_DIR = path.join(__dirname, "../assets");
+// Shaped like ShapeDiverGltfV2Writer output, facade-sized (1,249 nodes).
+const PLAIN_GLB = syntheticGlb({
+	meshes: 312,
+	instancesPerMesh: 3,
+	gridSize: 8,
+	jitter: true,
+});
 
 const ALL_SECTIONS = [
 	["build", "Full scene build (tree + viewport.update)"],
@@ -39,6 +50,8 @@ const ALL_SECTIONS = [
 		"ssaoFrame",
 		`Camera frame with SSAO, post-processing render x${SSAO_FRAMES}`,
 	],
+	["gltfPlain", "glTF load, facade-sized glb (DataEngine.loadContent)"],
+	["gltfDraco", "glTF load, Draco glTF (DataEngine.loadContent)"],
 	["versionUpdate", "Fixture version update, updateVersion() on its root"],
 	[
 		"attributeSwitch",
@@ -268,6 +281,18 @@ async function open(browser: Browser, origin: string): Promise<Viewer> {
 		callCount: true,
 		detailed: true,
 	});
+	await page.route(`${ASSET_HOST}/**`, async (route) => {
+		const name = path.basename(new URL(route.request().url()).pathname);
+		if (name === "plain.glb")
+			return route.fulfill({
+				status: 200,
+				contentType: "model/gltf-binary",
+				body: PLAIN_GLB,
+			});
+		const file = path.join(ASSETS_DIR, name);
+		if (!fs.existsSync(file)) return route.fulfill({status: 404});
+		await route.fulfill({status: 200, body: fs.readFileSync(file)});
+	});
 	await openViewer(page, `${origin}/index.html`);
 	const gpu: string = await page.evaluate(async (variant) => {
 		const probe = (window as any).__probe;
@@ -337,6 +362,29 @@ async function measure(browser: Browser, origin: string) {
 		SSAO_FRAMES,
 		true,
 	);
+	// Loads a file and resolves when the tree is converted. It is not added
+	// to the scene, so nothing is drawn. Work in a worker is not counted:
+	// only scripts of the build's origin are, and a worker from a blob URL
+	// has none. performance.now() stands still during the load: the loader's
+	// progress events (every 500 ms) and time-sliced yields would otherwise
+	// make the count depend on the speed of the machine.
+	const load = (file: {format: string; href: string}) => {
+		const now = performance.now;
+		const frozen = now.call(performance);
+		performance.now = () => frozen;
+		return (window as any).SDV.DataEngine.instance
+			.loadContent(file)
+			.then(() => undefined)
+			.finally(() => (performance.now = now));
+	};
+	result.gltfPlain = await count(viewer, "gltfPlain", load, {
+		format: "glb",
+		href: `${ASSET_HOST}/plain.glb`,
+	});
+	result.gltfDraco = await count(viewer, "gltfDraco", load, {
+		format: "gltf",
+		href: `${ASSET_HOST}/Box.gltf`,
+	});
 	// Last: it re-versions every fixture node, as adding a session does, so
 	// the next scene update would convert the whole fixture again.
 	result.versionUpdate = await count(viewer, "versionUpdate", () =>
