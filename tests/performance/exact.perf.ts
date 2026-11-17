@@ -2414,6 +2414,78 @@ test("SS-10394 a leaf change updates one branch of 73 nodes", async ({
 	expect(result.sceneMaxX).toBeCloseTo(25, 4);
 });
 
+test("SS-10394 a child added below an unchanged node needs only a root version", async ({
+	page,
+}) => {
+	await open(page);
+	await page.evaluate(installBranches);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const tree = perf.branches();
+		const parent = tree.leaves[2][2];
+		const inScene = (node: any) =>
+			!!node.convertedObject[perf.viewport.id]?.parent;
+
+		// As the drawing tools do: add below a nested node, version the
+		// scene root only.
+		const added = new SDV.TreeNode("added");
+		const geometry = perf.boxGeometry([40, 0, 0], [41, 1, 1]);
+		geometry.material = tree.leaves[0][0].data[0].material;
+		added.addData(geometry);
+		parent.addChild(added);
+		SDV.sceneTree.root.updateVersion(false, false);
+		perf.viewport.update();
+		const addChange = tree.updated();
+		const afterAdd = {inScene: inScene(added), maxX: tree.maxX(tree.top)};
+
+		parent.removeChild(added);
+		SDV.sceneTree.root.updateVersion(false, false);
+		perf.viewport.update();
+		const removeChange = tree.updated();
+		const afterRemove = {
+			inScene: inScene(added),
+			maxX: tree.maxX(tree.top),
+		};
+
+		// nothing changed since
+		SDV.sceneTree.root.updateVersion(false, false);
+		perf.viewport.update();
+		const unchanged = tree.updated();
+
+		// Two adds before one update: the second one stops at the branch
+		// the first one reached.
+		const first = new SDV.TreeNode("first");
+		first.addData(geometry);
+		tree.leaves[5][5].addChild(first);
+		const second = new SDV.TreeNode("second");
+		second.addData(perf.boxGeometry([0, 0, 0], [1, 1, 50]));
+		tree.leaves[5][4].addChild(second);
+		SDV.sceneTree.root.updateVersion(false, false);
+		perf.viewport.update();
+		return {
+			addChange,
+			afterAdd,
+			removeChange,
+			afterRemove,
+			unchanged,
+			twoAdds: tree.updated().sort(),
+			twoAddsInScene: inScene(first) && inScene(second),
+		};
+	});
+	// The path down to the changed node is updated, other branches are not.
+	expect(result.addChange).toEqual(["b2", "b2l2", "top"]);
+	expect(result.afterAdd.inScene).toBe(true);
+	expect(result.afterAdd.maxX).toBeCloseTo(41, 4);
+	expect(result.removeChange).toEqual(["b2", "b2l2", "top"]);
+	expect(result.afterRemove.inScene).toBe(false);
+	expect(result.afterRemove.maxX).toBeCloseTo(15, 4);
+	expect(result.unchanged).toEqual([]);
+	expect(result.twoAdds).toEqual(["b5", "b5l4", "b5l5", "top"]);
+	expect(result.twoAddsInScene).toBe(true);
+});
+
 test("SS-10394 a moved or hidden ancestor updates its whole branch", async ({
 	page,
 }) => {

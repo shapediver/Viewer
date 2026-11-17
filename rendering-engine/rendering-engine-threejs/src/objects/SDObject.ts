@@ -34,8 +34,11 @@ export class SDObject extends Object3D implements ISDObject {
 	 *   update (lights, three.js objects)
 	 * - SDboundsStale: a transformation-only update moved a node in this
 	 *   branch without updating the bounding boxes of its ancestors
+	 * - SDstructureVersion: the structure version of the tree node when its
+	 *   children were last updated
 	 */
 	public SDvisibleInHierarchy?: boolean;
+	public SDstructureVersion?: number;
 	public SDalwaysUpdate = false;
 	public SDboundsStale = false;
 

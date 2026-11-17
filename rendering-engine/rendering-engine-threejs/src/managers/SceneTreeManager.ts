@@ -448,6 +448,9 @@ export class SceneTreeManager implements IManager {
 			if (filter.transformationOnly === false) {
 				this.cleanupObsoleteData(treeNode, convertedObject);
 				this.cleanupObsoleteChildren(treeNode, convertedObject);
+				// Children added or removed below this node from now on make
+				// the next scene update come back to this branch.
+				convertedObject.SDstructureVersion = treeNode.structureVersion;
 			}
 
 			// convert all data items of the current node
@@ -802,7 +805,10 @@ export class SceneTreeManager implements IManager {
 			filter.transformationOnly ||
 			this._dirtyDepth > 0 ||
 			childConvertedObject.SDalwaysUpdate ||
-			childConvertedObject.SDboundsStale
+			childConvertedObject.SDboundsStale ||
+			// a child was added or removed in this branch
+			childConvertedObject.SDstructureVersion !==
+				treeNodeChild.structureVersion
 		)
 			return false;
 

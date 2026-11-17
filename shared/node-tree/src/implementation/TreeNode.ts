@@ -11,6 +11,11 @@ import {
 
 import {mat4} from "gl-matrix";
 
+/** The last structure version given to a node (see structureChanged). */
+let lastStructureVersion = 0;
+/** The last structure version given out when a version was read. */
+let readStructureVersion = 0;
+
 export class TreeNode implements ITreeNode {
 	readonly #boundingBox: IBox = new Box();
 	readonly #boundingBoxViewport: {[key: string]: IBox} = {};
@@ -32,6 +37,8 @@ export class TreeNode implements ITreeNode {
 	#originalName?: string;
 	#parent?: ITreeNode;
 	#restrictViewports: string[] = [];
+	// A plain field: the walk in structureChanged reads it on ancestors.
+	private _structureVersion = 0;
 	#transformations: ITransformation[] = [];
 	#updateCallback: ((newVersion: string, oldVersion: string) => void) | null =
 		null;
@@ -172,6 +179,13 @@ export class TreeNode implements ITreeNode {
 		this.#restrictViewports = value;
 	}
 
+	public get structureVersion(): number {
+		// Whoever reads a version compares it with a later read, so a
+		// change from now on has to reach this node again.
+		readStructureVersion = lastStructureVersion;
+		return this._structureVersion;
+	}
+
 	public get transformations(): ITransformation[] {
 		return this.#transformations;
 	}
@@ -252,6 +266,7 @@ export class TreeNode implements ITreeNode {
 			this.#children.push(child);
 			if (child.parent) child.parent.removeChild(child);
 			(<ITreeNode>child.parent) = this;
+			this.structureChanged();
 
 			return true;
 		}
@@ -413,7 +428,29 @@ export class TreeNode implements ITreeNode {
 			if (index === -1) return false;
 			this.#children.splice(index, 1);
 			(<ITreeNode | undefined>child.parent) = undefined;
+			this.structureChanged();
 			return true;
+		}
+	}
+
+	/**
+	 * Give this node and its ancestors a new structure version (see
+	 * {@link structureVersion}).
+	 *
+	 * The walk stops at the first ancestor that got a version after the
+	 * last read: its own ancestors got one with it. Children added to a
+	 * tree that nobody has read since cost one step each.
+	 */
+	private structureChanged(): void {
+		const version = ++lastStructureVersion;
+		this._structureVersion = version;
+		let node = this.parent;
+		while (
+			node instanceof TreeNode &&
+			node._structureVersion <= readStructureVersion
+		) {
+			node._structureVersion = version;
+			node = node.parent;
 		}
 	}
 

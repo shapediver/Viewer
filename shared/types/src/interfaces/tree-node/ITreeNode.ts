@@ -64,6 +64,12 @@ export interface ITreeNode {
 	 */
 	readonly parent?: ITreeNode;
 	/**
+	 * Changes when a child is added to or removed from this node or any of
+	 * its descendants. It changes without a version update, so a scene
+	 * update finds a child that was added below an unchanged node.
+	 */
+	readonly structureVersion: number;
+	/**
 	 * The version of the tree node.
 	 * If the version changes, the node will be marked for an update.
 	 * A version change can be triggered via {@link updateVersion}.
