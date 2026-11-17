@@ -832,12 +832,7 @@ test.describe("SS-10440 ambient occlusion renders at half resolution by default"
 			);
 			perf.viewport.update();
 			perf.viewport.show = true;
-			const frames = () =>
-				new Promise<void>((resolve) => {
-					requestAnimationFrame(() =>
-						requestAnimationFrame(() => resolve()),
-					);
-				});
+			const frames = () => perf.nextFrame();
 			const postProcessing = perf.viewport.postProcessing;
 			const ssao = () => {
 				const tokens = postProcessing.getEffectTokens();
