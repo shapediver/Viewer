@@ -44,7 +44,12 @@ const SCENARIOS = ["interaction", "attributes", "blendedGlass", "gltf"];
 const INSTANCING = "instancing";
 const BASELINE_IDS = [...VARIANTS.map((v) => v.id), ...SCENARIOS, INSTANCING];
 
-const ATTRIBUTE_SCENE = {...AEC_DEFAULT, floors: 4};
+// 4 floors took 71 s of the 120 s default timeout, 2 floors take 27 s.
+const ATTRIBUTE_SCENE = {...AEC_DEFAULT, floors: 2};
+// 20 floors took 144 s on an integrated GPU, over the 120 s default timeout.
+// 6 floors take ~56 s. The counters scale with the pane count, so a smaller
+// tower still shows a batch rebuild on hover.
+const INTERACTION_SCENE = {...AEC_DEFAULT, floors: 6};
 
 type Counters = Record<string, number>;
 type Frame = {frame: number; passes: PassRecord[]};
@@ -383,11 +388,15 @@ async function orbitStep(page: Page) {
 }
 
 /**
- * Hover and select on 3860 meshes. Looks for screen points that hit a glass
+ * Hover and select on 1160 meshes. Looks for screen points that hit a glass
  * pane, sweeps the pointer over them, clicks them, and counts the cost.
  */
 async function collectInteraction(page: Page): Promise<Counters> {
-	await createScene(page, {id: "interaction", shadows: false, ssao: false});
+	await createScene(
+		page,
+		{id: "interaction", shadows: false, ssao: false},
+		INTERACTION_SCENE,
+	);
 	await page.evaluate(() => (window as any).__probe.setupInteraction());
 	await settle(page);
 
