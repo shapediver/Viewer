@@ -1,140 +1,176 @@
-import {test} from "@playwright/test";
+import {test, type Browser, type CDPSession, type Page} from "@playwright/test";
 import * as fs from "fs";
 import * as path from "path";
 import {
-	INSTANCING_FILES,
-	INSTANCING_KINDS,
-	INSTANCING_SIZES,
-	loadInstancingGlb,
+	describeInstancingLoad,
+	prefetchInstancingGlb,
 	routeInstancingGlbs,
-	type InstancingLoad,
+	startInstancingLoad,
 } from "../fixtures/instancingGlbs";
 import {openViewer} from "../fixtures/probe";
+import {
+	cpuOf,
+	interval,
+	median,
+	ms,
+	pairedChange,
+	quantile,
+	verdict,
+} from "./paired";
 
 // The two servers playwright.config.ts starts.
 const BASE_URL = "http://127.0.0.1:8195";
 const HEAD_URL = "http://127.0.0.1:8196";
 
 /**
- * Compares glb loading with GPU-instancing detection between two builds of
- * examples/test-cdn. Every mesh of a file shares vertex count, index count
- * and material. The output is a Markdown table. Nothing is asserted. See
- * README.md.
+ * Times glb loads with GPU-instancing detection on files whose meshes all
+ * share vertex count, index count and material, for two builds of
+ * examples/test-cdn. Same method as timing.bench.ts: base, head and control
+ * (base again) side by side, main-thread CPU time, paired ratios with a 95%
+ * confidence interval, and control against base as the noise floor. The
+ * output is a Markdown table. Nothing is asserted. See README.md.
  */
 
-const RUNS = Number(process.env.BENCH_RUNS ?? 5);
+const ROUNDS = Number(process.env.BENCH_RUNS ?? 6);
+/** Loads per page and file in one round. A 3000-mesh load takes seconds. */
+const BLOCKS = 2;
 const OUT_DIR = path.join(__dirname, "../../test-results/bench");
 
-type Sample = Record<string, InstancingLoad>;
+const ARMS = {base: BASE_URL, head: HEAD_URL, control: BASE_URL} as const;
+type Arm = keyof typeof ARMS;
+const ORDERS: Arm[][] = [
+	["base", "head", "control"],
+	["head", "control", "base"],
+	["control", "base", "head"],
+	["base", "control", "head"],
+	["head", "base", "control"],
+	["control", "head", "base"],
+];
 
-function median(values: number[]) {
-	const sorted = [...values].sort((a, b) => a - b);
-	const middle = Math.floor(sorted.length / 2);
-	return sorted.length % 2
-		? sorted[middle]
-		: (sorted[middle - 1] + sorted[middle]) / 2;
+/** The distinct pair shows the growth; the 3000-mesh files the cost. */
+const FILES = ["distinct-750", "distinct-3000", "jitter-3000", "near-3000"];
+
+type Clock = "cpu" | "wall";
+type Blocks = Record<Clock, number[]>;
+type Sample = Record<string, Blocks>;
+
+interface Loader {
+	page: Page;
+	cdp: CDPSession;
 }
 
-async function measure(
-	browser: import("@playwright/test").Browser,
-	origin: string,
-): Promise<Sample> {
+/** A page without a viewport: nothing draws, the load is the only work. */
+async function open(browser: Browser, origin: string): Promise<Loader> {
 	const page = await browser.newPage();
+	const cdp = await page.context().newCDPSession(page);
+	await cdp.send("Performance.enable", {timeDomain: "threadTicks"});
 	await openViewer(page, `${origin}/index.html`);
 	await routeInstancingGlbs(page);
-	const sample: Sample = {};
-	for (const file of INSTANCING_FILES)
-		sample[file.name] = await loadInstancingGlb(page, file.name);
-	await page.close();
-	return sample;
+	for (const file of FILES) await prefetchInstancingGlb(page, file);
+	return {page, cdp};
 }
 
-function summarize(values: number[]) {
-	const mid = median(values);
-	const min = Math.min(...values);
-	const max = Math.max(...values);
-	return {median: mid, min, max, spread: (max - min) / mid};
-}
-
-const ms = (value: number) => value.toFixed(0);
-const percent = (value: number) => `${(value * 100).toFixed(1)}%`;
-
-function report(base: Sample[], head: Sample[]) {
-	const [small, large] = INSTANCING_SIZES;
-	const lines = [
-		"# GPU-instancing detection benchmark",
-		"",
-		`- Fixture: synthetic glb, ${small} and ${large} meshes of 64 vertices, one material`,
-		`- Runs per build: ${RUNS}, interleaved`,
-		`- Base: ${process.env.BENCH_BASE ?? "examples/test-cdn/dist"}`,
-		`- Head: ${process.env.BENCH_HEAD ?? "examples/test-cdn/dist"}`,
-		"",
-		"DataEngine.loadContent wall time in milliseconds. Median of the runs, then min to max. Spread is (max - min) / median.",
-		"",
-		"| File | Base median | Base min-max | Base spread | Head median | Head min-max | Head spread | Change | Verdict |",
-		"| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
-	];
-	for (const file of INSTANCING_FILES) {
-		const b = summarize(base.map((s) => s[file.name].ms));
-		const h = summarize(head.map((s) => s[file.name].ms));
-		const change = (h.median - b.median) / b.median;
-		// Load times are noisy on a busy machine; only ranges that do not
-		// overlap at all count as a change.
-		const verdict =
-			h.max < b.min
-				? "faster"
-				: h.min > b.max
-					? "slower"
-					: "within noise";
-		lines.push(
-			`| ${file.name} | ${ms(b.median)} | ${ms(b.min)}-${ms(b.max)} | ${percent(b.spread)} | ${ms(h.median)} | ${ms(h.min)}-${ms(h.max)} | ${percent(h.spread)} | ${change >= 0 ? "+" : ""}${percent(change)} | ${verdict} |`,
-		);
-	}
-	lines.push(
-		"",
-		`Growth from ${small} to ${large} meshes (${large / small}x). Linear work grows ${large / small}x, quadratic ${(large / small) ** 2}x. Comparison calls are deterministic.`,
-		"",
-		"| Kind | Base time | Head time | Base comparison calls | Head comparison calls | Same detection result |",
-		"| --- | ---: | ---: | ---: | ---: | --- |",
+/**
+ * One load from a prefetched blob URL. The CPU clock runs around
+ * `loadContent` only; the result walk afterwards is outside it.
+ */
+async function load(loader: Loader, name: string) {
+	const {cpu, result} = await cpuOf(loader.cdp, () =>
+		startInstancingLoad(loader.page, name, false),
 	);
-	for (const kind of INSTANCING_KINDS) {
-		const growth = (samples: Sample[], key: "ms" | "comparisonCalls") =>
-			median(samples.map((s) => s[`${kind}-${large}`][key])) /
-			median(samples.map((s) => s[`${kind}-${small}`][key]));
-		const same = INSTANCING_SIZES.every((size) =>
-			[...base, ...head].every(
-				(s) =>
-					s[`${kind}-${size}`].resultHash ===
-					base[0][`${kind}-${size}`].resultHash,
-			),
-		);
+	await describeInstancingLoad(loader.page);
+	return {cpu, wall: result.ms};
+}
+
+async function round(browser: Browser, index: number) {
+	const loaders = {} as Record<Arm, Loader>;
+	const order = ORDERS[index % ORDERS.length];
+	for (const arm of order) loaders[arm] = await open(browser, ARMS[arm]);
+	// Uncounted first load per page: one-time setup of the loaders.
+	for (const arm of order) await load(loaders[arm], FILES[0]);
+
+	const result = {} as Record<Arm, Sample>;
+	for (const arm of order) result[arm] = {};
+	let turn = index;
+	for (const file of FILES) {
+		for (const arm of order) result[arm][file] = {cpu: [], wall: []};
+		for (let block = 0; block < BLOCKS; block++)
+			for (const arm of ORDERS[turn++ % ORDERS.length]) {
+				const value = await load(loaders[arm], file);
+				result[arm][file].cpu.push(value.cpu);
+				result[arm][file].wall.push(value.wall);
+			}
+	}
+	for (const arm of order) await loaders[arm].page.close();
+	return result;
+}
+
+function table(samples: Record<Arm, Sample[]>, clock: Clock, main: boolean) {
+	const lines = [
+		`| File | Base median (min) | Head median (min) | Head vs base (95% CI) |${main ? " Verdict |" : ""} A/A: control vs base (95% CI) |`,
+		`| --- | ---: | ---: | ---: |${main ? " --- |" : ""} ---: |`,
+	];
+	for (const file of FILES) {
+		const blocks = (arm: Arm) =>
+			samples[arm].map((sample) => sample[file][clock]);
+		const cell = (arm: Arm) => {
+			const perRound = blocks(arm).map(median);
+			return `${ms(median(perRound))} (${ms(quantile(perRound, 0))})`;
+		};
+		const change = pairedChange(blocks("base"), blocks("head"));
+		const noise = pairedChange(blocks("base"), blocks("control"));
 		lines.push(
-			`| ${kind} | ${growth(base, "ms").toFixed(1)}x | ${growth(head, "ms").toFixed(1)}x | ${growth(base, "comparisonCalls").toFixed(1)}x | ${growth(head, "comparisonCalls").toFixed(1)}x | ${same ? "yes" : "NO"} |`,
+			`| ${file} | ${cell("base")} | ${cell("head")} | ${interval(change)} |${main ? ` ${verdict(change)} |` : ""} ${interval(noise)} |`,
 		);
 	}
-	return lines.join("\n") + "\n";
+	return lines;
+}
+
+/** Median CPU time of the 3000-mesh distinct load over the 750-mesh one. */
+function growth(samples: Sample[]) {
+	const of = (file: string) =>
+		median(samples.map((sample) => median(sample[file].cpu)));
+	return (of("distinct-3000") / of("distinct-750")).toFixed(1) + "x";
+}
+
+function report(samples: Record<Arm, Sample[]>) {
+	return (
+		[
+			"# GPU-instancing detection timing benchmark",
+			"",
+			"- Fixture: synthetic glb files, every mesh 64 vertices, same index count and material (`fixtures/instancingGlbs.ts`)",
+			`- Rounds: ${ROUNDS}, ${BLOCKS} loads per page and file. Each round opens base, head and control (base again) side by side and alternates between them load by load.`,
+			`- Base: ${process.env.BENCH_BASE ?? "examples/test-cdn/dist"}`,
+			`- Head: ${process.env.BENCH_HEAD ?? "examples/test-cdn/dist"}`,
+			"",
+			"Milliseconds of `DataEngine.loadContent`. Base and head: median over the rounds, the fastest round in brackets.",
+			"Head vs base: geometric mean of the per-round ratios with a 95% confidence interval. An interval that contains 0 is not distinguishable from noise.",
+			"A/A compares two pages of the base build. It is this run's noise floor; its interval should contain 0. If it does not, the machine was too busy: run again.",
+			"",
+			"Main-thread CPU time:",
+			"",
+			...table(samples, "cpu", true),
+			"",
+			`Growth of the distinct load from 750 to 3000 meshes (4x the meshes; linear 4x, quadratic 16x), CPU time: base ${growth(samples.base)}, head ${growth(samples.head)}, control ${growth(samples.control)}.`,
+			"",
+			"The same runs on the wall clock, for reference:",
+			"",
+			...table(samples, "wall", false),
+		].join("\n") + "\n"
+	);
 }
 
 test("benchmark: base against head, GPU-instancing detection", async ({
 	browser,
 }) => {
-	const samples: {base: Sample[]; head: Sample[]} = {base: [], head: []};
-	const builds = [
-		["base", BASE_URL],
-		["head", HEAD_URL],
-	] as const;
-
-	// One discarded load per build fills the HTTP cache and the JIT.
-	for (const [, origin] of builds) await measure(browser, origin);
-
-	for (let run = 0; run < RUNS; run++) {
-		// base, head, head, base, ... so drift hits both builds equally.
-		const order = run % 2 ? [...builds].reverse() : builds;
-		for (const [name, origin] of order)
-			samples[name].push(await measure(browser, origin));
+	const samples: Record<Arm, Sample[]> = {base: [], head: [], control: []};
+	for (let index = 0; index < ROUNDS; index++) {
+		const result = await round(browser, index);
+		for (const arm of Object.keys(samples) as Arm[])
+			samples[arm].push(result[arm]);
+		console.log(`Round ${index + 1} of ${ROUNDS} done`);
 	}
-
-	const markdown = report(samples.base, samples.head);
+	const markdown = report(samples);
 	fs.mkdirSync(OUT_DIR, {recursive: true});
 	fs.writeFileSync(path.join(OUT_DIR, "instancing-report.md"), markdown);
 	fs.writeFileSync(
