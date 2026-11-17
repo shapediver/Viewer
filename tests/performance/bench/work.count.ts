@@ -97,7 +97,6 @@ function installCountHarness() {
 		"drawArraysInstanced",
 		"drawElementsInstanced",
 		"drawRangeElements",
-		"drawBuffers",
 	]);
 	const gl = {calls: 0, draws: 0};
 
