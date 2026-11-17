@@ -21,11 +21,12 @@ Then, from the repository root:
 BENCH_BASE=../bench-base BENCH_HEAD=examples/test-cdn/dist pnpm exec playwright test --config tests/performance/bench/playwright.config.ts
 ```
 
-| Variable     | Default                  | Meaning                            |
-| ------------ | ------------------------ | ---------------------------------- |
-| `BENCH_BASE` | `examples/test-cdn/dist` | Folder served as base on port 8195 |
-| `BENCH_HEAD` | `examples/test-cdn/dist` | Folder served as head on port 8196 |
-| `BENCH_RUNS` | `6`                      | Rounds, after a warm-up            |
+| Variable            | Default                  | Meaning                                                                                                                            |
+| ------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `BENCH_BASE`        | `examples/test-cdn/dist` | Folder served as base on port 8195                                                                                                 |
+| `BENCH_HEAD`        | `examples/test-cdn/dist` | Folder served as head on port 8196                                                                                                 |
+| `BENCH_RUNS`        | `6`                      | Rounds, after a warm-up                                                                                                            |
+| `BENCH_GLASS_BLEND` | unset                    | `1` makes the glass glTF BLEND: transparent, no depth write. The default glass writes depth. Also read by the work-count benchmark |
 
 A run of 6 rounds took 14 minutes on a lightly loaded laptop and 17 minutes with a second test suite running.
 
@@ -130,14 +131,15 @@ Build both `dist` folders as for the timing benchmark, then:
 BENCH_BASE=../bench-base BENCH_HEAD=examples/test-cdn/dist pnpm exec playwright test --config tests/performance/bench/count.playwright.config.ts
 ```
 
-| Variable          | Default                  | Meaning                                                                               |
-| ----------------- | ------------------------ | ------------------------------------------------------------------------------------- |
-| `BENCH_BASE`      | `examples/test-cdn/dist` | Folder served as base                                                                 |
-| `BENCH_HEAD`      | `examples/test-cdn/dist` | Folder served as head                                                                 |
-| `COUNT_PAGES`     | `2`                      | Pages per build. Every page must give the same counts                                 |
-| `COUNT_BASE_PORT` | `8197`                   | Port of the base server                                                               |
-| `COUNT_HEAD_PORT` | `8198`                   | Port of the head server                                                               |
-| `COUNT_DUMP`      | unset                    | File that gets the calls per function, one JSON line per section and page (see below) |
+| Variable           | Default                  | Meaning                                                                               |
+| ------------------ | ------------------------ | ------------------------------------------------------------------------------------- |
+| `BENCH_BASE`       | `examples/test-cdn/dist` | Folder served as base                                                                 |
+| `BENCH_HEAD`       | `examples/test-cdn/dist` | Folder served as head                                                                 |
+| `COUNT_PAGES`      | `2`                      | Pages per build. Every page must give the same counts                                 |
+| `COUNT_BASE_PORT`  | `8197`                   | Port of the base server                                                               |
+| `COUNT_HEAD_PORT`  | `8198`                   | Port of the head server                                                               |
+| `COUNT_DUMP`       | unset                    | File that gets the calls per function, one JSON line per section and page (see below) |
+| `COUNT_ATTRIBUTES` | unset                    | `1` adds the attribute switch section, on its own page per build                      |
 
 It takes no lock and uses its own ports, so it can run next to the timing benchmark. With 2 pages per build a run takes about 1 minute, with 5 pages about 3 minutes (5 minutes with every core but one busy).
 
@@ -145,12 +147,15 @@ The tables are printed and written to `tests/test-results/bench/work-count.md`, 
 
 ## Sections and counters
 
-| Section                | What runs, synchronously in one `page.evaluate`                                                                                      |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Full scene build       | Building the fixture tree through `SDV` plus `viewport.update()`. Only the `SDV` calls count: the fixture code is not in the bundle. |
-| Camera frame           | `renderer.render` of the viewport scene, 2 times.                                                                                    |
-| One-node scene update  | Toggling one glass pane, `updateVersion()` and `viewport.update()`, 4 times (back to the start).                                     |
-| Camera frame with SSAO | The SSAO effect composer's `render()`, 2 times, with the renderer state `PostProcessingManager.render` sets around it.               |
+| Section                | What runs, synchronously in one `page.evaluate`                                                                                                                                              |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Full scene build       | Building the fixture tree through `SDV` plus `viewport.update()`. Only the `SDV` calls count: the fixture code is not in the bundle.                                                         |
+| Camera frame           | `renderer.render` of the viewport scene, 2 times.                                                                                                                                            |
+| One-node scene update  | Toggling one glass pane, `updateVersion()` and `viewport.update()`, 4 times (back to the start).                                                                                             |
+| Camera frame with SSAO | The SSAO effect composer's `render()`, 2 times, with the renderer state `PostProcessingManager.render` sets around it.                                                                       |
+| Attribute switch       | Only with `COUNT_ATTRIBUTES=1`. A one-floor tower in attribute mode switches the visualized attribute from `zone` to `load`. Every item gets a new material and its node is converted again. |
+
+WebGL calls include the methods of the `WEBGL_multi_draw` extension, which three.js uses to draw a `BatchedMesh`. One multi-draw call counts as one draw call.
 
 | Counter            | Meaning                                                                                                                         |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |

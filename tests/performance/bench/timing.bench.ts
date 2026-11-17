@@ -14,6 +14,11 @@ const HEAD_URL = "http://127.0.0.1:8196";
  */
 
 const ROUNDS = Number(process.env.BENCH_RUNS ?? 6);
+/** BENCH_GLASS_BLEND=1: the glass is glTF BLEND (transparent, no depth write). */
+const SCENE = {
+	...AEC_DEFAULT,
+	glassBlend: process.env.BENCH_GLASS_BLEND === "1",
+};
 /**
  * The pages take turns block by block. Many short blocks pair better than a
  * few long ones: load from other programs comes in bursts of seconds.
@@ -144,7 +149,7 @@ async function build(viewer: Viewer) {
 	const {cpu, result} = await cpuOf(viewer.cdp, () =>
 		viewer.page.evaluate(
 			(options) => (window as any).__probe.build(options).total,
-			AEC_DEFAULT,
+			SCENE,
 		),
 	);
 	return {cpu, wall: result as number};
@@ -383,12 +388,12 @@ function table(samples: Record<Arm, Sample[]>, primary: boolean) {
 }
 
 function report(samples: Record<Arm, Sample[]>) {
-	const counts = aecSceneCounts(AEC_DEFAULT);
+	const counts = aecSceneCounts(SCENE);
 	return (
 		[
 			"# Viewer timing benchmark",
 			"",
-			`- Fixture: AEC facade, ${counts.meshes} meshes, ${counts.treeNodes} tree nodes`,
+			`- Fixture: AEC facade, ${counts.meshes} meshes, ${counts.treeNodes} tree nodes${SCENE.glassBlend ? ", blended glass" : ""}`,
 			`- Rounds: ${ROUNDS}. Each round opens base, head and control (base again) side by side and alternates between them block by block.`,
 			`- GPU: ${samples.base[0]?.gpu ?? "unknown"}`,
 			`- Base: ${process.env.BENCH_BASE ?? "examples/test-cdn/dist"}`,

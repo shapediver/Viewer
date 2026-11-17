@@ -22,8 +22,16 @@ const RENDERS = 2;
 /** Even, so the section leaves the scene as it found it. */
 const UPDATES = 4;
 const SSAO_FRAMES = 2;
+/** BENCH_GLASS_BLEND=1: the glass is glTF BLEND (transparent, no depth write). */
+const SCENE = {
+	...AEC_DEFAULT,
+	glassBlend: process.env.BENCH_GLASS_BLEND === "1",
+};
+/** COUNT_ATTRIBUTES=1 adds the attribute switch, on a smaller tower. */
+const ATTRIBUTES = process.env.COUNT_ATTRIBUTES === "1";
+const ATTRIBUTE_SCENE = {...SCENE, floors: 1};
 
-const SECTIONS = [
+const ALL_SECTIONS = [
 	["build", "Full scene build (tree + viewport.update)"],
 	["renderFrame", `Camera frame, renderer.render x${RENDERS}`],
 	["oneNodeUpdate", `One-node scene update x${UPDATES}`],
@@ -31,8 +39,15 @@ const SECTIONS = [
 		"ssaoFrame",
 		`Camera frame with SSAO, post-processing render x${SSAO_FRAMES}`,
 	],
+	[
+		"attributeSwitch",
+		`Attribute switch on ${ATTRIBUTE_SCENE.floors} floor, zone to load (separate page)`,
+	],
 ] as const;
-type Section = (typeof SECTIONS)[number][0];
+type Section = (typeof ALL_SECTIONS)[number][0];
+const SECTIONS = ALL_SECTIONS.filter(
+	([section]) => ATTRIBUTES || section !== "attributeSwitch",
+);
 
 const COUNTERS = [
 	["calls", "JS function calls"],
@@ -124,6 +139,23 @@ function installCountHarness() {
 				context[key] = function (...args: unknown[]) {
 					gl.calls++;
 					if (draw) gl.draws++;
+					return original.apply(this, args);
+				};
+			}
+			// three.js draws a BatchedMesh through this extension, not the
+			// context. getExtension returns the same object every time, so
+			// the one three.js already holds is wrapped here.
+			const multiDraw = context.getExtension("WEBGL_multi_draw");
+			if (!multiDraw) return;
+			for (const key of Object.getOwnPropertyNames(
+				Object.getPrototypeOf(multiDraw),
+			)) {
+				const original = multiDraw[key];
+				if (typeof original !== "function" || key === "constructor")
+					continue;
+				multiDraw[key] = function (...args: unknown[]) {
+					gl.calls++;
+					if (key.startsWith("multiDraw")) gl.draws++;
 					return original.apply(this, args);
 				};
 			}
@@ -253,7 +285,7 @@ async function measure(browser: Browser, origin: string) {
 		viewer,
 		"build",
 		(options) => (window as any).__probe.build(options),
-		AEC_DEFAULT,
+		SCENE,
 	);
 	await viewer.page.evaluate(
 		(variant) => (window as any).__probe.show(variant),
@@ -306,7 +338,35 @@ async function measure(browser: Browser, origin: string) {
 	);
 	const gpu = viewer.gpu;
 	await viewer.page.close();
+	if (ATTRIBUTES)
+		result.attributeSwitch = await measureAttributeSwitch(browser, origin);
 	return {gpu, counts: result};
+}
+
+/**
+ * The attribute visualization replaces the material of every item and
+ * re-converts each node, so the viewer rebuilds its batches per node. Its
+ * own page, because it needs a smaller tower and stays in attribute mode.
+ */
+async function measureAttributeSwitch(browser: Browser, origin: string) {
+	const viewer = await open(browser, origin);
+	await viewer.page.evaluate((options) => {
+		const probe = (window as any).__probe;
+		probe.build(options);
+		probe.show({id: "attributes", shadows: false, ssao: false});
+	}, ATTRIBUTE_SCENE);
+	await settle(viewer);
+	// Uncounted: the engine, attribute mode and the first visualization.
+	await viewer.page.evaluate(() => {
+		const probe = (window as any).__probe;
+		probe.setupAttributes();
+		probe.showAttribute("zone");
+	});
+	const counts = await count(viewer, "attributeSwitch", () =>
+		(window as any).__probe.showAttribute("load"),
+	);
+	await viewer.page.close();
+	return counts;
 }
 
 const number = (value: number) =>
@@ -345,11 +405,11 @@ function table(
 }
 
 function report(base: PageCounts[], head: PageCounts[], gpu: string) {
-	const counts = aecSceneCounts(AEC_DEFAULT);
+	const counts = aecSceneCounts(SCENE);
 	const lines = [
 		"# Viewer work-count benchmark",
 		"",
-		`- Fixture: AEC facade, ${counts.meshes} meshes, ${counts.treeNodes} tree nodes`,
+		`- Fixture: AEC facade, ${counts.meshes} meshes, ${counts.treeNodes} tree nodes${SCENE.glassBlend ? ", blended glass" : ""}`,
 		`- Pages: ${PAGES} per build, one after the other. Base and head columns show the first page; "Pages agree" compares all of them.`,
 		`- GPU: ${gpu}`,
 		`- Base: ${process.env.BENCH_BASE ?? "examples/test-cdn/dist"}`,
