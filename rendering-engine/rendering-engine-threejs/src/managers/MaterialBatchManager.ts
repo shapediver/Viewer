@@ -78,6 +78,7 @@ export class MaterialBatchManager {
 	>();
 
 	private readonly _keyIds = new Map<string, number>();
+	private _worldMatricesFresh = false;
 	private readonly _batchKeys = new WeakMap<
 		THREE.Mesh,
 		{
@@ -118,7 +119,18 @@ export class MaterialBatchManager {
 		const scene = this._renderingEngine.sceneTreeManager.scene;
 		if (this.root.parent !== scene) scene.add(this.root);
 		scene.updateMatrixWorld(true);
+		// Every world matrix is current until rebuild returns. Members do
+		// not walk their parents again; with thousands of members that walk
+		// was most of a one-node update.
+		this._worldMatricesFresh = true;
+		try {
+			this.rebuildEntries();
+		} finally {
+			this._worldMatricesFresh = false;
+		}
+	}
 
+	private rebuildEntries(): void {
 		const entries = this.collect();
 		// The signature is geometry identity plus the batch key. A material
 		// replacement, such as the attribute visualization, rebuilds the
@@ -719,7 +731,7 @@ export class MaterialBatchManager {
 	}
 
 	private mirrored(mesh: THREE.Object3D): boolean {
-		mesh.updateWorldMatrix(true, false);
+		if (!this._worldMatricesFresh) mesh.updateWorldMatrix(true, false);
 		return mesh.matrixWorld.determinant() < 0;
 	}
 
@@ -733,7 +745,8 @@ export class MaterialBatchManager {
 	}
 
 	private writeMatrix(member: BatchMember): void {
-		member.mesh.updateWorldMatrix(true, false);
+		if (!this._worldMatricesFresh)
+			member.mesh.updateWorldMatrix(true, false);
 		this._matrix.copy(member.mesh.matrixWorld);
 		member.batch.mesh.setMatrixAt(member.instanceId, this._matrix);
 	}
