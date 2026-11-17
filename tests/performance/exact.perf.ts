@@ -1201,13 +1201,7 @@ test("SS-10397 opaque batches skip the per-instance sort and cull", async ({
 				?.batchedMesh;
 		const opaqueBatch = batchOf("opaque0");
 		const glassBatch = batchOf("glass0");
-		const frames = () =>
-			new Promise<void>((resolve) => {
-				requestAnimationFrame(() =>
-					requestAnimationFrame(() => resolve()),
-				);
-			});
-		await frames();
+		await perf.nextFrame();
 		// Count the per-instance bounds reads three.js does while it
 		// sorts or culls a batch.
 		const reads = new Map<any, number>();
@@ -1223,7 +1217,7 @@ test("SS-10397 opaque batches skip the per-instance sort and cull", async ({
 		await perf.viewport.camera.set([3, 2, -3], [0.6, 0, 2], {duration: 0});
 		perf.viewport.update();
 		perf.renders.length = 0;
-		await frames();
+		await perf.nextFrame();
 		const pass = perf.renders.find(
 			(item: any) => item.target === null && item.triangles > 0,
 		);
@@ -1235,7 +1229,7 @@ test("SS-10397 opaque batches skip the per-instance sort and cull", async ({
 		SDV.sceneTree.root.updateVersion();
 		perf.viewport.update();
 		perf.renders.length = 0;
-		await frames();
+		await perf.nextFrame();
 		const hiddenPass = perf.renders.find(
 			(item: any) => item.target === null && item.triangles > 0,
 		);
