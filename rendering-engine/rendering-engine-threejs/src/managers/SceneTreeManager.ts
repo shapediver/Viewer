@@ -61,6 +61,8 @@ export class SceneTreeManager implements IManager {
 	private _dirtyDepth = 0;
 	// Set while a pass over the whole tree may leave out unchanged branches.
 	private _skipUnchanged = false;
+	/** Counts the nodes a transformation-only pass updated. */
+	private _movedNodes = 0;
 
 	constructor(private readonly _renderingEngine: RenderingEngine) {
 		this._scene.background = new THREE.Color("#ffffff");
@@ -278,6 +280,10 @@ export class SceneTreeManager implements IManager {
 							dataChild.userData.SDversion = treeNodeData.version;
 							convertedObject.add(dataChild);
 						}
+					} else if (existingGeometry) {
+						// A transformation-only update keeps the geometry,
+						// its bounding box moves with the node.
+						dataChild = existingGeometry;
 					}
 				}
 				break;
@@ -425,6 +431,7 @@ export class SceneTreeManager implements IManager {
 				!dirty &&
 				this._dirtyDepth === 0
 			) {
+				const movedBefore = this._movedNodes;
 				for (let i = 0, len = treeNode.children.length; i < len; i++) {
 					const treeNodeChild = treeNode.children[i];
 					const child = treeNodeChild.convertedObject[
@@ -438,8 +445,16 @@ export class SceneTreeManager implements IManager {
 						isVisibleInHierarchy,
 					);
 				}
+				// A node below moved: its bounding boxes moved with it.
+				if (this._movedNodes !== movedBefore)
+					this.refreshBoundingBoxes(
+						treeNode,
+						convertedObject,
+						isVisible,
+					);
 				return;
 			}
+			if (filter.transformationOnly) this._movedNodes++;
 
 			// reset bounding boxes
 			this.resetBoundingBoxes(treeNode);
@@ -1017,6 +1032,39 @@ export class SceneTreeManager implements IManager {
 				isVisibleInHierarchy,
 			);
 		}
+	}
+
+	/**
+	 * Recompute the bounding boxes of a node that did not move from its
+	 * converted data and the bounding boxes of its children.
+	 */
+	private refreshBoundingBoxes(
+		treeNode: ITreeNode,
+		convertedObject: SDObject,
+		isVisible: boolean,
+	): void {
+		this.resetBoundingBoxes(treeNode);
+		for (let i = 0, len = treeNode.data.length; i < len; i++) {
+			const dataItem = treeNode.data[i];
+			const dataChild = convertedObject.children.find(
+				(child) =>
+					child.userData.SDid === dataItem.id &&
+					child.userData.SDversion === dataItem.version,
+			);
+			if (dataChild)
+				assignBoundingBox(
+					treeNode,
+					dataItem,
+					this._renderingEngine.id,
+					dataChild,
+				);
+		}
+		for (let i = 0, len = treeNode.children.length; i < len; i++)
+			this.unionChildBoundingBoxes(
+				treeNode,
+				treeNode.children[i],
+				isVisible,
+			);
 	}
 
 	/**

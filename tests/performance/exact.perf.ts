@@ -2559,6 +2559,53 @@ test("SS-10394 a matrix written outside the scene tree is restored", async ({
 	expect(result.x).toBeCloseTo(0, 4);
 });
 
+test("SS-10394 an animation updates the bounding boxes of unchanged ancestors", async ({
+	page,
+}) => {
+	await open(page);
+	await page.evaluate(installBranches);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const tree = perf.branches();
+		const branch = tree.branches[2];
+		const before = tree.maxX(tree.top);
+
+		// The animation applies transformations only, without a version
+		// update, so no scene update follows.
+		const data = new SDV.AnimationData(
+			"move",
+			[
+				{
+					times: [0, 0.3],
+					node: branch,
+					values: [0, 0, 0, 100, 0, 0],
+					path: "translation",
+					interpolation: "linear",
+				},
+			],
+			0,
+			0.3,
+		);
+		data.reset = false;
+		branch.data.push(data);
+		data.startAnimation();
+		perf.viewport.update();
+		await new Promise((resolve) => setTimeout(resolve, 900));
+		return {
+			before,
+			branch: tree.maxX(branch),
+			top: tree.maxX(tree.top),
+			root: tree.maxX(SDV.sceneTree.root),
+		};
+	});
+	expect(result.before).toBeCloseTo(15, 4);
+	expect(result.branch).toBeCloseTo(105, 3);
+	expect(result.top).toBeCloseTo(105, 3);
+	expect(result.root).toBeCloseTo(105, 3);
+});
+
 test("SS-10394 renderer type and instancing switches update every node", async ({
 	page,
 }) => {
