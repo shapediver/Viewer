@@ -114,6 +114,18 @@ export function installProbe() {
 
 	async function create(variant: any, options: any) {
 		const probe = (window as any).__probe;
+		await createViewport(variant);
+		build(options);
+		show(variant);
+		return probe.gpu;
+	}
+
+	/**
+	 * `create` in three steps, so a caller can read a clock that only exists
+	 * outside the page (thread CPU time) between them.
+	 */
+	async function createViewport(variant: any) {
+		const probe = (window as any).__probe;
 		const viewport = await SDV.createViewport({
 			canvas: document.getElementById("canvas"),
 			id: "perf",
@@ -134,7 +146,13 @@ export function installProbe() {
 		probe.renderer = core.renderer;
 		probe.scene = core.scene;
 		probe.gl = gl;
+		return probe.gpu;
+	}
 
+	/** Builds the fixture tree and converts it. Fills `buildMs`. */
+	function build(options: any) {
+		const probe = (window as any).__probe;
+		const viewport = probe.viewport;
 		const buildStart = performance.now();
 		const aec = (window as any).__aec.build(options);
 		const treeBuilt = performance.now();
@@ -150,9 +168,13 @@ export function installProbe() {
 
 		viewport.camera.position = aec.camera.position;
 		viewport.camera.target = aec.camera.target;
-		viewport.show = true;
+		return probe.buildMs;
+	}
+
+	/** Starts rendering. The first frame follows. */
+	function show(variant: any) {
+		(window as any).__probe.viewport.show = true;
 		if (variant.ssao) addSsao();
-		return probe.gpu;
 	}
 
 	function addSsao() {
@@ -449,6 +471,9 @@ export function installProbe() {
 
 	(window as any).__probe = {
 		create,
+		createViewport,
+		build,
+		show,
 		addSsao,
 		stats,
 		snapshotMaterials,
