@@ -2,7 +2,7 @@
 
 Compares two builds of `examples/test-cdn` on the AEC facade fixture (`../fixtures/aecScene.ts`) and prints a Markdown table. It is a report. It never fails because of a number.
 
-The counters that can fail a run are in `../budgets.perf.ts`.
+The counters that can fail a run are in `../budgets.perf.ts`. For numbers that are exactly the same on every run, see [Work-count benchmark](#work-count-benchmark) below.
 
 ## Run it
 
@@ -117,3 +117,82 @@ Total CPU: 56% during the old run, 50% during the new one.
 - `performance.now()` in Chrome is rounded to 0.1 ms, so sub-millisecond metrics are coarse.
 
 Use the table to decide whether a change is worth it. Lock the result in with a counter in `budgets.baseline.json`: a draw call that is gone stays gone on every machine.
+
+# Work-count benchmark
+
+`work.count.ts` counts the work two builds do instead of timing it: JavaScript function calls and executed blocks in the viewer bundle, and WebGL calls. A count does not depend on what else runs on the machine, so the same builds give the same table on every run, idle or loaded. Like the timing benchmark it is a report and never fails because of a number.
+
+## Run it
+
+Build both `dist` folders as for the timing benchmark, then:
+
+```bash
+BENCH_BASE=../bench-base BENCH_HEAD=examples/test-cdn/dist pnpm exec playwright test --config tests/performance/bench/count.playwright.config.ts
+```
+
+| Variable          | Default                  | Meaning                                                                               |
+| ----------------- | ------------------------ | ------------------------------------------------------------------------------------- |
+| `BENCH_BASE`      | `examples/test-cdn/dist` | Folder served as base                                                                 |
+| `BENCH_HEAD`      | `examples/test-cdn/dist` | Folder served as head                                                                 |
+| `COUNT_PAGES`     | `2`                      | Pages per build. Every page must give the same counts                                 |
+| `COUNT_BASE_PORT` | `8197`                   | Port of the base server                                                               |
+| `COUNT_HEAD_PORT` | `8198`                   | Port of the head server                                                               |
+| `COUNT_DUMP`      | unset                    | File that gets the calls per function, one JSON line per section and page (see below) |
+
+It takes no lock and uses its own ports, so it can run next to the timing benchmark. With 2 pages per build a run takes about 1 minute, with 5 pages about 3 minutes (5 minutes with every core but one busy).
+
+The tables are printed and written to `tests/test-results/bench/work-count.md`, the counts of every page to `work-count.json`.
+
+## Sections and counters
+
+| Section                | What runs, synchronously in one `page.evaluate`                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Full scene build       | Building the fixture tree through `SDV` plus `viewport.update()`. Only the `SDV` calls count: the fixture code is not in the bundle. |
+| Camera frame           | `renderer.render` of the viewport scene, 2 times.                                                                                    |
+| One-node scene update  | Toggling one glass pane, `updateVersion()` and `viewport.update()`, 4 times (back to the start).                                     |
+| Camera frame with SSAO | The SSAO effect composer's `render()`, 2 times, with the renderer state `PostProcessingManager.render` sets around it.               |
+
+| Counter            | Meaning                                                                                                                         |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| JS function calls  | Calls of functions in the viewer bundle (`bundle.js`, which includes three.js and the other dependencies). V8 precise coverage. |
+| JS executed blocks | Executions of basic blocks (function bodies, branches, loop bodies) in the bundle. Grows with loop iterations, not only calls.  |
+| JS functions run   | Distinct bundle functions that ran at least once.                                                                               |
+| WebGL calls        | Every method call on the viewer's WebGL context, including state and uniform calls three.js does not skip.                      |
+| WebGL draw calls   | `drawArrays`, `drawElements` and their instanced, range and multi-draw variants.                                                |
+
+The "Pages agree" column compares all pages of a build. It should always say "yes"; anything else means the counts are no longer exact (see below).
+
+## How the counts are made exact
+
+- **Coverage around one synchronous section.** CDP `Profiler.startPreciseCoverage({callCount: true, detailed: true})` keeps a counter per function and block. `Profiler.takePreciseCoverage` returns and resets them; it is called right before and right after the section. Only scripts from the build's own origin count, so the fixture, the probe and Playwright's helpers do not.
+- **No optimizing compilers.** Chrome runs with `--js-flags=--no-opt --no-maglev`. Optimized code does not count the calls it inlines, and when V8 optimizes a function depends on timing. With TurboFan and Maglev on, one page counted 878,792 calls of `TreeNode.children` in a one-node update and three others counted none; SSAO frames differed by up to 170 calls between pages. Without them every page agreed. This also means the counts are higher than in a normal browser (the one-node update: 24.8 million calls instead of about 10.3 million), because inlined calls count too. Compare counts with counts from this benchmark only.
+- **Nothing else runs during the section.** Before each section the viewer must have drawn nothing for 10 frames, so the first frames, a beauty render, or the redraw after the last section are over. Then `requestAnimationFrame`, `setTimeout` and `setInterval` callbacks that come due are queued until both coverage reads are done.
+- **One uncounted run before the frames.** The camera frame and the SSAO frame run once inside the hold before they are counted. Without it, one SSAO page in five created and uploaded one texture fewer in the section, because one of the viewer's own frames before it had already done so, and whether that happened depended on timing.
+- **Seeded `Math.random`.** An init script replaces it with a seeded generator before the page loads, so three.js UUIDs and anything ordered by them are the same on every page. This is a precaution; no difference was traced to it.
+
+## Verified
+
+`development` (06c315efb) against SS-10439 (eee9e1116, the scene-tree changes), 5 pages per build, Intel UHD 630 laptop, 2026-11-17. Once with the usual background load, once with a busy loop on 11 of 12 cores. All 10 pages of each build (20 in total) gave the same count for every function in every section, and the two runs printed the same tables.
+
+| Section                | Counter           |       Base |       Head | Change |
+| ---------------------- | ----------------- | ---------: | ---------: | -----: |
+| Full scene build       | JS function calls | 11,367,814 | 10,522,138 |  -7.4% |
+| Camera frame (x2)      | JS function calls |  1,279,748 |  1,228,052 |  -4.0% |
+| One-node update (x4)   | JS function calls | 24,792,565 |  6,210,169 | -75.0% |
+| Camera frame with SSAO | JS function calls |  1,985,361 |  1,881,969 |  -5.2% |
+
+WebGL calls and draw calls were the same for both builds in every section: SS-10439 changes CPU work, not what reaches the GPU. The camera frame saves 25,848 calls per render, about 2 per scene-tree node, which fits SS-10439 turning off `matrixAutoUpdate` on the static scene nodes.
+
+## Finding the functions behind a difference
+
+Set `COUNT_DUMP` to a file. Each section of each page appends one line `{origin, section, perFunction}`, where `perFunction` maps a function's character offset in `bundle.js` to its call count. Compare two lines and map the offsets to source with the build's `bundle.js.map` (for example with the `source-map` package). That is how the inlining and texture-upload differences above were found.
+
+## What counts do not show
+
+- **Time.** A count says how much work ran, not how long it took. A call that got cheaper but runs as often does not show; a slow call and a fast one count the same. Use the timing benchmark for that.
+- **GPU work.** WebGL calls count what the viewer asks for, not what the GPU does with it: no fill rate, no shader cost, no overdraw, no waiting for the GPU.
+- **Shader compilation.** It runs in the GPU process. `budgets.baseline.json` counts shader programs.
+- **Garbage collection and allocation.** Neither is counted. An allocation-heavy change can be slower with fewer calls.
+- **Native code.** Built-in functions (`Array.prototype.sort`, typed arrays, DOM) count as nothing; only bundle functions and their blocks do. The WebGL calls are the exception, because they are wrapped.
+- **Work outside the sections.** Loading, the first frame, beauty renders and asynchronous work after `viewport.update()` are not counted.
+- **Optimized-code behaviour.** With the optimizing compilers off, the counts describe the code, not what V8 makes of it.
