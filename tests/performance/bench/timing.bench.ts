@@ -32,6 +32,8 @@ const UPDATE_BLOCKS = 8;
 const UPDATES_PER_BLOCK = 4;
 const SSAO_BLOCKS = 4;
 const SSAO_FRAMES_PER_BLOCK = 4;
+const VERSION_BLOCKS = 8;
+const VERSION_UPDATES_PER_BLOCK = 2;
 const OUT_DIR = path.join(__dirname, "../../test-results/bench");
 const VARIANT: SceneVariant = {id: "default", shadows: true, ssao: false};
 
@@ -65,6 +67,7 @@ const METRICS = [
 	["renderFrame", "Camera frame, renderer.render", "cpu"],
 	["oneNodeUpdate", "One-node scene update", "cpu"],
 	["composerFrame", "Camera frame with SSAO, until the GPU is done", "wall"],
+	["versionUpdate", "Fixture version update", "cpu"],
 ] as const;
 type Metric = (typeof METRICS)[number][0];
 
@@ -246,6 +249,28 @@ async function ssaoBlock(viewer: Viewer) {
 	return {cpu: cpu / SSAO_FRAMES_PER_BLOCK, wall: median(result)};
 }
 
+/**
+ * `updateVersion()` on the fixture root, as adding a session does. No scene
+ * update follows, so the blocks only re-version the tree. Measured last:
+ * the next scene update would convert the whole fixture again.
+ */
+async function versionBlock(viewer: Viewer) {
+	const {cpu, result} = await cpuOf(viewer.cdp, () =>
+		viewer.page.evaluate((count) => {
+			const root = (window as any).__probe.aec.root;
+			const samples: number[] = [];
+			for (let i = 0; i < count; i++) {
+				const start = performance.now();
+				root.updateVersion();
+				samples.push(performance.now() - start);
+			}
+			return samples;
+		}, VERSION_UPDATES_PER_BLOCK),
+	);
+	await settle(viewer);
+	return {cpu: cpu / VERSION_UPDATES_PER_BLOCK, wall: median(result)};
+}
+
 const STEPS: [
 	Metric,
 	(viewer: Viewer) => Promise<Record<Clock, number>>,
@@ -256,6 +281,7 @@ const STEPS: [
 	["renderFrame", renderBlock, RENDER_BLOCKS],
 	["oneNodeUpdate", updateBlock, UPDATE_BLOCKS],
 	["composerFrame", ssaoBlock, SSAO_BLOCKS],
+	["versionUpdate", versionBlock, VERSION_BLOCKS],
 ];
 
 /** One round: all three pages, every metric, blocks alternating between pages. */
