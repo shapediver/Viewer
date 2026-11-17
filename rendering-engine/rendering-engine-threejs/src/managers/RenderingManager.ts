@@ -289,8 +289,13 @@ export class RenderingManager implements IManager {
 		const renderer = this._renderingEngine.renderer;
 		const before = new Set(this.livePrograms());
 		renderer.compile(scene, camera);
-		// The contact shadow draws its own passes in the same frame.
-		this._renderingEngine.environmentGeometryManager.contactShadow?.compile();
+		// The contact shadow draws its own passes in the same frame. Its
+		// depth programs vary only with what the scene programs vary with
+		// (batching, instancing, skinning, morphs, attributes), so it needs a
+		// compile only when the scene got a new program. Otherwise every
+		// update would traverse and compile the scene a second time.
+		if (this.livePrograms().some((program) => !before.has(program)))
+			this._renderingEngine.environmentGeometryManager.contactShadow?.compile();
 		if (!renderer.extensions.has("KHR_parallel_shader_compile")) return;
 
 		// Wait for the programs this update created. Those of an earlier
