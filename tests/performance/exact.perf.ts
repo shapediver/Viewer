@@ -270,7 +270,7 @@ test("SS-10382 a leaf update changes the leaf and its ancestors once", async ({
 			return {
 				createdIds,
 				changed: changed.map((node) => node.name),
-				listenerCalls: nodes.map((node) => calls.get(node)),
+				listenerCalls: nodes.map((node) => calls.get(node) ?? 0),
 				changedOnce: changed.every((node) => calls.get(node) === 1),
 			};
 		};
