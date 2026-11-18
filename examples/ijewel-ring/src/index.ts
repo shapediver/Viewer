@@ -23,6 +23,8 @@ const environmentMap = (name: string | null, fallback: string): string => {
 		? SDV.ENVIRONMENT_MAP[name as keyof typeof SDV.ENVIRONMENT_MAP]
 		: fallback;
 };
+// `?late=1` applies the materials after the first render instead of before
+const LATE = urlParameters.get("late") === "1";
 const SCENE_ENVIRONMENT_MAP = environmentMap(
 	urlParameters.get("sceneEnv"),
 	SDV.ENVIRONMENT_MAP.DEFAULT_STUDIO,
@@ -95,14 +97,11 @@ const createGemMaterial = () =>
 			} else if (METAL_MATERIAL_NAMES.test(name)) {
 				d.material = createMetalMaterial();
 				d.material.name = name;
-				// GPU-instanced geometry takes its color from the instance
-				// color that was stored when the model was parsed, not from
-				// a material that was replaced afterwards.
-				d.instanceColors = [d.material.color];
 			}
 		});
 	};
-	applyMaterials(session.node);
+	// `?late=1` replaces the materials after the viewport displayed the model
+	if (!LATE) applyMaterials(session.node);
 
 	const viewport = await SDV.createViewport({
 		id: "myViewport",
@@ -123,9 +122,9 @@ const createGemMaterial = () =>
 	viewport.environmentMapIntensity = 1;
 	viewport.environmentMapAsBackground = false;
 	viewport.environmentMapPbrMode = SDV.ENVIRONMENT_MAP_PBR_MODE.MODERN;
-	// The reference's white background is tone mapped to a light grey. A
-	// grey clear color also keeps the background below the bloom threshold;
-	// on a white background the bloom washes out the whole ring.
+	// The background does not bloom (`backgroundBloom: false` below). The grey
+	// stays only because the reference's white background is tone mapped to a
+	// light grey.
 	viewport.clearColor = "#e4e4e4";
 	viewport.clearAlpha = 1;
 	viewport.toneMapping = SDV.TONE_MAPPING.ACES_FILMIC;
@@ -137,6 +136,7 @@ const createGemMaterial = () =>
 	viewport.contactShadowDarkness = 1.5;
 	viewport.contactShadowOpacity = 0.6;
 	// contact darkening in crevices and a glow on the brightest highlights
+	viewport.postProcessing.hdr = true;
 	viewport.postProcessing.addEffect({
 		type: SDV.POST_PROCESSING_EFFECT_TYPE.HBAO,
 		// ?aoMode=shading darkens only the indirect light inside the materials
@@ -146,9 +146,11 @@ const createGemMaterial = () =>
 	viewport.postProcessing.addEffect({
 		type: SDV.POST_PROCESSING_EFFECT_TYPE.BLOOM,
 		properties: {
-			intensity: 0.5,
-			luminanceThreshold: 0.92,
+			intensity: 0.8,
+			luminanceThreshold: 1.2,
+			luminanceSmoothing: 0.4,
 			mipmapBlur: true,
+			backgroundBloom: false,
 		},
 	});
 	viewport.maximumRenderingSize = {width: 3840, height: 2160};
@@ -186,6 +188,13 @@ const createGemMaterial = () =>
 	}
 
 	viewport.show = true;
+	if (LATE) {
+		viewport.render();
+		applyMaterials(session.node);
+		session.node.updateVersion();
+		viewport.updateNode(session.node);
+		viewport.render();
+	}
 	// read by capture.mjs
 	(<any>window).exampleReady = true;
 })();

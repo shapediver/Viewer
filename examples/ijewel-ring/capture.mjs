@@ -5,6 +5,7 @@
  *   node capture.mjs [--out captures] [--shots front,quarter,back,top,head,side]
  *                    [--sceneEnv <preset or .hdr url>] [--gemEnv <preset or .hdr url>]
  *                    [--aoMode composite|shading]
+ *                    [--late (apply the materials after the first render)]
  *                    [--port 8080] [--width 683] [--height 768] [--skip-build]
  *
  * The script bundles the example (development mode) from the built packages,
@@ -86,6 +87,7 @@ try {
 			const value = option(name);
 			if (value) url.searchParams.set(name, value);
 		}
+		if (args.includes("--late")) url.searchParams.set("late", "1");
 		// the first load after a build can time out, so it is tried twice
 		for (let attempt = 0; ; attempt++) {
 			try {

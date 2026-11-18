@@ -987,6 +987,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 			case TONE_MAPPING.ACES_FILMIC:
 				this._renderer.toneMapping = THREE.ACESFilmicToneMapping;
 				break;
+			case TONE_MAPPING.AGX:
+				this._renderer.toneMapping = THREE.AgXToneMapping;
+				break;
+			case TONE_MAPPING.NEUTRAL:
+				this._renderer.toneMapping = THREE.NeutralToneMapping;
+				break;
 			case TONE_MAPPING.NONE:
 			default:
 				this._renderer.toneMapping = THREE.NoToneMapping;

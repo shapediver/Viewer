@@ -755,7 +755,8 @@ export class InstanceGroupManager {
 	}
 
 	/**
-	 * The instance color: the source color of the occurrence, or — in
+	 * The instance color: the color of the current material (else the
+	 * parse-time instance color) of the occurrence, or — in
 	 * attribute-visualization mode — the current attribute color (the batch
 	 * material is white, so the instance color carries the visualization).
 	 */
@@ -765,7 +766,8 @@ export class InstanceGroupManager {
 		const colorRaw =
 			this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES
 				? (geometry.attributeMaterial?.color ?? [255, 255, 255, 255])
-				: (geometry.instanceColors[0] ?? [255, 255, 255, 255]);
+				: (geometry.material?.color ??
+					geometry.instanceColors[0] ?? [255, 255, 255, 255]);
 		const color = this._renderingEngine.createThreeJsColor(colorRaw);
 		return [color.r, color.g, color.b];
 	}

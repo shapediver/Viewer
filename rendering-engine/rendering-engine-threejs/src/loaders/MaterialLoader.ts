@@ -475,6 +475,9 @@ uniform vec3 sdvScreenAOColor;
 				const compile = material.onBeforeCompile;
 				const trackedKey = material.userData.cacheKey;
 				const shader = material.userData.shader;
+				// the source ids tell GeometryLoader.isMaterialReplaced
+				// that the mesh still shows the default material
+				const {SDid, SDversion} = material.userData;
 				const {properties, mapCount} = this.getMaterialProperties(
 					this._defaultMaterialData,
 					GEOMETRY_MATERIAL_TYPE.MESH,
@@ -502,6 +505,8 @@ uniform vec3 sdvScreenAOColor;
 				);
 				this.assignScreenAOToMaterial(material);
 				material.needsUpdate = true;
+				material.userData.SDid = SDid;
+				material.userData.SDversion = SDversion;
 				if (!batch) continue;
 				material.onBeforeCompile = compile;
 				material.userData.materialBatch = true;

@@ -66,6 +66,8 @@ export enum TONE_MAPPING {
 	REINHARD = "reinhard",
 	CINEON = "cineon",
 	ACES_FILMIC = "aces_filmic",
+	AGX = "agx",
+	NEUTRAL = "neutral",
 }
 
 export enum VISIBILITY_MODE {

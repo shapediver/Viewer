@@ -354,7 +354,7 @@ export interface IViewportApi {
 		camera: THREE.Camera;
 	};
 	/**
-	 * The tone mapping that is used. (default: TONE_MAPPING.NONE)
+	 * The tone mapping that is used, e.g. TONE_MAPPING.ACES_FILMIC, TONE_MAPPING.AGX or TONE_MAPPING.NEUTRAL. (default: TONE_MAPPING.NONE)
 	 */
 	toneMapping: TONE_MAPPING;
 	/**
