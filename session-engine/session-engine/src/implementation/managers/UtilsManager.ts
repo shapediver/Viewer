@@ -221,6 +221,10 @@ export class UtilsManager {
 						this._sessionEngineCore,
 						this._sessionEngineCore.parameterManager,
 					);
+				case "drawing":
+					// drawing parameters are created by ParameterManager from
+					// PARAMETER_TYPE.DRAWING, not as interaction parameters
+					break;
 			}
 		} else {
 			this._logger.warn(
@@ -283,10 +287,9 @@ export class UtilsManager {
 					this._logger.warn(
 						"Tried to retry the connect multiple times, bearer token still not valid. Closing Session.",
 					);
-					// eslint-disable-next-line no-empty
 					try {
 						await this._sessionEngineCore.closeOnFailure();
-					} catch (e) {
+					} catch {
 						/* empty */
 					}
 					throw await this._httpClient.convertError(e);
@@ -306,10 +309,9 @@ export class UtilsManager {
 						this._logger.warn(
 							"No retry possible, no new bearer token was supplied. Closing Session.",
 						);
-						// eslint-disable-next-line no-empty
 						try {
 							await this._sessionEngineCore.closeOnFailure();
-						} catch (e) {
+						} catch {
 							/* empty */
 						}
 						throw await this._httpClient.convertError(e);
@@ -319,10 +321,9 @@ export class UtilsManager {
 					this._logger.warn(
 						"Tried to retry the connect multiple times, bearer token still not valid. Closing Session.",
 					);
-					// eslint-disable-next-line no-empty
 					try {
 						await this._sessionEngineCore.closeOnFailure();
-					} catch (e) {
+					} catch {
 						/* empty */
 					}
 					throw await this._httpClient.convertError(e);

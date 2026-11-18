@@ -71,14 +71,11 @@ class AOEffect extends Effect {
 			this.aoPass.fullscreenMaterial as ShaderMaterial
 		).defines.useNormalTexture = "";
 
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(
 			this.aoPass.fullscreenMaterial as ShaderMaterial
 		).uniforms.depthTexture.value = this.normalPass.depthTexture;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		this.uniforms.get("depthTexture")!.value = this.normalPass.depthTexture;
 
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		this.poissionDenoisePass = new PoissionDenoisePass(
 			camera,
 			this.aoPass.texture,
@@ -175,7 +172,6 @@ class AOEffect extends Effect {
 			});
 
 			// apply all uniforms and defines
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(this as any)[key] = options[key];
 		}
 	}
