@@ -1,7 +1,9 @@
 import {
 	Configuration,
+	processError,
 	RequestError,
 	ResBase,
+	ResErrorType,
 	ResModelState,
 	ResponseError,
 	SessionApi,
@@ -402,7 +404,19 @@ export class SessionEngineCore {
 							);
 						return [arrayBuffer, contentType];
 					} catch (e) {
-						throw await this._utilsManager.handleError(e);
+						// Proxy failures for non-ShapeDiver URLs are not reported as session errors:
+						// HttpClient retries with a direct download and reports both reasons if that fails too.
+						const processed =
+							e instanceof Error ? await processError(e) : e;
+						if (
+							!this.isShapeDiverDirectTextureUrl(url) &&
+							processed instanceof ResponseError &&
+							processed.type === ResErrorType.TEXTURE_URL_ERROR
+						)
+							throw await this._httpClient.convertError(
+								processed,
+							);
+						throw await this._utilsManager.handleError(processed);
 					}
 				},
 			});

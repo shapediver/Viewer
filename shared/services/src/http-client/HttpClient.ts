@@ -191,13 +191,28 @@ export class HttpClient {
 		href: string,
 		responseType?: string,
 	): Promise<HttpResponse<unknown>> {
-		const response = await fetch(href, {method: "GET"});
+		let response: Response;
+		try {
+			response = await fetch(href, {method: "GET"});
+		} catch (e) {
+			throw new Error(
+				`Direct download of ${href} failed: network or CORS error (${this.errorMessage(e)}).`,
+				{cause: e},
+			);
+		}
 		if (!response.ok) {
 			throw new Error(
-				`HTTP error ${response.status}: ${response.statusText}`,
+				`Direct download of ${href} failed: HTTP ${response.status}${response.statusText ? " " + response.statusText : ""}.`,
 			);
 		}
 		return this.fetchResponseToHttpResponse(response, responseType);
+	}
+
+	/**
+	 * Get the message of an unknown error.
+	 */
+	private errorMessage(e: unknown): string {
+		return e instanceof Error ? e.message : String(e);
 	}
 
 	public async get(
@@ -252,7 +267,7 @@ export class HttpClient {
 									},
 								});
 							})
-							.catch(() => {
+							.catch((sessionError) => {
 								// if this fails (e.g., external URLs not belonging to this session), fall back to direct download
 								this.fetchUrl(href, config?.responseType)
 									.then((result) =>
@@ -260,7 +275,14 @@ export class HttpClient {
 											result as HttpResponse<ArrayBuffer>,
 										),
 									)
-									.catch((e) => reject(e));
+									.catch((directError) =>
+										reject(
+											new Error(
+												`Could not download ${href}. Session download failed: ${this.errorMessage(sessionError)}. ${this.errorMessage(directError).replace(`Direct download of ${href} failed`, "Direct download failed")}`,
+												{cause: directError},
+											),
+										),
+									);
 							});
 					},
 				).catch(async (e) => {
