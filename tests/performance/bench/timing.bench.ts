@@ -77,6 +77,11 @@ const METRICS = [
 	["oneNodeUpdate", "One-node scene update", "cpu"],
 	["composerFrame", "Camera frame with SSAO, until the GPU is done", "wall"],
 	["versionUpdate", "Fixture version update", "cpu"],
+	[
+		"aoFrame",
+		"Camera frame with SSAO, close-up at 1920x1080, until the GPU is done",
+		"wall",
+	],
 ] as const;
 type Metric = (typeof METRICS)[number][0];
 
@@ -226,7 +231,7 @@ async function ssaoBlock(viewer: Viewer) {
 
 /**
  * `updateVersion()` on the fixture root, as adding a session does. No scene
- * update follows, so the blocks only re-version the tree. Measured last:
+ * update follows, so the blocks only re-version the tree. Measured just before the close-up:
  * the next scene update would convert the whole fixture again.
  */
 async function versionBlock(viewer: Viewer) {
@@ -246,6 +251,48 @@ async function versionBlock(viewer: Viewer) {
 	return {cpu: cpu / VERSION_UPDATES_PER_BLOCK, wall: median(result)};
 }
 
+/**
+ * The facade seen from far away is CPU-bound: thousands of draw calls set
+ * the frame time and a change in the full-screen passes does not show. Close
+ * to one facade at 1920x1080 the frustum drops most meshes, but about 2,900
+ * scene draw calls were still left. So everything outside the three middle
+ * floors and the facade in front of the camera is hidden (about 270 draw
+ * calls in the colour and normal passes). The frame is then the passes that
+ * run per pixel: ambient occlusion, denoise, anti-aliasing, tone mapping.
+ * Shadows are off, so the lighting does not add to them.
+ *
+ * This is the last metric of a round, so changing the scene is safe.
+ */
+const CLOSE_UP_VIEWPORT = {width: 1920, height: 1080};
+const CLOSE_UP_DISTANCE = 9;
+
+async function closeUp(viewer: Viewer) {
+	await viewer.page.setViewportSize(CLOSE_UP_VIEWPORT);
+	await viewer.page.evaluate(
+		([options, distance]) => {
+			const probe = (window as any).__probe;
+			const keep = Math.floor(options.floors / 2);
+			probe.aec.root.traverse((node: any) => {
+				const floor = /^floor(\d+)$/.exec(node.name);
+				if (floor && Math.abs(Number(floor[1]) - keep) > 1)
+					node.visible = false;
+				if (/^facade[123]$/.test(node.name)) node.visible = false;
+			});
+			probe.viewport.shadows = false;
+			probe.viewport.softShadows = false;
+			probe.aec.root.updateVersion();
+			probe.viewport.update();
+			const camera = probe.viewport.camera;
+			const side = options.baysPerSide * options.bayWidth;
+			const height = options.floors * options.floorHeight;
+			camera.position = [0, -side / 2 - distance, height / 2];
+			camera.target = [0, -side / 2, height / 2];
+		},
+		[AEC_DEFAULT, CLOSE_UP_DISTANCE] as const,
+	);
+	await settle(viewer);
+}
+
 const STEPS: [
 	Metric,
 	(viewer: Viewer) => Promise<Record<Clock, number>>,
@@ -257,6 +304,7 @@ const STEPS: [
 	["oneNodeUpdate", updateBlock, UPDATE_BLOCKS],
 	["composerFrame", ssaoBlock, SSAO_BLOCKS],
 	["versionUpdate", versionBlock, VERSION_BLOCKS],
+	["aoFrame", ssaoBlock, SSAO_BLOCKS],
 ];
 
 /** One round: all three pages, every metric, blocks alternating between pages. */
@@ -276,6 +324,8 @@ async function round(browser: Browser, index: number) {
 				);
 				await settle(viewers[arm]);
 			}
+		if (metric === "aoFrame")
+			for (const arm of order) await closeUp(viewers[arm]);
 		for (const arm of order) result[arm][metric] = {cpu: [], wall: []};
 		for (let block = 0; block < blocks; block++) {
 			for (const arm of ORDERS[turn++ % ORDERS.length]) {

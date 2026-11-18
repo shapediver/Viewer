@@ -213,6 +213,38 @@ async function collect(page: Page, variant: SceneVariant): Promise<Counters> {
 		frameCounters("beautyFrame", frames[frames.length - 1]),
 	);
 	// Frames from the first drag step to the end of the beauty blend.
+	if (variant.ssao) {
+		// Sizes, not times: the viewport is 1280x720 at pixel ratio 1, so these
+		// are the same on every machine. The default ambient occlusion target
+		// is half the canvas, and a full size target is the cost before
+		// SS-10440.
+		const targets = await page.evaluate(() =>
+			(window as any).__probe.aoTargets(),
+		);
+		expect(targets, "the SSAO effect was not found").not.toBeNull();
+		counters["ssao.canvasWidth"] = targets.canvas.width;
+		counters["ssao.canvasHeight"] = targets.canvas.height;
+		counters["ssao.aoTargetWidth"] = targets.ao.width;
+		counters["ssao.aoTargetHeight"] = targets.ao.height;
+		counters["ssao.denoiseTargetWidth"] = targets.denoise.width;
+		counters["ssao.denoiseTargetHeight"] = targets.denoise.height;
+		for (const [prefix, frame] of [
+			["cameraFrame", frames[0]],
+			["beautyFrame", frames[frames.length - 1]],
+		] as const) {
+			// What the frame actually drew into, not what the effect reports.
+			const sizes = frame.passes
+				.filter((pass) => !pass.main)
+				.map((pass) => pass.pixels);
+			counters[`${prefix}.fullScreenPixels`] = sizes.reduce(
+				(sum, pixels) => sum + pixels,
+				0,
+			);
+			counters[`${prefix}.smallestFullScreenTargetPixels`] = Math.min(
+				...sizes,
+			);
+		}
+	}
 	counters["cameraMove.framesRendered"] = frames.length;
 	// Per-instance bounds reads while batches sort and cull, all passes.
 	counters["cameraMove.batchBoundsReads"] = move.batchBoundsReads;

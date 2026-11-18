@@ -24,6 +24,8 @@ export interface PassRecord {
 	triangles: number;
 	/** `material.needsUpdate = true` assignments during this pass. */
 	materialUpdates: number;
+	/** Pixels of the render target, or of the drawing buffer for the canvas. */
+	pixels: number;
 	/** Synchronous time inside `renderer.render`. Not GPU time. */
 	ms: number;
 	/**
@@ -74,10 +76,14 @@ export function installProbe() {
 				renderDepth--;
 			}
 			const ms = performance.now() - start;
+			const target = renderer.getRenderTarget();
 			// With autoReset the renderer zeroes the counters itself.
 			passes.push({
 				frame,
 				main: scene === mainScene,
+				pixels: target
+					? target.width * target.height
+					: renderer.domElement.width * renderer.domElement.height,
 				calls: info.autoReset
 					? info.render.calls
 					: info.render.calls - callsBefore,
@@ -559,12 +565,34 @@ export function installProbe() {
 		batchBoundsTracked = true;
 	}
 
+	/** Sizes of the ambient occlusion and denoise targets, or null. */
+	function aoTargets() {
+		const probe = (window as any).__probe;
+		const postProcessing = probe.viewport.postProcessing;
+		const tokens = postProcessing.getEffectTokens();
+		const token = Object.keys(tokens).find(
+			(key) => tokens[key] === SDV.POST_PROCESSING_EFFECT_TYPE.SSAO,
+		);
+		if (token === undefined) return null;
+		const effect = postProcessing.getEffect(token);
+		const size = (target: any) => ({
+			width: target.width as number,
+			height: target.height as number,
+		});
+		return {
+			ao: size(effect.aoPass.renderTarget),
+			denoise: size(effect.poissionDenoisePass.renderTargetB),
+			canvas: size(probe.renderer.domElement),
+		};
+	}
+
 	(window as any).__probe = {
 		create,
 		createViewport,
 		build,
 		show,
 		addSsao,
+		aoTargets,
 		stats,
 		snapshotMaterials,
 		materialChanges,

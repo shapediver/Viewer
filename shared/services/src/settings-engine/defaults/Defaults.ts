@@ -60,7 +60,7 @@ export const Defaults: () => ISettings = () => {
 			effects: [
 				{
 					properties: {
-						resolutionScale: 1,
+						resolutionScale: 0.5,
 						spp: 16,
 						distance: 1,
 						distanceIntensity: 1,
