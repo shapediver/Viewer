@@ -80,6 +80,8 @@ export interface IPostProcessingApi {
 	 * Combine with a tone mapping other than NONE.
 	 * Devices that can't render to half-float buffers fall back to 8-bit buffers.
 	 *
+	 * Changing this value replaces the {@link effectComposer}. With {@link manualPostProcessing}, set it before adding your own passes.
+	 *
 	 * This setting is not stored in the viewer settings.
 	 *
 	 * Note: The post-processing API is still WIP. Breaking changes are to be expected.
