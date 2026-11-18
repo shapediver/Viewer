@@ -692,7 +692,12 @@ export class GeometryLoader implements ILoader {
 				hasMorphTargets && morphAttributes.normal !== undefined,
 		};
 
-		if (incomingMaterialData instanceof MaterialGemData) {
+		// Only a gem material that was not set up yet: every setup takes
+		// another reference on the cached normal map.
+		if (
+			incomingMaterialData instanceof MaterialGemData &&
+			!incomingMaterialData.sphericalNormalMap
+		) {
 			this.prepareGemMaterialData(
 				geometry,
 				threeGeometry,
