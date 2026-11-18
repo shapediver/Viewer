@@ -163,6 +163,7 @@ uniform float refractionIndex;
 uniform float gamma;
 uniform float contrast;
 uniform float brightness;
+uniform float hdrOutput;
 uniform float dispersion;
 uniform float tracingOpacity;
 
@@ -333,9 +334,10 @@ vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalM
 	color.rgb = ((color.rgb - 0.5) * max(contrast, 0.0)) + 0.5; 
 
 	// brightness
-	color.r = min(max(color.r + brightness, 0.0), 1.0);
-	color.g = min(max(color.g + brightness, 0.0), 1.0);
-	color.b = min(max(color.b + brightness, 0.0), 1.0);
+	float colorMax = hdrOutput > 0.5 ? 65504.0 : 1.0;
+	color.r = min(max(color.r + brightness, 0.0), colorMax);
+	color.g = min(max(color.g + brightness, 0.0), colorMax);
+	color.b = min(max(color.b + brightness, 0.0), colorMax);
 
 	return color;
 }

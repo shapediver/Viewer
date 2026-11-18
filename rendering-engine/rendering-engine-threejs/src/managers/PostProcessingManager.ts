@@ -5,6 +5,7 @@ import {
 	EventEngine,
 	EVENTTYPE,
 	type IEvent,
+	Logger,
 	SettingsEngine,
 	SystemInfo,
 	UuidGenerator,
@@ -66,10 +67,12 @@ import {
 	VignetteTechnique,
 } from "postprocessing";
 import * as THREE from "three";
+import {GemMaterial} from "../materials/GemMaterial";
 import {RenderingEngine} from "../RenderingEngine";
 import {HBAOEffect} from "./postprocessing/ao/hbao/HBAOEffect";
 import {PoissionDenoisePass} from "./postprocessing/ao/poissionDenoise/PoissionDenoisePass";
 import {SSAOEffect} from "./postprocessing/ao/ssao/SSAOEffect";
+import {BackgroundMaskedBloomEffect} from "./postprocessing/effects/bloom/BackgroundMaskedBloomEffect";
 import {ToneMappingEffect} from "./postprocessing/effects/tone-mapping/ToneMappingEffect";
 import {GodRaysManager} from "./postprocessing/GodRaysManager";
 import {OutlineManager} from "./postprocessing/OutlineManager";
@@ -104,7 +107,10 @@ export class PostProcessingManager implements IManager {
 	private _godRaysManagers: {
 		[key: string]: GodRaysManager;
 	} = {};
+	private _hdr: boolean = false;
 	private _initialized: boolean = false;
+	private _lastSize?: {width: number; height: number};
+	private readonly _logger: Logger = Logger.instance;
 	private _manualPostProcessing: boolean = false;
 	private _outlineManagers: {
 		[key: string]: OutlineManager;
@@ -188,6 +194,26 @@ export class PostProcessingManager implements IManager {
 		[key: string]: GodRaysManager;
 	} {
 		return this._godRaysManagers;
+	}
+
+	public get hdr(): boolean {
+		return this._hdr;
+	}
+
+	public set hdr(value: boolean) {
+		if (this._hdr === value) return;
+		this._hdr = value;
+
+		const oldComposer = this._composer;
+		if (!oldComposer) return;
+
+		// the frame buffer type can't be changed on an existing composer
+		oldComposer.dispose();
+		this._composer = this.createComposer();
+		this._renderingEngine.renderer.autoClear = true;
+		if (this._lastSize)
+			this.resize(this._lastSize.width, this._lastSize.height);
+		this.changeEffectPass();
 	}
 
 	public get initialized(): boolean {
@@ -402,18 +428,22 @@ export class PostProcessingManager implements IManager {
 							._effectDefinitions[i]
 							.definition as IBloomEffectDefinition;
 						const properties = definition.properties || {};
+						const bloomOptions = {
+							blendFunction: properties.blendFunction,
+							luminanceThreshold: properties.luminanceThreshold,
+							luminanceSmoothing: properties.luminanceSmoothing,
+							mipmapBlur: properties.mipmapBlur,
+							intensity: properties.intensity,
+							kernelSize: properties.kernelSize,
+						};
 						this._effects.push({
 							token: this._effectDefinitions[i].token,
-							effect: new BloomEffect({
-								blendFunction: properties.blendFunction,
-								luminanceThreshold:
-									properties.luminanceThreshold,
-								luminanceSmoothing:
-									properties.luminanceSmoothing,
-								mipmapBlur: properties.mipmapBlur,
-								intensity: properties.intensity,
-								kernelSize: properties.kernelSize,
-							}),
+							effect:
+								properties.backgroundBloom === false
+									? new BackgroundMaskedBloomEffect(
+											bloomOptions,
+										)
+									: new BloomEffect(bloomOptions),
 						});
 					}
 					break;
@@ -1041,6 +1071,14 @@ export class PostProcessingManager implements IManager {
 				),
 		);
 
+		// The composer copies the scene depth for effects only after passes with
+		// needsDepthBlit. The SSAA pass doesn't set it, so enable it only when the
+		// background-masked bloom needs depth (enabling it always would change
+		// existing SSAA renders of other depth-based effects).
+		this._ssaaRenderPass!.needsDepthBlit = this._effects.some(
+			(e) => e.effect instanceof BackgroundMaskedBloomEffect,
+		);
+
 		const effectArray = this._effects.map((v) => v.effect);
 		if (antiAliasingTechnique === ANTI_ALIASING_TECHNIQUE.FXAA) {
 			effectArray.unshift(this._fxaaEffect!);
@@ -1091,6 +1129,10 @@ export class PostProcessingManager implements IManager {
 				switch (this._renderingEngine.toneMapping) {
 					case TONE_MAPPING.ACES_FILMIC:
 						return ToneMappingMode.ACES_FILMIC;
+					case TONE_MAPPING.AGX:
+						return ToneMappingMode.AGX;
+					case TONE_MAPPING.NEUTRAL:
+						return ToneMappingMode.NEUTRAL;
 					case TONE_MAPPING.CINEON:
 						return ToneMappingMode.OPTIMIZED_CINEON;
 					case TONE_MAPPING.REINHARD:
@@ -1131,6 +1173,7 @@ export class PostProcessingManager implements IManager {
 		switch (type) {
 			case POST_PROCESSING_EFFECT_TYPE.BLOOM:
 				return {
+					backgroundBloom: true,
 					blendFunction: BlendFunction.ADD,
 					intensity: 1.0,
 					kernelSize: KernelSize.LARGE,
@@ -1318,6 +1361,7 @@ export class PostProcessingManager implements IManager {
 							type: POST_PROCESSING_EFFECT_TYPE.BLOOM,
 							token: this._effectDefinitions[i].token,
 							properties: {
+								backgroundBloom: properties.backgroundBloom,
 								blendFunction: properties.blendFunction,
 								luminanceThreshold:
 									properties.luminanceThreshold,
@@ -1618,7 +1662,7 @@ export class PostProcessingManager implements IManager {
 		OverrideMaterialManager.workaroundEnabled = true;
 
 		const initComposer = () => {
-			this._composer = new EffectComposer(this._renderingEngine.renderer);
+			this._composer = this.createComposer();
 			// EffectComposer disables autoClear, we enable/disable this in the postprocessing render loop
 			this._renderingEngine.renderer.autoClear = true;
 
@@ -1710,7 +1754,12 @@ export class PostProcessingManager implements IManager {
 		this._renderingEngine.renderer.autoClear = false;
 
 		this._composer.setMainCamera(camera);
+		GemMaterial.hdrOutputUniform.value =
+			this._composer.inputBuffer.texture.type === THREE.HalfFloatType
+				? 1
+				: 0;
 		this._composer.render();
+		GemMaterial.hdrOutputUniform.value = 0;
 
 		this._renderingEngine.renderer.toneMapping = currentToneMapping;
 		this._renderingEngine.renderer.autoClear = true;
@@ -1719,6 +1768,8 @@ export class PostProcessingManager implements IManager {
 
 	public resize(width: number, height: number) {
 		if (!this._composer) return;
+
+		this._lastSize = {width, height};
 
 		// Effect targets are sized here and are not updated again by the
 		// composer. When the pixel ratio is below 1, the drawing buffer is
@@ -1770,7 +1821,33 @@ export class PostProcessingManager implements IManager {
 
 	// #endregion Public Methods (13)
 
-	// #region Private Methods (1)
+	// #region Private Methods (3)
+
+	private createComposer(): EffectComposer {
+		let frameBufferType: THREE.TextureDataType = THREE.UnsignedByteType;
+		if (this._hdr) {
+			if (this.isHalfFloatRenderingSupported()) {
+				frameBufferType = THREE.HalfFloatType;
+			} else {
+				this._logger.warn(
+					"PostProcessingManager.createComposer: HDR post-processing is not supported by this device, falling back to 8-bit buffers.",
+				);
+			}
+		}
+
+		return new EffectComposer(this._renderingEngine.renderer, {
+			frameBufferType,
+		});
+	}
+
+	private isHalfFloatRenderingSupported(): boolean {
+		const extensions = this._renderingEngine.renderer.extensions;
+
+		return (
+			extensions.has("EXT_color_buffer_float") ||
+			extensions.has("EXT_color_buffer_half_float")
+		);
+	}
 
 	private addPassToEffectComposer(
 		pass: EffectPass | RenderPass | SSAARenderPass,
@@ -1786,5 +1863,5 @@ export class PostProcessingManager implements IManager {
 		}
 	}
 
-	// #endregion Private Methods (1)
+	// #endregion Private Methods (3)
 }

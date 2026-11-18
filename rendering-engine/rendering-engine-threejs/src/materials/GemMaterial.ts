@@ -26,6 +26,9 @@ export interface GemMaterialParameters extends MeshPhysicalMaterialParameters {
 export class GemMaterial extends MeshPhysicalMaterial {
 	// #region Properties (1)
 
+	/** Shared by all gem materials. Set to 1 by the post-processing manager while it renders into half-float (HDR) buffers, so traced colors may exceed 1. */
+	public static readonly hdrOutputUniform: {value: number} = {value: 0};
+
 	public isGemMaterial: boolean;
 
 	public refractionIndex: number = 2.4;
@@ -67,6 +70,7 @@ export class GemMaterial extends MeshPhysicalMaterial {
 			brightness: {value: 0.0},
 			dispersion: {value: 0.0},
 			tracingOpacity: {value: 0.0},
+			hdrOutput: GemMaterial.hdrOutputUniform,
 		};
 
 		(<any>this)._extraUniforms = uniforms;
