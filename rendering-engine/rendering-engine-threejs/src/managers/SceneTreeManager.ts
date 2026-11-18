@@ -200,12 +200,18 @@ export class SceneTreeManager implements IManager {
 							// separate material or instance attribute. Beauty-mode color
 							// edits already mutate the existing material; replacing it
 							// here drops the environment map and flattens the shading.
+							// A different material (other id) is applied in every mode.
 							if (
 								(geometryData.instantiable &&
 									this._renderingEngine.instanceGroupManager
 										.enabled) ||
 								this._renderingEngine.type ===
-									RENDERER_TYPE.ATTRIBUTES
+									RENDERER_TYPE.ATTRIBUTES ||
+								(!existingGeometry.userData.isInstanced &&
+									this._renderingEngine.geometryLoader.isMaterialReplaced(
+										geometryData,
+										existingGeometry,
+									))
 							)
 								this._renderingEngine.geometryLoader.updateGeometryMaterial(
 									geometryData,
