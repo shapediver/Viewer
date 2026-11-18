@@ -68,7 +68,6 @@ export interface IHBAOEffectDefinition extends IPostProcessingEffectSettings {
 		radius?: number;
 		rings?: number;
 		lumaPhi?: number;
-		mode?: "composite" | "shading";
 		depthPhi?: number;
 		normalPhi?: number;
 		samples?: number;
@@ -115,7 +114,6 @@ export interface ISSAOEffectDefinition extends IPostProcessingEffectSettings {
 		radius?: number;
 		rings?: number;
 		lumaPhi?: number;
-		mode?: "composite" | "shading";
 		depthPhi?: number;
 		normalPhi?: number;
 		samples?: number;
