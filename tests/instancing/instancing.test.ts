@@ -81,11 +81,20 @@ const test = base.extend<{}, {workerPage: Page}>({
 					});
 
 				let currentNode: any;
-				(<any>window).addGLTF = async (uri: string) => {
+				/**
+				 * `beforeAdd` is the source of a function expression
+				 * `(node) => void`; it runs in the page after loading and
+				 * before the node is added to the scene tree.
+				 */
+				(<any>window).addGLTF = async (
+					uri: string,
+					beforeAdd?: string,
+				) => {
 					const node = await DataEngine.instance.loadContent({
 						format: "gltf",
 						href: uri,
 					});
+					if (beforeAdd) (0, eval)(`(${beforeAdd})`)(node);
 					const renderingP = renderedP();
 					if (currentNode) SDV.sceneTree.removeNode(currentNode);
 					currentNode = node;
@@ -497,6 +506,205 @@ test.describe("GPU instancing", () => {
 		expect(counts.before).toBe(9);
 		expect(counts.mirrored).toBe(8);
 		expect(counts.restored).toBe(9);
+	});
+
+	test("a gem material on instantiable geometry renders as a regular gem mesh", async ({
+		workerPage,
+	}) => {
+		const pageErrors: string[] = [];
+		workerPage.on("pageerror", (error) => pageErrors.push(error.message));
+		const state = await workerPage.evaluate(async (uri: string) => {
+			await (<any>window).addGLTF(uri);
+			const SDV = (<any>window).SDV;
+			const viewer = (<any>window).viewer;
+			const node = (<any>window).findNode("box_node_4");
+			const geometry = node.data.find(
+				(data: any) => data.instanceHash !== undefined,
+			);
+			geometry.material = new SDV.MaterialGemData({
+				refractionIndex: 2.42,
+			});
+			viewer.updateNode(node);
+			const mesh = geometry.convertedObject[viewer.id];
+			return {
+				instanceCount: viewer.gpuInstancing.stats.instanceCount,
+				isInstancedMesh: mesh.isInstancedMesh === true,
+				isGemMaterial: mesh.material.isGemMaterial === true,
+				radius: mesh.material.radius,
+				hasNormalMap: !!mesh.material.sphericalNormalMap,
+				receiveShadow: mesh.receiveShadow,
+			};
+		}, `${ASSET_HOST}/duplicated-boxes.glb`);
+
+		expect(state.instanceCount).toBe(8);
+		expect(state.isInstancedMesh).toBe(false);
+		expect(state.isGemMaterial).toBe(true);
+		expect(state.radius).toBeGreaterThan(0);
+		expect(state.hasNormalMap).toBe(true);
+		expect(state.receiveShadow).toBe(false);
+		expect(pageErrors).toEqual([]);
+	});
+
+	test("replacing the material of non-instantiable geometry after display takes effect", async ({
+		workerPage,
+	}) => {
+		const pageErrors: string[] = [];
+		workerPage.on("pageerror", (error) => pageErrors.push(error.message));
+		const state = await workerPage.evaluate(async (uri: string) => {
+			await (<any>window).addGLTF(uri);
+			const SDV = (<any>window).SDV;
+			const viewer = (<any>window).viewer;
+			const node = (<any>window).findNode("tetra_node");
+			const geometry = node.data.find(
+				(data: any) => data.instantiable !== undefined,
+			);
+			const instantiable = geometry.instantiable;
+
+			const standard = new SDV.MaterialStandardData({color: "#00ff00"});
+			geometry.material = standard;
+			viewer.updateNode(node);
+			let mesh = geometry.convertedObject[viewer.id];
+			const standardState = {
+				sameId: mesh.material.userData.SDid === standard.id,
+				color: [
+					mesh.material.color.r,
+					mesh.material.color.g,
+					mesh.material.color.b,
+				],
+			};
+
+			geometry.material = new SDV.MaterialGemData({
+				refractionIndex: 2.42,
+			});
+			viewer.updateNode(node);
+			mesh = geometry.convertedObject[viewer.id];
+			return {
+				instantiable,
+				standardState,
+				isGemMaterial: mesh.material.isGemMaterial === true,
+				radius: mesh.material.radius,
+			};
+		}, `${ASSET_HOST}/duplicated-boxes.glb`);
+
+		expect(state.instantiable).toBe(false);
+		expect(state.standardState.sameId).toBe(true);
+		expect(state.standardState.color[0]).toBeCloseTo(0, 2);
+		expect(state.standardState.color[1]).toBeCloseTo(1, 2);
+		expect(state.standardState.color[2]).toBeCloseTo(0, 2);
+		expect(state.isGemMaterial).toBe(true);
+		expect(state.radius).toBeGreaterThan(0);
+		expect(pageErrors).toEqual([]);
+	});
+
+	test("a gem material on mirrored instantiable geometry is set up", async ({
+		workerPage,
+	}) => {
+		const pageErrors: string[] = [];
+		workerPage.on("pageerror", (error) => pageErrors.push(error.message));
+		const state = await workerPage.evaluate(async (uri: string) => {
+			await (<any>window).addGLTF(uri);
+			const SDV = (<any>window).SDV;
+			const viewer = (<any>window).viewer;
+			const node = (<any>window).findNode("box_node_4");
+			const geometry = node.data.find(
+				(data: any) => data.instanceHash !== undefined,
+			);
+			const matrix = (<any>window).GL_MATRIX.mat4.fromScaling(
+				(<any>window).GL_MATRIX.mat4.create(),
+				[-1, 1, 1],
+			);
+			node.addTransformation({id: "test-mirror", matrix});
+			viewer.updateNodeTransformation(node);
+			const mirrored = viewer.gpuInstancing.stats.instanceCount;
+
+			geometry.material = new SDV.MaterialGemData({
+				refractionIndex: 2.42,
+			});
+			viewer.updateNode(node);
+			const mesh = geometry.convertedObject[viewer.id];
+			const result = {
+				mirrored,
+				isInstancedMesh: mesh.isInstancedMesh === true,
+				isGemMaterial: mesh.material.isGemMaterial === true,
+				radius: mesh.material.radius,
+				hasNormalMap: !!mesh.material.sphericalNormalMap,
+			};
+			node.removeTransformation(node.getTransformation("test-mirror"));
+			viewer.updateNodeTransformation(node);
+			return result;
+		}, `${ASSET_HOST}/duplicated-boxes.glb`);
+
+		expect(state.mirrored).toBe(8);
+		expect(state.isInstancedMesh).toBe(false);
+		expect(state.isGemMaterial).toBe(true);
+		expect(state.radius).toBeGreaterThan(0);
+		expect(state.hasNormalMap).toBe(true);
+		expect(pageErrors).toEqual([]);
+	});
+
+	test("a replaced material updates the instance color", async ({
+		workerPage,
+	}) => {
+		const pageErrors: string[] = [];
+		workerPage.on("pageerror", (error) => pageErrors.push(error.message));
+		const colors = await workerPage.evaluate(async (uri: string) => {
+			await (<any>window).addGLTF(
+				uri,
+				`(root) => {
+					const SDV = window.SDV;
+					const search = (n) => {
+						if (n.name === "box_node_4") return n;
+						for (const child of n.children) {
+							const found = search(child);
+							if (found) return found;
+						}
+						return undefined;
+					};
+					const target = search(root);
+					const geometry = target.data.find(
+						(data) => data.instanceHash !== undefined,
+					);
+					geometry.material = new SDV.MaterialStandardData({
+						color: "#00ff00",
+					});
+				}`,
+			);
+			const viewer = (<any>window).viewer;
+			const node = (<any>window).findNode("box_node_4");
+			const geometry = node.data.find(
+				(data: any) => data.instanceHash !== undefined,
+			);
+			const read = () => {
+				const mesh = geometry.convertedObject[viewer.id];
+				const index = mesh.userData.instanceKeys.indexOf(
+					`${node.id}:${geometry.id}`,
+				);
+				const array = mesh.instanceColor.array;
+				return {
+					index,
+					rgb: [
+						array[index * 3],
+						array[index * 3 + 1],
+						array[index * 3 + 2],
+					],
+				};
+			};
+			const first = read();
+			geometry.material.color = "#0000ff";
+			viewer.updateNode(node);
+			const second = read();
+			return {first, second};
+		}, `${ASSET_HOST}/duplicated-boxes.glb`);
+
+		expect(colors.first.index).toBeGreaterThanOrEqual(0);
+		expect(colors.first.rgb[0]).toBeCloseTo(0, 2);
+		expect(colors.first.rgb[1]).toBeCloseTo(1, 2);
+		expect(colors.first.rgb[2]).toBeCloseTo(0, 2);
+		expect(colors.second.index).toBeGreaterThanOrEqual(0);
+		expect(colors.second.rgb[0]).toBeCloseTo(0, 2);
+		expect(colors.second.rgb[1]).toBeCloseTo(0, 2);
+		expect(colors.second.rgb[2]).toBeCloseTo(1, 2);
+		expect(pageErrors).toEqual([]);
 	});
 
 	test("render-order and shadow variants use separate batches", async ({
