@@ -14,6 +14,7 @@ import {
 	type ITree,
 	type ITreeNode,
 	type ITreeNodeData,
+	MaterialGemData,
 	Tree,
 } from "@shapediver/viewer.shared.node-tree";
 import {
@@ -911,6 +912,13 @@ export class SceneTreeManager implements IManager {
 		if (
 			this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES &&
 			(geometry.attributeMaterial?.opacity ?? 1) < 1
+		)
+			return false;
+		// Gem shading needs a per-mesh normal cube map, center and radius,
+		// which the instancing path does not set up.
+		if (
+			this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES &&
+			geometry.material instanceof MaterialGemData
 		)
 			return false;
 

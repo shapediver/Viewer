@@ -47,7 +47,7 @@ export class GemMaterial extends MeshPhysicalMaterial {
 
 	// #region Constructors (1)
 
-	constructor(params: GemMaterialParameters) {
+	constructor(params: GemMaterialParameters = {}) {
 		super();
 
 		this.isGemMaterial = true;
