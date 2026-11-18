@@ -890,6 +890,7 @@ export class GeometryLoader implements ILoader {
 				resolution,
 				{
 					format: THREE.RGBAFormat,
+					type: THREE.HalfFloatType,
 					magFilter: THREE.LinearFilter,
 					minFilter: THREE.LinearFilter,
 				},
@@ -911,6 +912,7 @@ export class GeometryLoader implements ILoader {
 				resolution,
 				{
 					format: THREE.RGBAFormat,
+					type: THREE.HalfFloatType,
 					magFilter: THREE.LinearFilter,
 					minFilter: THREE.LinearFilter,
 				},
@@ -926,13 +928,15 @@ export class GeometryLoader implements ILoader {
 
 		if (!this._gemNormalMaterial) {
 			const _normalShader = {
-				defines: {},
+				defines: {GEM_PLANE_DISTANCE: ""},
 				uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.common]),
 				vertexShader: `
                 varying vec3 vNormal;
+                varying vec3 vPosition;
 
                 void main() {
                   vNormal = normal;
+                  vPosition = position;
                   gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
                 }
                 `,
@@ -968,9 +972,16 @@ export class GeometryLoader implements ILoader {
                     return code;
                 }
                 
+                varying highp vec3 vPosition;
+
                 void main() {
                     vec3 n = normalize(vNormal);
-                    gl_FragColor = vec4(decodeVec3(abs(n)), signEncoding(n));
+                    #ifdef GEM_PLANE_DISTANCE
+                        // normal and distance of the facet plane from the center
+                        gl_FragColor = vec4(n, dot(vPosition, n));
+                    #else
+                        gl_FragColor = vec4(decodeVec3(abs(n)), signEncoding(n));
+                    #endif
                 }
                 `,
 			};

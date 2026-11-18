@@ -383,6 +383,23 @@ vec3 raySphereIntersection(vec3 o, vec3 d) {
     }
 }
 
+// Intersects the ray with the facet planes of the gem. The cube map stores
+// the facet normal and the distance of its plane from the center, so the
+// bounding sphere only provides the first guess for the facet that is hit.
+vec3 rayGemIntersection(vec3 o, vec3 d, out vec3 n) {
+	vec3 p = raySphereIntersection(o, d);
+	for(int k = 0; k < 2; k++) {
+		vec4 s = textureCube(sphericalNormalMap, normalize(p - center));
+		n = normalize(s.xyz);
+		float denominator = dot(d, n);
+		if(denominator > 1e-4) {
+			float t = (s.a - dot(o - center, n)) / denominator;
+			if(t > 0.0) p = o + t * d;
+		}
+	}
+	return p;
+}
+
 vec3 hueToSaturatedColor(float hue) {
     float r,g,b;
     if (hue < 0.25){
@@ -496,9 +513,9 @@ void main() {
 		#pragma unroll_loop_start
 		for(int j = 0; j < loop; j++){
 			vec3 refractedDirection = refract(initialDirection, frag_normal_normalized, 1.0/refractionIndex + float(j)*dispersion * 0.025);
-			vec3 newPosition = raySphereIntersection(frag_position, refractedDirection);
+			vec3 newNormal;
+			vec3 newPosition = rayGemIntersection(frag_position, refractedDirection, newNormal);
 			vec3 lookUpVector = normalize(newPosition - center);
-			vec3 newNormal = normalLookUp(lookUpVector);
 			vec3 newDirection = reflect(refractedDirection, newNormal);
 
 			float currentProbability = 1.0;
@@ -520,9 +537,8 @@ void main() {
 			for(int i = 0; i < TRACING_DEPTH; i++) {
 				// small position correction to avoid artefacts
 				newPosition = newPosition - lookUpVector * 1e-6;
-				newPosition = raySphereIntersection(newPosition, newDirection);
+				newPosition = rayGemIntersection(newPosition, newDirection, newNormal);
 				lookUpVector = normalize(newPosition - center);
-				newNormal = normalLookUp(lookUpVector);
 			
 				float cos_theta = dot(newDirection, newNormal);
 				float ratio;
