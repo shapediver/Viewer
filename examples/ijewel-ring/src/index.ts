@@ -23,6 +23,8 @@ const environmentMap = (name: string | null, fallback: string): string => {
 		? SDV.ENVIRONMENT_MAP[name as keyof typeof SDV.ENVIRONMENT_MAP]
 		: fallback;
 };
+// `?late=1` applies the materials after the first render instead of before
+const LATE = urlParameters.get("late") === "1";
 const SCENE_ENVIRONMENT_MAP = environmentMap(
 	urlParameters.get("sceneEnv"),
 	SDV.ENVIRONMENT_MAP.DEFAULT_STUDIO,
@@ -95,14 +97,11 @@ const createGemMaterial = () =>
 			} else if (METAL_MATERIAL_NAMES.test(name)) {
 				d.material = createMetalMaterial();
 				d.material.name = name;
-				// GPU-instanced geometry takes its color from the instance
-				// color that was stored when the model was parsed, not from
-				// a material that was replaced afterwards.
-				d.instanceColors = [d.material.color];
 			}
 		});
 	};
-	applyMaterials(session.node);
+	// `?late=1` replaces the materials after the viewport displayed the model
+	if (!LATE) applyMaterials(session.node);
 
 	const viewport = await SDV.createViewport({
 		id: "myViewport",
@@ -184,6 +183,13 @@ const createGemMaterial = () =>
 	}
 
 	viewport.show = true;
+	if (LATE) {
+		viewport.render();
+		applyMaterials(session.node);
+		session.node.updateVersion();
+		viewport.updateNode(session.node);
+		viewport.render();
+	}
 	// read by capture.mjs
 	(<any>window).exampleReady = true;
 })();

@@ -288,38 +288,11 @@ export class GeometryLoader implements ILoader {
 		};
 
 		if (incomingMaterialData instanceof MaterialGemData) {
-			const gemMaterialData = <MaterialGemData>incomingMaterialData;
-			// Gem shading wants the tight sphere around the vertices. The
-			// shared geometry keeps the AABB sphere createMesh stores for
-			// culling. Leaving the tight sphere on the geometry makes the
-			// next gem read whichever sphere was stored first.
-			const savedSphere = threeGeometry.boundingSphere;
-			const savedBox = threeGeometry.boundingBox;
-			const gemSphere = new THREE.Sphere();
-			threeGeometry.boundingSphere = gemSphere;
-			threeGeometry.boundingBox = null;
-			threeGeometry.computeBoundingSphere();
-			threeGeometry.boundingSphere = savedSphere;
-			threeGeometry.boundingBox = savedBox;
-
-			const sphericalNormalMap = this.createCubeNormalMap(
+			this.prepareGemMaterialData(
 				geometry,
 				threeGeometry,
-				gemMaterialData.normalMapResolution,
+				incomingMaterialData,
 			);
-
-			const center = gemSphere.center,
-				radius = gemSphere.radius;
-
-			gemMaterialData.side = MATERIAL_SIDE.FRONT;
-
-			gemMaterialData.center = vec3.fromValues(
-				center.x,
-				center.y,
-				center.z,
-			);
-			gemMaterialData.radius = radius;
-			(<unknown>gemMaterialData.sphericalNormalMap) = sphericalNormalMap;
 		}
 
 		const material = this._renderingEngine.materialLoader.load(
@@ -500,6 +473,68 @@ export class GeometryLoader implements ILoader {
 		}
 	}
 
+	/**
+	 * Fill in the geometry dependent parts of a gem material: tight bounding
+	 * sphere (center, radius), the spherical normal cube map and the side.
+	 */
+	private prepareGemMaterialData(
+		geometry: GeometryData,
+		threeGeometry: THREE.BufferGeometry,
+		gemMaterialData: MaterialGemData,
+	): void {
+		// Gem shading wants the tight sphere around the vertices. The
+		// shared geometry keeps the AABB sphere createMesh stores for
+		// culling. Leaving the tight sphere on the geometry makes the
+		// next gem read whichever sphere was stored first.
+		const savedSphere = threeGeometry.boundingSphere;
+		const savedBox = threeGeometry.boundingBox;
+		const gemSphere = new THREE.Sphere();
+		threeGeometry.boundingSphere = gemSphere;
+		threeGeometry.boundingBox = null;
+		threeGeometry.computeBoundingSphere();
+		threeGeometry.boundingSphere = savedSphere;
+		threeGeometry.boundingBox = savedBox;
+
+		const sphericalNormalMap = this.createCubeNormalMap(
+			geometry,
+			threeGeometry,
+			gemMaterialData.normalMapResolution,
+		);
+
+		const center = gemSphere.center,
+			radius = gemSphere.radius;
+
+		gemMaterialData.side = MATERIAL_SIDE.FRONT;
+
+		gemMaterialData.center = vec3.fromValues(center.x, center.y, center.z);
+		gemMaterialData.radius = radius;
+		(<unknown>gemMaterialData.sphericalNormalMap) = sphericalNormalMap;
+	}
+
+	/**
+	 * Whether the material data of the geometry is a different material
+	 * (other id) than the one currently applied to the given object.
+	 * Versions are not compared: in-place edits keep the existing handling.
+	 */
+	public isMaterialReplaced(
+		geometry: GeometryData,
+		object: THREE.Object3D,
+	): boolean {
+		let source: IMaterialAbstractData | null;
+		if (geometry.effectMaterials.length > 0) {
+			source =
+				geometry.effectMaterials[geometry.effectMaterials.length - 1]
+					.material;
+		} else if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
+			source = geometry.attributeMaterial;
+		} else {
+			source = geometry.material;
+		}
+		const current = (object as THREE.Mesh).material;
+		if (!current || Array.isArray(current)) return false;
+		return current.userData.SDid !== (source || geometry).id;
+	}
+
 	public updateGeometryMaterial(geometry: GeometryData): void {
 		// Instanced-data meshes carry an InstanceData suffix in their cache key.
 		const cacheKey = geometry.id + "_" + geometry.version;
@@ -659,6 +694,19 @@ export class GeometryLoader implements ILoader {
 				hasMorphTargets && morphAttributes.normal !== undefined,
 		};
 
+		// Only a gem material that was not set up yet: every setup takes
+		// another reference on the cached normal map.
+		if (
+			incomingMaterialData instanceof MaterialGemData &&
+			!incomingMaterialData.sphericalNormalMap
+		) {
+			this.prepareGemMaterialData(
+				geometry,
+				threeGeometry,
+				incomingMaterialData,
+			);
+		}
+
 		const material = this._renderingEngine.materialLoader.load(
 			incomingMaterialData || geometry,
 			materialSettings,
@@ -670,6 +718,10 @@ export class GeometryLoader implements ILoader {
 		geometryObjects.forEach((geometryObject) => {
 			this._renderingEngine.pulseEffectManager.clear(geometryObject);
 			geometryObject.material = material;
+			geometryObject.receiveShadow =
+				material instanceof GemMaterial
+					? false
+					: geometry.receiveShadow;
 			if (geometryObject instanceof THREE.InstancedMesh) {
 				if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
 					geometryObject.instanceColor = null;

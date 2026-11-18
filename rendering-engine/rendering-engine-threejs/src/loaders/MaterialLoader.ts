@@ -361,6 +361,9 @@ export class MaterialLoader implements ILoader {
 				const compile = material.onBeforeCompile;
 				const trackedKey = material.userData.cacheKey;
 				const shader = material.userData.shader;
+				// the source ids tell GeometryLoader.isMaterialReplaced
+				// that the mesh still shows the default material
+				const {SDid, SDversion} = material.userData;
 				const {properties, mapCount} = this.getMaterialProperties(
 					this._defaultMaterialData,
 					GEOMETRY_MATERIAL_TYPE.MESH,
@@ -387,6 +390,8 @@ export class MaterialLoader implements ILoader {
 					this._environmentMapPbrMode,
 				);
 				material.needsUpdate = true;
+				material.userData.SDid = SDid;
+				material.userData.SDversion = SDversion;
 				if (!batch) continue;
 				material.onBeforeCompile = compile;
 				material.userData.materialBatch = true;
