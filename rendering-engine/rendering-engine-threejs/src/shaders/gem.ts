@@ -389,13 +389,18 @@ vec3 raySphereIntersection(vec3 o, vec3 d) {
 // bounding sphere only provides the first guess for the facet that is hit.
 vec3 rayGemIntersection(vec3 o, vec3 d, out vec3 n) {
 	vec3 p = raySphereIntersection(o, d);
+	n = normalize(textureCube(sphericalNormalMap, normalize(p - center)).xyz);
 	for(int k = 0; k < 2; k++) {
 		vec4 s = textureCube(sphericalNormalMap, normalize(p - center));
-		n = normalize(s.xyz);
-		float denominator = dot(d, n);
+		vec3 m = normalize(s.xyz);
+		float denominator = dot(d, m);
 		if(denominator > 1e-4) {
-			float t = (s.a - dot(o - center, n)) / denominator;
-			if(t > 0.0) p = o + t * d;
+			float t = (s.a - dot(o - center, m)) / denominator;
+			// keep the normal paired with the plane the hit point lies on
+			if(t > 0.0) {
+				p = o + t * d;
+				n = m;
+			}
 		}
 	}
 	return p;
