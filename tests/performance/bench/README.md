@@ -159,6 +159,13 @@ The tables are printed and written to `tests/test-results/bench/work-count.md`, 
 
 WebGL calls include the methods of the `WEBGL_multi_draw` extension, which three.js uses to draw a `BatchedMesh`. One multi-draw call counts as one draw call.
 
+Two more sections load a file through `DataEngine.loadContent` and wait for the converted tree; it is not added to the scene. They are asynchronous, so `performance.now()` stands still during them: the loader's progress events (every 500 ms) and its time-sliced yields would otherwise make the count depend on the speed of the machine. Work in a Web Worker does not count, because only scripts of the build's origin do.
+
+| Section               | What runs                                                                                                      |
+| --------------------- | -------------------------------------------------------------------------------------------------------------- |
+| glTF load, plain glb  | A facade-sized glb shaped like ShapeDiver output (`../syntheticGlb.ts`, 312 meshes, 1,249 nodes), from memory. |
+| glTF load, Draco glTF | `../assets/Box.gltf`, one Draco-compressed primitive.                                                          |
+
 | Counter            | Meaning                                                                                                                         |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
 | JS function calls  | Calls of functions in the viewer bundle (`bundle.js`, which includes three.js and the other dependencies). V8 precise coverage. |
@@ -201,5 +208,6 @@ Set `COUNT_DUMP` to a file. Each section of each page appends one line `{origin,
 - **Shader compilation.** It runs in the GPU process. `budgets.baseline.json` counts shader programs.
 - **Garbage collection and allocation.** Neither is counted. An allocation-heavy change can be slower with fewer calls.
 - **Native code.** Built-in functions (`Array.prototype.sort`, typed arrays, DOM) count as nothing; only bundle functions and their blocks do. The WebGL calls are the exception, because they are wrapped.
-- **Work outside the sections.** Loading, the first frame, beauty renders and asynchronous work after `viewport.update()` are not counted.
+- **Work outside the sections.** Loading other than the two glTF sections, the first frame, beauty renders and asynchronous work after `viewport.update()` are not counted.
+- **How work is spread in time.** A glTF load that yields to the browser does the same work as one that does not; only the timing benchmark or the Long Tasks API sees the difference.
 - **Optimized-code behaviour.** With the optimizing compilers off, the counts describe the code, not what V8 makes of it.

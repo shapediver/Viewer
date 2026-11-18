@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import {AEC_DEFAULT, aecSceneCounts} from "./fixtures/aecScene";
 import {openViewer, type PassRecord, type SceneVariant} from "./fixtures/probe";
+import {syntheticGlb} from "./syntheticGlb";
 
 /**
  * Budgets for an AEC-like scene with product-default settings.
@@ -31,9 +32,9 @@ const VARIANTS: SceneVariant[] = [
 	{id: "noShadowsSsao", shadows: false, ssao: true},
 ];
 
-// Scenes that are not a rendering variant. Both run without shadows, so they
-// also run on a software renderer.
-const SCENARIOS = ["interaction", "attributes", "blendedGlass"];
+// Scenes that are not a rendering variant. They run without shadows, so they
+// also run on a software renderer. `gltf` loads files and renders nothing.
+const SCENARIOS = ["interaction", "attributes", "blendedGlass", "gltf"];
 const BASELINE_IDS = [...VARIANTS.map((v) => v.id), ...SCENARIOS];
 
 const ATTRIBUTE_SCENE = {...AEC_DEFAULT, floors: 4};
@@ -511,9 +512,127 @@ async function collectAttributes(page: Page): Promise<Counters> {
 	return counters;
 }
 
+const GLTF_ASSET_HOST = "https://budget-assets.viewertests.invalid";
+// Shaped like ShapeDiverGltfV2Writer output, facade-sized (1,249 nodes).
+const GLTF_PLAIN = syntheticGlb({
+	meshes: 312,
+	instancesPerMesh: 3,
+	gridSize: 8,
+	jitter: true,
+});
+
+/**
+ * glTF loading (SS-10396). The AEC scene is built in the page and never
+ * loads a file, so this scenario loads a plain glb and a Draco glTF through
+ * `DataEngine.loadContent` and counts where the work happens.
+ */
+async function collectGltf(page: Page): Promise<Counters> {
+	await page.route(`${GLTF_ASSET_HOST}/**`, async (route) => {
+		const name = path.basename(new URL(route.request().url()).pathname);
+		if (name === "plain.glb")
+			return route.fulfill({
+				status: 200,
+				contentType: "model/gltf-binary",
+				body: GLTF_PLAIN,
+			});
+		const file = path.join(__dirname, "assets", name);
+		if (!fs.existsSync(file)) return route.fulfill({status: 404});
+		await route.fulfill({status: 200, body: fs.readFileSync(file)});
+	});
+	return page.evaluate(
+		async ({host, bodyBytes}) => {
+			const SDV = (window as any).SDV;
+			// Workers and the requests posted to them.
+			let workers = 0;
+			let workerRequests = 0;
+			const OriginalWorker = window.Worker;
+			(window as any).Worker = function WorkerProxy(
+				this: Worker,
+				...args: ConstructorParameters<typeof Worker>
+			) {
+				workers++;
+				const worker = new OriginalWorker(...args);
+				const post = worker.postMessage.bind(worker);
+				worker.postMessage = ((...message: any[]) => {
+					workerRequests++;
+					return (post as any)(...message);
+				}) as Worker["postMessage"];
+				return worker;
+			};
+			// Copies of a whole GLB body.
+			let bodyCopies = 0;
+			const slice = ArrayBuffer.prototype.slice;
+			ArrayBuffer.prototype.slice = function (
+				this: ArrayBuffer,
+				...args: [number?, number?]
+			) {
+				const copy = slice.apply(this, args);
+				if (copy.byteLength >= bodyBytes) bodyCopies++;
+				return copy;
+			};
+			// Animation frames while the loader converts nodes: from its
+			// "initial logic" event to its end event. 0 means the conversion
+			// was one task. (scheduler.yield resumes ahead of queued tasks, so a
+			// posted message is not a probe; the frames are what it lets through.)
+			let converting = false;
+			let framesWhileConverting = 0;
+			SDV.addListener(SDV.EVENTTYPE.TASK.TASK_PROCESS, (event: any) => {
+				if (
+					event.type === SDV.TASK_TYPE.GLTF_CONTENT_LOADING &&
+					event.progress === 0.1
+				)
+					converting = true;
+			});
+			SDV.addListener(SDV.EVENTTYPE.TASK.TASK_END, (event: any) => {
+				if (event.type === SDV.TASK_TYPE.GLTF_CONTENT_LOADING)
+					converting = false;
+			});
+			let counting = true;
+			const frame = () => {
+				if (converting) framesWhileConverting++;
+				if (counting) requestAnimationFrame(frame);
+			};
+			requestAnimationFrame(frame);
+
+			const counters: Record<string, number> = {};
+			const load = (format: string, name: string) =>
+				SDV.DataEngine.instance.loadContent({
+					format,
+					href: `${host}/${name}`,
+				});
+
+			await load("glb", "plain.glb");
+			counters["plain.workersCreated"] = workers;
+			counters["plain.bodyCopies"] = bodyCopies;
+			counters["plain.conversionYielded"] = Math.min(
+				1,
+				framesWhileConverting,
+			);
+
+			// Box.gltf has one Draco primitive.
+			await load("gltf", "Box.gltf");
+			counters["draco.workersCreated"] = workers;
+			counters["draco.decodesInWorker"] = workerRequests;
+			counters["draco.decodesOnMainThread"] = 1 - workerRequests;
+			await load("gltf", "Box.gltf");
+			counters["draco.secondLoad.workersCreated"] = workers;
+			counters["draco.secondLoad.decodesInWorker"] = workerRequests;
+
+			counting = false;
+			ArrayBuffer.prototype.slice = slice;
+			(window as any).Worker = OriginalWorker;
+			return counters;
+		},
+		{host: GLTF_ASSET_HOST, bodyBytes: GLTF_PLAIN.length / 2},
+	);
+}
+
 for (const scenario of SCENARIOS) {
 	test(`budget: AEC facade, ${scenario}`, async ({page}) => {
-		await page.clock.install({time: new Date("2026-01-01T00:00:00Z")});
+		// gltf renders nothing and measures how the loader slices its work in
+		// time, which a faked clock would stop.
+		if (scenario !== "gltf")
+			await page.clock.install({time: new Date("2026-01-01T00:00:00Z")});
 		await openViewer(page);
 		if (await isSoftwareRenderer(page)) test.setTimeout(900_000);
 
@@ -522,7 +641,9 @@ for (const scenario of SCENARIOS) {
 				? await collectInteraction(page)
 				: scenario === "attributes"
 					? await collectAttributes(page)
-					: await collectBlendedGlass(page);
+					: scenario === "blendedGlass"
+						? await collectBlendedGlass(page)
+						: await collectGltf(page);
 		if (UPDATE) {
 			writeBaseline(scenario, counters);
 			return;

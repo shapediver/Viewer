@@ -36,12 +36,17 @@ import {
 } from "@shapediver/viewer.shared.types";
 import {mat4, vec3, vec4} from "gl-matrix";
 
+import {
+	getDracoDecoder,
+	type IDecodedDracoPrimitive,
+} from "./draco/DracoWorkerDecoder";
 import {AccessorLoader} from "./loaders/AccessorLoader";
 import {BufferLoader} from "./loaders/BufferLoader";
 import {BufferViewLoader} from "./loaders/BufferViewLoader";
 import {GeometryLoader} from "./loaders/GeometryLoader";
 import {MaterialLoader} from "./loaders/MaterialLoader";
 import {TextureLoader} from "./loaders/TextureLoader";
+import {TimeSlicer} from "./yieldToEventLoop";
 
 export enum GLTF_EXTENSIONS {
 	KHR_BINARY_GLTF = "KHR_binary_glTF",
@@ -89,6 +94,8 @@ export class GLTFLoader {
 	private readonly _logger: Logger = Logger.instance;
 	private readonly _performanceEvaluator = PerformanceEvaluator.instance;
 	private readonly _progressUpdateLimit = 500;
+	/** Node conversion yields to the browser after each slice. */
+	private readonly _timeSlicer = new TimeSlicer();
 	private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 	private readonly _matrixPool: mat4[] = [];
 	private readonly _vec3Pool: vec3[] = [];
@@ -147,28 +154,32 @@ export class GLTFLoader {
 		this._progressTimer = performance.now();
 
 		this._baseUri = baseUri;
-		if (gltfBinary && gltfHeader)
-			this._body = gltfBinary.slice(
+		let bodyRange: {byteOffset: number; byteLength: number} | undefined;
+		if (gltfBinary && gltfHeader) {
+			const byteOffset =
 				this.BINARY_EXTENSION_HEADER_LENGTH +
-					gltfHeader.contentLength +
-					8,
-				gltfHeader.length,
-			);
+				gltfHeader.contentLength +
+				8;
+			const byteLength = Math.max(0, gltfHeader.length - byteOffset);
+			if (byteOffset % 4 === 0) {
+				// Views read the BIN chunk inside the file, without a copy.
+				this._body = gltfBinary;
+				bodyRange = {byteOffset, byteLength};
+			} else {
+				// A JSON chunk without its 4-byte padding: typed arrays need
+				// aligned offsets, so copy the body out as before.
+				this._body = gltfBinary.slice(byteOffset, gltfHeader.length);
+			}
+		}
 		this._content = content;
 
 		this.validateVersionAndExtensions();
-
-		// Lazy load DRACO module and parallelize independent loaders
-		const {default: DRACO} =
-			(await import("./draco/draco_decoder.js")) as unknown as {
-				default: new () => Promise<unknown>;
-			};
-		const dracoModulePromise = new DRACO();
 
 		this._bufferLoader = new BufferLoader(
 			this._content,
 			this._body,
 			this._baseUri,
+			bodyRange,
 		);
 		const imageBufferViewIds = new Set(
 			this._content.images
@@ -197,35 +208,37 @@ export class GLTFLoader {
 			this._bufferLoader,
 		);
 		this._bufferViewLoader.load(imageBufferViewIds);
+
+		// Draco decodes in a worker while textures and accessors load.
+		const dracoPromise = this.decodeDraco();
+		// Do not leave a rejection unobserved while the other loaders run.
+		dracoPromise.catch(() => undefined);
+
 		this._accessorLoader = new AccessorLoader(
 			this._content,
 			this._bufferViewLoader,
 		);
-		this._accessorLoader.load();
+		await this._accessorLoader.load(this._timeSlicer);
 
-		// Parallelize texture loading and DRACO module initialization
 		this._textureLoader = new TextureLoader(
 			this._content,
 			this._bufferViewLoader,
 			this._baseUri,
 			sessionId,
 		);
-		const [dracoModule] = await Promise.all([
-			dracoModulePromise,
-			this._textureLoader.load(),
-		]);
+		await this._textureLoader.load();
 
 		this._materialLoader = new MaterialLoader(
 			this._content,
 			this._textureLoader,
 		);
 		await this._materialLoader.load();
+		const dracoPrimitives = await dracoPromise;
 		this._geometryLoader = new GeometryLoader(
 			this._content,
 			this._accessorLoader,
-			this._bufferViewLoader,
 			this._materialLoader,
-			dracoModule,
+			dracoPrimitives,
 			this._urlHash,
 			gpuInstancingEnabled === true,
 		);
@@ -269,9 +282,6 @@ export class GLTFLoader {
 			status: "GlTF loading complete.",
 		};
 		this._eventEngine.emitEvent(EVENTTYPE.TASK.TASK_END, eventEnd);
-
-		// Clean up resources that are no longer needed
-		this._geometryLoader.cleanup();
 
 		return node;
 	}
@@ -539,6 +549,9 @@ export class GLTFLoader {
 	}
 
 	private async loadNode(nodeId: number): Promise<ITreeNode> {
+		// A large glb must not block the page for its whole conversion.
+		if (this._timeSlicer.due) await this._timeSlicer.yield();
+
 		if (!this._content.nodes) throw new Error("Nodes not available.");
 		if (!this._content.nodes[nodeId])
 			throw new Error("Node not available.");
@@ -805,6 +818,51 @@ export class GLTFLoader {
 		}
 
 		return nodeDef;
+	}
+
+	/**
+	 * Decode the Draco primitives that the scene uses, before the nodes are
+	 * converted. A glTF without Draco does not touch the decoder.
+	 */
+	private async decodeDraco(): Promise<Map<string, IDecodedDracoPrimitive>> {
+		const decoded = new Map<string, IDecodedDracoPrimitive>();
+		const meshes = new Set<number>();
+		const scene = this._content.scenes?.[this._content.scene || 0];
+		const stack = [...(scene?.nodes ?? [])];
+		const visited = new Set<number>();
+		while (stack.length > 0) {
+			const nodeId = stack.pop()!;
+			if (visited.has(nodeId)) continue;
+			visited.add(nodeId);
+			const node = this._content.nodes?.[nodeId];
+			if (!node) continue;
+			if (node.mesh !== undefined) meshes.add(node.mesh);
+			if (node.children) stack.push(...node.children);
+		}
+
+		const requests: Promise<void>[] = [];
+		for (const meshId of meshes) {
+			const primitives = this._content.meshes?.[meshId]?.primitives ?? [];
+			primitives.forEach((primitive, index) => {
+				const draco =
+					primitive.extensions?.[
+						GLTF_EXTENSIONS.KHR_DRACO_MESH_COMPRESSION
+					];
+				if (!draco) return;
+				const view = this._bufferViewLoader.getBufferView(
+					draco.bufferView!,
+				);
+				requests.push(
+					getDracoDecoder()
+						.decode(view, draco.attributes)
+						.then((result) => {
+							decoded.set(meshId + "_" + index, result);
+						}),
+				);
+			});
+		}
+		await Promise.all(requests);
+		return decoded;
 	}
 
 	private async loadScene(): Promise<ITreeNode> {

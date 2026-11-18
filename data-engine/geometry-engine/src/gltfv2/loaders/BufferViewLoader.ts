@@ -59,13 +59,16 @@ export class BufferViewLoader {
 						"BufferViewLoader.load: BufferView has no buffer defined.",
 					);
 				const buffer = this._bufferLoader.getBuffer(bufferView.buffer!);
+				const range = this._bufferLoader.getBufferRange(
+					bufferView.buffer!,
+				);
 
 				this._loaded[bufferViewId] = {
 					buffer,
-					byteOffset,
+					byteOffset: range.byteOffset + byteOffset,
 					byteLength: Math.min(
 						byteLength,
-						Math.max(0, buffer.byteLength - byteOffset),
+						Math.max(0, range.byteLength - byteOffset),
 					),
 				};
 			} catch (e) {

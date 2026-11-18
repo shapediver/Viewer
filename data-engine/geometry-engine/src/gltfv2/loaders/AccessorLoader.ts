@@ -6,6 +6,7 @@ import {
 	type IGLTF_v2,
 } from "@shapediver/viewer.shared.types";
 
+import {type TimeSlicer} from "../yieldToEventLoop";
 import {BufferViewLoader} from "./BufferViewLoader";
 
 export class AccessorLoader {
@@ -44,9 +45,10 @@ export class AccessorLoader {
 		return this._loaded[accessorId];
 	}
 
-	public load(): void {
+	public async load(timeSlicer?: TimeSlicer): Promise<void> {
 		if (!this._content.accessors) return;
 		for (let i = 0; i < this._content.accessors.length; i++) {
+			if (timeSlicer?.due) await timeSlicer.yield();
 			const accessorId = i;
 			if (!this._content.accessors[accessorId])
 				throw new Error(

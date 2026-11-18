@@ -14,6 +14,9 @@ export class BufferLoader {
 	private _loaded: {
 		[key: string]: ArrayBuffer;
 	} = {};
+	private _ranges: {
+		[key: string]: {byteOffset: number; byteLength: number};
+	} = {};
 
 	// #endregion Properties (2)
 
@@ -23,6 +26,8 @@ export class BufferLoader {
 		private readonly _content: IGLTF_v2,
 		private _body?: ArrayBuffer,
 		private _baseUri?: string,
+		/** The GLB body is read in place inside the file, not copied out. */
+		private _bodyRange?: {byteOffset: number; byteLength: number},
 	) {}
 
 	// #endregion Constructors (1)
@@ -37,6 +42,23 @@ export class BufferLoader {
 		if (!this._loaded[bufferId])
 			throw new Error("BufferLoader.getBuffer: Buffer not loaded.");
 		return this._loaded[bufferId];
+	}
+
+	/**
+	 * Where the buffer's bytes are inside {@link getBuffer}. Only the GLB
+	 * body starts after offset 0.
+	 */
+	public getBufferRange(bufferId: number): {
+		byteOffset: number;
+		byteLength: number;
+	} {
+		const buffer = this.getBuffer(bufferId);
+		return (
+			this._ranges[bufferId] ?? {
+				byteOffset: 0,
+				byteLength: buffer.byteLength,
+			}
+		);
 	}
 
 	public async load(
@@ -64,7 +86,9 @@ export class BufferLoader {
 					throw new Error("BufferLoader.load: Buffer not available.");
 				}
 				this._loaded[bufferId] = this._body;
-				return;
+				if (this._bodyRange) this._ranges[bufferId] = this._bodyRange;
+				// The other buffers still have to load.
+				continue;
 			}
 			if (buffer.uri === undefined) {
 				if (skipErrorsForBuffers.has(bufferId)) continue;

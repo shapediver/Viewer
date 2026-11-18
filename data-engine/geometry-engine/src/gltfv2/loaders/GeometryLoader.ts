@@ -17,9 +17,9 @@ import {
 	type IMaterialAbstractData,
 } from "@shapediver/viewer.shared.types";
 import {hashTypedArray} from "../../hashTypedArray";
+import {type IDecodedDracoPrimitive} from "../draco/DracoWorkerDecoder";
 import {GLTF_EXTENSIONS} from "../GLTFLoader";
 import {AccessorLoader} from "./AccessorLoader";
-import {BufferViewLoader} from "./BufferViewLoader";
 import {MaterialLoader} from "./MaterialLoader";
 
 /**
@@ -79,7 +79,6 @@ export class GeometryLoader {
 		PendingInstancing[]
 	>();
 	private readonly _digitRegex = /\d/;
-	private _dracoDecoder: any = null;
 
 	private _materialVariantsData = new MaterialVariantsData();
 	private _loaded: {
@@ -93,9 +92,8 @@ export class GeometryLoader {
 	constructor(
 		private readonly _content: IGLTF_v2,
 		private readonly _accessorLoader: AccessorLoader,
-		private readonly _bufferViewLoader: BufferViewLoader,
 		private readonly _materialLoader: MaterialLoader,
-		private readonly _dracoModule: any,
+		private readonly _dracoPrimitives: Map<string, IDecodedDracoPrimitive>,
 		private readonly _urlHash?: number,
 		private readonly _gpuInstancingEnabled: boolean = false,
 	) {
@@ -1155,127 +1153,34 @@ export class GeometryLoader {
 			primitive.extensions &&
 			primitive.extensions[GLTF_EXTENSIONS.KHR_DRACO_MESH_COMPRESSION]
 		) {
-			const dracoDef =
-				primitive.extensions[
-					GLTF_EXTENSIONS.KHR_DRACO_MESH_COMPRESSION
-				];
-			const dracoBufferView = this._bufferViewLoader.getBufferView(
-				dracoDef.bufferView!,
-			);
-
-			// Reuse decoder to avoid overhead of creating new instance for each primitive
-			if (!this._dracoDecoder) {
-				this._dracoDecoder = new this._dracoModule.Decoder();
-			}
-			const decoder = this._dracoDecoder;
-			const array = new Int8Array(
-				dracoBufferView.buffer,
-				dracoBufferView.byteOffset,
-				dracoBufferView.byteLength,
-			);
-			const geometryType = decoder.GetEncodedGeometryType(array);
-
-			let dracoGeometry;
-			if (geometryType === this._dracoModule.TRIANGULAR_MESH) {
-				dracoGeometry = new this._dracoModule.Mesh();
-				decoder.DecodeArrayToMesh(
+			// Decoded before the scene conversion, see GLTFLoader.decodeDraco.
+			const decoded = this._dracoPrimitives.get(meshId + "_" + index);
+			if (!decoded)
+				throw new Error(
+					"GeometryLoader.loadPrimitive: Draco primitive was not decoded.",
+				);
+			for (const attribute of decoded.attributes) {
+				const array = attribute.array;
+				attributes[attribute.name] = new AttributeData(
 					array,
-					array.byteLength,
-					dracoGeometry,
-				);
-			} else if (geometryType === this._dracoModule.POINT_CLOUD) {
-				dracoGeometry = new this._dracoModule.PointCloud();
-				decoder.DecodeArrayToPointCloud(
-					array,
-					array.byteLength,
-					dracoGeometry,
-				);
-			}
-
-			if (dracoDef.attributes["POSITION"] === undefined) {
-				const errorMsg = "No position attribute found in the mesh.";
-				this._dracoModule.destroy(dracoGeometry);
-				throw new Error(errorMsg);
-			}
-
-			for (const a in dracoDef.attributes) {
-				const attribute = decoder.GetAttributeByUniqueId(
-					dracoGeometry,
-					dracoDef.attributes[a],
-				);
-				const attributeData = new this._dracoModule.DracoFloat32Array();
-				decoder.GetAttributeFloatForAllPoints(
-					dracoGeometry,
-					attribute,
-					attributeData,
-				);
-
-				const byteOffset = attribute.byte_offset();
-				const normalized = attribute.normalized();
-				const numComponents = attribute.num_components();
-
-				const numPoints = dracoGeometry.num_points();
-				const numValues = numPoints * numComponents;
-				const byteLength = numValues * Float32Array.BYTES_PER_ELEMENT;
-
-				const ptr = this._dracoModule._malloc(byteLength);
-				decoder.GetAttributeDataArrayForAllPoints(
-					dracoGeometry,
-					attribute,
-					this._dracoModule.DT_FLOAT32,
-					byteLength,
-					ptr,
-				);
-				const array = new Float32Array(
-					this._dracoModule.HEAPF32.buffer,
-					ptr,
-					numValues,
-				).slice();
-				this._dracoModule._free(ptr);
-
-				if (a.includes("COLOR"))
-					array.forEach(
-						(n, i) => (array[i] = Math.max(0, Math.min(1, n))),
-					);
-
-				attributes[a] = new AttributeData(
-					array,
-					numComponents, // itemSize
-					array.BYTES_PER_ELEMENT * numComponents, // itemBytes = elementBytes * itemSize
-					byteOffset, // byteOffset
+					attribute.numComponents, // itemSize
+					array.BYTES_PER_ELEMENT * attribute.numComponents, // itemBytes
+					attribute.byteOffset, // byteOffset
 					array.BYTES_PER_ELEMENT, // elementBytes
-					normalized, // normalized
-					array.length / numComponents,
+					attribute.normalized, // normalized
+					array.length / attribute.numComponents, // count
 				);
 			}
-
-			if (geometryType == this._dracoModule.TRIANGULAR_MESH) {
-				const numFaces = dracoGeometry.num_faces();
-				const numIndices = numFaces * 3;
-				const byteLength = numIndices * 4;
-
-				const ptr = this._dracoModule._malloc(byteLength);
-				decoder.GetTrianglesUInt32Array(dracoGeometry, byteLength, ptr);
-				const indexArray = new Uint32Array(
-					this._dracoModule.HEAPF32.buffer,
-					ptr,
-					numIndices,
-				).slice();
-				this._dracoModule._free(ptr);
-
+			if (decoded.indices)
 				indices = new AttributeData(
-					indexArray,
+					decoded.indices,
 					1, // itemSize
-					indexArray.BYTES_PER_ELEMENT * 1, // itemBytes = elementBytes * itemSize
+					decoded.indices.BYTES_PER_ELEMENT, // itemBytes
 					0, // byteOffset
-					indexArray.BYTES_PER_ELEMENT, // elementBytes
+					decoded.indices.BYTES_PER_ELEMENT, // elementBytes
 					false, // normalized
-					indexArray.length, // count
+					decoded.indices.length, // count
 				);
-			}
-
-			// Keep decoder alive for reuse, only destroy geometry
-			this._dracoModule.destroy(dracoGeometry);
 		}
 
 		for (const attribute in primitive.attributes) {
@@ -1396,16 +1301,6 @@ export class GeometryLoader {
 		}
 
 		return geometryData;
-	}
-
-	/**
-	 * Clean up resources to free memory after loading is complete
-	 */
-	public cleanup(): void {
-		if (this._dracoDecoder) {
-			this._dracoModule.destroy(this._dracoDecoder);
-			this._dracoDecoder = null;
-		}
 	}
 
 	// #endregion Private Methods (1)
