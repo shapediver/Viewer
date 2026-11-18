@@ -136,6 +136,24 @@ export class MaterialLoader implements ILoader {
 			materialSettings?: MaterialSettings;
 		};
 	} = {};
+	// no occlusion (alpha 1) until the shading pass provides the AO texture;
+	// three binds a black texture for null, which would occlude everything
+	private readonly _screenAONone = (() => {
+		const texture = new THREE.DataTexture(
+			new Uint8Array([255, 255, 255, 255]),
+			1,
+			1,
+		);
+		texture.needsUpdate = true;
+		return texture;
+	})();
+	// per instance: every viewer has its own WebGL context
+	private readonly _screenAOUniforms = {
+		sdvScreenAOMap: {value: this._screenAONone as THREE.Texture | null},
+		sdvScreenAOPower: {value: 1},
+		sdvScreenAOColor: {value: new THREE.Color(0, 0, 0)},
+	};
+	private _screenAOEnabled = false;
 	private _shaderProgramCache: Map<string, ThreeJsMaterialTypes> = new Map();
 	private _compiledShaderSignatures: Set<string> = new Set();
 	private _maxMapCount: number = 0;
@@ -349,6 +367,102 @@ export class MaterialLoader implements ILoader {
 		material.needsUpdate = true;
 	};
 
+	/**
+	 * Turns the screen space ambient occlusion in the material shading on
+	 * or off for all cached materials. Gems, transparent materials and
+	 * unlit materials are never affected.
+	 */
+	public setScreenSpaceAmbientOcclusion(enabled: boolean) {
+		if (enabled === this._screenAOEnabled) return;
+		this._screenAOEnabled = enabled;
+		if (!enabled)
+			this._screenAOUniforms.sdvScreenAOMap.value = this._screenAONone;
+		for (const cacheKey in this._materialCache) {
+			this.assignScreenAOToMaterial(
+				this._materialCache[cacheKey].material,
+			);
+		}
+	}
+
+	public get screenAOUniforms() {
+		return this._screenAOUniforms;
+	}
+
+	private assignScreenAOToMaterial(material: THREE.Material): void {
+		const eligible =
+			this._screenAOEnabled &&
+			(material instanceof THREE.MeshStandardMaterial ||
+				material instanceof THREE.MeshLambertMaterial ||
+				material instanceof THREE.MeshPhongMaterial) &&
+			!(material instanceof GemMaterial) &&
+			!material.transparent;
+		const materialWithDefines = material as THREE.Material & {
+			defines?: {[key: string]: string};
+		};
+		const present =
+			materialWithDefines.defines !== undefined &&
+			"SDV_SCREEN_AO" in materialWithDefines.defines;
+		if (eligible === present) return;
+		if (eligible) {
+			materialWithDefines.defines ??= {};
+			materialWithDefines.defines["SDV_SCREEN_AO"] = "";
+		} else {
+			delete materialWithDefines.defines!["SDV_SCREEN_AO"];
+		}
+		material.needsUpdate = true;
+	}
+
+	/**
+	 * Multiplies the indirect light by the screen space ambient occlusion.
+	 * Everything is guarded by SDV_SCREEN_AO, and replacing an include that
+	 * the shader does not contain is a no-op.
+	 */
+	private patchScreenSpaceAmbientOcclusion(
+		shader: THREE.WebGLProgramParametersWithUniforms,
+	): void {
+		shader.vertexShader = shader.vertexShader
+			.replace(
+				"#include <common>",
+				"#include <common>\n#ifdef SDV_SCREEN_AO\nvarying vec4 vSdvScreenAOPosition;\n#endif",
+			)
+			.replace(
+				"#include <project_vertex>",
+				"#include <project_vertex>\n#ifdef SDV_SCREEN_AO\nvSdvScreenAOPosition = gl_Position;\n#endif",
+			);
+		shader.fragmentShader = shader.fragmentShader
+			.replace(
+				"#include <common>",
+				`#include <common>
+#ifdef SDV_SCREEN_AO
+varying vec4 vSdvScreenAOPosition;
+uniform sampler2D sdvScreenAOMap;
+uniform float sdvScreenAOPower;
+uniform vec3 sdvScreenAOColor;
+#endif`,
+			)
+			.replace(
+				"#include <aomap_fragment>",
+				`#include <aomap_fragment>
+#ifdef SDV_SCREEN_AO
+{
+	vec2 sdvAOUv = vSdvScreenAOPosition.xy / vSdvScreenAOPosition.w * 0.5 + 0.5;
+	float sdvAO = pow( clamp( textureLod( sdvScreenAOMap, sdvAOUv, 0.0 ).a, 0.0, 1.0 ), sdvScreenAOPower );
+	reflectedLight.indirectDiffuse *= mix( sdvScreenAOColor, vec3( 1.0 ), sdvAO );
+	#if defined( USE_CLEARCOAT )
+		clearcoatSpecularIndirect *= sdvAO;
+	#endif
+	#if defined( USE_SHEEN )
+		sheenSpecularIndirect *= sdvAO;
+	#endif
+	#if defined( USE_ENVMAP ) && defined( STANDARD )
+		float sdvDotNV = saturate( dot( geometryNormal, geometryViewDir ) );
+		reflectedLight.indirectSpecular *= computeSpecularOcclusion( sdvDotNV, sdvAO, material.roughness );
+	#endif
+}
+#endif`,
+			);
+	}
+
 	public assignDefaultMaterial() {
 		const batches: ThreeJsMaterialTypes[] = [];
 		for (const cacheKey in this._materialCache) {
@@ -386,6 +500,7 @@ export class MaterialLoader implements ILoader {
 					material,
 					this._environmentMapPbrMode,
 				);
+				this.assignScreenAOToMaterial(material);
 				material.needsUpdate = true;
 				if (!batch) continue;
 				material.onBeforeCompile = compile;
@@ -926,7 +1041,15 @@ export class MaterialLoader implements ILoader {
 							value: this._lightSizeUV,
 						};
 						shader.uniforms.blending = {value: this._blending};
+						// shared by reference, the shading pass updates them
+						shader.uniforms.sdvScreenAOMap =
+							this._screenAOUniforms.sdvScreenAOMap;
+						shader.uniforms.sdvScreenAOPower =
+							this._screenAOUniforms.sdvScreenAOPower;
+						shader.uniforms.sdvScreenAOColor =
+							this._screenAOUniforms.sdvScreenAOColor;
 					}
+					this.patchScreenSpaceAmbientOcclusion(shader);
 					material.userData.shader = shader;
 				};
 				if (
@@ -959,6 +1082,7 @@ export class MaterialLoader implements ILoader {
 			material,
 			this._environmentMapPbrMode,
 		);
+		this.assignScreenAOToMaterial(material);
 
 		if (
 			materialData instanceof MaterialStandardData ||

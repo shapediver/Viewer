@@ -52,6 +52,7 @@ class AOEffect extends Effect {
 			uniforms: new Map([
 				["inputTexture", new Uniform(null)],
 				["depthTexture", new Uniform(null)],
+				["normalTexture", new Uniform(null)],
 				["power", new Uniform(0) as Uniform],
 				["color", new Uniform(new Color("black"))],
 			]),
@@ -77,6 +78,7 @@ class AOEffect extends Effect {
 		).uniforms.depthTexture.value = this.normalPass.depthTexture;
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		this.uniforms.get("depthTexture")!.value = this.normalPass.depthTexture;
+		this.uniforms.get("normalTexture")!.value = this.normalPass.texture;
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		this.poissionDenoisePass = new PoissionDenoisePass(

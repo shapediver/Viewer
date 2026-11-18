@@ -4,15 +4,23 @@ import {
 	Color,
 	DepthStencilFormat,
 	DepthTexture,
+	Line,
+	Material,
+	Mesh,
 	MeshNormalMaterial,
 	NearestFilter,
+	NoBlending,
+	Object3D,
+	Points,
 	Scene,
+	Sprite,
 	Texture,
 	UnsignedInt248Type,
 	UnsignedIntType,
 	WebGLRenderer,
 	WebGLRenderTarget,
 } from "three";
+import {GemMaterial} from "../../../materials/GemMaterial";
 import {RenderPass} from "./RenderPass";
 
 /**
@@ -24,6 +32,13 @@ export class NormalPass extends Pass {
 	renderTarget: WebGLRenderTarget | undefined;
 	resolution: Resolution;
 	dTexture: any;
+	private _scene: Scene;
+	private _camera: Camera;
+	/** Writes alpha 0 where gems are, used to exclude them from the ambient occlusion. */
+	private readonly gemMaskMaterial = new MeshNormalMaterial({
+		opacity: 0,
+		blending: NoBlending,
+	});
 
 	/**
 	 * Constructs a new normal pass.
@@ -59,6 +74,9 @@ export class NormalPass extends Pass {
 		} = {},
 	) {
 		super("NormalPass");
+
+		this._scene = scene;
+		this._camera = camera;
 
 		this.needsSwap = false;
 
@@ -133,10 +151,12 @@ export class NormalPass extends Pass {
 	}
 
 	set mainScene(value: Scene) {
+		this._scene = value;
 		this.renderPass.mainScene = value;
 	}
 
 	set mainCamera(value: Camera) {
+		this._camera = value;
 		this.renderPass.mainCamera = value;
 	}
 
@@ -211,6 +231,78 @@ export class NormalPass extends Pass {
 	render(renderer: WebGLRenderer) {
 		const renderTarget = this.renderToScreen ? null : this.renderTarget;
 		this.renderPass.render(renderer, renderTarget!, renderTarget!, 0, true);
+
+		if (!this.renderToScreen) this.renderGemMask(renderer);
+	}
+
+	/**
+	 * Marks the pixels covered by gems with alpha 0 in the normal target.
+	 * The ambient occlusion ignores these pixels, so gems are never darkened.
+	 * Everything else keeps alpha 1.
+	 *
+	 * @param {WebGLRenderer} renderer - The renderer.
+	 */
+
+	private renderGemMask(renderer: WebGLRenderer) {
+		const scene = this._scene;
+		const camera = this._camera;
+		const hidden: Object3D[] = [];
+		let gemCount = 0;
+
+		scene.traverse((object: Object3D) => {
+			if (!object.visible) return;
+			const renderable = object as Mesh & Line & Points & Sprite;
+			if (
+				!renderable.isMesh &&
+				!renderable.isLine &&
+				!renderable.isPoints &&
+				!renderable.isSprite
+			)
+				return;
+
+			const material = renderable.material as Material | Material[];
+			const isGem = Array.isArray(material)
+				? material.some((m) => m instanceof GemMaterial)
+				: material instanceof GemMaterial;
+			// objects without ambient occlusion are not in the normal target either
+			if (
+				renderable.isMesh &&
+				isGem &&
+				object.userData.ambientOcclusion !== false
+			) {
+				gemCount++;
+			} else {
+				hidden.push(object);
+				object.visible = false;
+			}
+		});
+
+		if (gemCount > 0) {
+			const background = scene.background;
+			const overrideMaterial = scene.overrideMaterial;
+			const autoClear = renderer.autoClear;
+			const shadowMapAutoUpdate = renderer.shadowMap.autoUpdate;
+
+			scene.overrideMaterial = this.gemMaskMaterial;
+			scene.background = null;
+			renderer.autoClear = false;
+			renderer.shadowMap.autoUpdate = false;
+
+			renderer.setRenderTarget(this.renderTarget!);
+			renderer.render(scene, camera);
+
+			scene.overrideMaterial = overrideMaterial;
+			scene.background = background;
+			renderer.autoClear = autoClear;
+			renderer.shadowMap.autoUpdate = shadowMapAutoUpdate;
+		}
+
+		for (let i = 0; i < hidden.length; i++) hidden[i].visible = true;
+	}
+
+	override dispose() {
+		this.gemMaskMaterial.dispose();
+		super.dispose();
 	}
 
 	/**

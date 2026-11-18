@@ -183,6 +183,8 @@ export interface IHBAOEffectDefinition extends IPostProcessingEffectDefinition {
 		rings?: number;
 		/** Allows to adjust the influence of the luma difference in the denoising pass. (default: 10) */
 		lumaPhi?: number;
+		/** How the ambient occlusion is applied. "composite" darkens the final image, "shading" darkens only indirect (ambient and environment) light inside material shading, so highlights keep their brightness. Gems are not darkened in either mode. (default: "composite") */
+		mode?: "composite" | "shading";
 		/** Allows to adjust the influence of the depth difference in the denoising pass. (default: 2) */
 		depthPhi?: number;
 		/** Allows to adjust the influence of the normal difference in the denoising pass. (default: 3.25) */
@@ -302,6 +304,8 @@ export interface ISSAOEffectDefinition extends IPostProcessingEffectDefinition {
 		rings?: number;
 		/** Allows to adjust the influence of the luma difference in the denoising pass. (default: 10) */
 		lumaPhi?: number;
+		/** How the ambient occlusion is applied. "composite" darkens the final image, "shading" darkens only indirect (ambient and environment) light inside material shading, so highlights keep their brightness. Gems are not darkened in either mode. (default: "composite") */
+		mode?: "composite" | "shading";
 		/** Allows to adjust the influence of the depth difference in the denoising pass. (default: 2) */
 		depthPhi?: number;
 		/** Allows to adjust the influence of the normal difference in the denoising pass. (default: 3.25) */
