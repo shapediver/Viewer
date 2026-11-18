@@ -271,9 +271,11 @@ export class EnvironmentMapLoader implements ILoader {
 			if (e instanceof ShapeDiverViewerEnvironmentMapError) {
 				throw e;
 			} else {
+				const reason = e instanceof Error ? e.message : String(e);
 				throw new ShapeDiverViewerEnvironmentMapError(
-					"EnvironmentMapLoader.load: Was not able to load environment map.",
+					`EnvironmentMapLoader.load: Was not able to load environment map ${Array.isArray(name) ? JSON.stringify(name) : name}: ${reason}`,
 					name,
+					e,
 				);
 			}
 		}
