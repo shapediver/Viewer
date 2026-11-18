@@ -268,6 +268,25 @@ import {
 import {type ISettings as ISettingsV7_1} from "./versions/v7_1/ISettings";
 import {validate as validateV7_1} from "./versions/v7_1/Validator";
 
+import {
+	type IAmbientLightProperties as IAmbientLightPropertiesV7_2,
+	type IDirectionalLightProperties as IDirectionalLightPropertiesV7_2,
+	type IHemisphereLightProperties as IHemisphereLightPropertiesV7_2,
+	type ILightSceneSettings as ILightSceneSettingsV7_2,
+	type IPointLightProperties as IPointLightPropertiesV7_2,
+	type ISpotLightProperties as ISpotLightPropertiesV7_2} from "./versions/v3/ILightSceneSettings";
+import {
+	convertFromPrevious as convertFromPreviousV7_2,
+	convertToPrevious as convertToPreviousV7_2} from "./versions/v7_2/Converter";
+import {
+	type ICameraControlsSettings as ICameraControlsSettingsV7_2,
+	type ICameraSettings as ICameraSettingsV7_2,
+	type IOrthographicCameraSettings as IOrthographicCameraSettingsV7_2,
+	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV7_2} from "./versions/v7_1/ICameraSettings";
+import {type IPostProcessingEffectsArray as IPostProcessingEffectsArrayV7_2} from "./versions/v7_2/IPostProcessingEffectSettings";
+import {type ISettings as ISettingsV7_2} from "./versions/v7_2/ISettings";
+import {validate as validateV7_2} from "./versions/v7_2/Validator";
+
 export {DefaultsV1,
 	DefaultsV2,
 	DefaultsV3,
@@ -293,12 +312,14 @@ export type {IAmbientLightPropertiesV3,
 	IAmbientLightPropertiesV6_2,
 	IAmbientLightPropertiesV7,
 	IAmbientLightPropertiesV7_1,
+	IAmbientLightPropertiesV7_2,
 	ICameraControlsSettingsV5,
 	ICameraControlsSettingsV6,
 	ICameraControlsSettingsV6_1,
 	ICameraControlsSettingsV6_2,
 	ICameraControlsSettingsV7,
 	ICameraControlsSettingsV7_1,
+	ICameraControlsSettingsV7_2,
 	ICameraSettingsV3,
 	ICameraSettingsV3_1,
 	ICameraSettingsV3_2,
@@ -312,6 +333,7 @@ export type {IAmbientLightPropertiesV3,
 	ICameraSettingsV6_2,
 	ICameraSettingsV7,
 	ICameraSettingsV7_1,
+	ICameraSettingsV7_2,
 	IDirectionalLightPropertiesV3,
 	IDirectionalLightPropertiesV3_1,
 	IDirectionalLightPropertiesV3_2,
@@ -325,6 +347,7 @@ export type {IAmbientLightPropertiesV3,
 	IDirectionalLightPropertiesV6_2,
 	IDirectionalLightPropertiesV7,
 	IDirectionalLightPropertiesV7_1,
+	IDirectionalLightPropertiesV7_2,
 	IHemisphereLightPropertiesV3,
 	IHemisphereLightPropertiesV3_1,
 	IHemisphereLightPropertiesV3_2,
@@ -338,6 +361,7 @@ export type {IAmbientLightPropertiesV3,
 	IHemisphereLightPropertiesV6_2,
 	IHemisphereLightPropertiesV7,
 	IHemisphereLightPropertiesV7_1,
+	IHemisphereLightPropertiesV7_2,
 	ILightSceneSettingsV3,
 	ILightSceneSettingsV3_1,
 	ILightSceneSettingsV3_2,
@@ -351,6 +375,7 @@ export type {IAmbientLightPropertiesV3,
 	ILightSceneSettingsV6_2,
 	ILightSceneSettingsV7,
 	ILightSceneSettingsV7_1,
+	ILightSceneSettingsV7_2,
 	IOrbitControlsSettingsV3,
 	IOrbitControlsSettingsV3_1,
 	IOrbitControlsSettingsV3_2,
@@ -371,6 +396,7 @@ export type {IAmbientLightPropertiesV3,
 	IOrthographicCameraSettingsV6_2,
 	IOrthographicCameraSettingsV7,
 	IOrthographicCameraSettingsV7_1,
+	IOrthographicCameraSettingsV7_2,
 	IOrthographicControlsSettingsV3,
 	IOrthographicControlsSettingsV3_1,
 	IOrthographicControlsSettingsV3_2,
@@ -391,6 +417,7 @@ export type {IAmbientLightPropertiesV3,
 	IPerspectiveCameraSettingsV6_2,
 	IPerspectiveCameraSettingsV7,
 	IPerspectiveCameraSettingsV7_1,
+	IPerspectiveCameraSettingsV7_2,
 	IPointLightPropertiesV3,
 	IPointLightPropertiesV3_1,
 	IPointLightPropertiesV3_2,
@@ -404,6 +431,7 @@ export type {IAmbientLightPropertiesV3,
 	IPointLightPropertiesV6_2,
 	IPointLightPropertiesV7,
 	IPointLightPropertiesV7_1,
+	IPointLightPropertiesV7_2,
 	IPostProcessingEffectsArrayV4_0,
 	IPostProcessingEffectsArrayV4_1,
 	IPostProcessingEffectsArrayV5,
@@ -412,6 +440,7 @@ export type {IAmbientLightPropertiesV3,
 	IPostProcessingEffectsArrayV6_2,
 	IPostProcessingEffectsArrayV7,
 	IPostProcessingEffectsArrayV7_1,
+	IPostProcessingEffectsArrayV7_2,
 	ISettingsV1,
 	ISettingsV2,
 	ISettingsV3,
@@ -426,6 +455,7 @@ export type {IAmbientLightPropertiesV3,
 	ISettingsV6_2,
 	ISettingsV7,
 	ISettingsV7_1,
+	ISettingsV7_2,
 	ISpotLightPropertiesV3,
 	ISpotLightPropertiesV3_1,
 	ISpotLightPropertiesV3_2,
@@ -438,20 +468,21 @@ export type {IAmbientLightPropertiesV3,
 	ISpotLightPropertiesV6_1,
 	ISpotLightPropertiesV6_2,
 	ISpotLightPropertiesV7,
-	ISpotLightPropertiesV7_1};
+	ISpotLightPropertiesV7_1,
+	ISpotLightPropertiesV7_2};
 // this changes every version
-export type {IAmbientLightPropertiesV7_1 as IAmbientLightProperties,
-	ICameraControlsSettingsV7_1 as ICameraControlsSettings,
-	ICameraSettingsV7_1 as ICameraSettings,
-	IDirectionalLightPropertiesV7_1 as IDirectionalLightProperties,
-	IHemisphereLightPropertiesV7_1 as IHemisphereLightProperties,
-	ILightSceneSettingsV7_1 as ILightSceneSettings,
-	IOrthographicCameraSettingsV7_1 as IOrthographicCameraSettings,
-	IPerspectiveCameraSettingsV7_1 as IPerspectiveCameraSettings,
-	IPointLightPropertiesV7_1 as IPointLightProperties,
-	IPostProcessingEffectsArrayV7_1 as IPostProcessingEffectsArray,
-	ISettingsV7_1 as ISettings,
-	ISpotLightPropertiesV7_1 as ISpotLightProperties};
+export type {IAmbientLightPropertiesV7_2 as IAmbientLightProperties,
+	ICameraControlsSettingsV7_2 as ICameraControlsSettings,
+	ICameraSettingsV7_2 as ICameraSettings,
+	IDirectionalLightPropertiesV7_2 as IDirectionalLightProperties,
+	IHemisphereLightPropertiesV7_2 as IHemisphereLightProperties,
+	ILightSceneSettingsV7_2 as ILightSceneSettings,
+	IOrthographicCameraSettingsV7_2 as IOrthographicCameraSettings,
+	IPerspectiveCameraSettingsV7_2 as IPerspectiveCameraSettings,
+	IPointLightPropertiesV7_2 as IPointLightProperties,
+	IPostProcessingEffectsArrayV7_2 as IPostProcessingEffectsArray,
+	ISettingsV7_2 as ISettings,
+	ISpotLightPropertiesV7_2 as ISpotLightProperties};
 
 export type versions =
 	| "1.0"
@@ -468,7 +499,8 @@ export type versions =
 	| "6.1"
 	| "6.2"
 	| "7.0"
-	| "7.1";
+	| "7.1"
+	| "7.2";
 export const previousVersion: versions[] = [
 	"1.0",
 	"2.0",
@@ -484,6 +516,7 @@ export const previousVersion: versions[] = [
 	"6.1",
 	"6.2",
 	"7.0",
+	"7.1",
 ];
 
 const settingsUtilities: {
@@ -592,6 +625,12 @@ settingsUtilities.push({
 	convertToPrevious: convertToPreviousV7_1,
 	convertFromPrevious: convertFromPreviousV7_1,
 	validate: validateV7_1,
+});
+settingsUtilities.push({
+	version: "7.2",
+	convertToPrevious: convertToPreviousV7_2,
+	convertFromPrevious: convertFromPreviousV7_2,
+	validate: validateV7_2,
 });
 
 /**
@@ -754,4 +793,4 @@ export const evaluateSettingsVersion = (viewerVersion?: string): versions => {
 	return "1.0";
 };
 
-export const latestVersion = "7.1";
+export const latestVersion = "7.2";

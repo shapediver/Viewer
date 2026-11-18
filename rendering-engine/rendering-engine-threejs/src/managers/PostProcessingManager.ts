@@ -69,6 +69,8 @@ import {
 import * as THREE from "three";
 import {GemMaterial} from "../materials/GemMaterial";
 import {RenderingEngine} from "../RenderingEngine";
+import {AOEffect} from "./postprocessing/ao/ao/AOEffect";
+import {AOShadingPass} from "./postprocessing/ao/ao/AOShadingPass";
 import {HBAOEffect} from "./postprocessing/ao/hbao/HBAOEffect";
 import {PoissionDenoisePass} from "./postprocessing/ao/poissionDenoise/PoissionDenoisePass";
 import {SSAOEffect} from "./postprocessing/ao/ssao/SSAOEffect";
@@ -103,6 +105,9 @@ export class PostProcessingManager implements IManager {
 		effect: Effect;
 	}[] = [];
 	private _enablePostProcessingOnMobile: boolean = true;
+	// an AO effect in "shading" mode: it is not composited by an effect pass,
+	// the materials apply it to their indirect light instead
+	private _shadingAOEffect?: {token: string; effect: AOEffect};
 	private _fxaaEffect?: FXAAEffect;
 	private _godRaysManagers: {
 		[key: string]: GodRaysManager;
@@ -179,7 +184,9 @@ export class PostProcessingManager implements IManager {
 	}
 
 	public get effects(): {token: string; effect: Effect}[] {
-		return this._effects;
+		return this._shadingAOEffect
+			? [...this._effects, this._shadingAOEffect]
+			: this._effects;
 	}
 
 	public get enablePostProcessingOnMobile(): boolean {
@@ -226,8 +233,12 @@ export class PostProcessingManager implements IManager {
 
 	public set manualPostProcessing(value: boolean) {
 		this._manualPostProcessing = value;
-		if (this._composer && this._manualPostProcessing === true)
+		if (this._composer && this._manualPostProcessing === true) {
 			this._composer.removeAllPasses();
+			this._renderingEngine.materialLoader.setScreenSpaceAmbientOcclusion(
+				false,
+			);
+		}
 	}
 
 	public get outlineManagers(): {
@@ -390,11 +401,15 @@ export class PostProcessingManager implements IManager {
 		if (!this._composer) return;
 		if (this._suspendEffectPassUpdate === true) return;
 		if (
-			this._systemInfo.isMobile === true &&
-			this._enablePostProcessingOnMobile === false
-		)
+			(this._systemInfo.isMobile === true &&
+				this._enablePostProcessingOnMobile === false) ||
+			this._manualPostProcessing
+		) {
+			this._renderingEngine.materialLoader.setScreenSpaceAmbientOcclusion(
+				false,
+			);
 			return;
-		if (this._manualPostProcessing) return;
+		}
 
 		for (let i = 0; i < this._composer.passes.length; i++)
 			this._composer.passes[i].dispose();
@@ -419,6 +434,8 @@ export class PostProcessingManager implements IManager {
 			e.effect.dispose();
 		});
 		this._effects = [];
+		this._shadingAOEffect?.effect.dispose();
+		this._shadingAOEffect = undefined;
 
 		for (let i = 0; i < this._effectDefinitions.length; i++) {
 			switch (this._effectDefinitions[i].definition.type) {
@@ -680,10 +697,11 @@ export class PostProcessingManager implements IManager {
 										: 16,
 							},
 						);
-						this._effects.push({
-							token: this._effectDefinitions[i].token,
-							effect: hbaoEffect,
-						});
+						this.addAOEffect(
+							this._effectDefinitions[i].token,
+							hbaoEffect,
+							properties.mode,
+						);
 					}
 					break;
 
@@ -945,10 +963,11 @@ export class PostProcessingManager implements IManager {
 							},
 						);
 
-						this._effects.push({
-							token: this._effectDefinitions[i].token,
-							effect: ssaoEffect,
-						});
+						this.addAOEffect(
+							this._effectDefinitions[i].token,
+							ssaoEffect,
+							properties.mode,
+						);
 					}
 					break;
 
@@ -1103,6 +1122,25 @@ export class PostProcessingManager implements IManager {
 			);
 			this._effectPasses?.push(effectPass);
 			this.addPassToEffectComposer(effectPass);
+		}
+
+		// the AO of the "shading" mode is rendered before the scene, the materials read it
+		const materialLoader = this._renderingEngine.materialLoader;
+		// the effect is set while the definitions are processed above
+		const shadingAOEffect = this._shadingAOEffect as
+			| {token: string; effect: AOEffect}
+			| undefined;
+		if (shadingAOEffect) {
+			this.addPassToEffectComposer(
+				new AOShadingPass(
+					shadingAOEffect.effect,
+					materialLoader.screenAOUniforms,
+				),
+				0,
+			);
+			materialLoader.setScreenSpaceAmbientOcclusion(true);
+		} else {
+			materialLoader.setScreenSpaceAmbientOcclusion(false);
 		}
 
 		// for the AO effects we need to add a separate AA pass at the end that anti-aliases the AO effect
@@ -1334,7 +1372,7 @@ export class PostProcessingManager implements IManager {
 	}
 
 	public getEffect(token: string): Effect {
-		return this._effects.find((e) => e.token === token)!.effect;
+		return this.effects.find((e) => e.token === token)!.effect;
 	}
 
 	public getEffectTokens(): {[key: string]: POST_PROCESSING_EFFECT_TYPE} {
@@ -1482,6 +1520,7 @@ export class PostProcessingManager implements IManager {
 								radius: properties.radius,
 								rings: properties.rings,
 								lumaPhi: properties.lumaPhi,
+								mode: properties.mode,
 								depthPhi: properties.depthPhi,
 								normalPhi: properties.normalPhi,
 								samples: properties.samples,
@@ -1566,6 +1605,7 @@ export class PostProcessingManager implements IManager {
 								radius: properties.radius,
 								rings: properties.rings,
 								lumaPhi: properties.lumaPhi,
+								mode: properties.mode,
 								depthPhi: properties.depthPhi,
 								normalPhi: properties.normalPhi,
 								samples: properties.samples,
@@ -1849,12 +1889,30 @@ export class PostProcessingManager implements IManager {
 		);
 	}
 
+	/**
+	 * Adds an AO effect. In the "shading" mode the effect is applied by the
+	 * materials, only the first such effect can do that. Any further one is
+	 * composited like in the "composite" mode.
+	 */
+	private addAOEffect(
+		token: string,
+		effect: AOEffect,
+		mode: "composite" | "shading" | undefined,
+	) {
+		if (mode === "shading" && !this._shadingAOEffect) {
+			this._shadingAOEffect = {token, effect};
+		} else {
+			this._effects.push({token, effect});
+		}
+	}
+
 	private addPassToEffectComposer(
-		pass: EffectPass | RenderPass | SSAARenderPass,
+		pass: EffectPass | RenderPass | SSAARenderPass | AOShadingPass,
+		index?: number,
 	) {
 		if (this._composer) {
 			try {
-				this._composer.addPass(pass);
+				this._composer.addPass(pass, index);
 			} catch {
 				// in this case a WebGL error is thrown, when the WebGL context is lost
 				// as we already throw an error in the rendering engine, we can ignore this error here

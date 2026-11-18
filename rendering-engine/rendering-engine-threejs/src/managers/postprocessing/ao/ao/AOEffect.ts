@@ -52,6 +52,7 @@ class AOEffect extends Effect {
 			uniforms: new Map([
 				["inputTexture", new Uniform(null)],
 				["depthTexture", new Uniform(null)],
+				["normalTexture", new Uniform(null)],
 				["power", new Uniform(0) as Uniform],
 				["color", new Uniform(new Color("black"))],
 			]),
@@ -75,6 +76,7 @@ class AOEffect extends Effect {
 			this.aoPass.fullscreenMaterial as ShaderMaterial
 		).uniforms.depthTexture.value = this.normalPass.depthTexture;
 		this.uniforms.get("depthTexture")!.value = this.normalPass.depthTexture;
+		this.uniforms.get("normalTexture")!.value = this.normalPass.texture;
 
 		this.poissionDenoisePass = new PoissionDenoisePass(
 			camera,
