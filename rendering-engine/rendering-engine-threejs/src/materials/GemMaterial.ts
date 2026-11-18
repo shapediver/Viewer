@@ -170,6 +170,18 @@ export class GemMaterial extends MeshPhysicalMaterial {
 					} else {
 						delete this.defines.USE_UV;
 					}
+
+					const hadPlaneTracing =
+						this.defines.GEM_PLANE_TRACING !== undefined;
+					const hasPlaneTracing =
+						!!v && v.type === THREE.HalfFloatType;
+					if (hasPlaneTracing) {
+						this.defines.GEM_PLANE_TRACING = "";
+					} else {
+						delete this.defines.GEM_PLANE_TRACING;
+					}
+					if (hadPlaneTracing !== hasPlaneTracing)
+						this.needsUpdate = true;
 				},
 			},
 			gamma: {
