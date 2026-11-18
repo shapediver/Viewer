@@ -14,6 +14,7 @@ import {
 	type ITree,
 	type ITreeNode,
 	type ITreeNodeData,
+	MaterialGemData,
 	Tree,
 } from "@shapediver/viewer.shared.node-tree";
 import {
@@ -198,16 +199,18 @@ export class SceneTreeManager implements IManager {
 							!this._newRendererType
 						) {
 							dataChild = existingGeometry;
-							// Instancing and attribute visualization keep color on a
-							// separate material or instance attribute. Beauty-mode color
-							// edits already mutate the existing material; replacing it
-							// here drops the environment map and flattens the shading.
+							// GPU-instanced occurrences and attribute visualization
+							// always refresh; regular meshes only when the material
+							// was replaced (other id). Re-applying an edited material
+							// drops the environment map and flattens the shading.
 							if (
-								(geometryData.instantiable &&
-									this._renderingEngine.instanceGroupManager
-										.enabled) ||
+								existingGeometry.userData.isInstanced ||
 								this._renderingEngine.type ===
-									RENDERER_TYPE.ATTRIBUTES
+									RENDERER_TYPE.ATTRIBUTES ||
+								this._renderingEngine.geometryLoader.isMaterialReplaced(
+									geometryData,
+									existingGeometry,
+								)
 							)
 								this._renderingEngine.geometryLoader.updateGeometryMaterial(
 									geometryData,
@@ -914,6 +917,13 @@ export class SceneTreeManager implements IManager {
 		if (
 			this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES &&
 			(geometry.attributeMaterial?.opacity ?? 1) < 1
+		)
+			return false;
+		// Gem shading needs a per-mesh normal cube map, center and radius,
+		// which the instancing path does not set up.
+		if (
+			this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES &&
+			geometry.material instanceof MaterialGemData
 		)
 			return false;
 
