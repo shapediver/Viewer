@@ -153,6 +153,7 @@ export class MaterialLoader implements ILoader {
 		sdvScreenAOPower: {value: 1},
 		sdvScreenAOColor: {value: new THREE.Color(0, 0, 0)},
 	};
+	private readonly _screenAOHooked = new WeakSet<THREE.Material>();
 	private _screenAOEnabled = false;
 	private _shaderProgramCache: Map<string, ThreeJsMaterialTypes> = new Map();
 	private _compiledShaderSignatures: Set<string> = new Set();
@@ -2282,17 +2283,22 @@ uniform vec3 sdvScreenAOColor;
 			materialSettings,
 		};
 		material.userData.cacheKey = cacheKey;
-		// Material.clone does not copy onBeforeCompile, so a clone has no
-		// screen AO patch. Only a material without a hook of its own gets
-		// this one: three shares programs by the hook's source text, so all
-		// materials with this hook must compile the same way.
-		if (
-			material.onBeforeCompile ===
-			THREE.Material.prototype.onBeforeCompile
-		) {
+		// Material.clone does not copy the loader's onBeforeCompile, so a clone
+		// has no screen AO patch. Chain it once. three shares programs by the
+		// hook's source text, so the program key stays the original hook's
+		// text; all AO code is behind SDV_SCREEN_AO, which is part of the key.
+		if (!this._screenAOHooked.has(material)) {
+			this._screenAOHooked.add(material);
+			const before = material.onBeforeCompile;
+			const programKey = material.customProgramCacheKey();
 			material.onBeforeCompile = (
 				shader: THREE.WebGLProgramParametersWithUniforms,
-			) => this.patchScreenSpaceAmbientOcclusion(shader);
+				renderer: THREE.WebGLRenderer,
+			) => {
+				before.call(material, shader, renderer);
+				this.patchScreenSpaceAmbientOcclusion(shader);
+			};
+			material.customProgramCacheKey = () => programKey;
 			material.needsUpdate = true;
 		}
 		this.assignScreenAOToMaterial(material);
