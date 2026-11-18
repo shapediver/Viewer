@@ -639,6 +639,8 @@ export class SceneTreeManager implements IManager {
 				rootTreeNode.id,
 				rootTreeNode.version,
 			);
+			// The matrix is written by applyTransformation only.
+			this._mainConvertedObject.matrixAutoUpdate = false;
 			const oldObj = rootTreeNode.convertedObject[
 				this._renderingEngine.id
 			] as THREE.Object3D;
@@ -984,6 +986,8 @@ export class SceneTreeManager implements IManager {
 				treeNodeChild.id,
 				treeNodeChild.version,
 			);
+			// The matrix is written by applyTransformation only.
+			newChild.matrixAutoUpdate = false;
 			const oldChild = treeNodeChild.convertedObject[
 				this._renderingEngine.id
 			] as THREE.Object3D;

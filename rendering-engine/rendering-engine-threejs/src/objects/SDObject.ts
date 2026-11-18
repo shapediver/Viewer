@@ -54,15 +54,16 @@ export class SDObject extends Object3D implements ISDObject {
 	}
 
 	public applyTransformation(transformation: mat4): void {
-		this.matrix.identity();
 		this.matrixWorld.identity();
-		this.position.set(0, 0, 0);
-		this.scale.set(1, 1, 1);
-		this.quaternion.set(0, 0, 0, 1);
-		this.applyMatrix4(new THREE.Matrix4().fromArray(transformation));
-		// The matrix three.js composes from position, quaternion and scale
-		// before rendering.
+		this.matrix.fromArray(transformation);
+		this.matrix.decompose(this.position, this.quaternion, this.scale);
+		// Compose the matrix from position, quaternion and scale, as three.js
+		// does before rendering an object with matrixAutoUpdate. Node objects
+		// of the scene tree do not auto-update (SS-10439): their matrix is
+		// only written here, and a transformation with shear renders as it
+		// did with matrixAutoUpdate.
 		this.matrix.compose(this.position, this.quaternion, this.scale);
+		this.matrixWorldNeedsUpdate = true;
 		this.#appliedTransformation = mat4.clone(transformation);
 		this.#appliedMatrix.copy(this.matrix);
 	}
