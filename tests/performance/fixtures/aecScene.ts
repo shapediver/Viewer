@@ -22,6 +22,12 @@ export interface AecSceneOptions {
 	floorHeight: number;
 	glassOpacity: number;
 	mullionMetalness: number;
+	/**
+	 * Blended glass, as glTF `alphaMode: BLEND` exports it: transparent
+	 * and no depth write. Without it the panes are transparent through
+	 * their opacity and still write depth.
+	 */
+	glassBlend?: boolean;
 }
 
 export const AEC_DEFAULT: AecSceneOptions = {
@@ -149,6 +155,9 @@ export function installAecScene() {
 			opacity: options.glassOpacity,
 			metalness: 0,
 			roughness: 0.1,
+			...(options.glassBlend
+				? {alphaMode: SDV.MATERIAL_ALPHA.BLEND}
+				: {}),
 		});
 		const metal = new SDV.MaterialStandardData({
 			color: "#8a8d91",

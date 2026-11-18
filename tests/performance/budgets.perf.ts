@@ -33,7 +33,7 @@ const VARIANTS: SceneVariant[] = [
 
 // Scenes that are not a rendering variant. Both run without shadows, so they
 // also run on a software renderer.
-const SCENARIOS = ["interaction", "attributes"];
+const SCENARIOS = ["interaction", "attributes", "blendedGlass"];
 const BASELINE_IDS = [...VARIANTS.map((v) => v.id), ...SCENARIOS];
 
 const ATTRIBUTE_SCENE = {...AEC_DEFAULT, floors: 4};
@@ -407,6 +407,28 @@ async function collectInteraction(page: Page): Promise<Counters> {
  * Every item gets two sdTF attributes. The test turns the attribute
  * visualization on, switches the attribute, clears it, and leaves the mode.
  */
+/**
+ * The facade with blended glass (`alphaMode: BLEND`, no depth write), the
+ * way glTF exports it. three.js draws each transparent double-sided pane
+ * twice and dirties its material twice per draw.
+ */
+async function collectBlendedGlass(page: Page): Promise<Counters> {
+	await createScene(
+		page,
+		{id: "blendedGlass", shadows: false, ssao: false},
+		{...AEC_DEFAULT, glassBlend: true},
+	);
+	await settle(page);
+	const counters: Counters = {};
+	Object.assign(
+		counters,
+		await measure(page, "blendedGlass", () => orbitStep(page)),
+	);
+	counters["blendedGlass.idleRenderCalls"] = await idleRenderCalls(page);
+	await finalStats(page, counters);
+	return counters;
+}
+
 async function collectAttributes(page: Page): Promise<Counters> {
 	// A smaller tower: the visualization takes minutes on the full one (see
 	// the counters). Per-mesh counts are comparable, the totals are not.
@@ -468,7 +490,9 @@ for (const scenario of SCENARIOS) {
 		const counters =
 			scenario === "interaction"
 				? await collectInteraction(page)
-				: await collectAttributes(page);
+				: scenario === "attributes"
+					? await collectAttributes(page)
+					: await collectBlendedGlass(page);
 		if (UPDATE) {
 			writeBaseline(scenario, counters);
 			return;
