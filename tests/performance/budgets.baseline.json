@@ -79,6 +79,12 @@
 		"scene.meshes": 3867,
 		"scene.objects": 16811,
 		"scene.treeNodes": 12924,
+		"ssao.aoTargetHeight": 360,
+		"ssao.aoTargetWidth": 640,
+		"ssao.canvasHeight": 720,
+		"ssao.canvasWidth": 1280,
+		"ssao.denoiseTargetHeight": 720,
+		"ssao.denoiseTargetWidth": 1280,
 		"versionUpdate.idsCreated": 12922
 	},
 	"noShadows": {
@@ -161,6 +167,12 @@
 		"scene.meshes": 3867,
 		"scene.objects": 16811,
 		"scene.treeNodes": 12924,
+		"ssao.aoTargetHeight": 360,
+		"ssao.aoTargetWidth": 640,
+		"ssao.canvasHeight": 720,
+		"ssao.canvasWidth": 1280,
+		"ssao.denoiseTargetHeight": 720,
+		"ssao.denoiseTargetWidth": 1280,
 		"versionUpdate.idsCreated": 12922
 	},
 	"interaction": {
