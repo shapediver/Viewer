@@ -145,9 +145,9 @@ const createGemMaterial = () =>
 	viewport.postProcessing.addEffect({
 		type: SDV.POST_PROCESSING_EFFECT_TYPE.BLOOM,
 		properties: {
-			intensity: 0.5,
-			luminanceThreshold: 1.5,
-			luminanceSmoothing: 0.5,
+			intensity: 0.8,
+			luminanceThreshold: 1.2,
+			luminanceSmoothing: 0.4,
 			mipmapBlur: true,
 			backgroundBloom: false,
 		},
