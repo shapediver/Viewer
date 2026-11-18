@@ -36,6 +36,7 @@ export class GeometryLoader implements ILoader {
 	private _gemCubeCamera?: THREE.CubeCamera;
 	private _gemCubeCameraRenderTarget?: THREE.WebGLCubeRenderTarget;
 	private _gemNormalMaterial?: THREE.ShaderMaterial;
+	private _gemPlaneTracingSupported?: boolean;
 	private _gemScene?: THREE.Scene;
 	private _gemSphericalMapsCache: {
 		[key: string]: {
@@ -304,6 +305,7 @@ export class GeometryLoader implements ILoader {
 			const sphericalNormalMap = this.createCubeNormalMap(
 				geometry,
 				threeGeometry,
+				gemMaterialData.normalMapResolution,
 			);
 
 			const center = gemSphere.center,
@@ -866,11 +868,46 @@ export class GeometryLoader implements ILoader {
 		geometry.setIndex(newIndices);
 	}
 
+	/**
+	 * Whether the renderer can render to half-float colour targets, which the
+	 * facet plane capture of gems needs.
+	 */
+	private gemPlaneTracingSupported(): boolean {
+		if (this._gemPlaneTracingSupported === undefined) {
+			const extensions = this._renderingEngine.renderer.extensions;
+			this._gemPlaneTracingSupported =
+				extensions.has("EXT_color_buffer_float") ||
+				extensions.has("EXT_color_buffer_half_float");
+		}
+
+		return this._gemPlaneTracingSupported;
+	}
+
+	private createGemCubeRenderTarget(
+		resolution: number,
+	): THREE.WebGLCubeRenderTarget {
+		const renderTarget = new THREE.WebGLCubeRenderTarget(resolution, {
+			format: THREE.RGBAFormat,
+			type: this.gemPlaneTracingSupported()
+				? THREE.HalfFloatType
+				: THREE.UnsignedByteType,
+			magFilter: THREE.LinearFilter,
+			minFilter: THREE.LinearFilter,
+		});
+		renderTarget.texture.generateMipmaps = false;
+		renderTarget.texture.minFilter = THREE.NearestFilter;
+		renderTarget.texture.magFilter = THREE.NearestFilter;
+		renderTarget.texture.format = THREE.RGBAFormat;
+
+		return renderTarget;
+	}
+
 	private createCubeNormalMap(
 		geometryData: GeometryData,
 		geometry: THREE.BufferGeometry,
-		resolution = 1024,
+		resolution: number,
 	) {
+		// the first capture of a shape decides its resolution
 		if (
 			this._gemSphericalMapsCache[
 				geometryData.primitive.id + "_" + geometryData.primitive.version
@@ -884,23 +921,13 @@ export class GeometryLoader implements ILoader {
 			].texture;
 		}
 
+		if (![256, 512, 1024].includes(resolution)) resolution = 512;
+
+		this._gemCubeCameraRenderTarget =
+			this.createGemCubeRenderTarget(resolution);
+
 		if (!this._gemScene) {
 			this._gemScene = new THREE.Scene();
-			this._gemCubeCameraRenderTarget = new THREE.WebGLCubeRenderTarget(
-				resolution,
-				{
-					format: THREE.RGBAFormat,
-					type: THREE.HalfFloatType,
-					magFilter: THREE.LinearFilter,
-					minFilter: THREE.LinearFilter,
-				},
-			);
-			this._gemCubeCameraRenderTarget.texture.generateMipmaps = false;
-			this._gemCubeCameraRenderTarget.texture.minFilter =
-				THREE.NearestFilter;
-			this._gemCubeCameraRenderTarget.texture.magFilter =
-				THREE.NearestFilter;
-			this._gemCubeCameraRenderTarget.texture.format = THREE.RGBAFormat;
 			this._gemCubeCamera = new THREE.CubeCamera(
 				0.001,
 				10000,
@@ -908,27 +935,14 @@ export class GeometryLoader implements ILoader {
 			);
 			this._gemScene.add(this._gemCubeCamera);
 		} else {
-			this._gemCubeCameraRenderTarget = new THREE.WebGLCubeRenderTarget(
-				resolution,
-				{
-					format: THREE.RGBAFormat,
-					type: THREE.HalfFloatType,
-					magFilter: THREE.LinearFilter,
-					minFilter: THREE.LinearFilter,
-				},
-			);
-			this._gemCubeCameraRenderTarget.texture.generateMipmaps = false;
-			this._gemCubeCameraRenderTarget.texture.minFilter =
-				THREE.NearestFilter;
-			this._gemCubeCameraRenderTarget.texture.magFilter =
-				THREE.NearestFilter;
-			this._gemCubeCameraRenderTarget.texture.format = THREE.RGBAFormat;
 			this._gemCubeCamera!.renderTarget = this._gemCubeCameraRenderTarget;
 		}
 
 		if (!this._gemNormalMaterial) {
 			const _normalShader = {
-				defines: {GEM_PLANE_DISTANCE: ""},
+				defines: this.gemPlaneTracingSupported()
+					? {GEM_PLANE_DISTANCE: ""}
+					: {},
 				uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.common]),
 				vertexShader: `
                 varying vec3 vNormal;

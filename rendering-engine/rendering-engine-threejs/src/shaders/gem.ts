@@ -383,6 +383,7 @@ vec3 raySphereIntersection(vec3 o, vec3 d) {
     }
 }
 
+#ifdef GEM_PLANE_TRACING
 // Intersects the ray with the facet planes of the gem. The cube map stores
 // the facet normal and the distance of its plane from the center, so the
 // bounding sphere only provides the first guess for the facet that is hit.
@@ -398,6 +399,20 @@ vec3 rayGemIntersection(vec3 o, vec3 d, out vec3 n) {
 		}
 	}
 	return p;
+}
+#endif
+
+// Finds where the ray leaves the gem and the facet normal there. Without
+// half-float render targets the map only holds sign-encoded normals, so
+// the bounding sphere stands in for the facets.
+vec3 traceGem(vec3 o, vec3 d, out vec3 n) {
+#ifdef GEM_PLANE_TRACING
+	return rayGemIntersection(o, d, n);
+#else
+	vec3 p = raySphereIntersection(o, d);
+	n = normalLookUp(normalize(p - center));
+	return p;
+#endif
 }
 
 vec3 hueToSaturatedColor(float hue) {
@@ -469,20 +484,9 @@ void main() {
 
     // CUSTOM START
 	
-    // Extract the translation part of the model matrix
-	vec3 translation = modelMatrix[3].xyz;
-
-	// Extract the rotation part of the model matrix (3x3 upper-left submatrix)
-	mat3 rotationMatrix = mat3(modelMatrix);
-
-	// Calculate the inverse of the rotation matrix (transpose since it's orthogonal)
-	mat3 inverseRotationMatrix;
-	inverseRotationMatrix[0] = vec3(rotationMatrix[0].x, rotationMatrix[1].x, rotationMatrix[2].x);
-	inverseRotationMatrix[1] = vec3(rotationMatrix[0].y, rotationMatrix[1].y, rotationMatrix[2].y);
-	inverseRotationMatrix[2] = vec3(rotationMatrix[0].z, rotationMatrix[1].z, rotationMatrix[2].z);
-
-	// Calculate the camera position in model space
-	vec3 cameraPositionInModelSpace = inverseRotationMatrix * (cameraPosition - translation);
+	// Calculate the camera position in model space. The full inverse keeps
+	// scaled stones right, where the transposed rotation would not.
+	vec3 cameraPositionInModelSpace = (inverse(modelMatrix) * vec4(cameraPosition, 1.0)).xyz;
 
 	// Calculate the initial direction
 	vec3 initialDirection = normalize(frag_position.xyz - cameraPositionInModelSpace);
@@ -514,7 +518,7 @@ void main() {
 		for(int j = 0; j < loop; j++){
 			vec3 refractedDirection = refract(initialDirection, frag_normal_normalized, 1.0/refractionIndex + float(j)*dispersion * 0.025);
 			vec3 newNormal;
-			vec3 newPosition = rayGemIntersection(frag_position, refractedDirection, newNormal);
+			vec3 newPosition = traceGem(frag_position, refractedDirection, newNormal);
 			vec3 lookUpVector = normalize(newPosition - center);
 			vec3 newDirection = reflect(refractedDirection, newNormal);
 
@@ -537,7 +541,7 @@ void main() {
 			for(int i = 0; i < TRACING_DEPTH; i++) {
 				// small position correction to avoid artefacts
 				newPosition = newPosition - lookUpVector * 1e-6;
-				newPosition = rayGemIntersection(newPosition, newDirection, newNormal);
+				newPosition = traceGem(newPosition, newDirection, newNormal);
 				lookUpVector = normalize(newPosition - center);
 			
 				float cos_theta = dot(newDirection, newNormal);

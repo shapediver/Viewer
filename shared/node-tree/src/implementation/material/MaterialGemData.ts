@@ -5,7 +5,8 @@ import {
 	type IMaterialGemDataProperties,
 	MATERIAL_ALPHA,
 	MATERIAL_SHADING,
-	MATERIAL_SIDE} from "@shapediver/viewer.shared.types";
+	MATERIAL_SIDE,
+} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import {AbstractMaterialData} from "./AbstractMaterialData";
 
@@ -30,6 +31,7 @@ export class MaterialGemData
 	#tracingDepth: number = 5;
 	#tracingOpacity: number = 0;
 	#envMap?: string | string[];
+	#normalMapResolution: number = 512;
 
 	// #endregion Properties (5)
 
@@ -75,6 +77,8 @@ export class MaterialGemData
 		if (properties.tracingOpacity !== undefined)
 			this.tracingOpacity = properties.tracingOpacity;
 		if (properties.envMap !== undefined) this.envMap = properties.envMap;
+		if (properties.normalMapResolution !== undefined)
+			this.normalMapResolution = properties.normalMapResolution;
 	}
 
 	// #endregion Constructors (1)
@@ -201,6 +205,18 @@ export class MaterialGemData
 		this.#envMap = value;
 	}
 
+	/**
+	 * Resolution per cube face of the map that captures the facets of the gem
+	 * (256, 512 or 1024, default 512).
+	 */
+	public get normalMapResolution(): number {
+		return this.#normalMapResolution;
+	}
+
+	public set normalMapResolution(value: number) {
+		this.#normalMapResolution = value;
+	}
+
 	// #endregion Public Accessors (10)
 
 	// #region Public Methods (3)
@@ -243,6 +259,7 @@ export class MaterialGemData
 				dispersion: this.dispersion,
 				tracingOpacity: this.tracingOpacity,
 				envMap: this.envMap,
+				normalMapResolution: this.normalMapResolution,
 			},
 			this.id,
 			this.version,
@@ -286,6 +303,7 @@ export class MaterialGemData
 		this.dispersion = source.dispersion;
 		this.tracingOpacity = source.tracingOpacity;
 		this.envMap = source.envMap;
+		this.normalMapResolution = source.normalMapResolution;
 	}
 
 	public reset(): void {
@@ -325,6 +343,7 @@ export class MaterialGemData
 		this.tracingDepth = 5;
 		this.tracingOpacity = 0;
 		this.envMap = undefined;
+		this.normalMapResolution = 512;
 	}
 
 	// #endregion Public Methods (3)
