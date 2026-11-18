@@ -67,6 +67,7 @@ import {
 	VignetteTechnique,
 } from "postprocessing";
 import * as THREE from "three";
+import {GemMaterial} from "../materials/GemMaterial";
 import {RenderingEngine} from "../RenderingEngine";
 import {HBAOEffect} from "./postprocessing/ao/hbao/HBAOEffect";
 import {PoissionDenoisePass} from "./postprocessing/ao/poissionDenoise/PoissionDenoisePass";
@@ -1726,7 +1727,12 @@ export class PostProcessingManager implements IManager {
 		this._renderingEngine.renderer.autoClear = false;
 
 		this._composer.setMainCamera(camera);
+		GemMaterial.hdrOutputUniform.value =
+			this._composer.inputBuffer.texture.type === THREE.HalfFloatType
+				? 1
+				: 0;
 		this._composer.render();
+		GemMaterial.hdrOutputUniform.value = 0;
 
 		this._renderingEngine.renderer.toneMapping = currentToneMapping;
 		this._renderingEngine.renderer.autoClear = true;
