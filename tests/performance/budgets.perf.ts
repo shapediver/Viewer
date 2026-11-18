@@ -187,6 +187,7 @@ async function collect(page: Page, variant: SceneVariant): Promise<Counters> {
 	const move = await page.evaluate(() => ({
 		frames: (window as any).__probe.frames(),
 		materials: (window as any).__probe.materialChanges(),
+		batchBoundsReads: (window as any).__probe.batchBoundsReads(),
 	}));
 	const frames = move.frames as Frame[];
 	expect(frames.length, "the camera drag did not render").toBeGreaterThan(1);
@@ -197,6 +198,8 @@ async function collect(page: Page, variant: SceneVariant): Promise<Counters> {
 	);
 	// Frames from the first drag step to the end of the beauty blend.
 	counters["cameraMove.framesRendered"] = frames.length;
+	// Per-instance bounds reads while batches sort and cull, all passes.
+	counters["cameraMove.batchBoundsReads"] = move.batchBoundsReads;
 	counters["cameraMove.materialUpdatesOutsideRender"] =
 		move.materials.updatesOutsideRender;
 	counters["cameraMove.materialsCreated"] = move.materials.created;
@@ -423,6 +426,9 @@ async function collectBlendedGlass(page: Page): Promise<Counters> {
 	Object.assign(
 		counters,
 		await measure(page, "blendedGlass", () => orbitStep(page)),
+	);
+	counters["blendedGlass.batchBoundsReads"] = await page.evaluate(() =>
+		(window as any).__probe.batchBoundsReads(),
 	);
 	counters["blendedGlass.idleRenderCalls"] = await idleRenderCalls(page);
 	await finalStats(page, counters);

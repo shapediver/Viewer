@@ -199,6 +199,10 @@ export class MaterialBatchManager {
 	 * Instance colors are snapshots of the source color, so write them again.
 	 */
 	public syncBatchColors(material: THREE.Material): void {
+		// The default-material copy can change transparency.
+		for (const batch of this._batches)
+			if (batch.mesh.material === material)
+				this.applyDrawOrder(batch.mesh);
 		for (const member of this._members.values()) {
 			if (member.batch.mesh.material !== material) continue;
 			// A default-material copy changes the source. The member can still
@@ -506,7 +510,7 @@ export class MaterialBatchManager {
 			);
 			batchMesh.name = "materialBatch";
 			batchMesh.frustumCulled = false;
-			batchMesh.perObjectFrustumCulled = true;
+			this.applyDrawOrder(batchMesh);
 			batchMesh.matrixAutoUpdate = false;
 			batchMesh.castShadow = chunk[0].mesh.castShadow;
 			batchMesh.receiveShadow = chunk[0].mesh.receiveShadow;
@@ -656,6 +660,30 @@ export class MaterialBatchManager {
 			batchMaterial.color.setRGB(1, 1, 1);
 		batchMaterial.needsUpdate = false;
 		return batchMaterial;
+	}
+
+	/**
+	 * BatchedMesh sorts and frustum-culls every instance before each draw:
+	 * the colour pass, every shadow map, and each effect pass. A
+	 * transparent batch needs the far-to-near order. An opaque batch does
+	 * not, and without culling the draw list does not depend on the
+	 * camera, so three.js rebuilds it only when an instance is added or
+	 * its visibility changes. The GPU then draws off-screen instances of
+	 * an opaque batch. That is vertex work only: the rasterizer clips them.
+	 */
+	private applyDrawOrder(mesh: THREE.BatchedMesh): void {
+		const transparent = (mesh.material as THREE.Material).transparent;
+		if (
+			mesh.sortObjects === transparent &&
+			mesh.perObjectFrustumCulled === transparent
+		)
+			return;
+		mesh.sortObjects = transparent;
+		mesh.perObjectFrustumCulled = transparent;
+		// The last list was culled for the previous camera. With culling
+		// off, three.js keeps it until visibility changes, so mark it.
+		(mesh as unknown as {_visibilityChanged: boolean})._visibilityChanged =
+			true;
 	}
 
 	private rememberBounds(entry: BatchEntry): void {
