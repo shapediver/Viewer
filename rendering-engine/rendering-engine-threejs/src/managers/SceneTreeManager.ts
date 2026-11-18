@@ -774,8 +774,8 @@ export class SceneTreeManager implements IManager {
 			}
 		}
 
-		// we compile the shaders
-		this._renderingEngine.renderer.compile(
+		// we compile the shaders, the rendering waits until they are ready
+		this._renderingEngine.renderingManager.compileShaders(
 			this._renderingEngine.scene,
 			this._hiddenCamera,
 		);

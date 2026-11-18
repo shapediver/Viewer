@@ -29,6 +29,11 @@ import {RenderingEngine} from "../RenderingEngine";
 import {updateMorphWeights} from "./sceneTree/SceenTreeManagerUtils";
 import {SceneTreeManager} from "./SceneTreeManager";
 
+/** The part of a three.js WebGLProgram that the compile gate reads. */
+interface IProgramStatus {
+	isReady(): boolean;
+}
+
 export class RenderingManager implements IManager {
 	// #region Properties (31)
 
@@ -45,6 +50,8 @@ export class RenderingManager implements IManager {
 
 	private _activeRendering: boolean = true;
 	private _cameraChanged: boolean = false;
+	private _compileSkippedFrame: boolean = false;
+	private _compilingPrograms: Set<IProgramStatus> | null = null;
 	private _continuousRendering: boolean = false;
 	private _continuousShadowMapUpdate: boolean = false;
 	private _height: number = 0;
@@ -267,6 +274,36 @@ export class RenderingManager implements IManager {
 		} else {
 			this._renderingEngine.lightLoader.forceDisabledShadows = false;
 		}
+	}
+
+	/**
+	 * Start compiling the programs of the scene without waiting for them.
+	 *
+	 * With KHR_parallel_shader_compile the driver compiles in the background
+	 * and the animation loop does not draw until {@link shadersCompiled}.
+	 * This is what `WebGLRenderer.compileAsync` does (r184), without its
+	 * timer: that one throws when a material is disposed while it waits.
+	 * Without the extension the first draw compiles, as it always did.
+	 */
+	public compileShaders(scene: THREE.Object3D, camera: THREE.Camera): void {
+		const renderer = this._renderingEngine.renderer;
+		const before = new Set(this.livePrograms());
+		renderer.compile(scene, camera);
+		// The contact shadow draws its own passes in the same frame. Its
+		// depth programs vary only with what the scene programs vary with
+		// (batching, instancing, skinning, morphs, attributes), so it needs a
+		// compile only when the scene got a new program. Otherwise every
+		// update would traverse and compile the scene a second time.
+		if (this.livePrograms().some((program) => !before.has(program)))
+			this._renderingEngine.environmentGeometryManager.contactShadow?.compile();
+		if (!renderer.extensions.has("KHR_parallel_shader_compile")) return;
+
+		// Wait for the programs this update created. Those of an earlier
+		// update that are still compiling stay in the set.
+		const pending = this._compilingPrograms ?? new Set<IProgramStatus>();
+		for (const program of this.livePrograms())
+			if (!before.has(program)) pending.add(program);
+		this._compilingPrograms = pending.size > 0 ? pending : null;
 	}
 
 	public getScreenshot(
@@ -505,11 +542,17 @@ export class RenderingManager implements IManager {
 		// animation loop - part 4: evaluating state
 		const states = this.evaluateRenderingState();
 
+		// A draw would wait for programs that are still compiling. Keep the
+		// frame that is on screen (or the logo) until they are ready.
+		const compiling = !this.shadersCompiled();
+		if (compiling && states.updateShadowMap)
+			this._updateShadowMapInNextRender = true;
+
 		// toggle the blurring
 		this.toggleBusyMode(states.busyMode);
 
 		// animation loop - part 5: the scene is not even shown
-		if (states.showScene === false) {
+		if (states.showScene === false || (compiling && this._hidden)) {
 			// toggle on logo
 			this.toggleLogo(true);
 
@@ -542,7 +585,11 @@ export class RenderingManager implements IManager {
 		}
 
 		// animation loop - part 6: the scene is shown, but there is no active rendering happening
-		if (states.rendering === false || this._renderingEngine.pause === true)
+		if (
+			states.rendering === false ||
+			this._renderingEngine.pause === true ||
+			compiling
+		)
 			return;
 
 		// animation loop - part 7: there is actual rendering happening
@@ -1120,6 +1167,38 @@ export class RenderingManager implements IManager {
 			busyMode,
 			softShadowRendering,
 		};
+	}
+
+	/**
+	 * Whether the programs started by {@link compileShaders} can be used
+	 * without waiting for the driver. Restarts the rendering once they can.
+	 */
+	/** The programs three.js currently keeps; released ones are gone. */
+	private livePrograms(): IProgramStatus[] {
+		return (this._renderingEngine.renderer.info.programs ??
+			[]) as unknown as IProgramStatus[];
+	}
+
+	private shadersCompiled(): boolean {
+		const programs = this._compilingPrograms;
+		if (!programs) return true;
+
+		const live = this.livePrograms();
+		for (const program of programs) {
+			// a released program has nothing left to wait for
+			if (live.includes(program) && !program.isReady()) {
+				this._compileSkippedFrame = true;
+				return false;
+			}
+			programs.delete(program);
+		}
+
+		this._compilingPrograms = null;
+		// Frames were skipped. Draw the next one; render() would also restart
+		// the beauty countdown that may already have run out meanwhile.
+		if (this._compileSkippedFrame) this._activeRendering = true;
+		this._compileSkippedFrame = false;
+		return true;
 	}
 
 	private setShaderProperties() {

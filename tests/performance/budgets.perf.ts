@@ -157,6 +157,14 @@ async function collect(page: Page, variant: SceneVariant): Promise<Counters> {
 	).toEqual({meshes: expected.meshes, treeNodes: expected.treeNodes});
 
 	const counters: Counters = {};
+	// From the scene build until it settled: programs compiled inside a draw
+	// make that frame wait for the driver (SS-10384).
+	counters["load.programsCompiledInRender"] = await page.evaluate(() =>
+		((window as any).__probe.passes as PassRecord[]).reduce(
+			(sum, pass) => sum + pass.programsCreated,
+			0,
+		),
+	);
 	// Programs, geometries and textures are counted at the end (`final.*`).
 	// Some are created lazily during the first camera move, so a count taken
 	// here flips by one between runs.
@@ -279,6 +287,10 @@ async function measure(
 		(window as any).__probe.snapshotMaterials();
 	});
 	await action();
+	// Shader compiles run in real time while the clock is paused, and the
+	// viewer draws once they are done (SS-10384). Wait for them, so the
+	// frames counted below do not depend on the speed of the driver.
+	await page.waitForFunction(() => (window as any).__probe.programsReady());
 	await page.clock.runFor(SETTLE_MS);
 	const result = await page.evaluate(() => {
 		const probe = (window as any).__probe;
@@ -294,6 +306,12 @@ async function measure(
 		...frameCounters(`${prefix}.firstFrame`, frames[0]),
 		...frameCounters(`${prefix}.lastFrame`, frames[frames.length - 1]),
 		[`${prefix}.framesRendered`]: frames.length,
+		[`${prefix}.programsCompiledInRender`]: frames.reduce(
+			(sum, frame) =>
+				sum +
+				frame.passes.reduce((n, pass) => n + pass.programsCreated, 0),
+			0,
+		),
 		[`${prefix}.materialUpdatesOutsideRender`]:
 			result.materials.updatesOutsideRender,
 		[`${prefix}.materialsCreated`]: result.materials.created,
