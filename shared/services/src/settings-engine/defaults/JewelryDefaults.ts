@@ -32,11 +32,11 @@ export const JewelryDefaults: () => ISettings = () => {
 			groundPlaneVisibility: false,
 			groundPlaneShadowColor: "#d3d3d3ff",
 			groundPlaneShadowVisibility: false,
-			contactShadowBlur: 1.5,
+			contactShadowBlur: 3.5,
 			contactShadowHeight: 0.25,
-			contactShadowDarkness: 0.5,
+			contactShadowDarkness: 1.5,
 			contactShadowVisibility: true,
-			contactShadowOpacity: 1,
+			contactShadowOpacity: 0.6,
 		},
 		general: {
 			transformation: {

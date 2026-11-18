@@ -609,7 +609,6 @@ test("SS-10387 camera start and beauty activation do not dirty materials", async
 			);
 		});
 		let flips = 0;
-		perf.renderer.domElement.ownerDocument.defaultView;
 		const seen = new Set<any>();
 		const trap = (material: any) => {
 			if (!material || seen.has(material)) return;

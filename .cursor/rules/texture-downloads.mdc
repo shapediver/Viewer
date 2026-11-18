@@ -12,4 +12,5 @@ alwaysApply: true
 - `directTextureDownload` on `createSession` (also settable on the session) fetches those other URLs with `fetch` and skips the image proxy. The texture host must allow cross-origin reads. ShapeDiver texture URLs stay on `downloadImage`.
 - Direct-download failures throw SDK `ResponseError` or `RequestError` and go through `UtilsManager.handleError`.
 - A failed `downloadTexture` still falls back to `fetch` inside `HttpClient`. That fallback stays in the client for every session.
+- For non-ShapeDiver URLs, a proxy `SdTextureUrlError` is not reported as a session error (no SESSION_ERROR event, no error log), because `HttpClient` falls back to `fetch`. If the fallback fails too, the error names the URL and both reasons.
 - Image parameter uploads (`UtilsManager.processImageInput`) are not texture loads and keep using `downloadImage`.

@@ -310,6 +310,8 @@ export class MaterialEngine {
 					),
 				);
 				gemProperties.impurityScale = gemDefinition.impurityScale;
+				gemProperties.normalMapResolution =
+					gemDefinition.normalMapResolution;
 				gemProperties.radius = gemDefinition.radius;
 				gemProperties.refractionIndex = gemDefinition.refractionIndex;
 				promises.push(

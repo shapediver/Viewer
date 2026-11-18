@@ -143,6 +143,9 @@ export class SceneTreeManager implements IManager {
 				treeNodeData.attributeMaterial = null;
 		}
 
+		// switch (true) with a default branch is exhaustive; the rule treats
+		// the boolean discriminant as the union true | false and cannot see that.
+		// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
 		switch (true) {
 			case treeNodeData instanceof GeometryData:
 				{
@@ -1169,7 +1172,6 @@ export class SceneTreeManager implements IManager {
 	}
 }
 
-/* eslint-disable @typescript-eslint/no-empty-function */
 type UpdateFilter = {
 	transformationOnly: boolean;
 };
