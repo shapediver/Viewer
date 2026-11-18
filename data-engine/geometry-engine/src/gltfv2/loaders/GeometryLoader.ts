@@ -46,15 +46,85 @@ interface BakedRepresentative {
 interface PendingInstancing {
 	primitive: IGLTF_v2_Primitive;
 	geometryData: GeometryData;
+	/** Insertion order; candidates are tried in this order. */
+	sequence: number;
+	/** Undefined when POSITION cannot be read; it then matches anything. */
+	signature?: RigidSignature;
 	contentHash?: string;
 	staticContentHash?: string;
 	bakedRep?: BakedRepresentative;
+	/** Null when the accessor has no usable min/max. */
+	bounds?: PositionBounds | null;
+}
+
+/**
+ * Squared distances between a few corresponding vertex pairs. A rigid
+ * transform keeps them, so they reject most non-copies without a walk.
+ */
+interface RigidSignature {
+	positions: Float32Array;
+	distances: number[];
+	/** Computed when the primitive is first compared; null if not finite. */
+	invariants?: AcceptInvariants | null;
+}
+
+/**
+ * Values that every accepting path (baked translation, byte-identical
+ * content, baked rigid transform) keeps within twice its per-vertex
+ * tolerance: the distance of any vertex pair. Two primitives whose sampled
+ * distances differ by more than `max(width)` cannot become instances of
+ * each other, so they need not be compared.
+ */
+interface AcceptInvariants {
+	/** Distances of `ACCEPT_SAMPLE_PAIRS` consecutive vertex pairs. */
+	lengths: number[];
+	/** Upper bound of twice the accepting tolerance, with slack. */
+	width: number;
+}
+
+/**
+ * Pending primitives of one cheap fingerprint. Entries with invariants sit
+ * in a grid per width level, keyed by the two sampled distances that vary
+ * most in the group, so a lookup visits the few cells a copy can be in,
+ * not every pending entry.
+ */
+interface PendingGroup {
+	entries: PendingInstancing[];
+	/** `entries` before this index are in `wildcards` or `levels`. */
+	indexed: number;
+	/** Entry count when the grid axes were last chosen. */
+	builtAt: number;
+	/** Indices into `AcceptInvariants.lengths` used as grid axes. */
+	axes: [number, number];
+	/** Entries without invariants; compared with every primitive. */
+	wildcards: PendingInstancing[];
+	levels: Map<number, PendingLevel>;
+}
+
+interface PendingLevel {
+	/** Cell size, a power of two at least the width of every entry. */
+	size: number;
+	entries: PendingInstancing[];
+	cells: Map<string, PendingInstancing[]>;
+}
+
+/** Values of the primitive being loaded, computed at most once. */
+interface TargetCache {
+	centroid?: [number, number, number];
+	bounds?: PositionBounds | null;
 }
 
 interface PositionBounds {
 	min: [number, number, number];
 	max: [number, number, number];
 }
+
+/** Relative tolerance of the rigid-copy distance test. */
+const RIGID_DISTANCE_TOLERANCE = 5e-4;
+/** Above this many cells, a level is scanned instead of looked up. */
+const MAX_LOOKUP_CELLS = 64;
+/** Pairs of consecutive vertices compared by `canAccept`. */
+const ACCEPT_SAMPLE_PAIRS = 8;
 
 export class GeometryLoader {
 	// #region Properties (1)
@@ -74,10 +144,8 @@ export class GeometryLoader {
 	private readonly _loadedByInstanceContent = new Map<string, GeometryData>();
 	// Cheap fingerprints (counts/types, no bytes). Collision lists defer the
 	// byte-hash / baked-transform walk until a second primitive looks similar.
-	private readonly _pendingByCheapKey = new Map<
-		string,
-		PendingInstancing[]
-	>();
+	private readonly _pendingByCheapKey = new Map<string, PendingGroup>();
+	private _pendingSequence = 0;
 	private readonly _digitRegex = /\d/;
 
 	private _materialVariantsData = new MaterialVariantsData();
@@ -466,54 +534,311 @@ export class GeometryLoader {
 	}
 
 	/**
-	 * Constant-size, transform-invariant rejection test. The rigid extraction
-	 * path requires corresponding vertex order, so distances between a few
-	 * corresponding vertex pairs must agree. A match is only a candidate; all
-	 * vertices are still verified before batching.
+	 * Transform-invariant signature for the rigid-copy rejection test. The
+	 * rigid extraction path requires corresponding vertex order, so distances
+	 * between a few corresponding vertex pairs must agree. Undefined when
+	 * POSITION cannot be read; such a primitive keeps the content-hash
+	 * fallback and is compared with every pending primitive.
 	 */
-	private couldBeRigidCopy(
+	private createRigidSignature(
 		primitive: IGLTF_v2_Primitive,
-		pending: PendingInstancing,
-	): boolean {
-		const source = this.getExtractableArray(
-			pending.primitive.attributes.POSITION,
-			3,
-		);
-		const target = this.getExtractableArray(
+	): RigidSignature | undefined {
+		const positions = this.getExtractableArray(
 			primitive.attributes.POSITION,
 			3,
 		);
+		if (!positions) return;
+		const vertexCount = positions.length / 3;
+		const distances: number[] = [];
+		if (vertexCount >= 2) {
+			const pairs = [
+				[0, vertexCount - 1],
+				[0, Math.floor(vertexCount / 2)],
+				[
+					Math.floor(vertexCount / 4),
+					Math.floor((vertexCount * 3) / 4),
+				],
+			];
+			for (const [a, b] of pairs) {
+				if (a === b) continue;
+				const ai = a * 3;
+				const bi = b * 3;
+				const dx = positions[ai] - positions[bi];
+				const dy = positions[ai + 1] - positions[bi + 1];
+				const dz = positions[ai + 2] - positions[bi + 2];
+				distances.push(dx * dx + dy * dy + dz * dz);
+			}
+		}
+		return {positions, distances};
+	}
+
+	/**
+	 * Constant-size rejection test. A match is only a candidate; all vertices
+	 * are still verified before batching.
+	 */
+	private couldBeRigidCopy(
+		target: RigidSignature | undefined,
+		source: RigidSignature | undefined,
+	): boolean {
 		// Preserve the existing content-hash fallback for unsupported layouts.
 		if (!source || !target) return true;
-		if (source.length !== target.length) return false;
-		const vertexCount = source.length / 3;
-		if (vertexCount < 2) return true;
-
-		const pairs = [
-			[0, vertexCount - 1],
-			[0, Math.floor(vertexCount / 2)],
-			[Math.floor(vertexCount / 4), Math.floor((vertexCount * 3) / 4)],
-		];
-		for (const [a, b] of pairs) {
-			if (a === b) continue;
-			const ai = a * 3;
-			const bi = b * 3;
-			const sourceDx = source[ai] - source[bi];
-			const sourceDy = source[ai + 1] - source[bi + 1];
-			const sourceDz = source[ai + 2] - source[bi + 2];
-			const targetDx = target[ai] - target[bi];
-			const targetDy = target[ai + 1] - target[bi + 1];
-			const targetDz = target[ai + 2] - target[bi + 2];
-			const sourceDistanceSq =
-				sourceDx * sourceDx + sourceDy * sourceDy + sourceDz * sourceDz;
-			const targetDistanceSq =
-				targetDx * targetDx + targetDy * targetDy + targetDz * targetDz;
+		if (source.positions.length !== target.positions.length) return false;
+		for (let i = 0; i < source.distances.length; i++) {
+			const sourceDistanceSq = source.distances[i];
+			const targetDistanceSq = target.distances[i];
 			const tolerance =
-				Math.max(1, sourceDistanceSq, targetDistanceSq) * 5e-4;
+				Math.max(1, sourceDistanceSq, targetDistanceSq) *
+				RIGID_DISTANCE_TOLERANCE;
 			if (Math.abs(sourceDistanceSq - targetDistanceSq) > tolerance)
 				return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Bound the tolerance of every accepting path from above:
+	 * - baked translation: `max(1, extents of both bounds) * 1e-5 + 1e-7`,
+	 * - baked rigid transform: `source maxDist * 1e-4 + 1e-7`, where
+	 *   maxDist is computed here exactly as in `getBakedRepresentative`,
+	 * - byte-identical content: 0.
+	 * Every vertex then lies within that tolerance of its transformed
+	 * source, so every pair distance differs by at most twice it. `width`
+	 * adds 1% and a term for coordinate size as slack for rounding.
+	 * Null when a value is not finite.
+	 */
+	private computeAcceptInvariants(
+		signature: RigidSignature,
+		bounds: PositionBounds | undefined,
+		centroid: [number, number, number],
+	): AcceptInvariants | null {
+		const positions = signature.positions;
+		let maxDistSq = 0;
+		let maxCoordinate = 0;
+		for (let i = 0; i < positions.length; i += 3) {
+			const dx = positions[i] - centroid[0];
+			const dy = positions[i + 1] - centroid[1];
+			const dz = positions[i + 2] - centroid[2];
+			const dSq = dx * dx + dy * dy + dz * dz;
+			if (dSq > maxDistSq) maxDistSq = dSq;
+			maxCoordinate = Math.max(
+				maxCoordinate,
+				Math.abs(positions[i]),
+				Math.abs(positions[i + 1]),
+				Math.abs(positions[i + 2]),
+			);
+		}
+		let boundsScale = 1;
+		if (bounds)
+			for (let i = 0; i < 3; i++)
+				boundsScale = Math.max(
+					boundsScale,
+					bounds.max[i] - bounds.min[i],
+				);
+		const tolerance =
+			Math.max(Math.sqrt(maxDistSq) * 1e-4, boundsScale * 1e-5) + 1e-7;
+		const width = 2.02 * tolerance + maxCoordinate * 1e-12 + 1e-9;
+		// Neighboring vertices are usually close, so their distance reacts to
+		// small shape differences that long diagonals barely register.
+		const vertexCount = positions.length / 3;
+		const lengths: number[] = [];
+		for (let k = 0; k < ACCEPT_SAMPLE_PAIRS && vertexCount >= 2; k++) {
+			const ai =
+				Math.floor((k * (vertexCount - 1)) / ACCEPT_SAMPLE_PAIRS) * 3;
+			const bi = ai + 3;
+			const dx = positions[ai] - positions[bi];
+			const dy = positions[ai + 1] - positions[bi + 1];
+			const dz = positions[ai + 2] - positions[bi + 2];
+			lengths.push(Math.sqrt(dx * dx + dy * dy + dz * dz));
+		}
+		if (!Number.isFinite(width) || !lengths.every(Number.isFinite))
+			return null;
+		return {lengths, width};
+	}
+
+	private getPendingInvariants(
+		entry: PendingInstancing,
+	): AcceptInvariants | null {
+		const signature = entry.signature;
+		if (!signature) return null;
+		if (signature.invariants === undefined)
+			signature.invariants = this.computeAcceptInvariants(
+				signature,
+				this.getPendingBounds(entry),
+				this.computeCentroid(signature.positions),
+			);
+		return signature.invariants;
+	}
+
+	private getTargetInvariants(
+		primitive: IGLTF_v2_Primitive,
+		signature: RigidSignature,
+		targetCache: TargetCache,
+	): AcceptInvariants | null {
+		if (signature.invariants === undefined) {
+			if (targetCache.bounds === undefined)
+				targetCache.bounds = this.getPositionBounds(primitive) ?? null;
+			if (!targetCache.centroid)
+				targetCache.centroid = this.computeCentroid(
+					signature.positions,
+				);
+			signature.invariants = this.computeAcceptInvariants(
+				signature,
+				targetCache.bounds ?? undefined,
+				targetCache.centroid,
+			);
+		}
+		return signature.invariants;
+	}
+
+	/** False when no accepting path can map one primitive onto the other. */
+	private canAccept(
+		target: AcceptInvariants,
+		source: AcceptInvariants,
+	): boolean {
+		const width = Math.max(target.width, source.width);
+		for (let i = 0; i < target.lengths.length; i++)
+			if (Math.abs(target.lengths[i] - source.lengths[i]) > width)
+				return false;
+		return true;
+	}
+
+	private getCellKey(first: number, second: number): string {
+		return first + "," + second;
+	}
+
+	/**
+	 * Use the two sampled distances with the largest range as grid axes.
+	 * Rebuilt each time the group doubles, so indexing stays O(n log n).
+	 */
+	private chooseGridAxes(group: PendingGroup): void {
+		const min: number[] = [];
+		const max: number[] = [];
+		for (const entry of group.entries) {
+			const lengths = this.getPendingInvariants(entry)?.lengths;
+			lengths?.forEach((length, k) => {
+				if (!(length >= min[k])) min[k] = length;
+				if (!(length <= max[k])) max[k] = length;
+			});
+		}
+		const order = max
+			.map((value, k) => ({k, range: value - min[k]}))
+			.sort((a, b) => b.range - a.range);
+		group.axes = [order[0]?.k ?? 0, order[1]?.k ?? 0];
+		group.builtAt = group.entries.length;
+		group.indexed = 0;
+		group.wildcards = [];
+		group.levels = new Map();
+	}
+
+	/** Put entries added since the last lookup into the grid. */
+	private indexPending(group: PendingGroup): void {
+		if (group.entries.length >= 2 * group.builtAt)
+			this.chooseGridAxes(group);
+		for (; group.indexed < group.entries.length; group.indexed++) {
+			const entry = group.entries[group.indexed];
+			const invariants = this.getPendingInvariants(entry);
+			if (!invariants) {
+				group.wildcards.push(entry);
+				continue;
+			}
+			const exponent = Math.ceil(Math.log2(invariants.width));
+			let level = group.levels.get(exponent);
+			if (!level) {
+				level = {size: 2 ** exponent, entries: [], cells: new Map()};
+				group.levels.set(exponent, level);
+			}
+			level.entries.push(entry);
+			const key = this.getCellKey(
+				Math.floor(
+					(invariants.lengths[group.axes[0]] ?? 0) / level.size,
+				),
+				Math.floor(
+					(invariants.lengths[group.axes[1]] ?? 0) / level.size,
+				),
+			);
+			const cell = level.cells.get(key);
+			if (cell) cell.push(entry);
+			else level.cells.set(key, [entry]);
+		}
+	}
+
+	/**
+	 * Pending primitives that pass `couldBeRigidCopy` and can still accept
+	 * the target, in insertion order. Entries the grid leaves out cannot
+	 * accept it, so the first accepting entry is the same as when every
+	 * pending primitive is tried, and the cost does not grow with their
+	 * number.
+	 */
+	private findRigidCopyCandidates(
+		primitive: IGLTF_v2_Primitive,
+		group: PendingGroup,
+		target: RigidSignature | undefined,
+		targetCache: TargetCache,
+	): PendingInstancing[] {
+		const invariants = target
+			? this.getTargetInvariants(primitive, target, targetCache)
+			: null;
+		if (!invariants)
+			return group.entries.filter((entry) =>
+				this.couldBeRigidCopy(target, entry.signature),
+			);
+
+		this.indexPending(group);
+		const found = [...group.wildcards];
+		const first = invariants.lengths[group.axes[0]] ?? 0;
+		const second = invariants.lengths[group.axes[1]] ?? 0;
+		for (const level of group.levels.values()) {
+			// Every entry of this level has width <= level.size.
+			const cellSize = level.size;
+			const reach = Math.max(level.size, invariants.width);
+			const firstFrom = Math.floor((first - reach) / cellSize);
+			const firstTo = Math.floor((first + reach) / cellSize);
+			const secondFrom = Math.floor((second - reach) / cellSize);
+			const secondTo = Math.floor((second + reach) / cellSize);
+			const cells =
+				(firstTo - firstFrom + 1) * (secondTo - secondFrom + 1);
+			if (!(cells <= MAX_LOOKUP_CELLS)) {
+				for (const entry of level.entries) found.push(entry);
+				continue;
+			}
+			for (let a = firstFrom; a <= firstTo; a++)
+				for (let b = secondFrom; b <= secondTo; b++) {
+					const cell = level.cells.get(this.getCellKey(a, b));
+					if (cell) for (const entry of cell) found.push(entry);
+				}
+		}
+
+		const candidates = found.filter((entry) => {
+			if (!this.couldBeRigidCopy(target, entry.signature)) return false;
+			const source = entry.signature?.invariants;
+			return !source || this.canAccept(invariants, source);
+		});
+		candidates.sort((a, b) => a.sequence - b.sequence);
+		return candidates;
+	}
+
+	private addPending(cheapKey: string, entry: PendingInstancing): void {
+		let group = this._pendingByCheapKey.get(cheapKey);
+		if (!group) {
+			group = {
+				entries: [],
+				indexed: 0,
+				builtAt: 0,
+				axes: [0, 0],
+				wildcards: [],
+				levels: new Map(),
+			};
+			this._pendingByCheapKey.set(cheapKey, group);
+		}
+		group.entries.push(entry);
+	}
+
+	private getPendingBounds(
+		entry: PendingInstancing,
+	): PositionBounds | undefined {
+		if (entry.bounds === undefined)
+			entry.bounds = this.getPositionBounds(entry.primitive) ?? null;
+		return entry.bounds ?? undefined;
 	}
 
 	/**
@@ -524,9 +849,12 @@ export class GeometryLoader {
 	private tryExtractBakedTranslation(
 		primitive: IGLTF_v2_Primitive,
 		pending: PendingInstancing,
+		targetCache: TargetCache,
 	): number[] | undefined {
-		const sourceBounds = this.getPositionBounds(pending.primitive);
-		const targetBounds = this.getPositionBounds(primitive);
+		const sourceBounds = this.getPendingBounds(pending);
+		if (targetCache.bounds === undefined)
+			targetCache.bounds = this.getPositionBounds(primitive) ?? null;
+		const targetBounds = targetCache.bounds;
 		if (!sourceBounds || !targetBounds) return;
 
 		const sourceExtent = sourceBounds.max.map(
@@ -706,6 +1034,7 @@ export class GeometryLoader {
 	private tryExtractBakedInstance(
 		primitive: IGLTF_v2_Primitive,
 		pending: PendingInstancing,
+		targetCache: TargetCache,
 	): number[] | undefined {
 		if (primitive.attributes.TANGENT !== undefined) return;
 		const representative = this.getBakedRepresentative(pending);
@@ -725,11 +1054,13 @@ export class GeometryLoader {
 		if ((representative.normals === undefined) !== (normals === undefined))
 			return;
 
+		if (!targetCache.centroid)
+			targetCache.centroid = this.computeCentroid(positions);
 		return this.deriveRigidTransform(
 			representative,
 			positions,
 			normals,
-			this.computeCentroid(positions),
+			targetCache.centroid,
 		);
 	}
 
@@ -1050,11 +1381,19 @@ export class GeometryLoader {
 				instancing.exactKey,
 			);
 
+		// Needed for the lookup, and again if this primitive becomes pending.
+		const rigidSignature = instancing?.cheapKey
+			? this.createRigidSignature(primitive)
+			: undefined;
 		if (instancing?.cheapKey) {
 			const pending = this._pendingByCheapKey.get(instancing.cheapKey);
-			if (pending && pending.length > 0) {
-				const plausible = pending.filter((entry) =>
-					this.couldBeRigidCopy(primitive, entry),
+			if (pending && pending.entries.length > 0) {
+				const targetCache: TargetCache = {};
+				const plausible = this.findRigidCopyCandidates(
+					primitive,
+					pending,
+					rigidSignature,
+					targetCache,
 				);
 				const staticContentHash =
 					plausible.length > 0
@@ -1073,6 +1412,7 @@ export class GeometryLoader {
 						const offsetMatrix = this.tryExtractBakedTranslation(
 							primitive,
 							entry,
+							targetCache,
 						);
 						if (!offsetMatrix) continue;
 						const instance = this.addInstance(
@@ -1120,6 +1460,7 @@ export class GeometryLoader {
 					const offsetMatrix = this.tryExtractBakedInstance(
 						primitive,
 						entry,
+						targetCache,
 					);
 					if (!offsetMatrix) continue;
 					const instance = this.addInstance(
@@ -1291,14 +1632,13 @@ export class GeometryLoader {
 				instancing.exactKey,
 				geometryData,
 			);
-		if (instancing?.cheapKey) {
-			let pending = this._pendingByCheapKey.get(instancing.cheapKey);
-			if (!pending) {
-				pending = [];
-				this._pendingByCheapKey.set(instancing.cheapKey, pending);
-			}
-			pending.push({primitive, geometryData});
-		}
+		if (instancing?.cheapKey)
+			this.addPending(instancing.cheapKey, {
+				primitive,
+				geometryData,
+				sequence: this._pendingSequence++,
+				signature: rigidSignature,
+			});
 
 		return geometryData;
 	}

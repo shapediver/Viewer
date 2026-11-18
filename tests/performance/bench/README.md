@@ -32,6 +32,8 @@ A run of 6 rounds took 14 minutes on a lightly loaded laptop and 17 minutes with
 
 The table is printed and written to `tests/test-results/bench/report.md`. The raw samples are in `samples.json` next to it. That folder is not committed.
 
+The config also runs `instancing.bench.ts` (see [Timing of GPU-instancing detection](#timing-of-gpu-instancing-detection)). To run only one of the two, add `--grep "AEC facade"` or `--grep "GPU-instancing"`.
+
 Only one benchmark runs per machine. A second run prints `Another timing benchmark is running (process …)` and waits until the first one ends; the lock file is `shapediver-viewer-bench.lock` in the system temp folder, and a lock left by a killed run is taken over. Checkouts without the lock (before this README section existed) neither wait nor are waited for, and fail on the busy ports instead.
 
 ## How it measures
@@ -111,6 +113,17 @@ Total CPU: 56% during the old run, 50% during the new one.
 - With a 95% interval, one in twenty identical-build comparisons misses 0 by chance. That happened once here: one-node update, head against base, 0%…+14% with the second suite.
 - Even the best case is a few percent, not zero. Milliseconds on a shared laptop cannot be exactly the same on every run.
 
+## Timing of GPU-instancing detection
+
+`instancing.bench.ts` times `DataEngine.loadContent` of the glb files from `../fixtures/instancingGlbs.ts`: `distinct-750`, `distinct-3000`, `jitter-3000` and `near-3000`. It uses the method above:
+
+- Base, head and control pages run side by side and take turns load by load.
+- Each round does 2 loads per page and file.
+- The main clock is main-thread CPU time.
+- The report shows paired ratios with a 95% interval, and control against base as the noise floor.
+
+The pages have no viewport, so the load is the only work on the thread. Each file is fetched into a blob URL before it is timed, and checking the detection result happens outside the clock. The statistics are shared with `timing.bench.ts` in `paired.ts`. The report also gives how the CPU time of the distinct load grows from 750 to 3000 meshes. It goes to `instancing-report.md`.
+
 ## Why milliseconds are not asserted
 
 - They depend on the machine, the GPU driver, power mode, and what else is running. A threshold that passes on one laptop fails on another.
@@ -175,6 +188,32 @@ Two more sections load a file through `DataEngine.loadContent` and wait for the 
 | WebGL draw calls   | `drawArrays`, `drawElements` and their instanced, range and multi-draw variants.                                                |
 
 The "Pages agree" column compares all pages of a build. It should always say "yes"; anything else means the counts are no longer exact (see below).
+
+### GPU-instancing detection
+
+The AEC fixture builds its tree through `SDV` and loads no glTF, so none of the sections above reaches GPU-instancing detection. A second test, "work count: base against head, GPU-instancing detection", loads synthetic glb files from `../fixtures/instancingGlbs.ts`. In each file every mesh has the same vertex count, index count and material, so detection has to compare the meshes with each other. There are three kinds, at 750 and 3000 meshes:
+
+- `distinct`: no two meshes are copies.
+- `jitter`: a dense family of near-copies.
+- `near`: runs of meshes become instances of one source.
+
+For each file it counts one `DataEngine.loadContent`:
+
+- JS calls and executed blocks.
+- `couldBeRigidCopy` calls: one per pair of primitives the detection tests.
+- `tryExtractBakedTranslation` and `tryExtractBakedInstance` calls: vertex walks over a candidate pair.
+
+It also checks that every page of both builds detects the same instance groups and offset matrices. A last table shows how each counter grows from 750 to 3000 meshes: linear work grows 4x, quadratic work 16x. The tables go to `work-count-instancing.md`.
+
+These pages have no viewport, so nothing draws. To make the counts exact:
+
+- Each file is first fetched into a blob URL, so the network stays out of the section.
+- As in the other sections, timers and animation frames are held during the load.
+- `performance.now` is frozen during the load. `GLTFLoader` emits a progress event (31 calls) whenever enough time has passed since the last one, so without this the call count followed the load time and pages differed by up to about 5,000 calls.
+- Coverage is reset right before the load and read right after it, before the result is checked.
+- The test does one uncounted load per page first.
+
+The timing counterpart is `instancing.bench.ts` (see [Timing of GPU-instancing detection](#timing-of-gpu-instancing-detection)).
 
 ## How the counts are made exact
 

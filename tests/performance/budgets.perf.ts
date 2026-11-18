@@ -2,6 +2,11 @@ import {expect, test, type Page} from "@playwright/test";
 import * as fs from "fs";
 import * as path from "path";
 import {AEC_DEFAULT, aecSceneCounts} from "./fixtures/aecScene";
+import {
+	INSTANCING_FILES,
+	loadInstancingGlb,
+	routeInstancingGlbs,
+} from "./fixtures/instancingGlbs";
 import {openViewer, type PassRecord, type SceneVariant} from "./fixtures/probe";
 import {syntheticGlb} from "./syntheticGlb";
 
@@ -35,7 +40,9 @@ const VARIANTS: SceneVariant[] = [
 // Scenes that are not a rendering variant. They run without shadows, so they
 // also run on a software renderer. `gltf` loads files and renders nothing.
 const SCENARIOS = ["interaction", "attributes", "blendedGlass", "gltf"];
-const BASELINE_IDS = [...VARIANTS.map((v) => v.id), ...SCENARIOS];
+// glTF loading with GPU-instancing detection, see the instancing budget test.
+const INSTANCING = "instancing";
+const BASELINE_IDS = [...VARIANTS.map((v) => v.id), ...SCENARIOS, INSTANCING];
 
 const ATTRIBUTE_SCENE = {...AEC_DEFAULT, floors: 4};
 
@@ -651,3 +658,38 @@ for (const scenario of SCENARIOS) {
 		expect(compare(scenario, counters).join("\n")).toBe("");
 	});
 }
+
+/**
+ * GPU-instancing detection on glb files whose meshes share vertex count,
+ * index count and material. Counts the comparison work and pins the
+ * detection result, so a faster detection cannot change which primitives
+ * become instances.
+ */
+test("budget: GPU-instancing detection, same-count meshes", async ({page}) => {
+	// development before SS-10455 needs about a minute on a laptop.
+	test.setTimeout(300_000);
+	await openViewer(page);
+	await routeInstancingGlbs(page);
+	const counters: Counters = {};
+	for (const file of INSTANCING_FILES) {
+		const result = await loadInstancingGlb(page, file.name);
+		for (const key of [
+			"comparisonCalls",
+			"primitives",
+			"instanceGroups",
+			"withOffset",
+			"resultHash",
+		] as const)
+			counters[`${INSTANCING}.${file.name}.${key}`] = result[key];
+	}
+	if (UPDATE) {
+		writeBaseline(INSTANCING, counters);
+		return;
+	}
+	// Distinct meshes: 4x the meshes may cost 4x the comparisons, not 16x.
+	const growth =
+		counters[`${INSTANCING}.distinct-3000.comparisonCalls`] /
+		counters[`${INSTANCING}.distinct-750.comparisonCalls`];
+	expect(growth, JSON.stringify(counters)).toBeLessThan(6);
+	expect(compare(INSTANCING, counters).join("\n")).toBe("");
+});
