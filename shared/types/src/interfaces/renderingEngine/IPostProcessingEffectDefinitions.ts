@@ -44,6 +44,8 @@ export interface IBloomEffectDefinition extends IPostProcessingEffectDefinition 
 	// #region Properties (10)
 
 	properties?: {
+		/** Whether the background (pixels where no geometry was drawn) contributes to the bloom. Set to false to keep a bright clear color or background from blooming. (default: true) */
+		backgroundBloom?: boolean;
 		/** The blend function of this effect. (default: BlendFunction.ADD) */
 		blendFunction?: number;
 		/** The bloom intensity. (default: 1.0) */
@@ -52,7 +54,7 @@ export interface IBloomEffectDefinition extends IPostProcessingEffectDefinition 
 		kernelSize?: number;
 		/** Controls the smoothness of the luminance threshold. Range is [0, 1]. (default: 0.025) */
 		luminanceSmoothing?: number;
-		/** The luminance threshold. Raise this value to mask out darker elements in the scene. Range is [0, 1]. (default: 0.9) */
+		/** The luminance threshold. Raise this value to mask out darker elements in the scene. Range is [0, 1] with 8-bit buffers; with `IPostProcessingApi.hdr` enabled it may exceed 1, so only highlights brighter than white bloom. (default: 0.9) */
 		luminanceThreshold?: number;
 		/** Enables or disables mipmap blur. (default: false) */
 		mipmapBlur?: boolean;
@@ -341,7 +343,7 @@ export interface ISelectiveBloomEffectDefinition extends IPostProcessingEffectDe
 		kernelSize?: number;
 		/** Controls the smoothness of the luminance threshold. Range is [0, 1]. (default: 0.025) */
 		luminanceSmoothing?: number;
-		/** The luminance threshold. Raise this value to mask out darker elements in the scene. Range is [0, 1]. (default: 0.9) */
+		/** The luminance threshold. Raise this value to mask out darker elements in the scene. Range is [0, 1] with 8-bit buffers; with `IPostProcessingApi.hdr` enabled it may exceed 1, so only highlights brighter than white bloom. (default: 0.9) */
 		luminanceThreshold?: number;
 		/** Enables or disables mipmap blur. (default: false) */
 		mipmapBlur?: boolean;

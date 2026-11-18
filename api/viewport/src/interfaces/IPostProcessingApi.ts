@@ -3,7 +3,8 @@ import {
 	EffectComposer,
 	GodRaysManager,
 	OutlineManager,
-	SelectiveBloomManager} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
+	SelectiveBloomManager,
+} from "@shapediver/viewer.rendering-engine.rendering-engine-threejs";
 import {
 	ANTI_ALIASING_TECHNIQUE,
 	type IBloomEffectDefinition,
@@ -25,7 +26,8 @@ import {
 	type ISSAOEffectDefinition,
 	type ITiltShiftEffectDefinition,
 	type IVignetteEffectDefinition,
-	POST_PROCESSING_EFFECT_TYPE} from "@shapediver/viewer.shared.types";
+	POST_PROCESSING_EFFECT_TYPE,
+} from "@shapediver/viewer.shared.types";
 
 export interface IPostProcessingApi {
 	// #region Properties (9)
@@ -71,6 +73,18 @@ export interface IPostProcessingApi {
 	 * Note: The post-processing API is still WIP. Breaking changes are to be expected.
 	 */
 	enablePostProcessingOnMobile: boolean;
+	/**
+	 * Render the post-processing effects in half-float (HDR) buffers. (default: false)
+	 *
+	 * With HDR, colors brighter than white survive until tone mapping, so a bloom `luminanceThreshold` above 1 makes only highlights brighter than white glow.
+	 * Combine with a tone mapping other than NONE.
+	 * Devices that can't render to half-float buffers fall back to 8-bit buffers.
+	 *
+	 * This setting is not stored in the viewer settings.
+	 *
+	 * Note: The post-processing API is still WIP. Breaking changes are to be expected.
+	 */
+	hdr: boolean;
 	/**
 	 * Access to all currently added god ray effects via token.
 	 *
