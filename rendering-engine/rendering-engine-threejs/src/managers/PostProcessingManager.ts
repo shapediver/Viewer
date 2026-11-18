@@ -208,7 +208,6 @@ export class PostProcessingManager implements IManager {
 		if (!oldComposer) return;
 
 		// the frame buffer type can't be changed on an existing composer
-		oldComposer.removeAllPasses();
 		oldComposer.dispose();
 		this._composer = this.createComposer();
 		this._renderingEngine.renderer.autoClear = true;
@@ -1055,6 +1054,14 @@ export class PostProcessingManager implements IManager {
 				this._effectDefinitions.indexOf(
 					this._effectDefinitions.find((e) => e.token === b.token)!,
 				),
+		);
+
+		// The composer copies the scene depth for effects only after passes with
+		// needsDepthBlit. The SSAA pass doesn't set it, so enable it only when the
+		// background-masked bloom needs depth (enabling it always would change
+		// existing SSAA renders of other depth-based effects).
+		this._ssaaRenderPass!.needsDepthBlit = this._effects.some(
+			(e) => e.effect instanceof BackgroundMaskedBloomEffect,
 		);
 
 		const effectArray = this._effects.map((v) => v.effect);
