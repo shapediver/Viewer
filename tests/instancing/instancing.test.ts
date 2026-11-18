@@ -526,14 +526,22 @@ test.describe("GPU instancing", () => {
 			});
 			viewer.updateNode(node);
 			const mesh = geometry.convertedObject[viewer.id];
-			return {
+			const material = mesh.material;
+			const result = {
 				instanceCount: viewer.gpuInstancing.stats.instanceCount,
 				isInstancedMesh: mesh.isInstancedMesh === true,
 				isGemMaterial: mesh.material.isGemMaterial === true,
 				radius: mesh.material.radius,
 				hasNormalMap: !!mesh.material.sphericalNormalMap,
 				receiveShadow: mesh.receiveShadow,
+				materialKept: false,
 			};
+			// an in-place edit of the same material keeps the gem material
+			geometry.material.updateVersion();
+			viewer.updateNode(node);
+			result.materialKept =
+				geometry.convertedObject[viewer.id].material === material;
+			return result;
 		}, `${ASSET_HOST}/duplicated-boxes.glb`);
 
 		expect(state.instanceCount).toBe(8);
@@ -542,6 +550,7 @@ test.describe("GPU instancing", () => {
 		expect(state.radius).toBeGreaterThan(0);
 		expect(state.hasNormalMap).toBe(true);
 		expect(state.receiveShadow).toBe(false);
+		expect(state.materialKept).toBe(true);
 		expect(pageErrors).toEqual([]);
 	});
 
