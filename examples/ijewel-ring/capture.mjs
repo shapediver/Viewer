@@ -4,6 +4,7 @@
  *
  *   node capture.mjs [--out captures] [--shots front,quarter,back,top,head,side]
  *                    [--sceneEnv <preset or .hdr url>] [--gemEnv <preset or .hdr url>]
+ *                    [--aoMode composite|shading]
  *                    [--port 8080] [--width 683] [--height 768] [--skip-build]
  *
  * The script bundles the example (development mode) from the built packages,
@@ -81,7 +82,7 @@ try {
 	for (const shot of shots) {
 		const url = new URL(`http://localhost:${port}/`);
 		url.searchParams.set("shot", shot);
-		for (const name of ["sceneEnv", "gemEnv"]) {
+		for (const name of ["sceneEnv", "gemEnv", "aoMode"]) {
 			const value = option(name);
 			if (value) url.searchParams.set(name, value);
 		}

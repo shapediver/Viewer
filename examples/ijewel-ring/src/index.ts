@@ -139,7 +139,9 @@ const createGemMaterial = () =>
 	// contact darkening in crevices and a glow on the brightest highlights
 	viewport.postProcessing.addEffect({
 		type: SDV.POST_PROCESSING_EFFECT_TYPE.HBAO,
-		properties: {},
+		// ?aoMode=shading darkens only the indirect light inside the materials
+		properties:
+			urlParameters.get("aoMode") === "shading" ? {mode: "shading"} : {},
 	});
 	viewport.postProcessing.addEffect({
 		type: SDV.POST_PROCESSING_EFFECT_TYPE.BLOOM,
