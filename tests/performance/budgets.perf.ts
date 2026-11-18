@@ -210,6 +210,7 @@ async function collect(page: Page, variant: SceneVariant): Promise<Counters> {
 	);
 	counters["oneNodeChange.treeNodesReversioned"] = change.reversioned;
 	counters["oneNodeChange.treeNodesRead"] = change.nodesRead;
+	counters["oneNodeChange.batchesRebuilt"] = change.batchesRebuilt;
 
 	// After everything above, so late compiles and uploads are included.
 	await page.clock.runFor(500);

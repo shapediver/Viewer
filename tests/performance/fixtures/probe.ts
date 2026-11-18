@@ -274,16 +274,28 @@ export function installProbe() {
 				descriptor.set!.call(this, value);
 			},
 		});
+		const batches = new Set<any>();
+		probe.scene.traverse((object: any) => {
+			if (object.isBatchedMesh) batches.add(object);
+		});
 		const start = performance.now();
+		let ms: number;
 		try {
 			probe.viewport.update();
+			ms = performance.now() - start;
 		} finally {
 			Object.defineProperty(proto, "version", descriptor);
 		}
+		// A batch that is not the same object as before was built again.
+		let batchesRebuilt = 0;
+		probe.scene.traverse((object: any) => {
+			if (object.isBatchedMesh && !batches.has(object)) batchesRebuilt++;
+		});
 		return {
 			reversioned,
 			nodesRead: read.size,
-			ms: performance.now() - start,
+			batchesRebuilt,
+			ms,
 		};
 	}
 
