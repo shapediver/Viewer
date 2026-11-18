@@ -71,8 +71,8 @@ const createGemMaterial = () =>
 		dispersion: 0.07,
 		tracingDepth: 5,
 		tracingOpacity: 1,
-		// tuned by eye: the reference shows bright facets next to dark ones
-		contrast: 1.8,
+		// tuned by eye against the reference, with facet-plane tracing
+		contrast: 1.4,
 	});
 
 (async () => {
