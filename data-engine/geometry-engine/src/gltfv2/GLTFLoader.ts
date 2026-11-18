@@ -908,9 +908,7 @@ export class GLTFLoader {
 					"Extension" + (notSupported.length === 1 ? " " : "s ");
 				notSupported.forEach((element, index) => {
 					message +=
-						'"' +
-						element +
-						'"' +
+						`"${element}"` +
 						(index === notSupported.length - 1
 							? ""
 							: index === notSupported.length - 2
@@ -941,9 +939,7 @@ export class GLTFLoader {
 					"Extension" + (notSupported.length === 1 ? " " : "s ");
 				notSupported.forEach((element, index) => {
 					message +=
-						'"' +
-						element +
-						'"' +
+						`"${element}"` +
 						(index === notSupported.length - 1
 							? ""
 							: index === notSupported.length - 2

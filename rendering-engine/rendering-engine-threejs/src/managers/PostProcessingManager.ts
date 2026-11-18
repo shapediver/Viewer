@@ -303,6 +303,21 @@ export class PostProcessingManager implements IManager {
 						new SelectiveBloomManager(this._renderingEngine, token);
 				break;
 
+			// the other effects need no manager
+			case POST_PROCESSING_EFFECT_TYPE.BLOOM:
+			case POST_PROCESSING_EFFECT_TYPE.CHROMATIC_ABERRATION:
+			case POST_PROCESSING_EFFECT_TYPE.DEPTH_OF_FIELD:
+			case POST_PROCESSING_EFFECT_TYPE.DOT_SCREEN:
+			case POST_PROCESSING_EFFECT_TYPE.GRID:
+			case POST_PROCESSING_EFFECT_TYPE.HBAO:
+			case POST_PROCESSING_EFFECT_TYPE.HUE_SATURATION:
+			case POST_PROCESSING_EFFECT_TYPE.NOISE:
+			case POST_PROCESSING_EFFECT_TYPE.PIXELATION:
+			case POST_PROCESSING_EFFECT_TYPE.SSAO:
+			case POST_PROCESSING_EFFECT_TYPE.SCANLINE:
+			case POST_PROCESSING_EFFECT_TYPE.SEPIA:
+			case POST_PROCESSING_EFFECT_TYPE.TILT_SHIFT:
+			case POST_PROCESSING_EFFECT_TYPE.VIGNETTE:
 			default:
 		}
 
@@ -1080,6 +1095,7 @@ export class PostProcessingManager implements IManager {
 						return ToneMappingMode.OPTIMIZED_CINEON;
 					case TONE_MAPPING.REINHARD:
 						return ToneMappingMode.REINHARD;
+					case TONE_MAPPING.LINEAR:
 					default:
 						return ToneMappingMode.LINEAR;
 				}
@@ -1587,6 +1603,10 @@ export class PostProcessingManager implements IManager {
 					}
 					break;
 
+				// these effects have their own managers and are not listed here
+				case POST_PROCESSING_EFFECT_TYPE.GOD_RAYS:
+				case POST_PROCESSING_EFFECT_TYPE.OUTLINE:
+				case POST_PROCESSING_EFFECT_TYPE.SELECTIVE_BLOOM:
 				default:
 			}
 		}
@@ -1758,7 +1778,7 @@ export class PostProcessingManager implements IManager {
 		if (this._composer) {
 			try {
 				this._composer.addPass(pass);
-			} catch (e) {
+			} catch {
 				// in this case a WebGL error is thrown, when the WebGL context is lost
 				// as we already throw an error in the rendering engine, we can ignore this error here
 				// https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getContextAttributes

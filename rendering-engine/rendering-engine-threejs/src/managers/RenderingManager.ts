@@ -86,7 +86,6 @@ export class RenderingManager implements IManager {
 	private _softShadowRenderingDurationActive: number = 0;
 	private _softShadowRenderingTimeout: ReturnType<typeof setTimeout> | null =
 		null;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private _stats: any;
 	private _usingSwiftShader: boolean = false;
 	private _width: number = 0;
@@ -419,7 +418,8 @@ export class RenderingManager implements IManager {
 	}
 
 	public resize(width: number, height: number) {
-		((this._width = width), (this._height = height));
+		this._width = width;
+		this._height = height;
 		this._renderingEngine.materialLoader.assignPointSize(
 			this._renderingEngine.pointSize,
 		);
@@ -936,7 +936,7 @@ export class RenderingManager implements IManager {
 			const textRect = textAnchor.getBoundingClientRect();
 			let x = textRect.left - canvasRect.left;
 			const y = textRect.top - canvasRect.top;
-			let textAlign: CanvasTextAlign = "left";
+			let textAlign: CanvasTextAlign;
 
 			switch (computedStyle.textAlign) {
 				case "center":
