@@ -420,6 +420,15 @@ export class MaterialLoader implements ILoader {
 	private patchScreenSpaceAmbientOcclusion(
 		shader: THREE.WebGLProgramParametersWithUniforms,
 	): void {
+		// a tracked clone can reach this through the loader hook of its source
+		// and through its own hook
+		if (shader.fragmentShader.includes("sdvScreenAOMap")) return;
+		shader.uniforms.sdvScreenAOMap ??=
+			this._screenAOUniforms.sdvScreenAOMap;
+		shader.uniforms.sdvScreenAOPower ??=
+			this._screenAOUniforms.sdvScreenAOPower;
+		shader.uniforms.sdvScreenAOColor ??=
+			this._screenAOUniforms.sdvScreenAOColor;
 		shader.vertexShader = shader.vertexShader
 			.replace(
 				"#include <common>",
@@ -2273,6 +2282,20 @@ uniform vec3 sdvScreenAOColor;
 			materialSettings,
 		};
 		material.userData.cacheKey = cacheKey;
+		// Material.clone does not copy onBeforeCompile, so a clone has no
+		// screen AO patch. Only a material without a hook of its own gets
+		// this one: three shares programs by the hook's source text, so all
+		// materials with this hook must compile the same way.
+		if (
+			material.onBeforeCompile ===
+			THREE.Material.prototype.onBeforeCompile
+		) {
+			material.onBeforeCompile = (
+				shader: THREE.WebGLProgramParametersWithUniforms,
+			) => this.patchScreenSpaceAmbientOcclusion(shader);
+			material.needsUpdate = true;
+		}
+		this.assignScreenAOToMaterial(material);
 		if (
 			(material instanceof THREE.MeshPhysicalMaterial ||
 				material instanceof THREE.MeshStandardMaterial) &&
