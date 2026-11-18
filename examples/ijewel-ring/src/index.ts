@@ -123,9 +123,9 @@ const createGemMaterial = () =>
 	viewport.environmentMapIntensity = 1;
 	viewport.environmentMapAsBackground = false;
 	viewport.environmentMapPbrMode = SDV.ENVIRONMENT_MAP_PBR_MODE.MODERN;
-	// The reference's white background is tone mapped to a light grey. A
-	// grey clear color also keeps the background below the bloom threshold;
-	// on a white background the bloom washes out the whole ring.
+	// The background does not bloom (`backgroundBloom: false` below). The grey
+	// stays only because the reference's white background is tone mapped to a
+	// light grey.
 	viewport.clearColor = "#e4e4e4";
 	viewport.clearAlpha = 1;
 	viewport.toneMapping = SDV.TONE_MAPPING.ACES_FILMIC;
@@ -137,6 +137,7 @@ const createGemMaterial = () =>
 	viewport.contactShadowDarkness = 1.5;
 	viewport.contactShadowOpacity = 0.6;
 	// contact darkening in crevices and a glow on the brightest highlights
+	viewport.postProcessing.hdr = true;
 	viewport.postProcessing.addEffect({
 		type: SDV.POST_PROCESSING_EFFECT_TYPE.HBAO,
 		properties: {},
@@ -145,8 +146,10 @@ const createGemMaterial = () =>
 		type: SDV.POST_PROCESSING_EFFECT_TYPE.BLOOM,
 		properties: {
 			intensity: 0.5,
-			luminanceThreshold: 0.92,
+			luminanceThreshold: 1.5,
+			luminanceSmoothing: 0.5,
 			mipmapBlur: true,
+			backgroundBloom: false,
 		},
 	});
 	viewport.maximumRenderingSize = {width: 3840, height: 2160};
