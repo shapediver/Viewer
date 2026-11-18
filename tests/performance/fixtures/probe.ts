@@ -299,6 +299,28 @@ export function installProbe() {
 		return performance.now() - start;
 	}
 
+	/**
+	 * Re-versions the fixture root and every node below it, as adding a
+	 * session node to the scene does. Counts the ids that creates.
+	 * The next scene update converts the whole fixture again, so call this
+	 * after everything else.
+	 */
+	function versionUpdate() {
+		const probe = (window as any).__probe;
+		const original = crypto.randomUUID;
+		let ids = 0;
+		crypto.randomUUID = () => {
+			ids++;
+			return original.call(crypto);
+		};
+		try {
+			probe.aec.root.updateVersion();
+		} finally {
+			crypto.randomUUID = original;
+		}
+		return ids;
+	}
+
 	/** Turns the camera around the target by `degrees` and redraws. */
 	function orbit(degrees: number) {
 		const probe = (window as any).__probe;
@@ -511,6 +533,7 @@ export function installProbe() {
 		materialChanges,
 		oneNodeChange,
 		timeOneNodeChange,
+		versionUpdate,
 		orbit,
 		frames,
 		passes,

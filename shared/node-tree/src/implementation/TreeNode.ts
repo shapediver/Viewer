@@ -1,11 +1,13 @@
 import {Box, type IBox} from "@shapediver/viewer.shared.math";
 import {
 	ObservableArray,
-	UuidGenerator} from "@shapediver/viewer.shared.services";
+	UuidGenerator,
+} from "@shapediver/viewer.shared.services";
 import {
 	type ITransformation,
 	type ITreeNode,
-	type ITreeNodeData} from "@shapediver/viewer.shared.types";
+	type ITreeNodeData,
+} from "@shapediver/viewer.shared.types";
 
 import {mat4} from "gl-matrix";
 
@@ -467,19 +469,19 @@ export class TreeNode implements ITreeNode {
 		parents: boolean = true,
 		children: boolean = true,
 	): void {
+		// Each affected node changes exactly once: only this call walks the
+		// ancestors, and the descendants do not walk back up.
 		if (parents === true) {
 			let node = <ITreeNode>this;
 			while (node.parent) {
 				node = node.parent;
-				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-				// @ts-ignore
-				node.version = this.#uuidGenerator.create();
+				node.updateVersion(false, false);
 			}
 		}
 
 		if (children === true) {
 			for (let i = 0; i < this.#children.length; i++)
-				this.#children[i].updateVersion(parents, children);
+				this.#children[i].updateVersion(false, true);
 		}
 
 		const oldVersion = this.#version;

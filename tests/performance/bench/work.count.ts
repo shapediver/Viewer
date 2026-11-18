@@ -39,6 +39,7 @@ const ALL_SECTIONS = [
 		"ssaoFrame",
 		`Camera frame with SSAO, post-processing render x${SSAO_FRAMES}`,
 	],
+	["versionUpdate", "Fixture version update, updateVersion() on its root"],
 	[
 		"attributeSwitch",
 		`Attribute switch on ${ATTRIBUTE_SCENE.floors} floor, zone to load (separate page)`,
@@ -335,6 +336,11 @@ async function measure(browser: Browser, origin: string) {
 		},
 		SSAO_FRAMES,
 		true,
+	);
+	// Last: it re-versions every fixture node, as adding a session does, so
+	// the next scene update would convert the whole fixture again.
+	result.versionUpdate = await count(viewer, "versionUpdate", () =>
+		(window as any).__probe.aec.root.updateVersion(),
 	);
 	const gpu = viewer.gpu;
 	await viewer.page.close();

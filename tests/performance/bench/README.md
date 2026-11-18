@@ -43,13 +43,14 @@ Wall-clock time on a shared laptop mostly measures what else runs. Four things k
 3. **Paired ratios with a confidence interval.** Each round gives one ratio per metric: the median of its block ratios, head block over the base block of the same turn. The report shows the geometric mean of the round ratios and its 95% confidence interval (Student t). A change whose interval contains 0 is "not distinguishable".
 4. **Its own noise floor.** Control against base is an A/A comparison of identical builds in the same run. Its interval should contain 0 and shows how small a change this run could see. If it does not contain 0, the machine was too busy.
 
-| Metric                 | Main clock      | How                                                                                                                                                      |
-| ---------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Full scene build       | main-thread CPU | Building the tree through `SDV` plus the synchronous `viewport.update()`. One block per page.                                                            |
-| First frame            | main-thread CPU | From `viewport.show = true` until the first frame is drawn. One block per page. Shader compilation runs in the GPU process and is not in this number.    |
-| Camera frame           | main-thread CPU | `renderer.render` of the viewport scene, called directly 2 times per block, 12 blocks. The camera does not move, so the viewer draws nothing on its own. |
-| One-node scene update  | main-thread CPU | Toggling one glass pane, `updateVersion()` and the synchronous `viewport.update()`, 4 times per block (back to the start), 8 blocks.                     |
-| Camera frame with SSAO | wall            | From the start of `effectComposer.render` until a one-pixel `readPixels` returns, after a 1 degree orbit. 4 frames per block, 4 blocks.                  |
+| Metric                 | Main clock      | How                                                                                                                                                                                              |
+| ---------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Full scene build       | main-thread CPU | Building the tree through `SDV` plus the synchronous `viewport.update()`. One block per page.                                                                                                    |
+| First frame            | main-thread CPU | From `viewport.show = true` until the first frame is drawn. One block per page. Shader compilation runs in the GPU process and is not in this number.                                            |
+| Camera frame           | main-thread CPU | `renderer.render` of the viewport scene, called directly 2 times per block, 12 blocks. The camera does not move, so the viewer draws nothing on its own.                                         |
+| One-node scene update  | main-thread CPU | Toggling one glass pane, `updateVersion()` and the synchronous `viewport.update()`, 4 times per block (back to the start), 8 blocks.                                                             |
+| Camera frame with SSAO | wall            | From the start of `effectComposer.render` until a one-pixel `readPixels` returns, after a 1 degree orbit. 4 frames per block, 4 blocks.                                                          |
+| Fixture version update | main-thread CPU | `updateVersion()` on the fixture root, as adding a session does, without a scene update. 2 times per block, 8 blocks. Last, because the next scene update would convert the whole fixture again. |
 
 The report has a second table with the other clock for every metric. It has no verdict column: with ten intervals per report, one would be wrong by chance about every other run.
 
@@ -153,6 +154,7 @@ The tables are printed and written to `tests/test-results/bench/work-count.md`, 
 | Camera frame           | `renderer.render` of the viewport scene, 2 times.                                                                                                                                            |
 | One-node scene update  | Toggling one glass pane, `updateVersion()` and `viewport.update()`, 4 times (back to the start).                                                                                             |
 | Camera frame with SSAO | The SSAO effect composer's `render()`, 2 times, with the renderer state `PostProcessingManager.render` sets around it.                                                                       |
+| Fixture version update | `updateVersion()` on the fixture root, once, without a scene update. Last on the fixture page, because the next scene update would convert the whole fixture again.                          |
 | Attribute switch       | Only with `COUNT_ATTRIBUTES=1`. A one-floor tower in attribute mode switches the visualized attribute from `zone` to `load`. Every item gets a new material and its node is converted again. |
 
 WebGL calls include the methods of the `WEBGL_multi_draw` extension, which three.js uses to draw a `BatchedMesh`. One multi-draw call counts as one draw call.
