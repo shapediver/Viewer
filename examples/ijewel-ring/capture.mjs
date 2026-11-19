@@ -5,6 +5,7 @@
  *   node capture.mjs [--out captures] [--shots front,quarter,back,top,head,side]
  *                    [--sceneEnv <preset or .hdr url>] [--gemEnv <preset or .hdr url>]
  *                    [--aoMode composite|shading]
+ *                    [--accumulation <frames> (0 turns the accumulation off)]
  *                    [--late (apply the materials after the first render)]
  *                    [--port 8080] [--width 683] [--height 768] [--skip-build]
  *
@@ -83,7 +84,7 @@ try {
 	for (const shot of shots) {
 		const url = new URL(`http://localhost:${port}/`);
 		url.searchParams.set("shot", shot);
-		for (const name of ["sceneEnv", "gemEnv", "aoMode"]) {
+		for (const name of ["sceneEnv", "gemEnv", "aoMode", "accumulation"]) {
 			const value = option(name);
 			if (value) url.searchParams.set(name, value);
 		}
