@@ -5,12 +5,47 @@ import {sdeuc1} from "../models.json";
 
 const shelfTicket = sdeuc1.models["Shelf"].ticket;
 
-// A custom .hdr on a host that allows cross-origin reads (pinned, immutable release).
-const CUSTOM_HDR =
-	"https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/equirectangular/royal_esplanade_1k.hdr";
-// Same host, file does not exist: the Geometry Backend proxy and the direct download both fail.
-const MISSING_HDR =
-	"https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/textures/equirectangular/does_not_exist_1k.hdr";
+// The tests use no external host. This made-up host cannot be reached by the
+// Geometry Backend proxy, so the viewer falls back to the direct download,
+// which the tests answer themselves.
+const ASSET_HOST = "https://envmap-assets.viewertests.invalid";
+// A custom .hdr on a host that allows cross-origin reads.
+const CUSTOM_HDR = `${ASSET_HOST}/studio_4x2.hdr`;
+// Same host, file does not exist: the proxy and the direct download both fail.
+const MISSING_HDR = `${ASSET_HOST}/does_not_exist.hdr`;
+
+/**
+ * A minimal Radiance .hdr file: 4 x 2 pixels, not run-length encoded, every
+ * pixel white with value 1 (RGBE 128, 128, 128, 129).
+ */
+const createHdrFile = (): Buffer => {
+	const width = 4;
+	const height = 2;
+	const header = Buffer.from(
+		`#?RADIANCE\nFORMAT=32-bit_rle_rgbe\n\n-Y ${height} +X ${width}\n`,
+		"ascii",
+	);
+	const pixels = Buffer.alloc(width * height * 4);
+	for (let i = 0; i < width * height; i++)
+		pixels.set([128, 128, 128, 129], i * 4);
+	return Buffer.concat([header, pixels]);
+};
+
+/** Answers the direct downloads from the made-up asset host. */
+const serveAssets = async (page: import("@playwright/test").Page) =>
+	page.route(`${ASSET_HOST}/**`, (route) =>
+		route.request().url() === CUSTOM_HDR
+			? route.fulfill({
+					status: 200,
+					contentType: "image/vnd.radiance",
+					headers: {"access-control-allow-origin": "*"},
+					body: createHdrFile(),
+				})
+			: route.fulfill({
+					status: 404,
+					headers: {"access-control-allow-origin": "*"},
+				}),
+	);
 
 /**
  * Creates a viewport and a session with default settings, sets the environment map
@@ -64,6 +99,7 @@ const loadEnvironmentMap = async (
 
 test.describe("Custom environment map", () => {
 	test.beforeEach(async ({page}) => {
+		await serveAssets(page);
 		await page.goto("test-cdn/index.html");
 	});
 
@@ -82,16 +118,6 @@ test.describe("Custom environment map", () => {
 		page.on("console", (message) => {
 			if (message.type() === "error") errors.push(message.text());
 		});
-
-		// The CDN answers a missing file with 404, but with 403 from some
-		// networks (GitHub runners). The direct download gets a fixed answer, so
-		// the test only depends on how the viewer reports it.
-		await page.route(MISSING_HDR, (route) =>
-			route.fulfill({
-				status: 404,
-				headers: {"access-control-allow-origin": "*"},
-			}),
-		);
 
 		const result = await loadEnvironmentMap(page, MISSING_HDR);
 
