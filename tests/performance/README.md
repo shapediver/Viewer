@@ -76,7 +76,7 @@ Helpers used by one ticket stay in its file. A helper that two tickets need goes
 3. A new scenario is `budgets/<id>.perf.ts` with its own `baseline/<id>.json`. Its test title keeps the form `budget: AEC facade, <id>`.
 4. Run the test once with `UPDATE_BUDGETS=1`, check the diff, commit the baseline.
 
-Counters today in `facade`: passes, draw calls, triangles, programs, material updates, tree reads and, from SS-10478, `oneNodeChange.programCacheKeyCalls`, `oneNodeChange.updateMatrixWorldCalls`, `oneNodeChange.treeDataReads` and `cameraFrame.updateMatrixWorldCalls`. The `oneNodeChange.*` counters of the last three cover the change and the frames it causes until 500 ms after the settle.
+Counters today in `facade`: passes, draw calls, triangles, programs, material updates, tree reads and, from SS-10478, `oneNodeChange.programCacheKeyCalls`, `oneNodeChange.updateMatrixWorldCalls`, `oneNodeChange.treeDataReads` and `cameraFrame.updateMatrixWorldCalls`. The three new `oneNodeChange.*` counters cover the change and the first frame drawn after it, nothing later; the cost per frame is in `cameraFrame.*`. The clock is stepped one frame at a time and waits for shader compiles before each step, so the window does not depend on driver speed.
 
 ## Add a benchmark section
 

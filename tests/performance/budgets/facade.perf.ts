@@ -25,19 +25,23 @@ const VARIANTS: SceneVariant[] = [
 ];
 
 /**
- * Runs the page clock one animation frame (16 ms) at a time and waits for
- * every shader compile before each step. A compile that starts in a frame
- * (the beauty pass, the denoise passes) would otherwise stall the frames
- * after it for as long as the driver needs, and the frames counted, with the
- * work done in them, would change from run to run.
+ * Runs the page clock one animation frame (16 ms) at a time, after the last
+ * `reset`, until the viewer has drawn one frame. Before each step it waits
+ * for every shader compile. The viewer draws once the compiles are done
+ * (SS-10384), and a compile takes real time while the clock is paused, so
+ * without the wait the number of steps would follow the speed of the
+ * driver. Returns the steps taken: the first drawn frame is the last one.
  */
-async function runCompiled(page: Page, ms: number) {
-	for (let elapsed = 0; elapsed < ms; elapsed += 16) {
+async function runToFirstFrame(page: Page) {
+	for (let steps = 1; steps <= 100; steps++) {
 		await page.waitForFunction(() =>
 			(window as any).__probe.programsReady(),
 		);
 		await page.clock.runFor(16);
+		if (await page.evaluate(() => (window as any).__probe.frames().length))
+			return steps;
 	}
+	throw new Error("The viewer drew no frame after the one-node change.");
 }
 
 async function collect(page: Page, variant: SceneVariant): Promise<Counters> {
@@ -156,8 +160,8 @@ async function collect(page: Page, variant: SceneVariant): Promise<Counters> {
 	counters["cameraFrame.updateMatrixWorldCalls"] =
 		move.counters.matrixWorld.byFrame[frames[0].frame] ?? 0;
 
-	// One hidden glass pane. The counters below cover the change and the
-	// frames it causes, up to the read after the settle.
+	// One hidden glass pane. The `oneNodeChange.*` counters below cover the
+	// change and the first frame drawn after it.
 	await page.evaluate(() => {
 		(window as any).__probe.trackTreeDataReads();
 		(window as any).__probe.reset();
@@ -169,15 +173,34 @@ async function collect(page: Page, variant: SceneVariant): Promise<Counters> {
 	counters["oneNodeChange.treeNodesRead"] = change.nodesRead;
 	counters["oneNodeChange.batchesRebuilt"] = change.batchesRebuilt;
 
-	// The frames the change causes. Shader compiles run in real time while
-	// the clock is paused, and the viewer draws once they are done (SS-10384),
-	// so wait for them as `measure` does. Otherwise the number of frames, and
-	// the work counted in them, depends on the speed of the driver.
-	await runCompiled(page, SETTLE_MS);
+	// The change itself, as far as the sync update goes.
+	const sync = await page.evaluate(() =>
+		(window as any).__probe.readCounters(),
+	);
+	// And the first frame drawn after it, nothing later: the per-frame cost
+	// is `cameraFrame.*`. A frame the viewer skips while a shader compiles
+	// is inside the window, so is a compile wait.
+	const steps = await runToFirstFrame(page);
 	const update = await page.evaluate(() => ({
 		counters: (window as any).__probe.readCounters(),
 		picks: (window as any).__probe.picks(),
+		frames: (window as any).__probe.frames().length,
 	}));
+	// Printed so a reader of the run can see how the values split.
+	console.log(
+		`oneNodeChange window, ${variant.id}: ` +
+			JSON.stringify({
+				clockSteps: steps,
+				framesDrawn: update.frames,
+				updateMatrixWorldInUpdate: sync.matrixWorld.total,
+				updateMatrixWorldInFrame:
+					update.counters.matrixWorld.total - sync.matrixWorld.total,
+				programCacheKeyInUpdate: sync.programCacheKey.calls,
+				programCacheKeyInFrame:
+					update.counters.programCacheKey.calls -
+					sync.programCacheKey.calls,
+			}),
+	);
 	counters["oneNodeChange.programCacheKeyCalls"] =
 		update.counters.programCacheKey.calls;
 	counters["oneNodeChange.updateMatrixWorldCalls"] =
