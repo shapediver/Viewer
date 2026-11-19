@@ -37,6 +37,7 @@ export class ContactShadow implements IEnvironmentGeometry {
 	private _shadowGroup!: THREE.Group<THREE.Object3DEventMap>;
 	private _verticalBlurMaterial!: THREE.ShaderMaterial;
 	private _currentGridExtents: number = 1;
+	private _depthMaterials = new Map<number, THREE.MeshDepthMaterial>();
 	private _originalMaterials: Map<
 		THREE.Object3D,
 		THREE.Material | THREE.Material[]
@@ -104,7 +105,16 @@ export class ContactShadow implements IEnvironmentGeometry {
 	}
 
 	public set visible(value: boolean) {
+		const wasVisible = this._contactShadowObject.visible;
 		this._contactShadowObject.visible = value;
+		if (value === wasVisible) return;
+		if (value) {
+			// The target was not rendered while hidden: draw it on the
+			// next frame, also when the caller does not call update().
+			this._renderingEngine.renderingManager.updateShadowMap();
+		} else {
+			this.disposeDepthMaterials();
+		}
 	}
 
 	// #endregion Public Getters And Setters (10)
@@ -164,6 +174,9 @@ export class ContactShadow implements IEnvironmentGeometry {
 	 * program is compiled that the contact shadow never uses.
 	 */
 	public compile(): void {
+		// Nothing draws while hidden. The first render after turning
+		// visibility on compiles the programs.
+		if (!this.visible) return;
 		const engine = this._renderingEngine;
 		const renderer = engine.renderer;
 		const scene = engine.scene;
@@ -226,6 +239,8 @@ export class ContactShadow implements IEnvironmentGeometry {
 	}
 
 	public render() {
+		if (!this.visible) return;
+
 		// three.js 0.162 does not guard against `gl.getProgramInfoLog` returning null,
 		// which Safari's WebGL implementation does for valid programs (fixed in r163+).
 		// Disable checkShaderErrors during shadow renders to avoid the crash when
@@ -248,17 +263,15 @@ export class ContactShadow implements IEnvironmentGeometry {
 		this._plane.visible = false;
 
 		const excludedObjects: THREE.Object3D[] = [];
-		this._renderingEngine.scene.traverse(function (object) {
-			if (object.visible === true) {
-				if (
-					object instanceof THREE.Line ||
-					object instanceof THREE.LineLoop ||
-					object instanceof THREE.LineSegments ||
-					object instanceof THREE.Points
-				) {
-					excludedObjects.push(object);
-					object.visible = false;
-				}
+		this._renderingEngine.scene.traverseVisible(function (object) {
+			if (
+				object instanceof THREE.Line ||
+				object instanceof THREE.LineLoop ||
+				object instanceof THREE.LineSegments ||
+				object instanceof THREE.Points
+			) {
+				excludedObjects.push(object);
+				object.visible = false;
 			}
 		});
 
@@ -268,7 +281,7 @@ export class ContactShadow implements IEnvironmentGeometry {
 
 		// Apply transparency-aware depth materials to all mesh objects
 		this._originalMaterials.clear();
-		this._renderingEngine.scene.traverse((object) => {
+		this._renderingEngine.scene.traverseVisible((object) => {
 			if (object instanceof THREE.Mesh && object.material) {
 				this._originalMaterials.set(object, object.material);
 				object.material = this.createTransparencyAwareDepthMaterial(
@@ -371,8 +384,16 @@ export class ContactShadow implements IEnvironmentGeometry {
 		// Calculate adjusted darkness based on material opacity
 		const adjustedDarkness = this._darkness * materialOpacity;
 
-		// Create a new depth material for this specific object
+		// One depth material per distinct opacity. The darkness is refreshed
+		// on every use, so a changed darkness reaches the cached material.
+		const cached = this._depthMaterials.get(materialOpacity);
+		if (cached) {
+			cached.userData.darkness.value = adjustedDarkness;
+			return cached;
+		}
+
 		const depthMaterial = new THREE.MeshDepthMaterial();
+		this._depthMaterials.set(materialOpacity, depthMaterial);
 		depthMaterial.side = THREE.DoubleSide;
 		depthMaterial.userData.darkness = {value: adjustedDarkness};
 
@@ -393,6 +414,11 @@ export class ContactShadow implements IEnvironmentGeometry {
 		depthMaterial.depthWrite = false;
 
 		return depthMaterial;
+	}
+
+	private disposeDepthMaterials(): void {
+		this._depthMaterials.forEach((material) => material.dispose());
+		this._depthMaterials.clear();
 	}
 
 	private blurShadow(amount: number): void {
