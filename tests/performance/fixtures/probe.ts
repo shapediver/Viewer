@@ -499,6 +499,22 @@ export function installProbe() {
 				}),
 			);
 		});
+		// The overview lists the values and the range of each attribute. The
+		// engine reads it for the string order and the number range. Without
+		// it, the string switch used to throw (SS-10516).
+		const count = probe.aec.items.length;
+		SDV.sceneTree.root.addData(
+			new SDV.SDTFOverviewData({
+				zone: [
+					{
+						typeHint: "string",
+						count,
+						values: Array.from({length: 8}, (_, i) => `zone${i}`),
+					},
+				],
+				load: [{typeHint: "double", count, min: 0, max: 99}],
+			}),
+		);
 		SDV.sceneTree.root.updateVersion();
 		probe.viewport.update();
 		probe.attributes = {SDVAV};
