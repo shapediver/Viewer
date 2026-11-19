@@ -6,28 +6,32 @@ import {validate as validateV1} from "./versions/v1/Validator";
 
 import {
 	convertFromPrevious as convertFromPreviousV2,
-	convertToPrevious as convertToPreviousV2} from "./versions/v2/Converter";
+	convertToPrevious as convertToPreviousV2,
+} from "./versions/v2/Converter";
 import {Defaults as DefaultsV2} from "./versions/v2/Defaults";
 import {type ISettings as ISettingsV2} from "./versions/v2/ISettings";
 import {validate as validateV2} from "./versions/v2/Validator";
 
 import {
 	convertFromPrevious as convertFromPreviousV3,
-	convertToPrevious as convertToPreviousV3} from "./versions/v3/Converter";
+	convertToPrevious as convertToPreviousV3,
+} from "./versions/v3/Converter";
 import {Defaults as DefaultsV3} from "./versions/v3/Defaults";
 import {
 	type ICameraSettings as ICameraSettingsV3,
 	type IOrbitControlsSettings as IOrbitControlsSettingsV3,
 	type IOrthographicCameraSettings as IOrthographicCameraSettingsV3,
 	type IOrthographicControlsSettings as IOrthographicControlsSettingsV3,
-	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV3} from "./versions/v3/ICameraSettings";
+	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV3,
+} from "./versions/v3/ICameraSettings";
 import {
 	type IAmbientLightProperties as IAmbientLightPropertiesV3,
 	type IDirectionalLightProperties as IDirectionalLightPropertiesV3,
 	type IHemisphereLightProperties as IHemisphereLightPropertiesV3,
 	type ILightSceneSettings as ILightSceneSettingsV3,
 	type IPointLightProperties as IPointLightPropertiesV3,
-	type ISpotLightProperties as ISpotLightPropertiesV3} from "./versions/v3/ILightSceneSettings";
+	type ISpotLightProperties as ISpotLightPropertiesV3,
+} from "./versions/v3/ILightSceneSettings";
 import {type ISettings as ISettingsV3} from "./versions/v3/ISettings";
 import {validate as validateV3} from "./versions/v3/Validator";
 
@@ -36,17 +40,20 @@ import {
 	type IOrbitControlsSettings as IOrbitControlsSettingsV3_1,
 	type IOrthographicCameraSettings as IOrthographicCameraSettingsV3_1,
 	type IOrthographicControlsSettings as IOrthographicControlsSettingsV3_1,
-	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV3_1} from "./versions/v3/ICameraSettings";
+	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV3_1,
+} from "./versions/v3/ICameraSettings";
 import {
 	type IAmbientLightProperties as IAmbientLightPropertiesV3_1,
 	type IDirectionalLightProperties as IDirectionalLightPropertiesV3_1,
 	type IHemisphereLightProperties as IHemisphereLightPropertiesV3_1,
 	type ILightSceneSettings as ILightSceneSettingsV3_1,
 	type IPointLightProperties as IPointLightPropertiesV3_1,
-	type ISpotLightProperties as ISpotLightPropertiesV3_1} from "./versions/v3/ILightSceneSettings";
+	type ISpotLightProperties as ISpotLightPropertiesV3_1,
+} from "./versions/v3/ILightSceneSettings";
 import {
 	convertFromPrevious as convertFromPreviousV3_1,
-	convertToPrevious as convertToPreviousV3_1} from "./versions/v3_1/Converter";
+	convertToPrevious as convertToPreviousV3_1,
+} from "./versions/v3_1/Converter";
 import {Defaults as DefaultsV3_1} from "./versions/v3_1/Defaults";
 import {type ISettings as ISettingsV3_1} from "./versions/v3_1/ISettings";
 import {validate as validateV3_1} from "./versions/v3_1/Validator";
@@ -56,17 +63,20 @@ import {
 	type IOrbitControlsSettings as IOrbitControlsSettingsV3_2,
 	type IOrthographicCameraSettings as IOrthographicCameraSettingsV3_2,
 	type IOrthographicControlsSettings as IOrthographicControlsSettingsV3_2,
-	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV3_2} from "./versions/v3/ICameraSettings";
+	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV3_2,
+} from "./versions/v3/ICameraSettings";
 import {
 	type IAmbientLightProperties as IAmbientLightPropertiesV3_2,
 	type IDirectionalLightProperties as IDirectionalLightPropertiesV3_2,
 	type IHemisphereLightProperties as IHemisphereLightPropertiesV3_2,
 	type ILightSceneSettings as ILightSceneSettingsV3_2,
 	type IPointLightProperties as IPointLightPropertiesV3_2,
-	type ISpotLightProperties as ISpotLightPropertiesV3_2} from "./versions/v3/ILightSceneSettings";
+	type ISpotLightProperties as ISpotLightPropertiesV3_2,
+} from "./versions/v3/ILightSceneSettings";
 import {
 	convertFromPrevious as convertFromPreviousV3_2,
-	convertToPrevious as convertToPreviousV3_2} from "./versions/v3_2/Converter";
+	convertToPrevious as convertToPreviousV3_2,
+} from "./versions/v3_2/Converter";
 import {Defaults as DefaultsV3_2} from "./versions/v3_2/Defaults";
 import {type ISettings as ISettingsV3_2} from "./versions/v3_2/ISettings";
 import {validate as validateV3_2} from "./versions/v3_2/Validator";
@@ -76,17 +86,20 @@ import {
 	type IOrbitControlsSettings as IOrbitControlsSettingsV3_3,
 	type IOrthographicCameraSettings as IOrthographicCameraSettingsV3_3,
 	type IOrthographicControlsSettings as IOrthographicControlsSettingsV3_3,
-	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV3_3} from "./versions/v3/ICameraSettings";
+	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV3_3,
+} from "./versions/v3/ICameraSettings";
 import {
 	type IAmbientLightProperties as IAmbientLightPropertiesV3_3,
 	type IDirectionalLightProperties as IDirectionalLightPropertiesV3_3,
 	type IHemisphereLightProperties as IHemisphereLightPropertiesV3_3,
 	type ILightSceneSettings as ILightSceneSettingsV3_3,
 	type IPointLightProperties as IPointLightPropertiesV3_3,
-	type ISpotLightProperties as ISpotLightPropertiesV3_3} from "./versions/v3/ILightSceneSettings";
+	type ISpotLightProperties as ISpotLightPropertiesV3_3,
+} from "./versions/v3/ILightSceneSettings";
 import {
 	convertFromPrevious as convertFromPreviousV3_3,
-	convertToPrevious as convertToPreviousV3_3} from "./versions/v3_3/Converter";
+	convertToPrevious as convertToPreviousV3_3,
+} from "./versions/v3_3/Converter";
 import {Defaults as DefaultsV3_3} from "./versions/v3_3/Defaults";
 import {type ISettings as ISettingsV3_3} from "./versions/v3_3/ISettings";
 import {validate as validateV3_3} from "./versions/v3_3/Validator";
@@ -96,17 +109,20 @@ import {
 	type IOrbitControlsSettings as IOrbitControlsSettingsV3_4,
 	type IOrthographicCameraSettings as IOrthographicCameraSettingsV3_4,
 	type IOrthographicControlsSettings as IOrthographicControlsSettingsV3_4,
-	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV3_4} from "./versions/v3/ICameraSettings";
+	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV3_4,
+} from "./versions/v3/ICameraSettings";
 import {
 	type IAmbientLightProperties as IAmbientLightPropertiesV3_4,
 	type IDirectionalLightProperties as IDirectionalLightPropertiesV3_4,
 	type IHemisphereLightProperties as IHemisphereLightPropertiesV3_4,
 	type ILightSceneSettings as ILightSceneSettingsV3_4,
 	type IPointLightProperties as IPointLightPropertiesV3_4,
-	type ISpotLightProperties as ISpotLightPropertiesV3_4} from "./versions/v3/ILightSceneSettings";
+	type ISpotLightProperties as ISpotLightPropertiesV3_4,
+} from "./versions/v3/ILightSceneSettings";
 import {
 	convertFromPrevious as convertFromPreviousV3_4,
-	convertToPrevious as convertToPreviousV3_4} from "./versions/v3_4/Converter";
+	convertToPrevious as convertToPreviousV3_4,
+} from "./versions/v3_4/Converter";
 import {Defaults as DefaultsV3_4} from "./versions/v3_4/Defaults";
 import {type ISettings as ISettingsV3_4} from "./versions/v3_4/ISettings";
 import {validate as validateV3_4} from "./versions/v3_4/Validator";
@@ -116,17 +132,20 @@ import {
 	type IOrbitControlsSettings as IOrbitControlsSettingsV4_0,
 	type IOrthographicCameraSettings as IOrthographicCameraSettingsV4_0,
 	type IOrthographicControlsSettings as IOrthographicControlsSettingsV4_0,
-	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV4_0} from "./versions/v3/ICameraSettings";
+	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV4_0,
+} from "./versions/v3/ICameraSettings";
 import {
 	type IAmbientLightProperties as IAmbientLightPropertiesV4_0,
 	type IDirectionalLightProperties as IDirectionalLightPropertiesV4_0,
 	type IHemisphereLightProperties as IHemisphereLightPropertiesV4_0,
 	type ILightSceneSettings as ILightSceneSettingsV4_0,
 	type IPointLightProperties as IPointLightPropertiesV4_0,
-	type ISpotLightProperties as ISpotLightPropertiesV4_0} from "./versions/v3/ILightSceneSettings";
+	type ISpotLightProperties as ISpotLightPropertiesV4_0,
+} from "./versions/v3/ILightSceneSettings";
 import {
 	convertFromPrevious as convertFromPreviousV4_0,
-	convertToPrevious as convertToPreviousV4_0} from "./versions/v4/Converter";
+	convertToPrevious as convertToPreviousV4_0,
+} from "./versions/v4/Converter";
 import {Defaults as DefaultsV4_0} from "./versions/v4/Defaults";
 import {type IPostProcessingEffectsArray as IPostProcessingEffectsArrayV4_0} from "./versions/v4/IPostProcessingEffectSettings";
 import {type ISettings as ISettingsV4_0} from "./versions/v4/ISettings";
@@ -137,18 +156,21 @@ import {
 	type IOrbitControlsSettings as IOrbitControlsSettingsV4_1,
 	type IOrthographicCameraSettings as IOrthographicCameraSettingsV4_1,
 	type IOrthographicControlsSettings as IOrthographicControlsSettingsV4_1,
-	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV4_1} from "./versions/v3/ICameraSettings";
+	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV4_1,
+} from "./versions/v3/ICameraSettings";
 import {
 	type IAmbientLightProperties as IAmbientLightPropertiesV4_1,
 	type IDirectionalLightProperties as IDirectionalLightPropertiesV4_1,
 	type IHemisphereLightProperties as IHemisphereLightPropertiesV4_1,
 	type ILightSceneSettings as ILightSceneSettingsV4_1,
 	type IPointLightProperties as IPointLightPropertiesV4_1,
-	type ISpotLightProperties as ISpotLightPropertiesV4_1} from "./versions/v3/ILightSceneSettings";
+	type ISpotLightProperties as ISpotLightPropertiesV4_1,
+} from "./versions/v3/ILightSceneSettings";
 import {type IPostProcessingEffectsArray as IPostProcessingEffectsArrayV4_1} from "./versions/v4/IPostProcessingEffectSettings";
 import {
 	convertFromPrevious as convertFromPreviousV4_1,
-	convertToPrevious as convertToPreviousV4_1} from "./versions/v4_1/Converter";
+	convertToPrevious as convertToPreviousV4_1,
+} from "./versions/v4_1/Converter";
 import {Defaults as DefaultsV4_1} from "./versions/v4_1/Defaults";
 import {type ISettings as ISettingsV4_1} from "./versions/v4_1/ISettings";
 import {validate as validateV4_1} from "./versions/v4_1/Validator";
@@ -159,17 +181,20 @@ import {
 	type IHemisphereLightProperties as IHemisphereLightPropertiesV5,
 	type ILightSceneSettings as ILightSceneSettingsV5,
 	type IPointLightProperties as IPointLightPropertiesV5,
-	type ISpotLightProperties as ISpotLightPropertiesV5} from "./versions/v3/ILightSceneSettings";
+	type ISpotLightProperties as ISpotLightPropertiesV5,
+} from "./versions/v3/ILightSceneSettings";
 import {type IPostProcessingEffectsArray as IPostProcessingEffectsArrayV5} from "./versions/v4/IPostProcessingEffectSettings";
 import {
 	convertFromPrevious as convertFromPreviousV5,
-	convertToPrevious as convertToPreviousV5} from "./versions/v5/Converter";
+	convertToPrevious as convertToPreviousV5,
+} from "./versions/v5/Converter";
 import {Defaults as DefaultsV5} from "./versions/v5/Defaults";
 import {
 	type ICameraControlsSettings as ICameraControlsSettingsV5,
 	type ICameraSettings as ICameraSettingsV5,
 	type IOrthographicCameraSettings as IOrthographicCameraSettingsV5,
-	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV5} from "./versions/v5/ICameraSettings";
+	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV5,
+} from "./versions/v5/ICameraSettings";
 import {type ISettings as ISettingsV5} from "./versions/v5/ISettings";
 import {validate as validateV5} from "./versions/v5/Validator";
 
@@ -179,16 +204,19 @@ import {
 	type IHemisphereLightProperties as IHemisphereLightPropertiesV6,
 	type ILightSceneSettings as ILightSceneSettingsV6,
 	type IPointLightProperties as IPointLightPropertiesV6,
-	type ISpotLightProperties as ISpotLightPropertiesV6} from "./versions/v3/ILightSceneSettings";
+	type ISpotLightProperties as ISpotLightPropertiesV6,
+} from "./versions/v3/ILightSceneSettings";
 import {type IPostProcessingEffectsArray as IPostProcessingEffectsArrayV6} from "./versions/v4/IPostProcessingEffectSettings";
 import {
 	type ICameraControlsSettings as ICameraControlsSettingsV6,
 	type ICameraSettings as ICameraSettingsV6,
 	type IOrthographicCameraSettings as IOrthographicCameraSettingsV6,
-	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV6} from "./versions/v5/ICameraSettings";
+	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV6,
+} from "./versions/v5/ICameraSettings";
 import {
 	convertFromPrevious as convertFromPreviousV6,
-	convertToPrevious as convertToPreviousV6} from "./versions/v6/Converter";
+	convertToPrevious as convertToPreviousV6,
+} from "./versions/v6/Converter";
 import {type ISettings as ISettingsV6} from "./versions/v6/ISettings";
 import {validate as validateV6} from "./versions/v6/Validator";
 
@@ -198,16 +226,19 @@ import {
 	type IHemisphereLightProperties as IHemisphereLightPropertiesV6_1,
 	type ILightSceneSettings as ILightSceneSettingsV6_1,
 	type IPointLightProperties as IPointLightPropertiesV6_1,
-	type ISpotLightProperties as ISpotLightPropertiesV6_1} from "./versions/v3/ILightSceneSettings";
+	type ISpotLightProperties as ISpotLightPropertiesV6_1,
+} from "./versions/v3/ILightSceneSettings";
 import {type IPostProcessingEffectsArray as IPostProcessingEffectsArrayV6_1} from "./versions/v4/IPostProcessingEffectSettings";
 import {
 	type ICameraControlsSettings as ICameraControlsSettingsV6_1,
 	type ICameraSettings as ICameraSettingsV6_1,
 	type IOrthographicCameraSettings as IOrthographicCameraSettingsV6_1,
-	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV6_1} from "./versions/v5/ICameraSettings";
+	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV6_1,
+} from "./versions/v5/ICameraSettings";
 import {
 	convertFromPrevious as convertFromPreviousV6_1,
-	convertToPrevious as convertToPreviousV6_1} from "./versions/v6_1/Converter";
+	convertToPrevious as convertToPreviousV6_1,
+} from "./versions/v6_1/Converter";
 import {type ISettings as ISettingsV6_1} from "./versions/v6_1/ISettings";
 import {validate as validateV6_1} from "./versions/v6_1/Validator";
 
@@ -217,16 +248,19 @@ import {
 	type IHemisphereLightProperties as IHemisphereLightPropertiesV6_2,
 	type ILightSceneSettings as ILightSceneSettingsV6_2,
 	type IPointLightProperties as IPointLightPropertiesV6_2,
-	type ISpotLightProperties as ISpotLightPropertiesV6_2} from "./versions/v3/ILightSceneSettings";
+	type ISpotLightProperties as ISpotLightPropertiesV6_2,
+} from "./versions/v3/ILightSceneSettings";
 import {type IPostProcessingEffectsArray as IPostProcessingEffectsArrayV6_2} from "./versions/v4/IPostProcessingEffectSettings";
 import {
 	type ICameraControlsSettings as ICameraControlsSettingsV6_2,
 	type ICameraSettings as ICameraSettingsV6_2,
 	type IOrthographicCameraSettings as IOrthographicCameraSettingsV6_2,
-	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV6_2} from "./versions/v5/ICameraSettings";
+	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV6_2,
+} from "./versions/v5/ICameraSettings";
 import {
 	convertFromPrevious as convertFromPreviousV6_2,
-	convertToPrevious as convertToPreviousV6_2} from "./versions/v6_2/Converter";
+	convertToPrevious as convertToPreviousV6_2,
+} from "./versions/v6_2/Converter";
 import {type ISettings as ISettingsV6_2} from "./versions/v6_2/ISettings";
 import {validate as validateV6_2} from "./versions/v6_2/Validator";
 
@@ -236,16 +270,19 @@ import {
 	type IHemisphereLightProperties as IHemisphereLightPropertiesV7,
 	type ILightSceneSettings as ILightSceneSettingsV7,
 	type IPointLightProperties as IPointLightPropertiesV7,
-	type ISpotLightProperties as ISpotLightPropertiesV7} from "./versions/v3/ILightSceneSettings";
+	type ISpotLightProperties as ISpotLightPropertiesV7,
+} from "./versions/v3/ILightSceneSettings";
 import {type IPostProcessingEffectsArray as IPostProcessingEffectsArrayV7} from "./versions/v4/IPostProcessingEffectSettings";
 import {
 	type ICameraControlsSettings as ICameraControlsSettingsV7,
 	type ICameraSettings as ICameraSettingsV7,
 	type IOrthographicCameraSettings as IOrthographicCameraSettingsV7,
-	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV7} from "./versions/v5/ICameraSettings";
+	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV7,
+} from "./versions/v5/ICameraSettings";
 import {
 	convertFromPrevious as convertFromPreviousV7,
-	convertToPrevious as convertToPreviousV7} from "./versions/v7/Converter";
+	convertToPrevious as convertToPreviousV7,
+} from "./versions/v7/Converter";
 import {type ISettings as ISettingsV7} from "./versions/v7/ISettings";
 import {validate as validateV7} from "./versions/v7/Validator";
 
@@ -255,16 +292,19 @@ import {
 	type IHemisphereLightProperties as IHemisphereLightPropertiesV7_1,
 	type ILightSceneSettings as ILightSceneSettingsV7_1,
 	type IPointLightProperties as IPointLightPropertiesV7_1,
-	type ISpotLightProperties as ISpotLightPropertiesV7_1} from "./versions/v3/ILightSceneSettings";
+	type ISpotLightProperties as ISpotLightPropertiesV7_1,
+} from "./versions/v3/ILightSceneSettings";
 import {type IPostProcessingEffectsArray as IPostProcessingEffectsArrayV7_1} from "./versions/v4/IPostProcessingEffectSettings";
 import {
 	convertFromPrevious as convertFromPreviousV7_1,
-	convertToPrevious as convertToPreviousV7_1} from "./versions/v7_1/Converter";
+	convertToPrevious as convertToPreviousV7_1,
+} from "./versions/v7_1/Converter";
 import {
 	type ICameraControlsSettings as ICameraControlsSettingsV7_1,
 	type ICameraSettings as ICameraSettingsV7_1,
 	type IOrthographicCameraSettings as IOrthographicCameraSettingsV7_1,
-	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV7_1} from "./versions/v7_1/ICameraSettings";
+	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV7_1,
+} from "./versions/v7_1/ICameraSettings";
 import {type ISettings as ISettingsV7_1} from "./versions/v7_1/ISettings";
 import {validate as validateV7_1} from "./versions/v7_1/Validator";
 
@@ -274,20 +314,35 @@ import {
 	type IHemisphereLightProperties as IHemisphereLightPropertiesV7_2,
 	type ILightSceneSettings as ILightSceneSettingsV7_2,
 	type IPointLightProperties as IPointLightPropertiesV7_2,
-	type ISpotLightProperties as ISpotLightPropertiesV7_2} from "./versions/v3/ILightSceneSettings";
-import {
-	convertFromPrevious as convertFromPreviousV7_2,
-	convertToPrevious as convertToPreviousV7_2} from "./versions/v7_2/Converter";
+	type ISpotLightProperties as ISpotLightPropertiesV7_2,
+} from "./versions/v3/ILightSceneSettings";
 import {
 	type ICameraControlsSettings as ICameraControlsSettingsV7_2,
 	type ICameraSettings as ICameraSettingsV7_2,
 	type IOrthographicCameraSettings as IOrthographicCameraSettingsV7_2,
-	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV7_2} from "./versions/v7_1/ICameraSettings";
-import {type IPostProcessingEffectsArray as IPostProcessingEffectsArrayV7_2} from "./versions/v7_2/IPostProcessingEffectSettings";
-import {type ISettings as ISettingsV7_2} from "./versions/v7_2/ISettings";
+	type IPerspectiveCameraSettings as IPerspectiveCameraSettingsV7_2,
+} from "./versions/v7_1/ICameraSettings";
+import {
+	convertFromPrevious as convertFromPreviousV7_2,
+	convertToPrevious as convertToPreviousV7_2,
+	OLD_LOOK_V7_2,
+} from "./versions/v7_2/Converter";
+import {
+	type IAmbientOcclusionMode as IAmbientOcclusionModeV7_2,
+	type IBloomEffectDefinition as IBloomEffectDefinitionV7_2,
+	type IHBAOEffectDefinition as IHBAOEffectDefinitionV7_2,
+	type IPostProcessingEffectsArray as IPostProcessingEffectsArrayV7_2,
+	type ISSAOEffectDefinition as ISSAOEffectDefinitionV7_2,
+} from "./versions/v7_2/IPostProcessingEffectSettings";
+import {
+	type IEnvironmentMapOrientation as IEnvironmentMapOrientationV7_2,
+	type IEnvironmentMapPbrMode as IEnvironmentMapPbrModeV7_2,
+	type ISettings as ISettingsV7_2,
+} from "./versions/v7_2/ISettings";
 import {validate as validateV7_2} from "./versions/v7_2/Validator";
 
-export {DefaultsV1,
+export {
+	DefaultsV1,
 	DefaultsV2,
 	DefaultsV3,
 	DefaultsV3_1,
@@ -297,9 +352,10 @@ export {DefaultsV1,
 	DefaultsV4_0,
 	DefaultsV4_1,
 	DefaultsV5,
-	};
-export type {ISettingsV4_1};
-export type {IAmbientLightPropertiesV3,
+	OLD_LOOK_V7_2,
+};
+export type {
+	IAmbientLightPropertiesV3,
 	IAmbientLightPropertiesV3_1,
 	IAmbientLightPropertiesV3_2,
 	IAmbientLightPropertiesV3_3,
@@ -449,6 +505,7 @@ export type {IAmbientLightPropertiesV3,
 	ISettingsV3_3,
 	ISettingsV3_4,
 	ISettingsV4_0,
+	ISettingsV4_1,
 	ISettingsV5,
 	ISettingsV6,
 	ISettingsV6_1,
@@ -469,12 +526,19 @@ export type {IAmbientLightPropertiesV3,
 	ISpotLightPropertiesV6_2,
 	ISpotLightPropertiesV7,
 	ISpotLightPropertiesV7_1,
-	ISpotLightPropertiesV7_2};
+	ISpotLightPropertiesV7_2,
+};
 // this changes every version
-export type {IAmbientLightPropertiesV7_2 as IAmbientLightProperties,
+export type {
+	IAmbientLightPropertiesV7_2 as IAmbientLightProperties,
+	IAmbientOcclusionModeV7_2 as IAmbientOcclusionMode,
+	IBloomEffectDefinitionV7_2 as IBloomEffectDefinition,
 	ICameraControlsSettingsV7_2 as ICameraControlsSettings,
 	ICameraSettingsV7_2 as ICameraSettings,
 	IDirectionalLightPropertiesV7_2 as IDirectionalLightProperties,
+	IEnvironmentMapOrientationV7_2 as IEnvironmentMapOrientation,
+	IEnvironmentMapPbrModeV7_2 as IEnvironmentMapPbrMode,
+	IHBAOEffectDefinitionV7_2 as IHBAOEffectDefinition,
 	IHemisphereLightPropertiesV7_2 as IHemisphereLightProperties,
 	ILightSceneSettingsV7_2 as ILightSceneSettings,
 	IOrthographicCameraSettingsV7_2 as IOrthographicCameraSettings,
@@ -482,7 +546,9 @@ export type {IAmbientLightPropertiesV7_2 as IAmbientLightProperties,
 	IPointLightPropertiesV7_2 as IPointLightProperties,
 	IPostProcessingEffectsArrayV7_2 as IPostProcessingEffectsArray,
 	ISettingsV7_2 as ISettings,
-	ISpotLightPropertiesV7_2 as ISpotLightProperties};
+	ISpotLightPropertiesV7_2 as ISpotLightProperties,
+	ISSAOEffectDefinitionV7_2 as ISSAOEffectDefinition,
+};
 
 export type versions =
 	| "1.0"
@@ -747,7 +813,10 @@ export const evaluateSettingsVersion = (viewerVersion?: string): versions => {
 			.filter(Boolean)
 			.map((match) => parseInt(match!));
 
-		if (upgradeVersions[1] >= 3 && upgradeVersions[2] >= 16) {
+		if (upgradeVersions[1] >= 3 && upgradeVersions[2] >= 23) {
+			// starting from 3.3.23.0
+			return "7.2";
+		} else if (upgradeVersions[1] >= 3 && upgradeVersions[2] >= 16) {
 			// starting from 3.3.16.0
 			return "7.1";
 		} else if (upgradeVersions[1] >= 3 && upgradeVersions[2] >= 12) {
