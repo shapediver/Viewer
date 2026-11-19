@@ -83,6 +83,16 @@ test.describe("Custom environment map", () => {
 			if (message.type() === "error") errors.push(message.text());
 		});
 
+		// The CDN answers a missing file with 404, but with 403 from some
+		// networks (GitHub runners). The direct download gets a fixed answer, so
+		// the test only depends on how the viewer reports it.
+		await page.route(MISSING_HDR, (route) =>
+			route.fulfill({
+				status: 404,
+				headers: {"access-control-allow-origin": "*"},
+			}),
+		);
+
 		const result = await loadEnvironmentMap(page, MISSING_HDR);
 
 		expect(result.status).toBe("Loading of EnvironmentMap failed");
