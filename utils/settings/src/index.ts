@@ -337,6 +337,8 @@ import {
 import {
 	type IEnvironmentMapOrientation as IEnvironmentMapOrientationV7_2,
 	type IEnvironmentMapPbrMode as IEnvironmentMapPbrModeV7_2,
+	type IGemNormalMapResolution as IGemNormalMapResolutionV7_2,
+	type IGemTracing as IGemTracingV7_2,
 	type ISettings as ISettingsV7_2,
 } from "./versions/v7_2/ISettings";
 import {validate as validateV7_2} from "./versions/v7_2/Validator";
@@ -538,6 +540,8 @@ export type {
 	IDirectionalLightPropertiesV7_2 as IDirectionalLightProperties,
 	IEnvironmentMapOrientationV7_2 as IEnvironmentMapOrientation,
 	IEnvironmentMapPbrModeV7_2 as IEnvironmentMapPbrMode,
+	IGemNormalMapResolutionV7_2 as IGemNormalMapResolution,
+	IGemTracingV7_2 as IGemTracing,
 	IHBAOEffectDefinitionV7_2 as IHBAOEffectDefinition,
 	IHemisphereLightPropertiesV7_2 as IHemisphereLightProperties,
 	ILightSceneSettingsV7_2 as ILightSceneSettings,

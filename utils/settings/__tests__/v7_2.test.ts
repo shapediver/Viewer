@@ -60,6 +60,9 @@ describe("settings V7.2", () => {
 			excludeGems: false,
 			mapPbrMode: "legacy",
 			mapOrientation: "legacy",
+			physicalGemDispersion: false,
+			gemTracing: "sphere",
+			gemNormalMapResolution: 1024,
 		});
 	});
 
@@ -117,6 +120,9 @@ describe("settings V7.2", () => {
 			(s) => delete (s.postprocessing as any).hdr,
 			(s) => delete (s.environment as any).mapPbrMode,
 			(s) => delete (s.environment as any).mapOrientation,
+			(s) => delete (s.material as any).physicalGemDispersion,
+			(s) => delete (s.material as any).gemTracing,
+			(s) => delete (s.material as any).gemNormalMapResolution,
 			(s) =>
 				delete (s.postprocessing.effects[0].properties as any)
 					.excludeGems,
@@ -143,6 +149,10 @@ describe("settings V7.2", () => {
 			(s) => ((s.environment as any).mapPbrMode = "other"),
 			(s) => ((s.environment as any).mapPbrMode = true),
 			(s) => ((s.environment as any).mapOrientation = "other"),
+			(s) => ((s.material as any).physicalGemDispersion = "yes"),
+			(s) => ((s.material as any).gemTracing = "foo"),
+			(s) => ((s.material as any).gemNormalMapResolution = 300),
+			(s) => ((s.material as any).gemNormalMapResolution = "512"),
 			(s) =>
 				((s.postprocessing.effects[0].properties as any).excludeGems =
 					"yes"),
@@ -178,6 +188,9 @@ describe("settings V7.2", () => {
 		expect(converted.postprocessing.hdr).toBe(false);
 		expect(converted.environment.mapPbrMode).toBe("legacy");
 		expect(converted.environment.mapOrientation).toBe("legacy");
+		expect(converted.material.physicalGemDispersion).toBe(false);
+		expect(converted.material.gemTracing).toBe("sphere");
+		expect(converted.material.gemNormalMapResolution).toBe(1024);
 		expect(converted.postprocessing.effects).toStrictEqual([
 			{
 				type: "hbao",
@@ -203,6 +216,9 @@ describe("settings V7.2", () => {
 		const settingsV7_1: any = createSettingsV7_1();
 		settingsV7_1.postprocessing.hdr = true;
 		settingsV7_1.environment.mapPbrMode = "modern";
+		settingsV7_1.material.physicalGemDispersion = true;
+		settingsV7_1.material.gemTracing = "facets";
+		settingsV7_1.material.gemNormalMapResolution = 512;
 		settingsV7_1.postprocessing.effects = [
 			{type: "hbao", properties: {intensity: 2, excludeGems: true}},
 			{
@@ -222,6 +238,9 @@ describe("settings V7.2", () => {
 		expect(converted.postprocessing.hdr).toBe(true);
 		expect(converted.environment.mapPbrMode).toBe("modern");
 		expect(converted.environment.mapOrientation).toBe("legacy");
+		expect(converted.material.physicalGemDispersion).toBe(true);
+		expect(converted.material.gemTracing).toBe("facets");
+		expect(converted.material.gemNormalMapResolution).toBe(512);
 		expect(converted.postprocessing.effects).toStrictEqual([
 			{type: "hbao", properties: {intensity: 2, excludeGems: true}},
 			{
@@ -272,6 +291,9 @@ describe("settings V7.2", () => {
 		expect(converted.postprocessing).not.toHaveProperty("hdr");
 		expect(converted.environment).not.toHaveProperty("mapPbrMode");
 		expect(converted.environment).not.toHaveProperty("mapOrientation");
+		expect(converted.material).not.toHaveProperty("physicalGemDispersion");
+		expect(converted.material).not.toHaveProperty("gemTracing");
+		expect(converted.material).not.toHaveProperty("gemNormalMapResolution");
 		expect(() => validate(converted, "7.1")).not.toThrow();
 		// the input must not be changed
 		expect(JSON.stringify(settingsV7_2)).toBe(before);

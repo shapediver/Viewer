@@ -280,6 +280,16 @@ export class SettingsManager implements IManager {
 			);
 		settingsEngine.material.materialOverrideType =
 			this._renderingEngine.materialOverrideType;
+		// TODO: apply/save the gem options from the engine once SS-10495 is merged
+		// keep the loaded values, a missing value is the old look
+		const materialGem = settingsEngine.material as {
+			physicalGemDispersion?: boolean;
+			gemTracing?: string;
+			gemNormalMapResolution?: number;
+		};
+		materialGem.physicalGemDispersion ??= false;
+		materialGem.gemTracing ??= "sphere";
+		materialGem.gemNormalMapResolution ??= 1024;
 
 		settingsEngine.rendering.automaticColorAdjustment =
 			this._renderingEngine.automaticColorAdjustment;

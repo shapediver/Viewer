@@ -274,6 +274,18 @@ export class SettingsManager {
 				settings.material.defaultMaterialColor;
 			currentSettings.material.materialOverrideType =
 				settings.material.materialOverrideType;
+			// TODO: drop the casts once the @shapediver/viewer.settings pin includes settings 7.2
+			const material = settings.material as {
+				physicalGemDispersion?: boolean;
+				gemTracing?: string;
+				gemNormalMapResolution?: number;
+			};
+			const currentMaterial = currentSettings.material as typeof material;
+			currentMaterial.physicalGemDispersion =
+				material.physicalGemDispersion;
+			currentMaterial.gemTracing = material.gemTracing;
+			currentMaterial.gemNormalMapResolution =
+				material.gemNormalMapResolution;
 		}
 
 		// apply postprocessing settings

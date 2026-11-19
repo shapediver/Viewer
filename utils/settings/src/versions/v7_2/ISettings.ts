@@ -14,6 +14,18 @@ export type IEnvironmentMapPbrMode = "legacy" | "modern";
  */
 export type IEnvironmentMapOrientation = "legacy" | "threejs";
 
+/**
+ * How gems are traced: against a sphere approximation or against the facet planes.
+ * Settings converted from before 7.2 use "sphere".
+ */
+export type IGemTracing = "sphere" | "facets";
+
+/**
+ * Resolution in pixels of the gem normal maps.
+ * Settings converted from before 7.2 use 1024.
+ */
+export type IGemNormalMapResolution = 256 | 512 | 1024;
+
 export interface ISettings extends IGlobalSettings {
 	ar: ISettingsV7_1["ar"];
 	camera: ISettingsV7_1["camera"];
@@ -34,6 +46,22 @@ export interface ISettings extends IGlobalSettings {
 	};
 	rendering: ISettingsV7_1["rendering"];
 	session: ISettingsV7_1["session"];
-	material: ISettingsV7_1["material"];
+	material: ISettingsV7_1["material"] & {
+		/**
+		 * Whether gems use a physical dispersion with one refraction index per colour channel.
+		 * Settings converted from before 7.2 use false.
+		 */
+		physicalGemDispersion: boolean;
+		/**
+		 * How gems are traced.
+		 * Settings converted from before 7.2 use "sphere".
+		 */
+		gemTracing: IGemTracing;
+		/**
+		 * Resolution of the gem normal maps.
+		 * Settings converted from before 7.2 use 1024.
+		 */
+		gemNormalMapResolution: IGemNormalMapResolution;
+	};
 	configuration: ISettingsV7_1["configuration"];
 }

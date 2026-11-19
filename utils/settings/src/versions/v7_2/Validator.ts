@@ -124,6 +124,16 @@ export const environmentSettingsSchemaV7_2 = environmentSettingsSchema.extend({
 	mapOrientation: z.enum(["legacy", "threejs"]),
 });
 
+export const materialSettingsSchemaV7_2 = materialSettingsSchema.extend({
+	physicalGemDispersion: z.boolean(),
+	gemTracing: z.enum(["sphere", "facets"]),
+	gemNormalMapResolution: z.union([
+		z.literal(256),
+		z.literal(512),
+		z.literal(1024),
+	]),
+});
+
 const schema = z
 	.object({
 		build_date: z.string().optional(),
@@ -138,7 +148,7 @@ const schema = z
 		postprocessing: postProcessingSettingsSchema,
 		rendering: renderingSettingsSchema,
 		session: sessionSettingsSchema,
-		material: materialSettingsSchema,
+		material: materialSettingsSchemaV7_2,
 		configuration: configurationSettingsSchema,
 	})
 	.strict();

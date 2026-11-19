@@ -20,6 +20,12 @@ export const OLD_LOOK_V7_2 = {
 	mapPbrMode: "legacy",
 	/** `environment.mapOrientation` */
 	mapOrientation: "legacy",
+	/** `material.physicalGemDispersion` */
+	physicalGemDispersion: false,
+	/** `material.gemTracing` */
+	gemTracing: "sphere",
+	/** `material.gemNormalMapResolution` */
+	gemNormalMapResolution: 1024,
 } as const;
 
 export const convertFromPrevious = (
@@ -64,6 +70,7 @@ export const convertFromPrevious = (
 
 	const oldEnvironment: any = oldSettings.environment;
 	const oldPostprocessing: any = oldSettings.postprocessing;
+	const oldMaterial: any = oldSettings.material;
 
 	const settings = {
 		...oldSettings,
@@ -73,6 +80,16 @@ export const convertFromPrevious = (
 			mapPbrMode: oldEnvironment.mapPbrMode ?? OLD_LOOK_V7_2.mapPbrMode,
 			mapOrientation:
 				oldEnvironment.mapOrientation ?? OLD_LOOK_V7_2.mapOrientation,
+		},
+		material: {
+			...oldSettings.material,
+			physicalGemDispersion:
+				oldMaterial.physicalGemDispersion ??
+				OLD_LOOK_V7_2.physicalGemDispersion,
+			gemTracing: oldMaterial.gemTracing ?? OLD_LOOK_V7_2.gemTracing,
+			gemNormalMapResolution:
+				oldMaterial.gemNormalMapResolution ??
+				OLD_LOOK_V7_2.gemNormalMapResolution,
 		},
 		postprocessing: {
 			...oldSettings.postprocessing,
@@ -93,6 +110,7 @@ export const convertToPrevious = (
 	// Drop every option that does not exist in 7.1. Add new 7.2 options here.
 	// - postprocessing.hdr
 	// - environment.mapPbrMode, environment.mapOrientation
+	// - material.physicalGemDispersion, material.gemTracing, material.gemNormalMapResolution
 	// - bloom properties: backgroundBloom, highlightsOnly (mipmapBlur is required in 7.1)
 	// - HBAO/SSAO properties: mode, excludeGems
 	const oldEffects = newSettings.postprocessing.effects.map((effect) => {
@@ -119,6 +137,11 @@ export const convertToPrevious = (
 	delete environment.mapPbrMode;
 	delete environment.mapOrientation;
 
+	const material: any = {...newSettings.material};
+	delete material.physicalGemDispersion;
+	delete material.gemTracing;
+	delete material.gemNormalMapResolution;
+
 	const postprocessing: any = {
 		...newSettings.postprocessing,
 		effects: oldEffects,
@@ -129,6 +152,7 @@ export const convertToPrevious = (
 		...newSettings,
 		settings_version: "7.1",
 		environment,
+		material,
 		postprocessing,
 	};
 
