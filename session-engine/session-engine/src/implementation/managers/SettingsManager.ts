@@ -8,12 +8,14 @@ import {
 	ISettings,
 	latestVersion,
 	validate,
-	type versions} from "@shapediver/viewer.settings";
+	type versions,
+} from "@shapediver/viewer.settings";
 import {
 	Logger,
 	SettingsEngine,
 	ShapeDiverViewerSessionError,
-	ShapeDiverViewerSettingsError} from "@shapediver/viewer.shared.services";
+	ShapeDiverViewerSettingsError,
+} from "@shapediver/viewer.shared.services";
 import {type ISettingsSections} from "@shapediver/viewer.shared.types";
 
 import {FileParameter} from "../dto/FileParameter";
@@ -293,6 +295,14 @@ export class SettingsManager {
 				settings.environment.blurriness;
 			currentSettings.environment.intensity =
 				settings.environment.intensity;
+			// TODO: drop the cast once the @shapediver/viewer.settings pin includes settings 7.2
+			(currentSettings.environment as {mapPbrMode?: string}).mapPbrMode =
+				(settings.environment as {mapPbrMode?: string}).mapPbrMode;
+			(
+				currentSettings.environment as {mapOrientation?: string}
+			).mapOrientation = (
+				settings.environment as {mapOrientation?: string}
+			).mapOrientation;
 		}
 	}
 

@@ -7,13 +7,16 @@ import {
 	EVENTTYPE_VIEWPORT,
 	SESSION_SETTINGS_MODE,
 	SettingsEngine,
-	StateEngine} from "@shapediver/viewer.shared.services";
+	StateEngine,
+} from "@shapediver/viewer.shared.services";
 import {
+	ENVIRONMENT_MAP_PBR_MODE,
 	type IViewportEvent,
 	type IViewportSettingsSections,
 	MATERIAL_TYPE,
 	TEXTURE_ENCODING,
-	TONE_MAPPING} from "@shapediver/viewer.shared.types";
+	TONE_MAPPING,
+} from "@shapediver/viewer.shared.types";
 
 import {RenderingEngine} from "..";
 import {PostProcessingManager} from "./PostProcessingManager";
@@ -114,6 +117,30 @@ export class SettingsManager implements IManager {
 									settingsEngine.environment.blurriness;
 								this._renderingEngine.environmentMapIntensity =
 									settingsEngine.environment.intensity;
+								// TODO: drop the cast once the @shapediver/viewer.settings pin includes settings 7.2
+								// TODO: apply environment.mapOrientation once SS-10522 is merged
+								// a missing value is the old look
+								{
+									const mapPbrMode = (
+										settingsEngine.environment as {
+											mapPbrMode?: string;
+										}
+									).mapPbrMode;
+									const pbrMode = Object.values(
+										ENVIRONMENT_MAP_PBR_MODE,
+									).includes(
+										mapPbrMode as ENVIRONMENT_MAP_PBR_MODE,
+									)
+										? (mapPbrMode as ENVIRONMENT_MAP_PBR_MODE)
+										: ENVIRONMENT_MAP_PBR_MODE.LEGACY;
+									// the setter recompiles the materials, so only call it on a change
+									if (
+										this._renderingEngine
+											.environmentMapPbrMode !== pbrMode
+									)
+										this._renderingEngine.environmentMapPbrMode =
+											pbrMode;
+								}
 								this.applySyncSettings(
 									sections,
 									settingsEngine,
@@ -196,6 +223,14 @@ export class SettingsManager implements IManager {
 			this._renderingEngine.environmentMapBlurriness;
 		settingsEngine.environment.intensity =
 			this._renderingEngine.environmentMapIntensity;
+		// TODO: drop the cast once the @shapediver/viewer.settings pin includes settings 7.2
+		// TODO: save environment.mapOrientation once SS-10522 is merged
+		(settingsEngine.environment as {mapPbrMode?: string}).mapPbrMode =
+			this._renderingEngine.environmentMapPbrMode;
+		// keep the loaded orientation, a missing value is the old look
+		(
+			settingsEngine.environment as {mapOrientation?: string}
+		).mapOrientation ??= "legacy";
 
 		settingsEngine.environmentGeometry.gridVisibility =
 			this._renderingEngine.gridVisibility;
