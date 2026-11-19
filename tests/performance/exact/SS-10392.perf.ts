@@ -4,6 +4,7 @@ import {open, test} from "./harness";
 test("SS-10392 the beauty blend renders 16 frames across 1500ms", async ({
 	page,
 }) => {
+	test.fail(true, "SS-10392 not implemented: remove this line in its PR");
 	await page.clock.install({time: new Date("2026-01-01T00:00:00Z")});
 	await open(page);
 	await page.evaluate(async () => {

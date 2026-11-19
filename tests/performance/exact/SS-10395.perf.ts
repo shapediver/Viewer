@@ -4,6 +4,10 @@ import {open, test} from "./harness";
 test("SS-10395 a default standard material is MeshStandardMaterial", async ({
 	page,
 }) => {
+	test.fail(
+		true,
+		"SS-10395 is in Request (not started); remove this line if it is implemented, delete the test if it is rejected",
+	);
 	await open(page);
 	const types = await page.evaluate(async () => {
 		const perf = (window as any).__perf;

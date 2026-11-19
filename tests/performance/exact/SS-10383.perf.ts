@@ -4,6 +4,7 @@ import {open, test} from "./harness";
 test("SS-10383 hidden contact shadow does not render the scene", async ({
 	page,
 }) => {
+	test.fail(true, "SS-10383 not implemented: remove this line in its PR");
 	await open(page);
 	const result = await page.evaluate(async () => {
 		const perf = (window as any).__perf;
