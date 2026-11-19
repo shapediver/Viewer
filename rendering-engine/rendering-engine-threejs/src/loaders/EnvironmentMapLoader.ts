@@ -475,10 +475,11 @@ export class EnvironmentMapLoader implements ILoader {
 		eventId: string,
 	) {
 		if (name in this._environmentMaps === false) return;
-		this._type = type;
-		this._isBuiltInEnvironmentMap =
-			this._environmentMaps[name].isBuiltIn === true;
+		const isBuiltIn = this._environmentMaps[name].isBuiltIn === true;
 		const map = await this._environmentMaps[name].map;
+		// set after the map resolved, so that type and flag always match the assigned map
+		this._type = type;
+		this._isBuiltInEnvironmentMap = isBuiltIn;
 		// set the environment map in the material loader
 		this._renderingEngine.materialLoader.assignEnvironmentMap(map, type);
 		// the background rotation has to be updated even if there are no materials
