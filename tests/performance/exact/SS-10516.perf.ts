@@ -29,7 +29,11 @@ test("SS-10516 a string attribute without overview data gives every item a look"
 			}),
 		);
 		// Item data only. There is deliberately no SDTFOverviewData.
-		SDV.sceneTree.root.children.forEach((node: any, index: number) => {
+		// The root has other children besides the boxes.
+		const boxes = SDV.sceneTree.root.children.filter((node: any) =>
+			node.name.startsWith("box"),
+		);
+		boxes.forEach((node: any, index: number) => {
 			node.addData(
 				new SDV.SDTFItemData("string", `item${index}`, {
 					zone: {typeHint: "string", value: `zone${index % 3}`},
@@ -54,7 +58,7 @@ test("SS-10516 a string attribute without overview data gives every item a look"
 		await Promise.resolve();
 		await perf.nextFrame();
 
-		const colors = SDV.sceneTree.root.children.map((node: any) => {
+		const colors = boxes.map((node: any) => {
 			const geometry = node.data.find((d: any) => d.attributeMaterial);
 			return geometry
 				? JSON.stringify(geometry.attributeMaterial.color)
