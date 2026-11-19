@@ -10,6 +10,7 @@ import {
 	StateEngine,
 } from "@shapediver/viewer.shared.services";
 import {
+	ENVIRONMENT_MAP_ORIENTATION,
 	ENVIRONMENT_MAP_PBR_MODE,
 	type IViewportEvent,
 	type IViewportSettingsSections,
@@ -83,6 +84,39 @@ export class SettingsManager implements IManager {
 		settingsEngine = settingsEngine || this._settingsEngine;
 		if (!settingsEngine) return;
 
+		// The gem options are set first and synchronously: gemTracing and
+		// gemNormalMapResolution only affect gems that are captured afterwards,
+		// and the scene is converted once the viewport is updated.
+		if (sections.general) {
+			// TODO: drop the cast once the @shapediver/viewer.settings pin includes settings 7.2
+			// a missing or invalid value is the old look
+			const material = settingsEngine.material as {
+				physicalGemDispersion?: unknown;
+				gemTracing?: unknown;
+				gemNormalMapResolution?: unknown;
+			};
+			const dispersion =
+				typeof material.physicalGemDispersion === "boolean"
+					? material.physicalGemDispersion
+					: false;
+			const tracing =
+				material.gemTracing === "sphere" ||
+				material.gemTracing === "facets"
+					? material.gemTracing
+					: "sphere";
+			const resolution =
+				material.gemNormalMapResolution === 256 ||
+				material.gemNormalMapResolution === 512 ||
+				material.gemNormalMapResolution === 1024
+					? material.gemNormalMapResolution
+					: 1024;
+			// the dispersion setter updates the materials, so only call it on a change
+			if (this._renderingEngine.physicalGemDispersion !== dispersion)
+				this._renderingEngine.physicalGemDispersion = dispersion;
+			this._renderingEngine.gemTracing = tracing;
+			this._renderingEngine.gemNormalMapResolution = resolution;
+		}
+
 		if (sections.environment) {
 			const promises = [];
 
@@ -118,8 +152,29 @@ export class SettingsManager implements IManager {
 								this._renderingEngine.environmentMapIntensity =
 									settingsEngine.environment.intensity;
 								// TODO: drop the cast once the @shapediver/viewer.settings pin includes settings 7.2
-								// TODO: apply environment.mapOrientation once SS-10522 is merged
 								// a missing value is the old look
+								{
+									const mapOrientation = (
+										settingsEngine.environment as {
+											mapOrientation?: string;
+										}
+									).mapOrientation;
+									const orientation = Object.values(
+										ENVIRONMENT_MAP_ORIENTATION,
+									).includes(
+										mapOrientation as ENVIRONMENT_MAP_ORIENTATION,
+									)
+										? (mapOrientation as ENVIRONMENT_MAP_ORIENTATION)
+										: ENVIRONMENT_MAP_ORIENTATION.LEGACY;
+									// the setter reassigns the rotation, so only call it on a change
+									if (
+										this._renderingEngine
+											.environmentMapOrientation !==
+										orientation
+									)
+										this._renderingEngine.environmentMapOrientation =
+											orientation;
+								}
 								{
 									const mapPbrMode = (
 										settingsEngine.environment as {
@@ -224,13 +279,11 @@ export class SettingsManager implements IManager {
 		settingsEngine.environment.intensity =
 			this._renderingEngine.environmentMapIntensity;
 		// TODO: drop the cast once the @shapediver/viewer.settings pin includes settings 7.2
-		// TODO: save environment.mapOrientation once SS-10522 is merged
 		(settingsEngine.environment as {mapPbrMode?: string}).mapPbrMode =
 			this._renderingEngine.environmentMapPbrMode;
-		// keep the loaded orientation, a missing value is the old look
 		(
 			settingsEngine.environment as {mapOrientation?: string}
-		).mapOrientation ??= "legacy";
+		).mapOrientation = this._renderingEngine.environmentMapOrientation;
 
 		settingsEngine.environmentGeometry.gridVisibility =
 			this._renderingEngine.gridVisibility;
@@ -280,16 +333,16 @@ export class SettingsManager implements IManager {
 			);
 		settingsEngine.material.materialOverrideType =
 			this._renderingEngine.materialOverrideType;
-		// TODO: apply/save the gem options from the engine once SS-10495 is merged
-		// keep the loaded values, a missing value is the old look
 		const materialGem = settingsEngine.material as {
 			physicalGemDispersion?: boolean;
 			gemTracing?: string;
 			gemNormalMapResolution?: number;
 		};
-		materialGem.physicalGemDispersion ??= false;
-		materialGem.gemTracing ??= "sphere";
-		materialGem.gemNormalMapResolution ??= 1024;
+		materialGem.physicalGemDispersion =
+			this._renderingEngine.physicalGemDispersion;
+		materialGem.gemTracing = this._renderingEngine.gemTracing;
+		materialGem.gemNormalMapResolution =
+			this._renderingEngine.gemNormalMapResolution;
 
 		settingsEngine.rendering.automaticColorAdjustment =
 			this._renderingEngine.automaticColorAdjustment;
