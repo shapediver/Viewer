@@ -38,6 +38,7 @@ import {
 } from "@shapediver/viewer.shared.services";
 import {
 	type Color,
+	ENVIRONMENT_MAP_ORIENTATION,
 	ENVIRONMENT_MAP_PBR_MODE,
 	FLAG_TYPE,
 	type IAnimationData,
@@ -566,6 +567,29 @@ export class ViewportApi implements IViewportApi {
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
 		this.update("environmentMapIntensity");
+	}
+
+	public get environmentMapOrientation(): ENVIRONMENT_MAP_ORIENTATION {
+		return (
+			this.#renderingEngine.environmentMapOrientation ||
+			ENVIRONMENT_MAP_ORIENTATION.LEGACY
+		);
+	}
+
+	public set environmentMapOrientation(value: ENVIRONMENT_MAP_ORIENTATION) {
+		const scope = "environmentMapOrientation";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"enum",
+			true,
+			Object.values(ENVIRONMENT_MAP_ORIENTATION),
+		);
+		this.#renderingEngine.environmentMapOrientation = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("environmentMapOrientation");
 	}
 
 	public get environmentMapPbrMode(): ENVIRONMENT_MAP_PBR_MODE {

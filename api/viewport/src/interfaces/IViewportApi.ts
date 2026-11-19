@@ -16,6 +16,7 @@ import {
 } from "@shapediver/viewer.shared.services";
 import {
 	type Color,
+	ENVIRONMENT_MAP_ORIENTATION,
 	ENVIRONMENT_MAP_PBR_MODE,
 	FLAG_TYPE,
 	type IAnimationData,
@@ -230,6 +231,10 @@ export interface IViewportApi {
 	 */
 	environmentMapIntensity: number;
 	/**
+	 * The orientation of custom .hdr environment maps. `LEGACY` (default) keeps the orientation of earlier Viewer versions, a quarter turn around the vertical axis off from three.js. `THREEJS` uses the same orientation as three.js and other tools for the same file. Built-in presets are not affected.
+	 */
+	environmentMapOrientation: ENVIRONMENT_MAP_ORIENTATION;
+	/**
 	 * The PBR environment-map shader mode. Defaults to the legacy three.js r162 behavior for backwards compatibility.
 	 */
 	environmentMapPbrMode: ENVIRONMENT_MAP_PBR_MODE;
@@ -240,6 +245,7 @@ export interface IViewportApi {
 	environmentMapResolution: string;
 	/**
 	 * The rotation quaternion that is used on the environment map. (default: [0,0,0,1])
+	 * The quaternion uses the y-up convention of three.js: a rotation around the y-axis turns the environment around the vertical axis of the scene, for preset (LDR) and .hdr environment maps alike.
 	 */
 	environmentMapRotation: quat;
 	/**

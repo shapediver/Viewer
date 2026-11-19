@@ -625,7 +625,7 @@ uniform vec3 sdvScreenAOColor;
 					] = "";
 
 				this.assignEnvironmentMapRotation(
-					this._renderingEngine.environmentMapRotation,
+					this._renderingEngine.effectiveEnvironmentMapRotation,
 				);
 			}
 		}

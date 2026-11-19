@@ -42,6 +42,13 @@ export enum ENVIRONMENT_MAP_PBR_MODE {
 	MODERN = "modern",
 }
 
+export enum ENVIRONMENT_MAP_ORIENTATION {
+	/** The orientation of earlier Viewer versions: custom .hdr maps are turned a quarter turn around the vertical axis compared to three.js. */
+	LEGACY = "legacy",
+	/** Custom .hdr maps have the same orientation as in three.js and other tools that use the same file. Built-in presets keep their orientation. */
+	THREEJS = "threejs",
+}
+
 export enum SPINNER_POSITIONING {
 	CENTER = "center",
 	TOP_LEFT = "top_left",
