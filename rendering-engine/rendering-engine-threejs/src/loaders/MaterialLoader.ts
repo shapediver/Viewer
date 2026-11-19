@@ -2711,20 +2711,18 @@ export const adaptShaders = () => {
 	#endif
 }`;
 
-		THREE.ShaderChunk.lights_physical_pars_fragment =
-			replaceShaderFunction(
-				THREE.ShaderChunk.lights_physical_pars_fragment,
-				"void RE_IndirectSpecular_Physical",
-				legacyIndirectSpecular,
-			);
+		THREE.ShaderChunk.lights_physical_pars_fragment = replaceShaderFunction(
+			THREE.ShaderChunk.lights_physical_pars_fragment,
+			"void RE_IndirectSpecular_Physical",
+			legacyIndirectSpecular,
+		);
 
 		// In legacy mode, use the r162 IBLSheenBRDF formula (piecewise curve-fit
 		// with PI normalization). r184 changed to a different curve-fit without it.
-		THREE.ShaderChunk.lights_physical_pars_fragment =
-			replaceShaderFunction(
-				THREE.ShaderChunk.lights_physical_pars_fragment,
-				"float IBLSheenBRDF",
-				`float IBLSheenBRDF( const in vec3 normal, const in vec3 viewDir, const in float roughness ) {
+		THREE.ShaderChunk.lights_physical_pars_fragment = replaceShaderFunction(
+			THREE.ShaderChunk.lights_physical_pars_fragment,
+			"float IBLSheenBRDF",
+			`float IBLSheenBRDF( const in vec3 normal, const in vec3 viewDir, const in float roughness ) {
 	float dotNV = saturate( dot( normal, viewDir ) );
 	#ifdef SDV_LEGACY_DFG_APPROX
 		float r2 = roughness * roughness;
@@ -2741,7 +2739,7 @@ export const adaptShaders = () => {
 		return saturate( DG );
 	#endif
 }`,
-			);
+		);
 
 		// In legacy mode, skip sheen energy compensation in RE_Direct_Physical
 		// that was added in r181. r162 had no sheen energy comp for direct lights.
@@ -2774,21 +2772,22 @@ export const adaptShaders = () => {
 	// here we replace in the background cube fragment shader the y component of the reflection vector with the negative y component in the case of a LDR environment map
 	// older and newer three.js versions set up the background rotation matrix differently, so we patch both shader variants
 	THREE.ShaderChunk.backgroundCube_frag =
-		THREE.ShaderChunk.backgroundCube_frag.replace(
-			"vec4 texColor = textureCube( envMap, backgroundRotation * vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );",
-			"vec4 texColor = textureCube( envMap, inverse(backgroundRotation) * vec3( flipEnvMap * vWorldDirection.x, -vWorldDirection.y, vWorldDirection.z ) );",
-		).replace(
-			"vec4 texColor = textureCube( envMap, backgroundRotation * vWorldDirection );",
-			`
+		THREE.ShaderChunk.backgroundCube_frag
+			.replace(
+				"vec4 texColor = textureCube( envMap, backgroundRotation * vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );",
+				"vec4 texColor = textureCube( envMap, inverse(backgroundRotation) * vec3( flipEnvMap * vWorldDirection.x, -vWorldDirection.y, vWorldDirection.z ) );",
+			)
+			.replace(
+				"vec4 texColor = textureCube( envMap, backgroundRotation * vWorldDirection );",
+				`
 			vec3 rotatedBackgroundDir = backgroundRotation * vec3( -vWorldDirection.x, -vWorldDirection.y, vWorldDirection.z );
 			vec4 texColor = textureCube( envMap, vec3( -rotatedBackgroundDir.x, rotatedBackgroundDir.y, rotatedBackgroundDir.z ) );
 			`,
-		);
+			);
 	THREE.ShaderLib.backgroundCube.fragmentShader =
 		THREE.ShaderChunk.backgroundCube_frag;
 
-	// here we replace in the envmap_physical_pars_fragment the z component of the reflection vector with the negative z component in the case of a LDR environment map
-	// console.log(THREE.ShaderChunk.envmap_physical_pars_fragment, THREE.ShaderChunk.envmap_physical_pars_fragment.includes('vec4 envMapColor = textureCubeUV( envMap, envMapRotation * worldNormal, 1.0 );'));
+	// Non-LDR maps use the same direction as the radiance lookup (the axis mapping happens in cube_uv_reflection_fragment).
 	THREE.ShaderChunk.envmap_physical_pars_fragment =
 		THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
 			"vec4 envMapColor = textureCubeUV( envMap, envMapRotation * worldNormal, 1.0 );",
@@ -2798,7 +2797,7 @@ export const adaptShaders = () => {
                 vec4 envMapColor = textureCubeUV( envMap, vec3(rotatedReflectVec.xy, -rotatedReflectVec.z), 1.0 );
             #else
                 vec3 rotatedReflectVec = vec3(envMapRotation * worldNormal);
-                vec4 envMapColor = textureCubeUV( envMap, vec3(-rotatedReflectVec.x, rotatedReflectVec.y, rotatedReflectVec.z), 1.0 );
+                vec4 envMapColor = textureCubeUV( envMap, rotatedReflectVec, 1.0 );
             #endif
             `,
 		);
@@ -2820,8 +2819,8 @@ export const adaptShaders = () => {
 		);
 
 	// here we replace in the envmap_fragment the z component of the reflection vector with the negative z component in the case of a LDR environment map
-	THREE.ShaderChunk.envmap_fragment =
-		THREE.ShaderChunk.envmap_fragment.replace(
+	THREE.ShaderChunk.envmap_fragment = THREE.ShaderChunk.envmap_fragment
+		.replace(
 			"vec4 envColor = textureCube( envMap, envMapRotation * vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );",
 			`
         #ifdef ENVMAP_TYPE_LDR
@@ -2830,7 +2829,8 @@ export const adaptShaders = () => {
             vec4 envColor = textureCube( envMap, envMapRotation * vec3(flipEnvMap * reflectVec.x, reflectVec.zy ) );
         #endif
         `,
-		).replace(
+		)
+		.replace(
 			"vec4 envColor = textureCube( envMap, envMapRotation * reflectVec );",
 			`
         #ifdef ENVMAP_TYPE_LDR
@@ -2842,8 +2842,10 @@ export const adaptShaders = () => {
         `,
 		);
 
-	// here we replace the z and y component of the sampleDir in the cube_uv_reflection_fragment
-	// console.log(THREE.ShaderChunk.cube_uv_reflection_fragment.includes('vec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );'))
+	// The Viewer is z-up. Non-LDR maps (.hdr, PMREM) are sampled with the standard z-up to y-up mapping (x, z, -y),
+	// the same orientation as plain three.js. The environment map rotation is applied before this mapping, in the
+	// y-up convention of the rotation quaternion (a rotation around y turns the map around the vertical axis).
+	// LDR cube maps keep their own mapping.
 	THREE.ShaderChunk.cube_uv_reflection_fragment =
 		THREE.ShaderChunk.cube_uv_reflection_fragment.replace(
 			"vec3 color0 = bilinearCubeUV( envMap, sampleDir, mipInt );",
@@ -2851,13 +2853,12 @@ export const adaptShaders = () => {
         #ifdef ENVMAP_TYPE_LDR
             vec3 color0 = bilinearCubeUV( envMap, sampleDir.xzy, mipInt );
         #else
-            vec3 color0 = bilinearCubeUV( envMap, vec3(sampleDir.y, sampleDir.z, sampleDir.x), mipInt );
+            vec3 color0 = bilinearCubeUV( envMap, vec3(sampleDir.x, sampleDir.z, -sampleDir.y), mipInt );
         #endif
         `,
 		);
 
-	// here we replace the z and y component of the sampleDir in the cube_uv_reflection_fragment
-	// console.log(THREE.ShaderChunk.cube_uv_reflection_fragment)
+	// same mapping as above, for the next mip level
 	THREE.ShaderChunk.cube_uv_reflection_fragment =
 		THREE.ShaderChunk.cube_uv_reflection_fragment.replace(
 			"vec3 color1 = bilinearCubeUV( envMap, sampleDir, mipInt + 1.0 );",
@@ -2865,7 +2866,7 @@ export const adaptShaders = () => {
         #ifdef ENVMAP_TYPE_LDR
             vec3 color1 = bilinearCubeUV( envMap, sampleDir.xzy, mipInt + 1.0 );
         #else
-            vec3 color1 = bilinearCubeUV( envMap, vec3(sampleDir.y, sampleDir.z, sampleDir.x), mipInt + 1.0 );
+            vec3 color1 = bilinearCubeUV( envMap, vec3(sampleDir.x, sampleDir.z, -sampleDir.y), mipInt + 1.0 );
         #endif
         `,
 		);

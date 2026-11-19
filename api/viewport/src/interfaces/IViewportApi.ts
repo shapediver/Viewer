@@ -240,6 +240,7 @@ export interface IViewportApi {
 	environmentMapResolution: string;
 	/**
 	 * The rotation quaternion that is used on the environment map. (default: [0,0,0,1])
+	 * The quaternion uses the y-up convention of three.js: a rotation around the y-axis turns the environment around the vertical axis of the scene, for preset (LDR) and .hdr environment maps alike.
 	 */
 	environmentMapRotation: quat;
 	/**
