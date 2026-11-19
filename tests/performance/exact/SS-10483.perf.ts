@@ -36,6 +36,8 @@ async function setup(page: import("@playwright/test").Page) {
 				...options,
 			});
 		perf.addBoxes(panes, glass());
+		perf.viewport.update();
+		perf.viewport.show = true;
 		perf.viewport.camera.position = [6, -6, 4];
 		perf.viewport.camera.target = [0, 0, 1.5];
 		await perf.nextFrame();
