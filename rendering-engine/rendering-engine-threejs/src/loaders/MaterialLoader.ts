@@ -713,6 +713,29 @@ uniform vec3 sdvScreenAOColor;
 		}
 	}
 
+	/**
+	 * Replace a gem spherical normal map in all cached gem materials and
+	 * their material data, e.g. after the map was captured again.
+	 */
+	public replaceGemNormalMap(
+		oldTexture: THREE.Texture,
+		newTexture: THREE.CubeTexture,
+	) {
+		for (const cacheKey in this._materialCache) {
+			const entry = this._materialCache[cacheKey];
+			if (
+				entry.material instanceof GemMaterial &&
+				entry.material.sphericalNormalMap === oldTexture
+			)
+				entry.material.sphericalNormalMap = newTexture;
+			if (
+				entry.materialData instanceof MaterialGemData &&
+				<unknown>entry.materialData.sphericalNormalMap === oldTexture
+			)
+				(<unknown>entry.materialData.sphericalNormalMap) = newTexture;
+		}
+	}
+
 	public assignEnvironmentMapIntensity(value: number) {
 		this._envMapIntensity = value;
 		for (const cacheKey in this._materialCache) {
