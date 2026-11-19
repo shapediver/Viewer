@@ -141,7 +141,9 @@ const createGemMaterial = () =>
 		type: SDV.POST_PROCESSING_EFFECT_TYPE.HBAO,
 		// ?aoMode=shading darkens only the indirect light inside the materials
 		properties:
-			urlParameters.get("aoMode") === "shading" ? {mode: "shading"} : {},
+			urlParameters.get("aoMode") === "shading"
+				? {mode: "shading", excludeGems: true}
+				: {excludeGems: true},
 	});
 	viewport.postProcessing.addEffect({
 		type: SDV.POST_PROCESSING_EFFECT_TYPE.BLOOM,
