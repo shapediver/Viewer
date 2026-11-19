@@ -558,8 +558,10 @@ void main() {
 				#endif
 				float channelR0 = (1.0 - channelIor) / (1.0 + channelIor);
 				channelR0 = channelR0 * channelR0;
-				// leaving the stone the ratio of inside to outside IOR is channelIor
-				float exitRatio = channelIor;
+				// The physical exit ratio (channelIor) made the stones flat and
+				// bright next to the reference, so the exit keeps 1 / IOR, now
+				// per channel. Blue still bends most on the way out.
+				float exitRatio = 1.0 / channelIor;
 				vec3 refractedDirection = refract(initialDirection, frag_normal_normalized, 1.0 / channelIor);
 			#else
 				float channelIor = refractionIndex;
