@@ -1,6 +1,9 @@
 import {defineConfig} from "@playwright/test";
 import path from "path";
 
+/** `PERF_RENDERER=swiftshader` runs Chrome on the software renderer. */
+const swiftshader = process.env.PERF_RENDERER === "swiftshader";
+
 /**
  * Opt-in performance suite. `pnpm test` does not load this config.
  * Serve the local test-cdn build. Do not point it at the hosted viewer.
@@ -20,7 +23,13 @@ export default defineConfig({
 		deviceScaleFactor: 1,
 		channel: "chrome",
 		launchOptions: {
-			args: ["--use-angle=d3d11", "--ignore-gpu-blocklist"],
+			args: swiftshader
+				? [
+						"--use-angle=swiftshader",
+						"--enable-unsafe-swiftshader",
+						"--ignore-gpu-blocklist",
+					]
+				: ["--use-angle=d3d11", "--ignore-gpu-blocklist"],
 		},
 		actionTimeout: 30_000,
 		navigationTimeout: 60_000,

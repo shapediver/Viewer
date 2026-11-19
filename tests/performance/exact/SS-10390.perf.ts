@@ -1,5 +1,5 @@
 import {expect} from "@playwright/test";
-import {open, test} from "./harness";
+import {open, skipOnSoftwareRenderer, test} from "./harness";
 
 test("SS-10390 one material is one draw", async ({page}) => {
 	await open(page);
@@ -254,6 +254,10 @@ test("SS-10390 un-mirroring a node returns it to the batch once", async ({
 });
 
 test("SS-10390 a batched material keeps the shadow hook", async ({page}) => {
+	await skipOnSoftwareRenderer(
+		page,
+		"needs soft shadows, which are off on SwiftShader",
+	);
 	await open(page);
 	const shader = await page.evaluate(async () => {
 		const perf = (window as any).__perf;
@@ -403,6 +407,10 @@ test("SS-10390 a default color change keeps the batch white and updates its tint
 test("SS-10390 a pulsed member does not supply the batch shader", async ({
 	page,
 }) => {
+	await skipOnSoftwareRenderer(
+		page,
+		"asserts the soft-shadow blending uniform, which needs shadows",
+	);
 	await open(page);
 	const result = await page.evaluate(async () => {
 		const perf = (window as any).__perf;

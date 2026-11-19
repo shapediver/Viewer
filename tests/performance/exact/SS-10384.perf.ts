@@ -1,9 +1,13 @@
 import {expect} from "@playwright/test";
-import {open, test} from "./harness";
+import {open, skipOnSoftwareRenderer, test} from "./harness";
 
 test("SS-10384 scene update does not compile shaders synchronously", async ({
 	page,
 }) => {
+	await skipOnSoftwareRenderer(
+		page,
+		"the test asserts a hardware renderer; SwiftShader compiles differently",
+	);
 	await open(page);
 	const result = await page.evaluate(async () => {
 		const perf = (window as any).__perf;
