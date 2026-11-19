@@ -16,7 +16,7 @@ const dist = path.resolve(
 
 export default defineConfig({
 	...base,
-	testMatch: "budgets.perf.ts",
+	testMatch: "budgets/**/*.perf.ts",
 	use: {...base.use, baseURL: `http://127.0.0.1:${port}/`},
 	webServer: {
 		command: `node "${path.join(__dirname, "bench/serve.mjs")}" "${dist}" ${port}`,

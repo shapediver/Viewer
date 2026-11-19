@@ -2,7 +2,7 @@
 
 Compares two builds of `examples/test-cdn` on the AEC facade fixture (`../fixtures/aecScene.ts`) and prints a Markdown table. It is a report. It never fails because of a number.
 
-The counters that can fail a run are in `../budgets.perf.ts`. For numbers that are exactly the same on every run, see [Work-count benchmark](#work-count-benchmark) below.
+The layout of the whole suite, and how to re-derive a baseline, is in [../README.md](../README.md). The counters that can fail a run are in `../budgets/`. For numbers that are exactly the same on every run, see [Work-count benchmark](#work-count-benchmark) below.
 
 ## Run it
 
@@ -67,7 +67,7 @@ The report has a second table with the other clock for every metric. It has no v
 
 - **GPU timer queries.** `EXT_disjoint_timer_query_webgl2` is available in this Playwright Chrome (ANGLE, D3D11, UHD 630) and reported no disjoint event. On a busy machine its SSAO frame times were only slightly steadier than `readPixels` (A/A interval ±32% against ±36%, old method, 5 page loads), and they were almost the same numbers (270 ms against 307 ms median): on the facade the GPU waits for the CPU to submit thousands of draw calls, and the timer counts that wait, as well as other pages' GPU work in between. Not worth an extension check and disjoint handling.
 - **Minimum instead of median.** Load only adds time, so the minimum looks attractive, but it was noisier wherever it was tried: over 5 page loads (camera frame interval ±49% for the minimum against ±34% for the median, old method), and as the per-round estimate from the blocks (ratio of block minimums ±5–23% against ±3–16% for the median of block ratios, same samples).
-- **Wall time for the first frame.** It would include shader compilation in the GPU process, but the three pages share that process and its program cache, so a page's first frame depended on which page compiled first: identical-build intervals reached -33%…+154% on wall time, against -22%…+7% on CPU time in the same run. The first frame therefore uses CPU time; count shader programs in `budgets.baseline.json` to catch compilation changes.
+- **Wall time for the first frame.** It would include shader compilation in the GPU process, but the three pages share that process and its program cache, so a page's first frame depended on which page compiled first: identical-build intervals reached -33%…+154% on wall time, against -22%…+7% on CPU time in the same run. The first frame therefore uses CPU time; count shader programs in `budgets/baseline/` to catch compilation changes.
 - **CPU time alone.** On a busy laptop all-core turbo drops and the hyperthread sibling is busy, which slows the thread down while it runs, and CPU time counts that. Without side-by-side pages, CPU time narrowed the camera frame interval only from ±12% to ±11% and made no difference for the build. Pairing in time does most of the work; CPU time removes the part where the thread waits for a core.
 
 ## Observed noise
@@ -96,7 +96,7 @@ Total CPU: 49% during the old run, 24% during the new one.
 
 ### A second Playwright suite in parallel
 
-`budgets.perf.ts` looping in parallel on its own port, on top of the background load.
+the budget tests (`budgets/`) looping in parallel on its own port, on top of the background load.
 
 | Metric                 | Old: spread | Old: interval | Old: worst | New: spread |       New: intervals | New: worst |
 | ---------------------- | ----------: | ------------: | ---------: | ----------: | -------------------: | ---------: |
@@ -112,7 +112,7 @@ Total CPU: 56% during the old run, 50% during the new one.
 
 - The absolute numbers still move with the load: compare the base medians of two runs and you compare two machines. Only the paired change is meaningful.
 - For camera frames, one-node updates and SSAO frames the identical-build intervals shrank from ±15–45% to ±2–9% with background load and to ±5–14% with a second suite running.
-- Scene build and first frame happen once per page, so there is nothing to alternate. They stay at ±5–20% (build) and ±10–50% (first frame). For them, prefer a counter in `budgets.baseline.json`.
+- Scene build and first frame happen once per page, so there is nothing to alternate. They stay at ±5–20% (build) and ±10–50% (first frame). For them, prefer a counter in `budgets/baseline/`.
 - With a 95% interval, one in twenty identical-build comparisons misses 0 by chance. That happened once here: one-node update, head against base, 0%…+14% with the second suite.
 - Even the best case is a few percent, not zero. Milliseconds on a shared laptop cannot be exactly the same on every run.
 
@@ -134,7 +134,7 @@ The pages have no viewport, so the load is the only work on the thread. Each fil
 - CI runners have no GPU. Chrome falls back to SwiftShader there, which measures a software rasterizer and not the viewer.
 - `performance.now()` in Chrome is rounded to 0.1 ms, so sub-millisecond metrics are coarse.
 
-Use the table to decide whether a change is worth it. Lock the result in with a counter in `budgets.baseline.json`: a draw call that is gone stays gone on every machine.
+Use the table to decide whether a change is worth it. Lock the result in with a counter in `budgets/baseline/`: a draw call that is gone stays gone on every machine.
 
 # Work-count benchmark
 
@@ -247,7 +247,7 @@ Set `COUNT_DUMP` to a file. Each section of each page appends one line `{origin,
 
 - **Time.** A count says how much work ran, not how long it took. A call that got cheaper but runs as often does not show; a slow call and a fast one count the same. Use the timing benchmark for that.
 - **GPU work.** WebGL calls count what the viewer asks for, not what the GPU does with it: no fill rate, no shader cost, no overdraw, no waiting for the GPU.
-- **Shader compilation.** It runs in the GPU process. `budgets.baseline.json` counts shader programs.
+- **Shader compilation.** It runs in the GPU process. `budgets/baseline/` counts shader programs.
 - **Garbage collection and allocation.** Neither is counted. An allocation-heavy change can be slower with fewer calls.
 - **Native code.** Built-in functions (`Array.prototype.sort`, typed arrays, DOM) count as nothing; only bundle functions and their blocks do. The WebGL calls are the exception, because they are wrapped.
 - **Work outside the sections.** Loading other than the two glTF sections, the first frame, beauty renders and asynchronous work after `viewport.update()` are not counted.

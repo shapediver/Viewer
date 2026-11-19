@@ -1,17 +1,14 @@
-import {test, type Browser, type CDPSession, type Page} from "@playwright/test";
+import {test, type Browser} from "@playwright/test";
 import * as fs from "fs";
 import * as path from "path";
-import {AEC_DEFAULT, aecSceneCounts} from "../fixtures/aecScene";
-import {openViewer, type SceneVariant} from "../fixtures/probe";
-import {
-	cpuOf,
-	interval,
-	median,
-	ms,
-	pairedChange,
-	quantile,
-	verdict,
-} from "./paired";
+import {aecSceneCounts} from "../fixtures/aecScene";
+import {openViewer} from "../fixtures/probe";
+import {interval, median, ms, pairedChange, quantile, verdict} from "./paired";
+import {METRICS, STEPS, type Metric} from "./timing";
+import {closeUp} from "./timing/aoFrame";
+import {build} from "./timing/build";
+import {SCENE, settle, VARIANT, type Clock, type Viewer} from "./timing/common";
+import {firstFrame} from "./timing/firstFrame";
 
 // The two servers playwright.config.ts starts.
 const BASE_URL = "http://127.0.0.1:8195";
@@ -20,31 +17,11 @@ const HEAD_URL = "http://127.0.0.1:8196";
 /**
  * Compares two builds of examples/test-cdn on the AEC fixture.
  * The output is a Markdown table. Nothing is asserted. See README.md.
+ * The metrics are in `timing/`, one file each, listed in `timing/index.ts`.
  */
 
 const ROUNDS = Number(process.env.BENCH_RUNS ?? 6);
-/** BENCH_GLASS_BLEND=1: the glass is glTF BLEND (transparent, no depth write). */
-const SCENE = {
-	...AEC_DEFAULT,
-	glassBlend: process.env.BENCH_GLASS_BLEND === "1",
-};
-/**
- * The pages take turns block by block. Many short blocks pair better than a
- * few long ones: load from other programs comes in bursts of seconds.
- * Update and SSAO blocks wait for the beauty render afterwards, so they are
- * fewer.
- */
-const RENDER_BLOCKS = 12;
-const RENDERS_PER_BLOCK = 2;
-const UPDATE_BLOCKS = 8;
-/** Even, so every block leaves the scene as it found it. */
-const UPDATES_PER_BLOCK = 4;
-const SSAO_BLOCKS = 4;
-const SSAO_FRAMES_PER_BLOCK = 4;
-const VERSION_BLOCKS = 8;
-const VERSION_UPDATES_PER_BLOCK = 2;
 const OUT_DIR = path.join(__dirname, "../../test-results/bench");
-const VARIANT: SceneVariant = {id: "default", shadows: true, ssao: false};
 
 /**
  * Every round opens base, head and control side by side. Control is the
@@ -63,58 +40,9 @@ const ORDERS: Arm[][] = [
 	["control", "head", "base"],
 ];
 
-type Clock = "cpu" | "wall";
-/**
- * Name, label, and the clock the main table uses. The first frame uses CPU
- * time although shader compilation runs in the GPU process: the three pages
- * share that process and its program cache, so the wall time of a first
- * frame depends on which page compiled first and was twice as noisy.
- */
-const METRICS = [
-	["build", "Full scene build (tree + conversion)", "cpu"],
-	["firstFrame", "First frame", "cpu"],
-	["renderFrame", "Camera frame, renderer.render", "cpu"],
-	["oneNodeUpdate", "One-node scene update", "cpu"],
-	["composerFrame", "Camera frame with SSAO, until the GPU is done", "wall"],
-	["versionUpdate", "Fixture version update", "cpu"],
-	[
-		"aoFrame",
-		"Camera frame with SSAO, close-up at 1920x1080, until the GPU is done",
-		"wall",
-	],
-] as const;
-type Metric = (typeof METRICS)[number][0];
-
 /** One value per block, for each clock. Build and first frame have one block. */
 type Blocks = Record<Clock, number[]>;
 type Sample = Record<Metric, Blocks> & {gpu: string};
-
-interface Viewer {
-	page: Page;
-	cdp: CDPSession;
-	gpu: string;
-}
-
-/**
- * Waits until the viewer has drawn nothing for 10 frames, so a page that
- * finishes its beauty render does not run while another page is measured.
- */
-async function settle(viewer: Viewer) {
-	await viewer.page.evaluate(async () => {
-		const probe = (window as any).__probe;
-		const frame = () =>
-			new Promise((resolve) => requestAnimationFrame(resolve));
-		const start = performance.now();
-		let quiet = 0;
-		let seen = probe.passes.length;
-		while (quiet < 10 && performance.now() - start < 10_000) {
-			await frame();
-			if (probe.passes.length === seen) quiet++;
-			else [quiet, seen] = [0, probe.passes.length];
-		}
-		probe.reset();
-	});
-}
 
 async function open(browser: Browser, origin: string): Promise<Viewer> {
 	const page = await browser.newPage();
@@ -127,185 +55,6 @@ async function open(browser: Browser, origin: string): Promise<Viewer> {
 	);
 	return {page, cdp, gpu};
 }
-
-async function build(viewer: Viewer) {
-	const {cpu, result} = await cpuOf(viewer.cdp, () =>
-		viewer.page.evaluate(
-			(options) => (window as any).__probe.build(options).total,
-			SCENE,
-		),
-	);
-	return {cpu, wall: result as number};
-}
-
-async function firstFrame(viewer: Viewer) {
-	const {cpu, result} = await cpuOf(viewer.cdp, () =>
-		viewer.page.evaluate(async (variant) => {
-			const probe = (window as any).__probe;
-			probe.show(variant);
-			while (!probe.frames().length)
-				await new Promise((resolve) => requestAnimationFrame(resolve));
-			return probe
-				.frames()[0]
-				.passes.reduce((sum: number, pass: any) => sum + pass.ms, 0);
-		}, VARIANT),
-	);
-	await settle(viewer);
-	return {cpu, wall: result as number};
-}
-
-/**
- * `renderer.render` of the viewport scene, called directly. The camera does
- * not move, so the viewer does not draw on its own afterwards.
- */
-async function renderBlock(viewer: Viewer) {
-	const {cpu, result} = await cpuOf(viewer.cdp, () =>
-		viewer.page.evaluate((count) => {
-			const probe = (window as any).__probe;
-			const camera = probe.viewport.threeJsCoreObjects.camera;
-			const samples: number[] = [];
-			for (let i = 0; i < count; i++) {
-				const start = performance.now();
-				probe.renderer.render(probe.scene, camera);
-				samples.push(performance.now() - start);
-			}
-			return samples;
-		}, RENDERS_PER_BLOCK),
-	);
-	return {cpu: cpu / RENDERS_PER_BLOCK, wall: median(result)};
-}
-
-async function updateBlock(viewer: Viewer) {
-	const {cpu, result} = await cpuOf(viewer.cdp, () =>
-		viewer.page.evaluate((count) => {
-			const probe = (window as any).__probe;
-			const samples: number[] = [];
-			for (let i = 0; i < count; i++)
-				samples.push(probe.timeOneNodeChange());
-			return samples;
-		}, UPDATES_PER_BLOCK),
-	);
-	await settle(viewer);
-	return {cpu: cpu / UPDATES_PER_BLOCK, wall: median(result)};
-}
-
-/**
- * SSAO camera frames drawn by the viewer. `wall` runs from the start of
- * `effectComposer.render` until a one-pixel `readPixels` returns, which
- * waits for the GPU. `gl.finish()` does not: on ANGLE with Direct3D 11 it
- * returns after about 2 ms. `cpu` is main-thread CPU time per frame.
- */
-async function ssaoBlock(viewer: Viewer) {
-	const {cpu, result} = await cpuOf(viewer.cdp, () =>
-		viewer.page.evaluate(async (count) => {
-			const probe = (window as any).__probe;
-			const gl: WebGL2RenderingContext = probe.gl;
-			const composer = probe.viewport.postProcessing.effectComposer;
-			if (!composer) return [];
-			const pixel = new Uint8Array(4);
-			const timings: number[] = [];
-			const original = composer.render.bind(composer);
-			composer.render = (...args: unknown[]) => {
-				const start = performance.now();
-				const result = original(...args);
-				gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
-				timings.push(performance.now() - start);
-				return result;
-			};
-			const samples: number[] = [];
-			for (let i = 0; i < count; i++) {
-				timings.length = 0;
-				probe.orbit(1);
-				await new Promise((resolve) =>
-					requestAnimationFrame(() => requestAnimationFrame(resolve)),
-				);
-				if (timings.length) samples.push(timings[0]);
-			}
-			composer.render = original;
-			return samples;
-		}, SSAO_FRAMES_PER_BLOCK),
-	);
-	await settle(viewer);
-	return {cpu: cpu / SSAO_FRAMES_PER_BLOCK, wall: median(result)};
-}
-
-/**
- * `updateVersion()` on the fixture root, as adding a session does. No scene
- * update follows, so the blocks only re-version the tree. Measured just before the close-up:
- * the next scene update would convert the whole fixture again.
- */
-async function versionBlock(viewer: Viewer) {
-	const {cpu, result} = await cpuOf(viewer.cdp, () =>
-		viewer.page.evaluate((count) => {
-			const root = (window as any).__probe.aec.root;
-			const samples: number[] = [];
-			for (let i = 0; i < count; i++) {
-				const start = performance.now();
-				root.updateVersion();
-				samples.push(performance.now() - start);
-			}
-			return samples;
-		}, VERSION_UPDATES_PER_BLOCK),
-	);
-	await settle(viewer);
-	return {cpu: cpu / VERSION_UPDATES_PER_BLOCK, wall: median(result)};
-}
-
-/**
- * The facade seen from far away is CPU-bound: thousands of draw calls set
- * the frame time and a change in the full-screen passes does not show. Close
- * to one facade at 1920x1080 the frustum drops most meshes, but about 2,900
- * scene draw calls were still left. So everything outside the three middle
- * floors and the facade in front of the camera is hidden (about 270 draw
- * calls in the colour and normal passes). The frame is then the passes that
- * run per pixel: ambient occlusion, denoise, anti-aliasing, tone mapping.
- * Shadows are off, so the lighting does not add to them.
- *
- * This is the last metric of a round, so changing the scene is safe.
- */
-const CLOSE_UP_VIEWPORT = {width: 1920, height: 1080};
-const CLOSE_UP_DISTANCE = 9;
-
-async function closeUp(viewer: Viewer) {
-	await viewer.page.setViewportSize(CLOSE_UP_VIEWPORT);
-	await viewer.page.evaluate(
-		([options, distance]) => {
-			const probe = (window as any).__probe;
-			const keep = Math.floor(options.floors / 2);
-			probe.aec.root.traverse((node: any) => {
-				const floor = /^floor(\d+)$/.exec(node.name);
-				if (floor && Math.abs(Number(floor[1]) - keep) > 1)
-					node.visible = false;
-				if (/^facade[123]$/.test(node.name)) node.visible = false;
-			});
-			probe.viewport.shadows = false;
-			probe.viewport.softShadows = false;
-			probe.aec.root.updateVersion();
-			probe.viewport.update();
-			const camera = probe.viewport.camera;
-			const side = options.baysPerSide * options.bayWidth;
-			const height = options.floors * options.floorHeight;
-			camera.position = [0, -side / 2 - distance, height / 2];
-			camera.target = [0, -side / 2, height / 2];
-		},
-		[AEC_DEFAULT, CLOSE_UP_DISTANCE] as const,
-	);
-	await settle(viewer);
-}
-
-const STEPS: [
-	Metric,
-	(viewer: Viewer) => Promise<Record<Clock, number>>,
-	number,
-][] = [
-	["build", build, 1],
-	["firstFrame", firstFrame, 1],
-	["renderFrame", renderBlock, RENDER_BLOCKS],
-	["oneNodeUpdate", updateBlock, UPDATE_BLOCKS],
-	["composerFrame", ssaoBlock, SSAO_BLOCKS],
-	["versionUpdate", versionBlock, VERSION_BLOCKS],
-	["aoFrame", ssaoBlock, SSAO_BLOCKS],
-];
 
 /** One round: all three pages, every metric, blocks alternating between pages. */
 async function round(browser: Browser, index: number) {
