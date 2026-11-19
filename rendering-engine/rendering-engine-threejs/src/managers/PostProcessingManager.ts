@@ -75,6 +75,7 @@ import {HBAOEffect} from "./postprocessing/ao/hbao/HBAOEffect";
 import {PoissionDenoisePass} from "./postprocessing/ao/poissionDenoise/PoissionDenoisePass";
 import {SSAOEffect} from "./postprocessing/ao/ssao/SSAOEffect";
 import {BackgroundMaskedBloomEffect} from "./postprocessing/effects/bloom/BackgroundMaskedBloomEffect";
+import {HighlightBloomEffect} from "./postprocessing/effects/bloom/HighlightBloomEffect";
 import {ToneMappingEffect} from "./postprocessing/effects/tone-mapping/ToneMappingEffect";
 import {GodRaysManager} from "./postprocessing/GodRaysManager";
 import {OutlineManager} from "./postprocessing/OutlineManager";
@@ -445,11 +446,21 @@ export class PostProcessingManager implements IManager {
 							._effectDefinitions[i]
 							.definition as IBloomEffectDefinition;
 						const properties = definition.properties || {};
+						const highlightsOnly =
+							properties.highlightsOnly === true;
+						// with highlightsOnly, unset values default to the highlight
+						// bloom values, otherwise they are passed through unchanged
 						const bloomOptions = {
 							blendFunction: properties.blendFunction,
-							luminanceThreshold: properties.luminanceThreshold,
-							luminanceSmoothing: properties.luminanceSmoothing,
-							mipmapBlur: properties.mipmapBlur,
+							luminanceThreshold: highlightsOnly
+								? (properties.luminanceThreshold ?? 1)
+								: properties.luminanceThreshold,
+							luminanceSmoothing: highlightsOnly
+								? (properties.luminanceSmoothing ?? 0.25)
+								: properties.luminanceSmoothing,
+							mipmapBlur: highlightsOnly
+								? (properties.mipmapBlur ?? true)
+								: properties.mipmapBlur,
 							intensity: properties.intensity,
 							kernelSize: properties.kernelSize,
 						};
@@ -459,8 +470,11 @@ export class PostProcessingManager implements IManager {
 								properties.backgroundBloom === false
 									? new BackgroundMaskedBloomEffect(
 											bloomOptions,
+											highlightsOnly,
 										)
-									: new BloomEffect(bloomOptions),
+									: highlightsOnly
+										? new HighlightBloomEffect(bloomOptions)
+										: new BloomEffect(bloomOptions),
 						});
 					}
 					break;
@@ -1215,6 +1229,7 @@ export class PostProcessingManager implements IManager {
 					blendFunction: BlendFunction.ADD,
 					intensity: 1.0,
 					kernelSize: KernelSize.LARGE,
+					highlightsOnly: false,
 					luminanceSmoothing: 0.025,
 					luminanceThreshold: 0.9,
 					mipmapBlur: false,
@@ -1401,6 +1416,7 @@ export class PostProcessingManager implements IManager {
 							properties: {
 								backgroundBloom: properties.backgroundBloom,
 								blendFunction: properties.blendFunction,
+								highlightsOnly: properties.highlightsOnly,
 								luminanceThreshold:
 									properties.luminanceThreshold,
 								luminanceSmoothing:

@@ -6,9 +6,11 @@ import {
 	type Texture,
 	Uniform,
 } from "three";
+import {applyHighlightBloom} from "./HighlightBloomEffect";
 
 /**
- * A bloom effect that ignores the background.
+ * A bloom effect that ignores the background. With `highlightsOnly` it is also
+ * the highlight bloom (see `HighlightBloomEffect`).
  *
  * The stock bloom effect thresholds the luminance of every pixel, including the
  * clear color. A bright (e.g. white) clear color exceeds the threshold and
@@ -19,8 +21,15 @@ import {
 export class BackgroundMaskedBloomEffect extends BloomEffect {
 	// #region Constructors (1)
 
-	constructor(options?: ConstructorParameters<typeof BloomEffect>[0]) {
+	constructor(
+		options?: ConstructorParameters<typeof BloomEffect>[0],
+		highlightsOnly = false,
+	) {
 		super(options);
+
+		// patch the highlight bloom first, the depth patch below reads the
+		// resulting shader
+		if (highlightsOnly) applyHighlightBloom(this);
 
 		// request a depth texture from the EffectPass / EffectComposer
 		this.setAttributes(this.getAttributes() | EffectAttribute.DEPTH);
