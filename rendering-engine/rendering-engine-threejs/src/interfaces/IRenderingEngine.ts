@@ -2,6 +2,7 @@ import {type IRenderingEngine} from "@shapediver/viewer.rendering-engine.renderi
 import {SDTFItemData} from "@shapediver/viewer.shared.node-tree";
 import {
 	type Color,
+	ENVIRONMENT_MAP_ORIENTATION,
 	ENVIRONMENT_MAP_PBR_MODE,
 	type ISDTFAttributeVisualizationData,
 	type ISDTFOverview,
@@ -26,9 +27,11 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
 	environmentMapBlurriness: number;
 	environmentMapForUnlitMaterials: boolean;
 	environmentMapIntensity: number;
+	environmentMapOrientation: ENVIRONMENT_MAP_ORIENTATION;
 	environmentMapPbrMode: ENVIRONMENT_MAP_PBR_MODE;
 	environmentMapResolution: string;
 	environmentMapRotation: quat;
+	readonly effectiveEnvironmentMapRotation: quat;
 	gridColor: Color;
 	gridVisibility: boolean;
 	groundPlaneColor: Color;

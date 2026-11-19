@@ -311,7 +311,7 @@ export class SceneTreeManager implements IManager {
 							.environmentMap,
 						this._renderingEngine.environmentMapLoader.type,
 						this._renderingEngine.environmentMapIntensity,
-						this._renderingEngine.environmentMapRotation,
+						this._renderingEngine.effectiveEnvironmentMapRotation,
 					);
 				}
 				break;
