@@ -60,6 +60,11 @@ export class GeometryLoader implements ILoader {
 	} = {};
 	private _geometryObjects = new WeakMap<GeometryData, Set<GeometryType>>();
 	// The shared geometry of a mesh that shows a back and front material pair
+	// the split geometry of a shared geometry, one for all meshes that show it
+	private _splitOfSource = new WeakMap<
+		THREE.BufferGeometry,
+		THREE.BufferGeometry
+	>();
 	// per split geometry: the shared geometry and the meshes that show it (a
 	// clone of a mesh shares the split geometry of the original)
 	private _sideSplits = new WeakMap<
@@ -590,6 +595,12 @@ export class GeometryLoader implements ILoader {
 			return true;
 		}
 		const source = mesh.geometry;
+		const shared = this._splitOfSource.get(source);
+		if (shared) {
+			this._sideSplits.get(shared)?.users.add(mesh);
+			mesh.geometry = shared;
+			return true;
+		}
 		const index = source.getIndex();
 		const count = index
 			? index.count
@@ -607,6 +618,7 @@ export class GeometryLoader implements ILoader {
 		split.addGroup(0, count, 0);
 		split.addGroup(0, count, 1);
 		this._sideSplits.set(split, {source, users: new Set([mesh])});
+		this._splitOfSource.set(source, split);
 		mesh.geometry = split;
 		return true;
 	}
@@ -621,6 +633,7 @@ export class GeometryLoader implements ILoader {
 		// a clone may still show it
 		if (entry.users.size > 0) return;
 		this._sideSplits.delete(split);
+		this._splitOfSource.delete(entry.source);
 		// dispose frees the buffers of the attributes it holds, and those
 		// belong to the shared geometry
 		for (const name of Object.keys(split.attributes))
