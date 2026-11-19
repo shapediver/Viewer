@@ -333,8 +333,13 @@ export class DragManager extends AbstractInteractionManager {
 			return;
 
 		this.#restrictionManager!.showRestrictionVisualization = false;
-		// a press below the drag threshold ends without a drag
-		this.clearPendingPress();
+		// a press below the drag threshold ends without a drag, at the end of
+		// its own pointer only (see onMove)
+		if (this.#pendingPress) {
+			if (event.pointerId === this.#pendingPress.event.pointerId)
+				this.clearPendingPress();
+			return;
+		}
 		if (!this.#draggedNode) return;
 
 		const transformationResult = this.#restrictionManager!.rayTrace(
