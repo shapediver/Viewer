@@ -136,6 +136,16 @@ const hoverAt = async (page: Page, p: Point) => {
 	await page.waitForTimeout(300);
 };
 
+// move without leaving the canvas first
+const moveTo = async (page: Page, p: Point) => {
+	const [x, y] = (await page.evaluate(
+		(p) => (<any>window).hoverClosestScreen(p),
+		p,
+	)) as [number, number];
+	await page.mouse.move(x, y, {steps: 6});
+	await page.waitForTimeout(300);
+};
+
 const hovered = (page: Page) =>
 	page.evaluate(() => [...(<any>window).hoverClosestState.hovered].sort());
 
@@ -156,5 +166,16 @@ test.describe("Objects of different hover managers on top of each other", () => 
 	}) => {
 		await hoverAt(page, TEXT);
 		await expect.poll(() => hovered(page)).toEqual(["text", "text2"]);
+	});
+
+	test("moving from the object behind onto the object in front unhovers the one behind", async ({
+		page,
+	}) => {
+		await hoverAt(page, PANEL);
+		await expect.poll(() => hovered(page)).toEqual(["panel"]);
+		await moveTo(page, TEXT);
+		await expect.poll(() => hovered(page)).toEqual(["text", "text2"]);
+		await moveTo(page, PANEL);
+		await expect.poll(() => hovered(page)).toEqual(["panel"]);
 	});
 });
