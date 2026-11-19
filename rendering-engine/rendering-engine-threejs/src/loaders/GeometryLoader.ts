@@ -43,6 +43,11 @@ export class GeometryLoader implements ILoader {
 			texture: THREE.CubeTexture;
 			renderTarget: THREE.WebGLCubeRenderTarget;
 			counter: number;
+			geometryData: GeometryData;
+			geometry: THREE.BufferGeometry;
+			requestedResolution: number | undefined;
+			resolution: number;
+			planeTracing: boolean;
 		};
 	} = {};
 	private _geometryCache: {
@@ -956,7 +961,7 @@ export class GeometryLoader implements ILoader {
 	private createCubeNormalMap(
 		geometryData: GeometryData,
 		geometry: THREE.BufferGeometry,
-		resolution: number | undefined,
+		requestedResolution: number | undefined,
 	) {
 		// the first capture of a shape decides its resolution
 		if (
@@ -972,6 +977,35 @@ export class GeometryLoader implements ILoader {
 			].texture;
 		}
 
+		const {renderTarget, resolution, planeTracing} =
+			this.captureGemCubeNormalMap(
+				geometryData,
+				geometry,
+				requestedResolution,
+			);
+
+		this._gemSphericalMapsCache[
+			geometryData.primitive.id + "_" + geometryData.primitive.version
+		] = {
+			texture: renderTarget.texture,
+			renderTarget,
+			counter: 1,
+			geometryData,
+			geometry,
+			requestedResolution,
+			resolution,
+			planeTracing,
+		};
+		return this._gemSphericalMapsCache[
+			geometryData.primitive.id + "_" + geometryData.primitive.version
+		].texture;
+	}
+
+	/**
+	 * Resolution and tracing mode a capture uses with the current settings.
+	 */
+	private resolveGemCaptureSettings(requestedResolution: number | undefined) {
+		let resolution = requestedResolution;
 		const allowedResolutions = [256, 512, 1024];
 		if (
 			resolution === undefined ||
@@ -984,6 +1018,17 @@ export class GeometryLoader implements ILoader {
 		const planeTracing =
 			this._renderingEngine.gemTracing === "facets" &&
 			this.gemPlaneTracingSupported();
+
+		return {resolution, planeTracing};
+	}
+
+	private captureGemCubeNormalMap(
+		geometryData: GeometryData,
+		geometry: THREE.BufferGeometry,
+		requestedResolution: number | undefined,
+	) {
+		const {resolution, planeTracing} =
+			this.resolveGemCaptureSettings(requestedResolution);
 
 		this._gemCubeCameraRenderTarget = this.createGemCubeRenderTarget(
 			resolution,
@@ -1100,16 +1145,66 @@ export class GeometryLoader implements ILoader {
 			SDversion: geometryData.primitive.version,
 		};
 
-		this._gemSphericalMapsCache[
-			geometryData.primitive.id + "_" + geometryData.primitive.version
-		] = {
-			texture: this._gemCubeCameraRenderTarget.texture,
+		return {
 			renderTarget: this._gemCubeCameraRenderTarget,
-			counter: 1,
+			resolution,
+			planeTracing,
 		};
-		return this._gemSphericalMapsCache[
-			geometryData.primitive.id + "_" + geometryData.primitive.version
-		].texture;
+	}
+
+	/**
+	 * Capture the gem normal maps again if the gem settings (tracing mode,
+	 * default resolution) changed since they were captured, and swap the
+	 * new maps into the gem materials that use the old ones.
+	 */
+	public recaptureGemNormalMaps(): void {
+		for (const key in this._gemSphericalMapsCache) {
+			const entry = this._gemSphericalMapsCache[key];
+			const settings = this.resolveGemCaptureSettings(
+				entry.requestedResolution,
+			);
+			if (
+				settings.resolution === entry.resolution &&
+				settings.planeTracing === entry.planeTracing
+			)
+				continue;
+
+			const {renderTarget, resolution, planeTracing} =
+				this.captureGemCubeNormalMap(
+					entry.geometryData,
+					entry.geometry,
+					entry.requestedResolution,
+				);
+			const oldTexture = entry.texture;
+			const oldRenderTarget = entry.renderTarget;
+			const newTexture = renderTarget.texture;
+
+			this._renderingEngine.materialLoader.replaceGemNormalMap(
+				oldTexture,
+				newTexture,
+			);
+			this._renderingEngine.sceneTreeManager.scene.traverse((object) => {
+				const material = (<THREE.Mesh>object).material;
+				if (!material) return;
+				for (const m of Array.isArray(material)
+					? material
+					: [material]) {
+					if (
+						m instanceof GemMaterial &&
+						m.sphericalNormalMap === oldTexture
+					)
+						m.sphericalNormalMap = newTexture;
+				}
+			});
+
+			entry.texture = newTexture;
+			entry.renderTarget = renderTarget;
+			entry.resolution = resolution;
+			entry.planeTracing = planeTracing;
+
+			oldRenderTarget.dispose();
+			oldTexture.dispose();
+		}
 	}
 
 	private createMesh(

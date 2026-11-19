@@ -682,7 +682,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set gemNormalMapResolution(value: number) {
+		if (this._gemNormalMapResolution === value) return;
 		this._gemNormalMapResolution = value;
+		this._geometryLoader.recaptureGemNormalMaps();
 	}
 
 	public get gemTracing(): "sphere" | "facets" {
@@ -690,7 +692,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set gemTracing(value: "sphere" | "facets") {
+		if (this._gemTracing === value) return;
 		this._gemTracing = value;
+		this._geometryLoader.recaptureGemNormalMaps();
 	}
 
 	/**
