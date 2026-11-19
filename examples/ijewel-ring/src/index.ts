@@ -25,6 +25,8 @@ const environmentMap = (name: string | null, fallback: string): string => {
 };
 // `?late=1` applies the materials after the first render instead of before
 const LATE = urlParameters.get("late") === "1";
+// `?physicalDispersion=1` uses the physically based gem dispersion
+const PHYSICAL_DISPERSION = urlParameters.get("physicalDispersion") === "1";
 const SCENE_ENVIRONMENT_MAP = environmentMap(
 	urlParameters.get("sceneEnv"),
 	SDV.ENVIRONMENT_MAP.DEFAULT_STUDIO,
@@ -67,10 +69,11 @@ const createGemMaterial = () =>
 		impurityScale: 0,
 		colorTransferBegin: "#ffffff",
 		colorTransferEnd: "#ffffff",
-		// The viewer offsets 1 / IOR per channel by dispersion * 0.025. The
+		// Legacy: the viewer offsets 1 / IOR per channel by dispersion * 0.025. The
 		// reference offsets the IOR itself by 0.01, which is about 0.0017 on
 		// 1 / IOR at an IOR of 2.42.
-		dispersion: 0.07,
+		// ?physicalDispersion=1: dispersion is n(G line) - n(B line), 0.044 for diamond.
+		dispersion: PHYSICAL_DISPERSION ? 0.044 : 0.07,
 		tracingDepth: 5,
 		tracingOpacity: 1,
 		// tuned by eye against the reference, with facet-plane tracing
@@ -122,6 +125,10 @@ const createGemMaterial = () =>
 	viewport.environmentMapIntensity = 1;
 	viewport.environmentMapAsBackground = false;
 	viewport.environmentMapPbrMode = SDV.ENVIRONMENT_MAP_PBR_MODE.MODERN;
+	viewport.physicalGemDispersion = PHYSICAL_DISPERSION;
+	// the example was tuned with facet plane tracing and 512 px normal maps
+	viewport.gemTracing = "facets";
+	viewport.gemNormalMapResolution = 512;
 	// The background does not bloom (`backgroundBloom: false` below). The grey
 	// stays only because the reference's white background is tone mapped to a
 	// light grey.

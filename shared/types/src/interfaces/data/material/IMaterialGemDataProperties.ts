@@ -46,8 +46,9 @@ interface IMaterialGemDataPropertiesGeneric<
 	impurityScale?: number;
 	/**
 	 * Resolution per cube face of the map that captures the facets of the gem.
-	 * Allowed values are 256, 512 and 1024, the default is 512. Higher values
-	 * are sharper and use more memory.
+	 * Allowed values are 256, 512 and 1024. When not set, the viewport's
+	 * `gemNormalMapResolution` is used (default 1024). Higher values are
+	 * sharper and use more memory.
 	 */
 	normalMapResolution?: number;
 	radius?: number;

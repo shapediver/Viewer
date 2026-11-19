@@ -651,6 +651,50 @@ export class ViewportApi implements IViewportApi {
 		this.update("environmentMapRotation");
 	}
 
+	public get gemNormalMapResolution(): number {
+		return this.#renderingEngine.gemNormalMapResolution;
+	}
+
+	public set gemNormalMapResolution(value: number) {
+		const scope = "gemNormalMapResolution";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"number",
+		);
+		if (![256, 512, 1024].includes(value))
+			throw new ShapeDiverViewerValidationError(
+				`ViewportApi.${scope}: Input could not be validated. ${value} is not one of 256, 512 or 1024.`,
+				value,
+				"number",
+			);
+		this.#renderingEngine.gemNormalMapResolution = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("gemNormalMapResolution");
+	}
+
+	public get gemTracing(): "sphere" | "facets" {
+		return this.#renderingEngine.gemTracing;
+	}
+
+	public set gemTracing(value: "sphere" | "facets") {
+		const scope = "gemTracing";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"enum",
+			true,
+			["sphere", "facets"],
+		);
+		this.#renderingEngine.gemTracing = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("gemTracing");
+	}
+
 	/**
 	 * @internal
 	 * GPU instancing for this viewport. On by default. Turning it back on scans
@@ -917,6 +961,24 @@ export class ViewportApi implements IViewportApi {
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
 		this.update("outputEncoding");
+	}
+
+	public get physicalGemDispersion(): boolean {
+		return this.#renderingEngine.physicalGemDispersion;
+	}
+
+	public set physicalGemDispersion(value: boolean) {
+		const scope = "physicalGemDispersion";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"boolean",
+		);
+		this.#renderingEngine.physicalGemDispersion = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("physicalGemDispersion");
 	}
 
 	public get physicallyCorrectLights(): boolean {

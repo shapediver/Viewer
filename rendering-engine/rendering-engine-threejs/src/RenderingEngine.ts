@@ -178,6 +178,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		ENVIRONMENT_MAP_PBR_MODE.LEGACY;
 	private _environmentMapResolution: string = "1024";
 	private _environmentMapRotation: quat = quat.create();
+	private _gemNormalMapResolution: number = 1024;
+	private _gemTracing: "sphere" | "facets" = "sphere";
 	private _gridVisibility: boolean = true;
 	private _groundPlaneShadowVisibility: boolean = false;
 	private _groundPlaneVisibility: boolean = true;
@@ -188,6 +190,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		? {width: 1280, height: 720}
 		: {width: 1920, height: 1080};
 	private _pause: boolean = false;
+	private _physicalGemDispersion: boolean = false;
 	private _postRenderingCallback?:
 		| ((
 				renderer: THREE.WebGLRenderer,
@@ -674,6 +677,22 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		);
 	}
 
+	public get gemNormalMapResolution(): number {
+		return this._gemNormalMapResolution;
+	}
+
+	public set gemNormalMapResolution(value: number) {
+		this._gemNormalMapResolution = value;
+	}
+
+	public get gemTracing(): "sphere" | "facets" {
+		return this._gemTracing;
+	}
+
+	public set gemTracing(value: "sphere" | "facets") {
+		this._gemTracing = value;
+	}
+
 	/**
 	 * The rotation that is handed to the material system. It equals the
 	 * user's rotation, except for custom .hdr maps with the three.js
@@ -872,6 +891,15 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
 	public set physicallyCorrectLights(value: boolean) {
 		this._useLegacyLights = !value;
+	}
+
+	public get physicalGemDispersion(): boolean {
+		return this._physicalGemDispersion;
+	}
+
+	public set physicalGemDispersion(value: boolean) {
+		this._physicalGemDispersion = value;
+		this._materialLoader.assignPhysicalGemDispersion(value);
 	}
 
 	public get pointSize(): number {

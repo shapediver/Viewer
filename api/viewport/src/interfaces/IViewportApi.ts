@@ -249,6 +249,17 @@ export interface IViewportApi {
 	 */
 	environmentMapRotation: quat;
 	/**
+	 * The resolution per cube face of the map that captures the facets of a gem. Allowed values are 256, 512 and 1024. (default: 1024, the legacy look; 512 is the value used with `gemTracing = "facets"`)
+	 * Used for gems whose material does not set `normalMapResolution`. It applies to gem shapes whose normal cube map is captured after the change (the cube maps are cached per shape), so set it before the scene loads, e.g. in the viewer settings.
+	 */
+	gemNormalMapResolution: number;
+	/**
+	 * How light is traced inside gems. (default: "sphere", the legacy look)
+	 * "facets" traces against the facet planes of the stone and uses the full inverse of the model matrix for the camera position, which is more accurate and correct for scaled stones; it is only used if the device supports it, otherwise sphere tracing is used.
+	 * It applies to gem shapes whose normal cube map is captured after the change (the cube maps are cached per shape), so set it before the scene loads, e.g. in the viewer settings.
+	 */
+	gemTracing: "sphere" | "facets";
+	/**
 	 * The color of the grid.
 	 */
 	gridColor: Color;
@@ -304,6 +315,10 @@ export interface IViewportApi {
 	 * @see {@link textureEncoding}
 	 */
 	outputEncoding: TEXTURE_ENCODING;
+	/**
+	 * Uses physically based dispersion for gem materials: the refraction index of a gem is its mid-spectrum (D line) value, its dispersion is n(G line) − n(B line) (diamond 0.044), and blue light bends most, at entry and exit of the stone. When false (default), the legacy dispersion is kept so existing models look unchanged.
+	 */
+	physicalGemDispersion: boolean;
 	/**
 	 * Option to enable / disable the physically correct lights. (default: true)
 	 */

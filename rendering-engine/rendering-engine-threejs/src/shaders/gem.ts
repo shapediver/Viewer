@@ -167,6 +167,15 @@ uniform float hdrOutput;
 uniform float dispersion;
 uniform float tracingOpacity;
 
+#ifdef PHYSICAL_DISPERSION
+	// Per-channel IOR offsets for physical dispersion. refractionIndex is the
+	// IOR at the D line (589.3 nm) and dispersion is n(G line, 430.8 nm) minus
+	// n(B line, 686.7 nm), 0.044 for diamond. With Cauchy's n = A + B / λ²:
+	// n(λ) = n_D + dispersion * (1/λ² - 1/λ_D²) / (1/λ_G² - 1/λ_B²),
+	// sampled at 650 nm (red), 550 nm (green) and 450 nm (blue).
+	const vec3 DISPERSION_WEIGHTS = vec3(-0.1569, 0.1304, 0.6300);
+#endif
+
 
 vec3 getIBLRadianceVariation( const in vec3 viewDir, const in vec3 normal, const in float roughness ) {
 	#if defined( ENVMAP_TYPE_CUBE_UV )
@@ -491,9 +500,27 @@ void main() {
 
     // CUSTOM START
 	
+	#ifdef GEM_PLANE_TRACING
 	// Calculate the camera position in model space. The full inverse keeps
 	// scaled stones right, where the transposed rotation would not.
 	vec3 cameraPositionInModelSpace = (inverse(modelMatrix) * vec4(cameraPosition, 1.0)).xyz;
+	#else
+	// The legacy transform is kept so models without facet tracing render as before.
+	// Extract the translation part of the model matrix
+	vec3 translation = modelMatrix[3].xyz;
+
+	// Extract the rotation part of the model matrix (3x3 upper-left submatrix)
+	mat3 rotationMatrix = mat3(modelMatrix);
+
+	// Calculate the inverse of the rotation matrix (transpose since it's orthogonal)
+	mat3 inverseRotationMatrix;
+	inverseRotationMatrix[0] = vec3(rotationMatrix[0].x, rotationMatrix[1].x, rotationMatrix[2].x);
+	inverseRotationMatrix[1] = vec3(rotationMatrix[0].y, rotationMatrix[1].y, rotationMatrix[2].y);
+	inverseRotationMatrix[2] = vec3(rotationMatrix[0].z, rotationMatrix[1].z, rotationMatrix[2].z);
+
+	// Calculate the camera position in model space
+	vec3 cameraPositionInModelSpace = inverseRotationMatrix * (cameraPosition - translation);
+	#endif
 
 	// Calculate the initial direction
 	vec3 initialDirection = normalize(frag_position.xyz - cameraPositionInModelSpace);
@@ -523,7 +550,25 @@ void main() {
 	#endif
 		#pragma unroll_loop_start
 		for(int j = 0; j < loop; j++){
-			vec3 refractedDirection = refract(initialDirection, frag_normal_normalized, 1.0/refractionIndex + float(j)*dispersion * 0.025);
+			#ifdef PHYSICAL_DISPERSION
+				// per-channel IOR, used at entry, inside (Fresnel, total internal reflection) and at exit
+				float channelIor = refractionIndex;
+				#ifdef DISPERSION
+					channelIor += dispersion * DISPERSION_WEIGHTS[j];
+				#endif
+				float channelR0 = (1.0 - channelIor) / (1.0 + channelIor);
+				channelR0 = channelR0 * channelR0;
+				// The physical exit ratio (channelIor) made the stones flat and
+				// bright next to the reference, so the exit keeps 1 / IOR, now
+				// per channel. Blue still bends most on the way out.
+				float exitRatio = 1.0 / channelIor;
+				vec3 refractedDirection = refract(initialDirection, frag_normal_normalized, 1.0 / channelIor);
+			#else
+				float channelIor = refractionIndex;
+				float channelR0 = r_0;
+				float exitRatio = 1.0 / refractionIndex;
+				vec3 refractedDirection = refract(initialDirection, frag_normal_normalized, 1.0/refractionIndex + float(j)*dispersion * 0.025);
+			#endif
 			vec3 newNormal;
 			vec3 newPosition = traceGem(frag_position, refractedDirection, newNormal);
 			vec3 lookUpVector = normalize(newPosition - center);
@@ -554,16 +599,16 @@ void main() {
 				float cos_theta = dot(newDirection, newNormal);
 				float ratio;
 				if(cos_theta > 0.0) {
-					ratio = refractionIndex;
+					ratio = channelIor;
 				} else {
 					cos_theta = -cos_theta;
-					ratio = 1.0 / refractionIndex;
+					ratio = 1.0 / channelIor;
 				}
 				float cos_theta_2 = 1.0 - ratio*ratio * (1.0 - cos_theta*cos_theta);
-				float probability = r_0 + (1.0 - r_0)*pow(1.0 - cos_theta, 5.0);
+				float probability = channelR0 + (1.0 - channelR0)*pow(1.0 - cos_theta, 5.0);
 				if(cos_theta_2 < 0.0) probability = 0.0;
 
-				vec3 refracted = refract(newDirection, newNormal*-1.0, 1.0/refractionIndex);
+				vec3 refracted = refract(newDirection, newNormal*-1.0, exitRatio);
 				tempColor += probability * currentProbability * calculateReflectedLight(newPosition, newNormal*-1.0, reflect(refracted, newNormal), material, i);
 				if(i+1 == TRACING_DEPTH)
 					tempColor += (1.0 - probability) * currentProbability * calculateReflectedLight(newPosition, newNormal, newDirection, material, i);

@@ -16,7 +16,10 @@ export interface GemMaterialParameters extends MeshPhysicalMaterialParameters {
 	gamma?: number | undefined;
 	contrast?: number | undefined;
 	brightness?: number | undefined;
+	/** See {@link GemMaterial.dispersion}. */
 	dispersion?: number | undefined;
+	/** See {@link GemMaterial.physicalDispersion}. */
+	physicalDispersion?: boolean | undefined;
 	tracingDepth?: number | undefined;
 	tracingOpacity?: number | undefined;
 
@@ -43,7 +46,20 @@ export class GemMaterial extends MeshPhysicalMaterial {
 	public gamma: number = 1.0;
 	public contrast: number = 1.0;
 	public brightness: number = 0.0;
+	/**
+	 * Legacy mode (physicalDispersion false): per-channel offset of 1/IOR by
+	 * dispersion * 0.025, applied at entry only.
+	 * Physical mode (physicalDispersion true): the difference n(G line) - n(B line),
+	 * 0.044 for diamond, see {@link physicalDispersion}.
+	 */
 	public dispersion: number = 0.0;
+	/**
+	 * Legacy mode (false): see {@link dispersion}.
+	 * Physical mode (true): refractionIndex is the IOR at the D line, dispersion is
+	 * n(G line) - n(B line) (diamond 0.044), and each color channel uses its own IOR
+	 * at entry, inside the stone and at exit.
+	 */
+	public physicalDispersion: boolean = false;
 	public tracingOpacity: number = 0.0;
 
 	// #endregion Properties (1)
@@ -72,6 +88,8 @@ export class GemMaterial extends MeshPhysicalMaterial {
 			tracingOpacity: {value: 0.0},
 			hdrOutput: GemMaterial.hdrOutputUniform,
 		};
+
+		let physicalDispersion = false;
 
 		(<any>this)._extraUniforms = uniforms;
 
@@ -225,6 +243,24 @@ export class GemMaterial extends MeshPhysicalMaterial {
 					}
 				},
 			},
+			physicalDispersion: {
+				get: function () {
+					return physicalDispersion;
+				},
+				set: function (v) {
+					physicalDispersion = !!v;
+					// compare with the define, not the old value: copy()
+					// replaces the defines before it sets this property
+					const defined = "PHYSICAL_DISPERSION" in this.defines;
+					if (physicalDispersion === defined) return;
+					if (physicalDispersion) {
+						this.defines.PHYSICAL_DISPERSION = "";
+					} else {
+						delete this.defines.PHYSICAL_DISPERSION;
+					}
+					this.needsUpdate = true;
+				},
+			},
 			tracingOpacity: {
 				get: function () {
 					return uniforms.tracingOpacity.value;
@@ -252,6 +288,7 @@ export class GemMaterial extends MeshPhysicalMaterial {
 		this.contrast = params.contrast || 1;
 		this.brightness = params.brightness || 0;
 		this.dispersion = params.dispersion || 0;
+		this.physicalDispersion = params.physicalDispersion || false;
 		this.tracingOpacity = params.tracingOpacity || 0;
 
 		this.setValues(params);
@@ -279,6 +316,7 @@ export class GemMaterial extends MeshPhysicalMaterial {
 		this.contrast = source.contrast;
 		this.brightness = source.brightness;
 		this.dispersion = source.dispersion;
+		this.physicalDispersion = source.physicalDispersion;
 		this.tracingOpacity = source.tracingOpacity;
 
 		return this;
