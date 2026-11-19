@@ -152,6 +152,20 @@ export interface IViewportApi {
 	 */
 	arTranslation: vec3;
 	/**
+	 * The number of jittered frames that are averaged on desktop devices once the
+	 * camera and the scene are still. This smooths edges, small facets and highlights.
+	 * Any change restarts the averaging. 0 and 1 turn it off. (default: 0)
+	 *
+	 * The averaging runs in the same frames as the soft-shadow fade and starts once the
+	 * shadows have settled. The event `BEAUTY_RENDERING_FINISHED` is emitted
+	 * when all frames are averaged; a screenshot taken after that event shows the averaged image.
+	 */
+	accumulationFrames: number;
+	/**
+	 * Like {@link accumulationFrames}, for mobile devices. (default: 0)
+	 */
+	accumulationFramesMobile: number;
+	/**
 	 * Option to enable / disable the automatic color space adaption. This converts all color inputs to the chosen {@link outputEncoding}. (default: true)
 	 */
 	automaticColorAdjustment: boolean;

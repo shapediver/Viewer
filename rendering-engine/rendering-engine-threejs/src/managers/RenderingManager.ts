@@ -26,6 +26,7 @@ import {
 import * as Stats from "stats.js";
 import * as THREE from "three";
 import {RenderingEngine} from "../RenderingEngine";
+import {StillFrameAccumulator} from "./postprocessing/StillFrameAccumulator";
 import {updateMorphWeights} from "./sceneTree/SceenTreeManagerUtils";
 import {SceneTreeManager} from "./SceneTreeManager";
 
@@ -89,6 +90,9 @@ export class RenderingManager implements IManager {
 	private _stats: any;
 	private _usingSwiftShader: boolean = false;
 	private _width: number = 0;
+	private _accumulator?: StillFrameAccumulator;
+	/** lightSizeUV and blending of the last fade frame */
+	private _beautyShadowState?: [number, number];
 	private _updateShadowMapInNextRender: boolean = false;
 
 	// #endregion Properties (31)
@@ -338,6 +342,12 @@ export class RenderingManager implements IManager {
 			);
 			return this.getScreenshot(type, encoderOptions);
 		}
+	}
+
+	/** Releases the GPU resources of the frame accumulation. */
+	public dispose(): void {
+		this._accumulator?.dispose();
+		this._accumulator = undefined;
 	}
 
 	public init(): void {
@@ -645,6 +655,22 @@ export class RenderingManager implements IManager {
 			this._runningAnimation === true ||
 			this._continuousShadowMapUpdate === true ||
 			this._updateShadowMapInNextRender === true;
+
+		// The canvas shows the mean of the accumulated frames. Draw that
+		// mean again instead of a single frame, unless something changed.
+		const rendererSize = this._renderingEngine.renderer.getSize(
+			new THREE.Vector2(),
+		);
+		if (
+			!updateShadowMap &&
+			!pixelRatioChanged &&
+			rendererSize.width === adjustedWidth &&
+			rendererSize.height === adjustedHeight &&
+			this._accumulator?.present()
+		) {
+			this._hasPresentedFrame = true;
+			return;
+		}
 		this._updateShadowMapInNextRender = false;
 
 		this.paintFrame(
@@ -702,11 +728,11 @@ export class RenderingManager implements IManager {
 		const currentSize = new THREE.Vector2();
 		this._renderingEngine.renderer.getSize(currentSize);
 		// Performance: Direct property comparison instead of Vector2.equals()
-		if (
+		const resized =
 			pixelRatioChanged ||
 			currentSize.width !== adjustedWidth ||
-			currentSize.height !== adjustedHeight
-		) {
+			currentSize.height !== adjustedHeight;
+		if (resized) {
 			this._renderingEngine.renderer.setSize(
 				adjustedWidth,
 				adjustedHeight,
@@ -834,12 +860,42 @@ export class RenderingManager implements IManager {
 
 		// animation loop - part 12: actual rendering separation
 		if (options.softShadowRendering === true) {
-			this.setShaderProperties();
-			draw();
+			const shadowStateChanged = this.setShaderProperties();
+			const accumulationFrames = options.trackBeauty
+				? this.accumulationFrames()
+				: 0;
+			let accumulationConverged = true;
+			if (accumulationFrames > 1) {
+				const accumulator = this.accumulator();
+				const frames = Math.min(
+					accumulationFrames,
+					accumulator.maxFrames,
+				);
+				// Averaging frames whose shadows still fade would mix the
+				// harder shadows into the still image. A resize clears the
+				// canvas, and a new shadow map changes the image.
+				if (shadowStateChanged || resized || updateShadowMap)
+					accumulator.restart();
+				if (accumulator.count < frames) {
+					accumulator.beginFrame(camera);
+					try {
+						draw();
+					} finally {
+						accumulator.endJitter(camera);
+					}
+					accumulator.endFrame(camera);
+				}
+				// otherwise the converged mean is already on the canvas
+				accumulationConverged = accumulator.count >= frames;
+			} else {
+				this._accumulator?.reset();
+				draw();
+			}
 
-			// if the duration was long enough, disable the beauty rendering
+			// if the duration was long enough and the frames are accumulated, disable the beauty rendering
 			if (
 				options.trackBeauty &&
+				accumulationConverged &&
 				this._softShadowRenderingDurationActive >=
 					this._renderingEngine.beautyRenderBlendingDuration
 			) {
@@ -854,6 +910,8 @@ export class RenderingManager implements IManager {
 			}
 		} else {
 			draw();
+			// the canvas no longer shows the accumulated frames
+			if (options.trackBeauty) this._accumulator?.restart();
 
 			// if the beauty rendering was active, disable it
 			if (options.trackBeauty && this._softShadowRenderingActive) {
@@ -1066,6 +1124,7 @@ export class RenderingManager implements IManager {
 
 	private deactivateBeautyRenderShaders() {
 		this._softShadowRenderingTimeout = null;
+		this._beautyShadowState = undefined;
 		this._softShadowRenderingActive = false;
 		this._softShadowRenderingDurationActive = 0;
 		// Keep the shaders that produced the frame now on screen. The next
@@ -1201,13 +1260,25 @@ export class RenderingManager implements IManager {
 		return true;
 	}
 
-	private setShaderProperties() {
+	/**
+	 * Advances the soft-shadow fade.
+	 * Returns whether the shadow uniforms differ from the previous fade frame.
+	 */
+	private setShaderProperties(): boolean {
+		const previous = this._beautyShadowState;
+		this.applyBeautyShadowState();
+		const current = this._beautyShadowState!;
+		return (
+			!previous ||
+			!Object.is(previous[0], current[0]) ||
+			!Object.is(previous[1], current[1])
+		);
+	}
+
+	private applyBeautyShadowState(): void {
 		if (this._renderingEngine.softShadows === false) {
-			this._renderingEngine.materialLoader.updateSoftShadow(
-				this._lightSizeUVStart,
-				0,
-			);
-			return 0;
+			this.updateBeautySoftShadow(this._lightSizeUVStart, 0);
+			return;
 		}
 
 		const deltaTime = Math.min(
@@ -1219,21 +1290,44 @@ export class RenderingManager implements IManager {
 
 		if (percentage < 0.25) {
 			const percentageMapped = percentage / 0.25;
-			this._renderingEngine.materialLoader.updateSoftShadow(
+			this.updateBeautySoftShadow(
 				this._lightSizeUVStart,
 				percentageMapped,
 			);
 		} else {
 			const percentageMapped = (percentage - 0.25) / (1 - 0.25);
 			// this._lightSizeUVStart -> this._lightSizeUVEnd
-			this._renderingEngine.materialLoader.updateSoftShadow(
+			this.updateBeautySoftShadow(
 				this._lightSizeUVStart +
 					(this._lightSizeUVEnd - this._lightSizeUVStart) *
 						percentageMapped,
 				1.0,
 			);
 		}
-		return percentage;
+	}
+
+	private updateBeautySoftShadow(lightSizeUV: number, blending: number) {
+		this._renderingEngine.materialLoader.updateSoftShadow(
+			lightSizeUV,
+			blending,
+		);
+		this._beautyShadowState = [lightSizeUV, blending];
+	}
+
+	/** The number of frames to accumulate on this device, 0 when off. */
+	private accumulationFrames(): number {
+		const frames = this._systemInfo.isMobile
+			? this._renderingEngine.accumulationFramesMobile
+			: this._renderingEngine.accumulationFrames;
+		return frames > 1 ? frames : 0;
+	}
+
+	private accumulator(): StillFrameAccumulator {
+		if (!this._accumulator)
+			this._accumulator = new StillFrameAccumulator(
+				this._renderingEngine.renderer,
+			);
+		return this._accumulator;
 	}
 
 	private showStatistics() {
@@ -1264,6 +1358,8 @@ export class RenderingManager implements IManager {
 		}
 
 		this._activeRendering = true;
+		// something changed, the accumulated frames are outdated
+		this._accumulator?.restart();
 		this.stopBeautyRenderCountdown();
 		this.startBeautyRenderCountdown();
 	}
@@ -1278,6 +1374,7 @@ export class RenderingManager implements IManager {
 
 	private startRendering() {
 		this._activeRendering = true;
+		this._accumulator?.restart();
 		this.stopBeautyRenderCountdown();
 	}
 

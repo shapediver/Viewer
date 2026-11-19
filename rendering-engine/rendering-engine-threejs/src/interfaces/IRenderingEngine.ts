@@ -16,6 +16,8 @@ import * as THREE from "three";
 export interface IRenderingEngineThreeJS extends IRenderingEngine {
 	// #region Properties (33)
 
+	accumulationFrames: number;
+	accumulationFramesMobile: number;
 	automaticColorAdjustment: boolean;
 	beautyRenderBlendingDuration: number;
 	beautyRenderDelay: number;
