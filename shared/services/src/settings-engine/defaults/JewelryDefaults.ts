@@ -1,11 +1,12 @@
 import {ISettings} from "@shapediver/viewer.settings";
+import {ISettingsV7_2, NEW_LOOK_V7_2, toSettings} from "./SettingsV7_2";
 
 export const JewelryDefaults: () => ISettings = () => {
-	const s: ISettings = {
+	const s: ISettingsV7_2 = {
 		build_date: "",
 		build_version: "",
 		configuration: {},
-		settings_version: "7.0",
+		settings_version: "7.2",
 		ar: {
 			enable: true,
 			autoScaling: true,
@@ -24,6 +25,7 @@ export const JewelryDefaults: () => ISettings = () => {
 			rotation: {x: 0, y: 0, z: 0, w: 1},
 			intensity: 1,
 			blurriness: 0,
+			...NEW_LOOK_V7_2.environment,
 		},
 		environmentGeometry: {
 			gridColor: "#44444426",
@@ -54,14 +56,26 @@ export const JewelryDefaults: () => ISettings = () => {
 		},
 		postprocessing: {
 			antiAliasingTechnique: "smaa",
-			antiAliasingTechniqueMobile: "fxaa",
+			// FXAA blurs and shimmers on sub-pixel pavé facets
+			antiAliasingTechniqueMobile: "smaa",
 			enablePostProcessingOnMobile: true,
 			ssaaSampleLevel: 2,
+			hdr: true,
 			effects: [
 				{
+					// contact darkening in crevices, not on the stones
+					properties: {
+						excludeGems: true,
+					},
+					type: "hbao",
+				},
+				{
+					// a glow on the brightest highlights only; the threshold,
+					// smoothing and mipmap blur use the highlight defaults
 					properties: {
 						intensity: 1,
-						luminanceThreshold: 0.95,
+						highlightsOnly: true,
+						backgroundBloom: false,
 					},
 					type: "bloom",
 				},
@@ -77,14 +91,15 @@ export const JewelryDefaults: () => ISettings = () => {
 			shadows: true,
 			softShadows: true,
 			textureEncoding: "srgb",
-			toneMapping: "aces_filmic",
+			toneMapping: "neutral",
 			toneMappingExposure: 1,
 		},
 		session: {},
 		material: {
 			defaultMaterialColor: "#199b9bff",
+			...NEW_LOOK_V7_2.material,
 		},
 	};
 
-	return s;
+	return toSettings(s);
 };

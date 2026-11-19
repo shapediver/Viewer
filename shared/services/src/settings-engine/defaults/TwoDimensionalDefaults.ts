@@ -1,11 +1,12 @@
 import {ISettings} from "@shapediver/viewer.settings";
+import {ISettingsV7_2, NEW_LOOK_V7_2, toSettings} from "./SettingsV7_2";
 
 export const TwoDimensionalDefaults: () => ISettings = () => {
-	const s: ISettings = {
+	const s: ISettingsV7_2 = {
 		build_date: "",
 		build_version: "",
 		configuration: {},
-		settings_version: "7.0",
+		settings_version: "7.2",
 		ar: {
 			enable: true,
 			autoScaling: true,
@@ -24,6 +25,7 @@ export const TwoDimensionalDefaults: () => ISettings = () => {
 			rotation: {x: 0, y: 0, z: 0, w: 1},
 			intensity: 1,
 			blurriness: 0,
+			...NEW_LOOK_V7_2.environment,
 		},
 		environmentGeometry: {
 			gridColor: "#44444426",
@@ -57,6 +59,8 @@ export const TwoDimensionalDefaults: () => ISettings = () => {
 			antiAliasingTechniqueMobile: "fxaa",
 			enablePostProcessingOnMobile: true,
 			ssaaSampleLevel: 2,
+			// no effects and no tone mapping: an HDR buffer only costs memory bandwidth
+			hdr: false,
 			effects: [],
 		},
 		rendering: {
@@ -75,8 +79,9 @@ export const TwoDimensionalDefaults: () => ISettings = () => {
 		session: {},
 		material: {
 			defaultMaterialColor: "#199b9bff",
+			...NEW_LOOK_V7_2.material,
 		},
 	};
 
-	return s;
+	return toSettings(s);
 };

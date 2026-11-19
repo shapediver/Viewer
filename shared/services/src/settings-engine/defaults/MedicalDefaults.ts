@@ -1,11 +1,12 @@
 import {ISettings} from "@shapediver/viewer.settings";
+import {ISettingsV7_2, NEW_LOOK_V7_2, toSettings} from "./SettingsV7_2";
 
 export const MedicalDefaults: () => ISettings = () => {
-	const s: ISettings = {
+	const s: ISettingsV7_2 = {
 		build_date: "",
 		build_version: "",
 		configuration: {},
-		settings_version: "7.0",
+		settings_version: "7.2",
 		ar: {
 			enable: true,
 			autoScaling: true,
@@ -24,6 +25,7 @@ export const MedicalDefaults: () => ISettings = () => {
 			rotation: {x: 0, y: 0, z: 0, w: 1},
 			intensity: 1,
 			blurriness: 0,
+			...NEW_LOOK_V7_2.environment,
 		},
 		environmentGeometry: {
 			gridColor: "#44444426",
@@ -57,6 +59,8 @@ export const MedicalDefaults: () => ISettings = () => {
 			antiAliasingTechniqueMobile: "fxaa",
 			enablePostProcessingOnMobile: true,
 			ssaaSampleLevel: 2,
+			// no tone mapping: an HDR buffer would be clipped at the output anyway
+			hdr: false,
 			effects: [
 				{
 					properties: {
@@ -74,6 +78,7 @@ export const MedicalDefaults: () => ISettings = () => {
 						depthPhi: 2,
 						normalPhi: 3.25,
 						samples: 16,
+						excludeGems: true,
 					},
 					type: "ssao",
 				},
@@ -95,8 +100,9 @@ export const MedicalDefaults: () => ISettings = () => {
 		session: {},
 		material: {
 			defaultMaterialColor: "#199b9bff",
+			...NEW_LOOK_V7_2.material,
 		},
 	};
 
-	return s;
+	return toSettings(s);
 };
