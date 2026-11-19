@@ -15,6 +15,7 @@ const N: Point = [0, -Math.sin(ANGLE), Math.cos(ANGLE)];
 const ORIGINS: Point[] = [
 	[3.7, -1.3, 2.9],
 	[1503.7, -801.3, 602.9],
+	[15003.7, -8001.3, 6002.9],
 ];
 
 const onPanel = (ORIGIN: Point, u: number, v: number): Point => [
@@ -158,6 +159,27 @@ for (const ORIGIN of ORIGINS) {
 			)) as number[][];
 			expect(matrices.length).toBeGreaterThan(0);
 			for (const m of matrices) expect(m).toEqual(IDENTITY);
+		});
+
+		test("a move of the plane reports its translation", async ({page}) => {
+			const [[x1, y1], [x2, y2]] = (await page.evaluate(
+				(ps) => ps.map((p) => (<any>window).atRestScreen(p)),
+				[onPanel(ORIGIN, 1.5, 1), onPanel(ORIGIN, 2, 1.25)],
+			)) as [number, number][];
+			await page.mouse.move(x1, y1, {steps: 4});
+			await page.mouse.down();
+			await page.mouse.move(x2, y2, {steps: 8});
+			await page.mouse.up();
+			await page.waitForTimeout(500);
+
+			const matrices = (await page.evaluate(
+				() => (<any>window).atRestState.matrices,
+			)) as number[][];
+			// the move is about 0.5 along u and 0.25 along v
+			const moved = matrices.filter(
+				(m) => Math.hypot(m[12], m[13], m[14]) > 0.2,
+			);
+			expect(moved.length).toBeGreaterThan(0);
 		});
 	});
 }

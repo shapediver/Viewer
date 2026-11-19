@@ -46,12 +46,13 @@ const IDENTITY_TOLERANCE = 1e-4;
 const snapToIdentity = (matrix: mat4, extent: number): mat4 => {
 	const identity = mat4.create();
 	for (let i = 0; i < 16; i++) {
-		const scale = i >= 12 && i <= 14 ? Math.max(1, extent) : 1;
-		if (
-			Math.abs(matrix[i] - identity[i]) >
-			IDENTITY_TOLERANCE * scale * Math.max(1, Math.abs(matrix[i]))
-		)
-			return matrix;
+		// the translation (identity 0) against the distance of the object,
+		// the other entries relative to their value
+		const tolerance =
+			i >= 12 && i <= 14
+				? IDENTITY_TOLERANCE * Math.max(1, extent)
+				: IDENTITY_TOLERANCE * Math.max(1, Math.abs(matrix[i]));
+		if (Math.abs(matrix[i] - identity[i]) > tolerance) return matrix;
 	}
 	return identity;
 };
