@@ -1,9 +1,9 @@
-import {expect} from "@playwright/test";
+import {expect, type Page} from "@playwright/test";
 import {open, test} from "./harness";
 
-test("SS-10393 a ray hits the known triangle through a BVH", async ({page}) => {
+const raytrace = async (page: Page) => {
 	await open(page);
-	const hit = await page.evaluate(async () => {
+	return page.evaluate(async () => {
 		const perf = (window as any).__perf;
 		const SDV = (window as any).SDV;
 		await perf.create({shadows: false});
@@ -52,7 +52,21 @@ test("SS-10393 a ray hits the known triangle through a BVH", async ({page}) => {
 			boundsTree,
 		};
 	});
+};
+
+// Regression test for picking: it passes today and must keep passing.
+test("SS-10393 a ray hits the known triangle", async ({page}) => {
+	const hit = await raytrace(page);
 	expect(hit.count).toBe(1);
 	expect(hit.distance).toBeCloseTo(1, 4);
+});
+
+// The SS-10393 review rescoped the ticket to a bounds hierarchy first, with a
+// triangle BVH only for large meshes. A check on the three-mesh-bvh property
+// `geometry.boundsTree` may therefore never be the right acceptance: SS-10393
+// must rewrite or delete this test.
+test("SS-10393 the hit geometry has a bounds tree", async ({page}) => {
+	test.fail(true, "SS-10393 not implemented: rewrite or delete in its PR");
+	const hit = await raytrace(page);
 	expect(hit.boundsTree).toBe(true);
 });

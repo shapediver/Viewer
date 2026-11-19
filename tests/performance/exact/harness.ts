@@ -5,9 +5,9 @@ import * as path from "path";
 /**
  * Exact checks for SS-10382–SS-10397.
  *
- * Each test encodes the result the ticket asks for. On current development
- * the tickets are not done, so the checks fail. A later task branch passes
- * the check that belongs to it.
+ * Each test encodes the result the ticket asks for. Tests for open tickets
+ * are marked `test.fail` with the ticket key; the PR of that ticket removes
+ * the marker.
  *
  * Nothing here asserts a millisecond or a frame rate. Docker is the wrong
  * tool for that: a containerized Chrome is SwiftShader, and this viewer
