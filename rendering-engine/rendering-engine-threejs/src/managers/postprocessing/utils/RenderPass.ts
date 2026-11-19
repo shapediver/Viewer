@@ -272,10 +272,14 @@ export class RenderPass extends Pass {
 		this.scene.traverse(function (object: Object3D) {
 			if (object.visible === true) {
 				if (object instanceof Mesh && object.material) {
+					// a back and front pair has the same properties in both
+					const material = Array.isArray(object.material)
+						? object.material[0]
+						: object.material;
 					if (
-						object.material instanceof MeshPhysicalMaterial &&
-						!(object.material instanceof GemMaterial) &&
-						object.material.transparent
+						material instanceof MeshPhysicalMaterial &&
+						!(material instanceof GemMaterial) &&
+						material.transparent
 					) {
 						materialsNotRenderer.push(object);
 						object.visible = false;
