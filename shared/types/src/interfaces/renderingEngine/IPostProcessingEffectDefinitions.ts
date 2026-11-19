@@ -46,6 +46,8 @@ export interface IBloomEffectDefinition extends IPostProcessingEffectDefinition 
 	properties?: {
 		/** Whether the background (pixels where no geometry was drawn) contributes to the bloom. Set to false to keep a bright clear color or background from blooming. (default: true) */
 		backgroundBloom?: boolean;
+		/** Bloom only the light above `luminanceThreshold` (soft knee of width `luminanceSmoothing`, per-pixel cap, tighter mipmap blur), so only highlights glow and bright surfaces keep their colour. Recommended together with `IPostProcessingApi.hdr`. When enabled, unset `luminanceThreshold`, `luminanceSmoothing` and `mipmapBlur` default to 1, 0.25 and true. With 8-bit buffers the threshold is capped at 0.8. (default: false) */
+		highlightsOnly?: boolean;
 		/** The blend function of this effect. (default: BlendFunction.ADD) */
 		blendFunction?: number;
 		/** The bloom intensity. (default: 1.0) */

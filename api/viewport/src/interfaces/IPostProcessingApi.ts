@@ -76,8 +76,8 @@ export interface IPostProcessingApi {
 	/**
 	 * Render the post-processing effects in half-float (HDR) buffers. (default: false)
 	 *
-	 * With HDR, colors brighter than white survive until tone mapping, so a bloom `luminanceThreshold` above 1 makes only highlights brighter than white glow.
-	 * Combine with a tone mapping other than NONE.
+	 * With HDR, colors brighter than white survive until tone mapping.
+	 * Recommended setup: tone mapping `TONE_MAPPING.NEUTRAL` (or AGX), exposure 1, and bloom with `highlightsOnly: true`, so only highlights brighter than white glow.
 	 * Devices that can't render to half-float buffers fall back to 8-bit buffers.
 	 *
 	 * Changing this value replaces the {@link effectComposer}. With {@link manualPostProcessing}, set it before adding your own passes.
