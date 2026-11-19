@@ -60,7 +60,12 @@ export class GeometryLoader implements ILoader {
 	} = {};
 	private _geometryObjects = new WeakMap<GeometryData, Set<GeometryType>>();
 	// The shared geometry of a mesh that shows a back and front material pair
-	private _sideSplitSources = new WeakMap<THREE.Mesh, THREE.BufferGeometry>();
+	// per split geometry: the shared geometry and the meshes that show it (a
+	// clone of a mesh shares the split geometry of the original)
+	private _sideSplits = new WeakMap<
+		THREE.BufferGeometry,
+		{source: THREE.BufferGeometry; users: Set<THREE.Mesh>}
+	>();
 	private _logger: Logger = Logger.instance;
 	private _primitiveCache: {
 		[key: string]: {
@@ -579,7 +584,11 @@ export class GeometryLoader implements ILoader {
 	 * for the meshes that share it (a batch rejects a geometry with groups).
 	 */
 	private splitGeometry(mesh: THREE.Mesh): boolean {
-		if (this._sideSplitSources.has(mesh)) return true;
+		const existing = this._sideSplits.get(mesh.geometry);
+		if (existing) {
+			existing.users.add(mesh);
+			return true;
+		}
 		const source = mesh.geometry;
 		const index = source.getIndex();
 		const count = index
@@ -597,18 +606,21 @@ export class GeometryLoader implements ILoader {
 		split.drawRange = {...source.drawRange};
 		split.addGroup(0, count, 0);
 		split.addGroup(0, count, 1);
-		this._sideSplitSources.set(mesh, source);
+		this._sideSplits.set(split, {source, users: new Set([mesh])});
 		mesh.geometry = split;
 		return true;
 	}
 
 	/** Give the mesh its shared geometry back. */
 	private mergeGeometry(mesh: THREE.Mesh): void {
-		const source = this._sideSplitSources.get(mesh);
-		if (!source) return;
-		this._sideSplitSources.delete(mesh);
 		const split = mesh.geometry;
-		mesh.geometry = source;
+		const entry = this._sideSplits.get(split);
+		if (!entry) return;
+		entry.users.delete(mesh);
+		mesh.geometry = entry.source;
+		// a clone may still show it
+		if (entry.users.size > 0) return;
+		this._sideSplits.delete(split);
 		// dispose frees the buffers of the attributes it holds, and those
 		// belong to the shared geometry
 		for (const name of Object.keys(split.attributes))
@@ -836,6 +848,9 @@ export class GeometryLoader implements ILoader {
 			this._geometryObjects.set(geometry, geometryObjects);
 		}
 		geometryObjects.add(object as GeometryType);
+		// a clone of a mesh with a back and front pair shares its geometry
+		if (object instanceof THREE.Mesh)
+			this._sideSplits.get(object.geometry)?.users.add(object);
 		this._renderingEngine.pulseEffectManager.update(geometry, [
 			object as GeometryType,
 		]);

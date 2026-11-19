@@ -1,4 +1,6 @@
 import {expect, test} from "@playwright/test";
+import {MaterialStandardData} from "@shapediver/viewer.shared.node-tree";
+import {MATERIAL_SIDE} from "@shapediver/viewer.shared.types";
 import * as THREE from "three";
 import {MaterialLoader} from "../../rendering-engine/rendering-engine-threejs/src/loaders/MaterialLoader";
 
@@ -115,4 +117,40 @@ test("the default material update keeps the side of each pair material", () => {
 	loader.assignDefaultMaterial();
 	expect(back.side).toBe(THREE.BackSide);
 	expect(front.side).toBe(THREE.FrontSide);
+});
+
+test("the pair keeps the defines of its source", () => {
+	const {loader, source} = setup(glass);
+	source.defines = {
+		...source.defines,
+		ENVMAP_TYPE_HDR: "",
+		SDV_LEGACY_DFG_APPROX: "",
+	};
+	const shown = loader.renderMaterialFor(
+		source,
+	) as THREE.MeshPhysicalMaterial[];
+	for (const m of shown) {
+		expect(m.defines).toEqual(source.defines);
+		expect(m.defines).not.toBe(source.defines);
+	}
+});
+
+test("the default material update hides the pair material of a side it does not show", () => {
+	const engine = {
+		createThreeJsColor: (color: string) => new THREE.Color(color),
+		environmentMapForUnlitMaterials: false,
+		materialBatchManager: {syncBatchColors: () => {}},
+	};
+	const visible = (side: "FRONT" | "BACK" | "DOUBLE") => {
+		const {loader, source} = setup(glass, engine);
+		const pair = loader.renderMaterialFor(source) as THREE.Material[];
+		(loader as any)._defaultMaterialData = new MaterialStandardData({
+			side: MATERIAL_SIDE[side],
+		});
+		loader.assignDefaultMaterial();
+		return pair.map((m) => m.visible);
+	};
+	expect(visible("DOUBLE")).toEqual([true, true]);
+	expect(visible("FRONT")).toEqual([false, true]);
+	expect(visible("BACK")).toEqual([true, false]);
 });

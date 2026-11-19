@@ -541,14 +541,18 @@ uniform vec3 sdvScreenAOColor;
 				material.needsUpdate = true;
 				material.userData.SDid = SDid;
 				material.userData.SDversion = SDversion;
-				// copy takes the side of the default material, a derived
-				// back or front material keeps its own
+				// copy takes the side of the default material. A derived back
+				// or front material keeps its own side and is drawn only if
+				// the default material shows that side.
 				const pair = this._sidePairOf.get(material);
 				if (pair) {
-					material.side =
-						material === pair.back
-							? THREE.BackSide
-							: THREE.FrontSide;
+					const defaultSide = material.side;
+					const isBack = material === pair.back;
+					material.visible =
+						defaultSide === THREE.DoubleSide ||
+						defaultSide ===
+							(isBack ? THREE.BackSide : THREE.FrontSide);
+					material.side = isBack ? THREE.BackSide : THREE.FrontSide;
 					if (typeof trackedKey === "string")
 						material.userData.cacheKey = trackedKey;
 					continue;
@@ -1118,6 +1122,13 @@ uniform vec3 sdvScreenAOColor;
 			derived.userData = {...userData, cacheKey: key + suffix};
 			delete derived.userData.shader;
 			derived.side = side;
+			// copy resets the defines (environment map type, PBR mode)
+			const defines = (material as {defines?: Record<string, string>})
+				.defines;
+			if (defines)
+				(derived as {defines?: Record<string, string>}).defines = {
+					...defines,
+				};
 			this.attachCompileHook(derived);
 			this._materialCache[key + suffix] = {
 				material: derived as ThreeJsMaterialTypes,
