@@ -651,12 +651,6 @@ export class ViewportApi implements IViewportApi {
 		this.update("environmentMapRotation");
 	}
 
-	/**
-	 * @internal
-	 * GPU instancing for this viewport. On by default. Turning it back on scans
-	 * already-loaded geometry so a later conversion can batch it. Not part of
-	 * the public API and subject to change without notice.
-	 */
 	public get gemNormalMapResolution(): number {
 		return this.#renderingEngine.gemNormalMapResolution;
 	}
@@ -701,6 +695,12 @@ export class ViewportApi implements IViewportApi {
 		this.update("gemTracing");
 	}
 
+	/**
+	 * @internal
+	 * GPU instancing for this viewport. On by default. Turning it back on scans
+	 * already-loaded geometry so a later conversion can batch it. Not part of
+	 * the public API and subject to change without notice.
+	 */
 	public get gpuInstancing(): {
 		enabled: boolean;
 		stats: {
