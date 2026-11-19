@@ -1672,6 +1672,27 @@ export class ViewportApi implements IViewportApi {
 		return this.#renderingEngine.getScreenshot(type, quality);
 	}
 
+	public async getSettledScreenshot(
+		type?: string,
+		quality?: number,
+	): Promise<string> {
+		const scope = "getSettledScreenshot";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			type,
+			"string",
+			false,
+		);
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			quality,
+			"number",
+			false,
+		);
+		this.update("getSettledScreenshot");
+		return await this.#renderingEngine.getSettledScreenshot(type, quality);
+	}
+
 	public getScreenshotAdvanced(
 		type?: string,
 		quality?: number,

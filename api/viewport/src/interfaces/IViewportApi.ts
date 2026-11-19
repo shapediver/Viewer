@@ -158,7 +158,8 @@ export interface IViewportApi {
 	 *
 	 * The averaging runs in the same frames as the soft-shadow fade and starts once the
 	 * shadows have settled. The event `BEAUTY_RENDERING_FINISHED` is emitted
-	 * when all frames are averaged; a screenshot taken after that event shows the averaged image.
+	 * when all frames are averaged. Use {@link getSettledScreenshot} for a screenshot of the
+	 * averaged image; {@link getScreenshot} starts a new average and returns a single frame.
 	 */
 	accumulationFrames: number;
 	/**
@@ -580,6 +581,16 @@ export interface IViewportApi {
 	 * @param quality The quality of the screenshot, default is 1.
 	 */
 	getScreenshot(type?: string, quality?: number): string;
+	/**
+	 * Create a screenshot once the viewport has settled: the soft-shadow fade and
+	 * the frame accumulation ({@link accumulationFrames}) are done. Like {@link getScreenshot},
+	 * pending changes are applied first, which starts a new fade.
+	 * Stops waiting after the fade duration plus 10 seconds, for example while continuous rendering is on.
+	 *
+	 * @param type The type as string, default is 'image/png'.
+	 * @param quality The quality of the screenshot, default is 1.
+	 */
+	getSettledScreenshot(type?: string, quality?: number): Promise<string>;
 	/**
 	 * Create a screenshot for the requested type and options.
 	 *

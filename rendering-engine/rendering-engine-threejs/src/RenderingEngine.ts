@@ -1271,6 +1271,16 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		return this._renderingManager.getScreenshot(type, encoderOptions);
 	}
 
+	public getSettledScreenshot(
+		type?: string,
+		encoderOptions?: number,
+	): Promise<string> {
+		return this._renderingManager.getSettledScreenshot(
+			type,
+			encoderOptions,
+		);
+	}
+
 	public async getScreenshotAdvanced(
 		type?: string,
 		encoderOptions?: number,

@@ -322,6 +322,32 @@ export class RenderingManager implements IManager {
 		);
 	}
 
+	/**
+	 * Waits until the viewport stopped rendering (the soft-shadow fade and
+	 * the frame accumulation are done), then takes a screenshot of what is
+	 * on screen. Gives up waiting after the fade duration plus 10 seconds,
+	 * for example while continuous rendering is on.
+	 */
+	public async getSettledScreenshot(
+		type: string = "image/png",
+		encoderOptions: number = 1,
+	): Promise<string> {
+		const deadline =
+			performance.now() +
+			this._renderingEngine.beautyRenderDelay +
+			this._renderingEngine.beautyRenderBlendingDuration +
+			10000;
+		while (
+			(this._activeRendering || this._softShadowRenderingTimeout) &&
+			!this._renderingEngine.closed &&
+			performance.now() < deadline
+		)
+			await new Promise<void>((resolve) =>
+				requestAnimationFrame(() => resolve()),
+			);
+		return this.getScreenshot(type, encoderOptions);
+	}
+
 	public async getScreenshotWithHtml(
 		type: string = "image/png",
 		encoderOptions: number = 1,
