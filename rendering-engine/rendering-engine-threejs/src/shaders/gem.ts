@@ -167,6 +167,15 @@ uniform float hdrOutput;
 uniform float dispersion;
 uniform float tracingOpacity;
 
+#ifdef PHYSICAL_DISPERSION
+	// Per-channel IOR offsets for physical dispersion. refractionIndex is the
+	// IOR at the D line (589.3 nm) and dispersion is n(G line, 430.8 nm) minus
+	// n(B line, 686.7 nm), 0.044 for diamond. With Cauchy's n = A + B / λ²:
+	// n(λ) = n_D + dispersion * (1/λ² - 1/λ_D²) / (1/λ_G² - 1/λ_B²),
+	// sampled at 650 nm (red), 550 nm (green) and 450 nm (blue).
+	const vec3 DISPERSION_WEIGHTS = vec3(-0.1569, 0.1304, 0.6300);
+#endif
+
 
 vec3 getIBLRadianceVariation( const in vec3 viewDir, const in vec3 normal, const in float roughness ) {
 	#if defined( ENVMAP_TYPE_CUBE_UV )
@@ -523,7 +532,23 @@ void main() {
 	#endif
 		#pragma unroll_loop_start
 		for(int j = 0; j < loop; j++){
-			vec3 refractedDirection = refract(initialDirection, frag_normal_normalized, 1.0/refractionIndex + float(j)*dispersion * 0.025);
+			#ifdef PHYSICAL_DISPERSION
+				// per-channel IOR, used at entry, inside (Fresnel, total internal reflection) and at exit
+				float channelIor = refractionIndex;
+				#ifdef DISPERSION
+					channelIor += dispersion * DISPERSION_WEIGHTS[j];
+				#endif
+				float channelR0 = (1.0 - channelIor) / (1.0 + channelIor);
+				channelR0 = channelR0 * channelR0;
+				// leaving the stone the ratio of inside to outside IOR is channelIor
+				float exitRatio = channelIor;
+				vec3 refractedDirection = refract(initialDirection, frag_normal_normalized, 1.0 / channelIor);
+			#else
+				float channelIor = refractionIndex;
+				float channelR0 = r_0;
+				float exitRatio = 1.0 / refractionIndex;
+				vec3 refractedDirection = refract(initialDirection, frag_normal_normalized, 1.0/refractionIndex + float(j)*dispersion * 0.025);
+			#endif
 			vec3 newNormal;
 			vec3 newPosition = traceGem(frag_position, refractedDirection, newNormal);
 			vec3 lookUpVector = normalize(newPosition - center);
@@ -554,16 +579,16 @@ void main() {
 				float cos_theta = dot(newDirection, newNormal);
 				float ratio;
 				if(cos_theta > 0.0) {
-					ratio = refractionIndex;
+					ratio = channelIor;
 				} else {
 					cos_theta = -cos_theta;
-					ratio = 1.0 / refractionIndex;
+					ratio = 1.0 / channelIor;
 				}
 				float cos_theta_2 = 1.0 - ratio*ratio * (1.0 - cos_theta*cos_theta);
-				float probability = r_0 + (1.0 - r_0)*pow(1.0 - cos_theta, 5.0);
+				float probability = channelR0 + (1.0 - channelR0)*pow(1.0 - cos_theta, 5.0);
 				if(cos_theta_2 < 0.0) probability = 0.0;
 
-				vec3 refracted = refract(newDirection, newNormal*-1.0, 1.0/refractionIndex);
+				vec3 refracted = refract(newDirection, newNormal*-1.0, exitRatio);
 				tempColor += probability * currentProbability * calculateReflectedLight(newPosition, newNormal*-1.0, reflect(refracted, newNormal), material, i);
 				if(i+1 == TRACING_DEPTH)
 					tempColor += (1.0 - probability) * currentProbability * calculateReflectedLight(newPosition, newNormal, newDirection, material, i);

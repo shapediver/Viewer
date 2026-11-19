@@ -300,6 +300,10 @@ export interface IViewportApi {
 	 */
 	outputEncoding: TEXTURE_ENCODING;
 	/**
+	 * Uses physically based dispersion for gem materials: the refraction index of a gem is its mid-spectrum (D line) value, its dispersion is n(G line) − n(B line) (diamond 0.044), and blue light bends most, at entry and exit of the stone. When false (default), the legacy dispersion is kept so existing models look unchanged.
+	 */
+	physicalGemDispersion: boolean;
+	/**
 	 * Option to enable / disable the physically correct lights. (default: true)
 	 */
 	physicallyCorrectLights: boolean;

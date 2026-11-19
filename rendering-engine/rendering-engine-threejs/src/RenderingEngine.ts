@@ -171,6 +171,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		? {width: 1280, height: 720}
 		: {width: 1920, height: 1080};
 	private _pause: boolean = false;
+	private _physicalGemDispersion: boolean = false;
 	private _postRenderingCallback?:
 		| ((
 				renderer: THREE.WebGLRenderer,
@@ -816,6 +817,15 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
 	public set physicallyCorrectLights(value: boolean) {
 		this._useLegacyLights = !value;
+	}
+
+	public get physicalGemDispersion(): boolean {
+		return this._physicalGemDispersion;
+	}
+
+	public set physicalGemDispersion(value: boolean) {
+		this._physicalGemDispersion = value;
+		this._materialLoader.assignPhysicalGemDispersion(value);
 	}
 
 	public get pointSize(): number {

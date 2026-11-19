@@ -127,6 +127,7 @@ export class MaterialLoader implements ILoader {
 		ENVIRONMENT_MAP_PBR_MODE.LEGACY;
 	private _environmentMapRotationEuler: THREE.Euler = new THREE.Euler();
 	private _height: number = 1020;
+	private _physicalGemDispersion: boolean = false;
 	private _lightSizeUV: number = 0.025;
 	private _materialOverrideType: MATERIAL_TYPE | undefined = undefined;
 	private _materialCache: {
@@ -343,6 +344,14 @@ export class MaterialLoader implements ILoader {
 				material.copy(new THREE.LineBasicMaterial(properties));
 				material.needsUpdate = true;
 			}
+		}
+	}
+
+	private assignPhysicalGemDispersionToMaterial(
+		material: THREE.Material,
+	): void {
+		if (material instanceof GemMaterial) {
+			material.physicalDispersion = this._physicalGemDispersion;
 		}
 	}
 
@@ -691,6 +700,15 @@ uniform vec3 sdvScreenAOColor;
 			this.assignEnvironmentMapPbrModeToMaterial(
 				this._materialCache[cacheKey].material,
 				value,
+			);
+		}
+	}
+
+	public assignPhysicalGemDispersion(value: boolean) {
+		this._physicalGemDispersion = value;
+		for (const cacheKey in this._materialCache) {
+			this.assignPhysicalGemDispersionToMaterial(
+				this._materialCache[cacheKey].material,
 			);
 		}
 	}
@@ -1097,6 +1115,7 @@ uniform vec3 sdvScreenAOColor;
 			material,
 			this._environmentMapPbrMode,
 		);
+		this.assignPhysicalGemDispersionToMaterial(material);
 		this.assignScreenAOToMaterial(material);
 
 		if (

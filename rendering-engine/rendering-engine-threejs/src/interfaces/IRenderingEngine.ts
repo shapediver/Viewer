@@ -45,6 +45,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
 	};
 
 	outputEncoding: TEXTURE_ENCODING;
+	physicalGemDispersion: boolean;
 	physicallyCorrectLights: boolean;
 	postRenderCallback?: (
 		renderer: THREE.WebGLRenderer,

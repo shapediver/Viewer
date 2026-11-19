@@ -895,6 +895,24 @@ export class ViewportApi implements IViewportApi {
 		this.update("outputEncoding");
 	}
 
+	public get physicalGemDispersion(): boolean {
+		return this.#renderingEngine.physicalGemDispersion;
+	}
+
+	public set physicalGemDispersion(value: boolean) {
+		const scope = "physicalGemDispersion";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"boolean",
+		);
+		this.#renderingEngine.physicalGemDispersion = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("physicalGemDispersion");
+	}
+
 	public get physicallyCorrectLights(): boolean {
 		return this.#renderingEngine.physicallyCorrectLights;
 	}
