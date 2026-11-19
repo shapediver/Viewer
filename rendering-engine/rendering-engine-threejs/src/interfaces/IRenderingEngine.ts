@@ -29,6 +29,8 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
 	environmentMapPbrMode: ENVIRONMENT_MAP_PBR_MODE;
 	environmentMapResolution: string;
 	environmentMapRotation: quat;
+	gemNormalMapResolution: number;
+	gemTracing: "sphere" | "facets";
 	gridColor: Color;
 	gridVisibility: boolean;
 	groundPlaneColor: Color;

@@ -500,9 +500,27 @@ void main() {
 
     // CUSTOM START
 	
+	#ifdef GEM_PLANE_TRACING
 	// Calculate the camera position in model space. The full inverse keeps
 	// scaled stones right, where the transposed rotation would not.
 	vec3 cameraPositionInModelSpace = (inverse(modelMatrix) * vec4(cameraPosition, 1.0)).xyz;
+	#else
+	// The legacy transform is kept so models without facet tracing render as before.
+	// Extract the translation part of the model matrix
+	vec3 translation = modelMatrix[3].xyz;
+
+	// Extract the rotation part of the model matrix (3x3 upper-left submatrix)
+	mat3 rotationMatrix = mat3(modelMatrix);
+
+	// Calculate the inverse of the rotation matrix (transpose since it's orthogonal)
+	mat3 inverseRotationMatrix;
+	inverseRotationMatrix[0] = vec3(rotationMatrix[0].x, rotationMatrix[1].x, rotationMatrix[2].x);
+	inverseRotationMatrix[1] = vec3(rotationMatrix[0].y, rotationMatrix[1].y, rotationMatrix[2].y);
+	inverseRotationMatrix[2] = vec3(rotationMatrix[0].z, rotationMatrix[1].z, rotationMatrix[2].z);
+
+	// Calculate the camera position in model space
+	vec3 cameraPositionInModelSpace = inverseRotationMatrix * (cameraPosition - translation);
+	#endif
 
 	// Calculate the initial direction
 	vec3 initialDirection = normalize(frag_position.xyz - cameraPositionInModelSpace);

@@ -937,12 +937,11 @@ export class GeometryLoader implements ILoader {
 
 	private createGemCubeRenderTarget(
 		resolution: number,
+		planeTracing: boolean,
 	): THREE.WebGLCubeRenderTarget {
 		const renderTarget = new THREE.WebGLCubeRenderTarget(resolution, {
 			format: THREE.RGBAFormat,
-			type: this.gemPlaneTracingSupported()
-				? THREE.HalfFloatType
-				: THREE.UnsignedByteType,
+			type: planeTracing ? THREE.HalfFloatType : THREE.UnsignedByteType,
 			magFilter: THREE.LinearFilter,
 			minFilter: THREE.LinearFilter,
 		});
@@ -957,7 +956,7 @@ export class GeometryLoader implements ILoader {
 	private createCubeNormalMap(
 		geometryData: GeometryData,
 		geometry: THREE.BufferGeometry,
-		resolution: number,
+		resolution: number | undefined,
 	) {
 		// the first capture of a shape decides its resolution
 		if (
@@ -973,10 +972,23 @@ export class GeometryLoader implements ILoader {
 			].texture;
 		}
 
-		if (![256, 512, 1024].includes(resolution)) resolution = 512;
+		const allowedResolutions = [256, 512, 1024];
+		if (
+			resolution === undefined ||
+			!allowedResolutions.includes(resolution)
+		)
+			resolution = this._renderingEngine.gemNormalMapResolution;
+		if (!allowedResolutions.includes(resolution)) resolution = 1024;
 
-		this._gemCubeCameraRenderTarget =
-			this.createGemCubeRenderTarget(resolution);
+		// facet plane tracing is opt-in, sphere tracing is the legacy look
+		const planeTracing =
+			this._renderingEngine.gemTracing === "facets" &&
+			this.gemPlaneTracingSupported();
+
+		this._gemCubeCameraRenderTarget = this.createGemCubeRenderTarget(
+			resolution,
+			planeTracing,
+		);
 
 		if (!this._gemScene) {
 			this._gemScene = new THREE.Scene();
@@ -992,9 +1004,7 @@ export class GeometryLoader implements ILoader {
 
 		if (!this._gemNormalMaterial) {
 			const _normalShader = {
-				defines: this.gemPlaneTracingSupported()
-					? {GEM_PLANE_DISTANCE: ""}
-					: {},
+				defines: {},
 				uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.common]),
 				vertexShader: `
                 varying vec3 vNormal;
@@ -1062,6 +1072,15 @@ export class GeometryLoader implements ILoader {
 			this._gemNormalMaterial.blending = THREE.NoBlending;
 			this._gemNormalMaterial.side = THREE.DoubleSide;
 			this._gemScene.overrideMaterial = this._gemNormalMaterial;
+		}
+
+		// the capture mode can change between captures
+		const normalDefines = this._gemNormalMaterial.defines ?? {};
+		if (planeTracing !== "GEM_PLANE_DISTANCE" in normalDefines) {
+			if (planeTracing) normalDefines.GEM_PLANE_DISTANCE = "";
+			else delete normalDefines.GEM_PLANE_DISTANCE;
+			this._gemNormalMaterial.defines = normalDefines;
+			this._gemNormalMaterial.needsUpdate = true;
 		}
 
 		const mesh = new THREE.Mesh(geometry.clone(), this._gemNormalMaterial);

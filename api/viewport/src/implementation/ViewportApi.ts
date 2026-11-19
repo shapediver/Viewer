@@ -633,6 +633,50 @@ export class ViewportApi implements IViewportApi {
 	 * already-loaded geometry so a later conversion can batch it. Not part of
 	 * the public API and subject to change without notice.
 	 */
+	public get gemNormalMapResolution(): number {
+		return this.#renderingEngine.gemNormalMapResolution;
+	}
+
+	public set gemNormalMapResolution(value: number) {
+		const scope = "gemNormalMapResolution";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"number",
+		);
+		if (![256, 512, 1024].includes(value))
+			throw new ShapeDiverViewerValidationError(
+				`ViewportApi.${scope}: Input could not be validated. ${value} is not one of 256, 512 or 1024.`,
+				value,
+				"number",
+			);
+		this.#renderingEngine.gemNormalMapResolution = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("gemNormalMapResolution");
+	}
+
+	public get gemTracing(): "sphere" | "facets" {
+		return this.#renderingEngine.gemTracing;
+	}
+
+	public set gemTracing(value: "sphere" | "facets") {
+		const scope = "gemTracing";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"enum",
+			true,
+			["sphere", "facets"],
+		);
+		this.#renderingEngine.gemTracing = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("gemTracing");
+	}
+
 	public get gpuInstancing(): {
 		enabled: boolean;
 		stats: {

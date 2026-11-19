@@ -31,7 +31,7 @@ export class MaterialGemData
 	#tracingDepth: number = 5;
 	#tracingOpacity: number = 0;
 	#envMap?: string | string[];
-	#normalMapResolution: number = 512;
+	#normalMapResolution?: number;
 
 	// #endregion Properties (5)
 
@@ -207,13 +207,14 @@ export class MaterialGemData
 
 	/**
 	 * Resolution per cube face of the map that captures the facets of the gem
-	 * (256, 512 or 1024, default 512).
+	 * (256, 512 or 1024). When not set, the viewport's `gemNormalMapResolution`
+	 * is used (default 1024).
 	 */
-	public get normalMapResolution(): number {
+	public get normalMapResolution(): number | undefined {
 		return this.#normalMapResolution;
 	}
 
-	public set normalMapResolution(value: number) {
+	public set normalMapResolution(value: number | undefined) {
 		this.#normalMapResolution = value;
 	}
 
@@ -343,7 +344,7 @@ export class MaterialGemData
 		this.tracingDepth = 5;
 		this.tracingOpacity = 0;
 		this.envMap = undefined;
-		this.normalMapResolution = 512;
+		this.normalMapResolution = undefined;
 	}
 
 	// #endregion Public Methods (3)

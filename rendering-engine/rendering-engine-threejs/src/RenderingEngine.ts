@@ -161,6 +161,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		ENVIRONMENT_MAP_PBR_MODE.LEGACY;
 	private _environmentMapResolution: string = "1024";
 	private _environmentMapRotation: quat = quat.create();
+	private _gemNormalMapResolution: number = 1024;
+	private _gemTracing: "sphere" | "facets" = "sphere";
 	private _gridVisibility: boolean = true;
 	private _groundPlaneShadowVisibility: boolean = false;
 	private _groundPlaneVisibility: boolean = true;
@@ -637,6 +639,22 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 			this.environmentMapIntensity,
 			this.environmentMapRotation,
 		);
+	}
+
+	public get gemNormalMapResolution(): number {
+		return this._gemNormalMapResolution;
+	}
+
+	public set gemNormalMapResolution(value: number) {
+		this._gemNormalMapResolution = value;
+	}
+
+	public get gemTracing(): "sphere" | "facets" {
+		return this._gemTracing;
+	}
+
+	public set gemTracing(value: "sphere" | "facets") {
+		this._gemTracing = value;
 	}
 
 	public get geometryLoader(): GeometryLoader {
