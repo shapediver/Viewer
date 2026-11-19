@@ -91,6 +91,17 @@ class AOEffect extends Effect {
 
 	// #region Public Methods (3)
 
+	/**
+	 * Whether gems are left out of the ambient occlusion in the composite mode. (default: false)
+	 */
+	public get excludeGems(): boolean {
+		return this.normalPass?.excludeGems ?? false;
+	}
+
+	public set excludeGems(value: boolean) {
+		if (this.normalPass) this.normalPass.excludeGems = value;
+	}
+
 	public makeOptionsReactive(options: {[key: string]: unknown}) {
 		for (const key of Object.keys(options)) {
 			Object.defineProperty(this, key, {

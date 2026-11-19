@@ -32,6 +32,12 @@ export class NormalPass extends Pass {
 	renderTarget: WebGLRenderTarget | undefined;
 	resolution: Resolution;
 	dTexture: any;
+	/**
+	 * Whether the pixels covered by gems are marked with alpha 0 in the normal target,
+	 * so that the ambient occlusion leaves gems out. (default: false)
+	 * Without the mask, the alpha is 1 on every pixel.
+	 */
+	excludeGems = false;
 	private _scene: Scene;
 	private _camera: Camera;
 	/** Writes alpha 0 where gems are, used to exclude them from the ambient occlusion. */
@@ -232,7 +238,8 @@ export class NormalPass extends Pass {
 		const renderTarget = this.renderToScreen ? null : this.renderTarget;
 		this.renderPass.render(renderer, renderTarget!, renderTarget!, 0, true);
 
-		if (!this.renderToScreen) this.renderGemMask(renderer);
+		if (this.excludeGems && !this.renderToScreen)
+			this.renderGemMask(renderer);
 	}
 
 	/**

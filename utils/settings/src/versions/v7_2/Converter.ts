@@ -3,18 +3,102 @@ import {type IGlobalSettings} from "../../interfaces/IGlobalSettings";
 import {type ISettings as ISettingsV7_1} from "../v7_1/ISettings";
 import {type ISettings as ISettingsV7_2} from "./ISettings";
 
+/**
+ * Values that reproduce the look of settings before 7.2.
+ * Add every new 7.2 rendering option here.
+ */
+export const OLD_LOOK_V7_2 = {
+	/** `postprocessing.hdr` */
+	hdr: false,
+	/** bloom `properties.backgroundBloom` */
+	backgroundBloom: true,
+	/** bloom `properties.highlightsOnly` */
+	highlightsOnly: false,
+	/** HBAO/SSAO `properties.excludeGems` */
+	excludeGems: false,
+	/** `environment.mapPbrMode` */
+	mapPbrMode: "legacy",
+	/** `environment.mapOrientation` */
+	mapOrientation: "legacy",
+	/** `material.physicalGemDispersion` */
+	physicalGemDispersion: false,
+	/** `material.gemTracing` */
+	gemTracing: "sphere",
+	/** `material.gemNormalMapResolution` */
+	gemNormalMapResolution: 1024,
+} as const;
+
 export const convertFromPrevious = (
 	s: IGlobalSettings,
 	v: versions,
 ): IGlobalSettings => {
 	const oldSettings = <ISettingsV7_1>s;
 
-	const settings: ISettingsV7_2 = {
+	// Fill the old-look value of every new option, so that existing models render unchanged.
+	// Only fill missing values: the Viewer already saves these keys into 7.1-labelled settings.
+	const effects = oldSettings.postprocessing.effects.map((effect) => {
+		if (effect.type === "bloom" && effect.properties) {
+			const existing: any = effect.properties;
+			return {
+				...effect,
+				properties: {
+					...effect.properties,
+					backgroundBloom:
+						existing.backgroundBloom ??
+						OLD_LOOK_V7_2.backgroundBloom,
+					highlightsOnly:
+						existing.highlightsOnly ?? OLD_LOOK_V7_2.highlightsOnly,
+				},
+			};
+		}
+		if (
+			(effect.type === "hbao" || effect.type === "ssao") &&
+			effect.properties
+		) {
+			return {
+				...effect,
+				properties: {
+					...effect.properties,
+					excludeGems:
+						(effect.properties as any).excludeGems ??
+						OLD_LOOK_V7_2.excludeGems,
+				},
+			};
+		}
+		return effect;
+	});
+
+	const oldEnvironment: any = oldSettings.environment;
+	const oldPostprocessing: any = oldSettings.postprocessing;
+	const oldMaterial: any = oldSettings.material;
+
+	const settings = {
 		...oldSettings,
 		settings_version: "7.2",
+		environment: {
+			...oldSettings.environment,
+			mapPbrMode: oldEnvironment.mapPbrMode ?? OLD_LOOK_V7_2.mapPbrMode,
+			mapOrientation:
+				oldEnvironment.mapOrientation ?? OLD_LOOK_V7_2.mapOrientation,
+		},
+		material: {
+			...oldSettings.material,
+			physicalGemDispersion:
+				oldMaterial.physicalGemDispersion ??
+				OLD_LOOK_V7_2.physicalGemDispersion,
+			gemTracing: oldMaterial.gemTracing ?? OLD_LOOK_V7_2.gemTracing,
+			gemNormalMapResolution:
+				oldMaterial.gemNormalMapResolution ??
+				OLD_LOOK_V7_2.gemNormalMapResolution,
+		},
+		postprocessing: {
+			...oldSettings.postprocessing,
+			effects,
+			hdr: oldPostprocessing.hdr ?? OLD_LOOK_V7_2.hdr,
+		},
 	};
 
-	return <ISettingsV7_2>settings;
+	return <ISettingsV7_2>(<unknown>settings);
 };
 
 export const convertToPrevious = (
@@ -23,27 +107,54 @@ export const convertToPrevious = (
 ): IGlobalSettings => {
 	const newSettings = <ISettingsV7_2>s;
 
-	// the `mode` of the ambient occlusion effects does not exist in 7.1
+	// Drop every option that does not exist in 7.1. Add new 7.2 options here.
+	// - postprocessing.hdr
+	// - environment.mapPbrMode, environment.mapOrientation
+	// - material.physicalGemDispersion, material.gemTracing, material.gemNormalMapResolution
+	// - bloom properties: backgroundBloom, highlightsOnly (mipmapBlur is required in 7.1)
+	// - HBAO/SSAO properties: mode, excludeGems
 	const oldEffects = newSettings.postprocessing.effects.map((effect) => {
+		if (effect.type === "bloom" && effect.properties) {
+			const properties: any = {...effect.properties};
+			delete properties.backgroundBloom;
+			delete properties.highlightsOnly;
+			properties.mipmapBlur = properties.mipmapBlur ?? false;
+			return {...effect, properties};
+		}
 		if (
 			(effect.type === "hbao" || effect.type === "ssao") &&
 			effect.properties
 		) {
-			const properties = {...effect.properties};
-			delete (properties as any).mode;
+			const properties: any = {...effect.properties};
+			delete properties.mode;
+			delete properties.excludeGems;
 			return {...effect, properties};
 		}
 		return effect;
 	});
 
-	const settings: ISettingsV7_1 = {
+	const environment: any = {...newSettings.environment};
+	delete environment.mapPbrMode;
+	delete environment.mapOrientation;
+
+	const material: any = {...newSettings.material};
+	delete material.physicalGemDispersion;
+	delete material.gemTracing;
+	delete material.gemNormalMapResolution;
+
+	const postprocessing: any = {
+		...newSettings.postprocessing,
+		effects: oldEffects,
+	};
+	delete postprocessing.hdr;
+
+	const settings = {
 		...newSettings,
 		settings_version: "7.1",
-		postprocessing: {
-			...newSettings.postprocessing,
-			effects: oldEffects,
-		},
+		environment,
+		material,
+		postprocessing,
 	};
 
-	return <ISettingsV7_1>settings;
+	return <ISettingsV7_1>(<unknown>settings);
 };

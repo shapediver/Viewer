@@ -44,6 +44,7 @@ const hbaoEffectSchema = z.object({
 			normalPhi: zNumOrInf.optional(),
 			samples: zNumOrInf.optional(),
 			mode: ambientOcclusionModeSchema.optional(),
+			excludeGems: z.boolean(),
 		})
 		.optional(),
 	type: z.literal("hbao"),
@@ -66,21 +67,47 @@ const ssaoEffectSchema = z.object({
 			normalPhi: zNumOrInf.optional(),
 			samples: zNumOrInf.optional(),
 			mode: ambientOcclusionModeSchema.optional(),
+			excludeGems: z.boolean(),
 		})
 		.optional(),
 	type: z.literal("ssao"),
 });
 
+const bloomEffectSchema = z.object({
+	properties: z
+		.object({
+			blendFunction: zNumOrInf.optional(),
+			intensity: zNumOrInf.optional(),
+			kernelSize: zNumOrInf.optional(),
+			luminanceSmoothing: zNumOrInf.optional(),
+			luminanceThreshold: zNumOrInf.optional(),
+			// optional: with `highlightsOnly`, an unset value means true at runtime
+			mipmapBlur: z.boolean().optional(),
+			backgroundBloom: z.boolean(),
+			highlightsOnly: z.boolean(),
+		})
+		.optional(),
+	type: z.literal("bloom"),
+});
+
 // The effect schemas of v5 are loose (zod strips unknown keys and most properties are optional),
-// so an HBAO/SSAO effect with an invalid `mode` would still match another effect schema.
-// Therefore, the v5 effect schemas only apply to effects that are not HBAO or SSAO.
+// so an HBAO/SSAO/bloom effect with an invalid property would still match another effect schema.
+// Therefore, the v5 effect schemas only apply to effects that are not HBAO, SSAO or bloom.
 const otherEffectSchema = postProcessingSchemaV5.element.refine(
-	(effect) => effect.type !== "hbao" && effect.type !== "ssao",
-	{message: "Invalid HBAO or SSAO effect"},
+	(effect) =>
+		effect.type !== "hbao" &&
+		effect.type !== "ssao" &&
+		effect.type !== "bloom",
+	{message: "Invalid HBAO, SSAO or bloom effect"},
 );
 
 export const postProcessingSchema = z.array(
-	z.union([hbaoEffectSchema, ssaoEffectSchema, otherEffectSchema]),
+	z.union([
+		hbaoEffectSchema,
+		ssaoEffectSchema,
+		bloomEffectSchema,
+		otherEffectSchema,
+	]),
 );
 
 export const postProcessingSettingsSchema = z.object({
@@ -89,6 +116,22 @@ export const postProcessingSettingsSchema = z.object({
 	enablePostProcessingOnMobile: z.boolean(),
 	ssaaSampleLevel: zNumOrInf,
 	effects: postProcessingSchema,
+	hdr: z.boolean(),
+});
+
+export const environmentSettingsSchemaV7_2 = environmentSettingsSchema.extend({
+	mapPbrMode: z.enum(["legacy", "modern"]),
+	mapOrientation: z.enum(["legacy", "threejs"]),
+});
+
+export const materialSettingsSchemaV7_2 = materialSettingsSchema.extend({
+	physicalGemDispersion: z.boolean(),
+	gemTracing: z.enum(["sphere", "facets"]),
+	gemNormalMapResolution: z.union([
+		z.literal(256),
+		z.literal(512),
+		z.literal(1024),
+	]),
 });
 
 const schema = z
@@ -98,14 +141,14 @@ const schema = z
 		settings_version: z.string(),
 		ar: arSettingsSchema,
 		camera: cameraSettingsSchema,
-		environment: environmentSettingsSchema,
+		environment: environmentSettingsSchemaV7_2,
 		environmentGeometry: environmentGeometrySettingsSchema,
 		general: generalSettingsSchema,
 		light: lightSettingsSchema,
 		postprocessing: postProcessingSettingsSchema,
 		rendering: renderingSettingsSchema,
 		session: sessionSettingsSchema,
-		material: materialSettingsSchema,
+		material: materialSettingsSchemaV7_2,
 		configuration: configurationSettingsSchema,
 	})
 	.strict();

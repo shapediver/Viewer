@@ -380,6 +380,11 @@ export class PostProcessingManager implements IManager {
 			settingsEngine.settings.postprocessing.enablePostProcessingOnMobile;
 		this.ssaaSampleLevel =
 			settingsEngine.settings.postprocessing.ssaaSampleLevel;
+		// a missing value is the old look
+		// TODO: drop the cast once the @shapediver/viewer.settings pin includes settings 7.2
+		this.hdr =
+			(settingsEngine.settings.postprocessing as {hdr?: boolean}).hdr ??
+			false;
 
 		this._effectDefinitions = [];
 		const effects = settingsEngine.settings.postprocessing.effects;
@@ -711,6 +716,8 @@ export class PostProcessingManager implements IManager {
 										: 16,
 							},
 						);
+						hbaoEffect.excludeGems =
+							properties.excludeGems ?? false;
 						this.addAOEffect(
 							this._effectDefinitions[i].token,
 							hbaoEffect,
@@ -977,6 +984,8 @@ export class PostProcessingManager implements IManager {
 							},
 						);
 
+						ssaoEffect.excludeGems =
+							properties.excludeGems ?? false;
 						this.addAOEffect(
 							this._effectDefinitions[i].token,
 							ssaoEffect,
@@ -1281,6 +1290,7 @@ export class PostProcessingManager implements IManager {
 					color: "#000000",
 					bias: 10,
 					thickness: 0.5,
+					excludeGems: false,
 
 					iterations: 1,
 					radius: 12,
@@ -1327,6 +1337,7 @@ export class PostProcessingManager implements IManager {
 					distanceIntensity: 1,
 					intensity: 2.5,
 					color: "#000000",
+					excludeGems: false,
 
 					iterations: 1,
 					radius: 12,
@@ -1537,6 +1548,7 @@ export class PostProcessingManager implements IManager {
 								rings: properties.rings,
 								lumaPhi: properties.lumaPhi,
 								mode: properties.mode,
+								excludeGems: properties.excludeGems,
 								depthPhi: properties.depthPhi,
 								normalPhi: properties.normalPhi,
 								samples: properties.samples,
@@ -1622,6 +1634,7 @@ export class PostProcessingManager implements IManager {
 								rings: properties.rings,
 								lumaPhi: properties.lumaPhi,
 								mode: properties.mode,
+								excludeGems: properties.excludeGems,
 								depthPhi: properties.depthPhi,
 								normalPhi: properties.normalPhi,
 								samples: properties.samples,
@@ -1857,10 +1870,36 @@ export class PostProcessingManager implements IManager {
 			this.enablePostProcessingOnMobile;
 		settingsEngine.settings.postprocessing.ssaaSampleLevel =
 			this.ssaaSampleLevel;
+		// TODO: drop the cast once the @shapediver/viewer.settings pin includes settings 7.2
+		(settingsEngine.settings.postprocessing as {hdr?: boolean}).hdr =
+			this.hdr;
 		const effects = this.getPostProcessingEffectsArray();
 		// delete the tokens as we don't want to save them
 		effects.forEach((e) => delete e.token);
-		settingsEngine.settings.postprocessing.effects = effects;
+		// settings 7.2 states the look of every option, normalize the unset ones
+		// to the old look (an unset option is the old look at runtime)
+		effects.forEach((e) => {
+			const properties = e.properties as
+				| {
+						backgroundBloom?: boolean;
+						highlightsOnly?: boolean;
+						excludeGems?: boolean;
+				  }
+				| undefined;
+			if (!properties) return;
+			if (e.type === POST_PROCESSING_EFFECT_TYPE.BLOOM) {
+				properties.backgroundBloom ??= true;
+				properties.highlightsOnly ??= false;
+			} else if (
+				e.type === POST_PROCESSING_EFFECT_TYPE.HBAO ||
+				e.type === POST_PROCESSING_EFFECT_TYPE.SSAO
+			) {
+				properties.excludeGems ??= false;
+			}
+		});
+		// the normalization above fills the options that settings 7.2 requires
+		settingsEngine.settings.postprocessing.effects =
+			effects as typeof settingsEngine.settings.postprocessing.effects;
 	}
 
 	public updateEffect(

@@ -1,5 +1,5 @@
 import {
-	type IBloomEffectDefinition,
+	type IBloomEffectDefinition as IBloomEffectDefinitionV4,
 	type IChromaticAberrationEffectDefinition,
 	type IDepthOfFieldEffectDefinition,
 	type IDotScreenEffectDefinition,
@@ -22,6 +22,24 @@ import {
  */
 export type IAmbientOcclusionMode = "composite" | "shading";
 
+export interface IBloomEffectDefinition extends Omit<
+	IBloomEffectDefinitionV4,
+	"properties"
+> {
+	properties?: NonNullable<IBloomEffectDefinitionV4["properties"]> & {
+		/**
+		 * Whether the background contributes to the bloom.
+		 * Settings converted from before 7.2 use true.
+		 */
+		backgroundBloom: boolean;
+		/**
+		 * Whether only highlights (bright spots) produce bloom.
+		 * Settings converted from before 7.2 use false.
+		 */
+		highlightsOnly: boolean;
+	};
+}
+
 export interface IHBAOEffectDefinition extends Omit<
 	IHBAOEffectDefinitionV4,
 	"properties"
@@ -32,6 +50,11 @@ export interface IHBAOEffectDefinition extends Omit<
 		 * Default: "composite"
 		 */
 		mode?: IAmbientOcclusionMode;
+		/**
+		 * Whether gems are left out of the ambient occlusion in the composite mode.
+		 * Settings converted from before 7.2 use false.
+		 */
+		excludeGems: boolean;
 	};
 }
 
@@ -45,6 +68,11 @@ export interface ISSAOEffectDefinition extends Omit<
 		 * Default: "composite"
 		 */
 		mode?: IAmbientOcclusionMode;
+		/**
+		 * Whether gems are left out of the ambient occlusion in the composite mode.
+		 * Settings converted from before 7.2 use false.
+		 */
+		excludeGems: boolean;
 	};
 }
 

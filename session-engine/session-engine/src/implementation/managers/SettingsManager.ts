@@ -8,12 +8,14 @@ import {
 	ISettings,
 	latestVersion,
 	validate,
-	type versions} from "@shapediver/viewer.settings";
+	type versions,
+} from "@shapediver/viewer.settings";
 import {
 	Logger,
 	SettingsEngine,
 	ShapeDiverViewerSessionError,
-	ShapeDiverViewerSettingsError} from "@shapediver/viewer.shared.services";
+	ShapeDiverViewerSettingsError,
+} from "@shapediver/viewer.shared.services";
 import {type ISettingsSections} from "@shapediver/viewer.shared.types";
 
 import {FileParameter} from "../dto/FileParameter";
@@ -272,6 +274,18 @@ export class SettingsManager {
 				settings.material.defaultMaterialColor;
 			currentSettings.material.materialOverrideType =
 				settings.material.materialOverrideType;
+			// TODO: drop the casts once the @shapediver/viewer.settings pin includes settings 7.2
+			const material = settings.material as {
+				physicalGemDispersion?: boolean;
+				gemTracing?: string;
+				gemNormalMapResolution?: number;
+			};
+			const currentMaterial = currentSettings.material as typeof material;
+			currentMaterial.physicalGemDispersion =
+				material.physicalGemDispersion;
+			currentMaterial.gemTracing = material.gemTracing;
+			currentMaterial.gemNormalMapResolution =
+				material.gemNormalMapResolution;
 		}
 
 		// apply postprocessing settings
@@ -293,6 +307,14 @@ export class SettingsManager {
 				settings.environment.blurriness;
 			currentSettings.environment.intensity =
 				settings.environment.intensity;
+			// TODO: drop the cast once the @shapediver/viewer.settings pin includes settings 7.2
+			(currentSettings.environment as {mapPbrMode?: string}).mapPbrMode =
+				(settings.environment as {mapPbrMode?: string}).mapPbrMode;
+			(
+				currentSettings.environment as {mapOrientation?: string}
+			).mapOrientation = (
+				settings.environment as {mapOrientation?: string}
+			).mapOrientation;
 		}
 	}
 
