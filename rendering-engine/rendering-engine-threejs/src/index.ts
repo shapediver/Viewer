@@ -12,7 +12,10 @@ import {CSS2DObject, CSS2DRenderer} from "./three/CSS2DRenderer";
 import {type IThreejsData} from "./types/IThreejsData";
 import {ThreejsData} from "./types/ThreejsData";
 
-import {ENVIRONMENT_MAP_PBR_MODE} from "@shapediver/viewer.shared.types";
+import {
+	ENVIRONMENT_MAP_ORIENTATION,
+	ENVIRONMENT_MAP_PBR_MODE,
+} from "@shapediver/viewer.shared.types";
 import {
 	BlendFunction,
 	BloomEffect,
@@ -60,6 +63,7 @@ export {
 	ENVIRONMENT_MAP,
 	ENVIRONMENT_MAP_CUBE,
 	ENVIRONMENT_MAP_EMPTY,
+	ENVIRONMENT_MAP_ORIENTATION,
 	ENVIRONMENT_MAP_PBR_MODE,
 	FXAAEffect,
 	GodRaysEffect,

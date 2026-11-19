@@ -38,6 +38,7 @@ import {
 import {
 	BUSY_MODE_DISPLAY,
 	type Color,
+	ENVIRONMENT_MAP_ORIENTATION,
 	ENVIRONMENT_MAP_PBR_MODE,
 	FLAG_TYPE,
 	type IGeometryData,
@@ -57,7 +58,10 @@ import {
 } from "@shapediver/viewer.shared.types";
 import {quat, vec2, vec3} from "gl-matrix";
 import {type IRenderingEngineThreeJS} from "./interfaces/IRenderingEngine";
-import {EnvironmentMapLoader} from "./loaders/EnvironmentMapLoader";
+import {
+	ENVIRONMENT_MAP_TYPE,
+	EnvironmentMapLoader,
+} from "./loaders/EnvironmentMapLoader";
 import {GeometryLoader} from "./loaders/GeometryLoader";
 import {HTMLElementAnchorLoader} from "./loaders/HTMLElementAnchorLoader";
 import {LightLoader} from "./loaders/LightLoader";
@@ -78,6 +82,17 @@ import {SceneTreeManager} from "./managers/SceneTreeManager";
 import {SettingsManager} from "./managers/SettingsManager";
 import {SDColor} from "./objects/SDColor";
 import {css} from "./styling/viewport-css";
+
+/**
+ * A quarter turn around the vertical axis that moves custom .hdr maps from the
+ * legacy Viewer orientation to the three.js orientation (SS-10522).
+ */
+const THREEJS_ORIENTATION_CORRECTION = quat.fromValues(
+	0,
+	-Math.SQRT1_2,
+	0,
+	Math.SQRT1_2,
+);
 
 export class RenderingEngine implements IRenderingEngineThreeJS {
 	private readonly _animationEngine: AnimationEngine =
@@ -157,6 +172,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	private _environmentMapBlurriness: number = 0;
 	private _environmentMapForUnlitMaterials: boolean = false;
 	private _environmentMapIntensity: number = 1;
+	private _environmentMapOrientation: ENVIRONMENT_MAP_ORIENTATION =
+		ENVIRONMENT_MAP_ORIENTATION.LEGACY;
 	private _environmentMapPbrMode: ENVIRONMENT_MAP_PBR_MODE =
 		ENVIRONMENT_MAP_PBR_MODE.LEGACY;
 	private _environmentMapResolution: string = "1024";
@@ -600,7 +617,24 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 			this._environmentMapLoader.environmentMap,
 			this._environmentMapLoader.type,
 			this.environmentMapIntensity,
-			this.environmentMapRotation,
+			this.effectiveEnvironmentMapRotation,
+		);
+	}
+
+	public get environmentMapOrientation(): ENVIRONMENT_MAP_ORIENTATION {
+		return this._environmentMapOrientation;
+	}
+
+	public set environmentMapOrientation(value: ENVIRONMENT_MAP_ORIENTATION) {
+		this._environmentMapOrientation = value;
+		this._materialLoader.assignEnvironmentMapRotation(
+			this.effectiveEnvironmentMapRotation,
+		);
+		assignEnvironmentMapForThreeJsData(
+			this._environmentMapLoader.environmentMap,
+			this._environmentMapLoader.type,
+			this.environmentMapIntensity,
+			this.effectiveEnvironmentMapRotation,
 		);
 	}
 
@@ -632,12 +666,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
 	public set environmentMapRotation(value: quat) {
 		this._environmentMapRotation = value;
-		this._materialLoader.assignEnvironmentMapRotation(value);
+		this._materialLoader.assignEnvironmentMapRotation(
+			this.effectiveEnvironmentMapRotation,
+		);
 		assignEnvironmentMapForThreeJsData(
 			this._environmentMapLoader.environmentMap,
 			this._environmentMapLoader.type,
 			this.environmentMapIntensity,
-			this.environmentMapRotation,
+			this.effectiveEnvironmentMapRotation,
 		);
 	}
 
@@ -655,6 +691,26 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
 	public set gemTracing(value: "sphere" | "facets") {
 		this._gemTracing = value;
+	}
+
+	/**
+	 * The rotation that is handed to the material system. It equals the
+	 * user's rotation, except for custom .hdr maps with the three.js
+	 * orientation, where the orientation correction is applied on top.
+	 */
+	public get effectiveEnvironmentMapRotation(): quat {
+		if (
+			this._environmentMapOrientation ===
+				ENVIRONMENT_MAP_ORIENTATION.THREEJS &&
+			this._environmentMapLoader.type === ENVIRONMENT_MAP_TYPE.HDR &&
+			!this._environmentMapLoader.isBuiltInEnvironmentMap
+		)
+			return quat.multiply(
+				quat.create(),
+				THREEJS_ORIENTATION_CORRECTION,
+				this._environmentMapRotation,
+			);
+		return this._environmentMapRotation;
 	}
 
 	public get geometryLoader(): GeometryLoader {

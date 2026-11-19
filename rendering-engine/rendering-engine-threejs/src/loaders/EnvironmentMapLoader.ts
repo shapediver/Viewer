@@ -142,6 +142,7 @@ export class EnvironmentMapLoader implements ILoader {
 			name: string;
 			map: Promise<THREE.CubeTexture | THREE.Texture | null>;
 			type: ENVIRONMENT_MAP_TYPE;
+			isBuiltIn?: boolean;
 			resolved?: boolean;
 		};
 	} = {};
@@ -151,6 +152,7 @@ export class EnvironmentMapLoader implements ILoader {
 	private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
 	private _envMap: THREE.CubeTexture | THREE.Texture | null = null;
+	private _isBuiltInEnvironmentMap: boolean = false;
 	private _isHDRMap: boolean = false;
 	private _pmremGenerator!: THREE.PMREMGenerator;
 	private _textureEncoding: THREE.ColorSpace = THREE.SRGBColorSpace;
@@ -168,6 +170,13 @@ export class EnvironmentMapLoader implements ILoader {
 
 	public get environmentMap(): THREE.CubeTexture | THREE.Texture | null {
 		return this._envMap;
+	}
+
+	/**
+	 * Whether the currently assigned environment map is a built-in preset.
+	 */
+	public get isBuiltInEnvironmentMap(): boolean {
+		return this._isBuiltInEnvironmentMap;
 	}
 
 	public get isHDRMap(): boolean {
@@ -467,15 +476,21 @@ export class EnvironmentMapLoader implements ILoader {
 	) {
 		if (name in this._environmentMaps === false) return;
 		this._type = type;
+		this._isBuiltInEnvironmentMap =
+			this._environmentMaps[name].isBuiltIn === true;
 		const map = await this._environmentMaps[name].map;
 		// set the environment map in the material loader
 		this._renderingEngine.materialLoader.assignEnvironmentMap(map, type);
+		// the background rotation has to be updated even if there are no materials
+		this._renderingEngine.materialLoader.assignEnvironmentMapRotation(
+			this._renderingEngine.effectiveEnvironmentMapRotation,
+		);
 		// set the currently used environment map for all ThreejsData in the scene tree
 		assignEnvironmentMapForThreeJsData(
 			map,
 			type,
 			this._renderingEngine.environmentMapIntensity,
-			this._renderingEngine.environmentMapRotation,
+			this._renderingEngine.effectiveEnvironmentMapRotation,
 		);
 		this._envMap = map;
 		this.notify(eventId);
@@ -517,6 +532,9 @@ export class EnvironmentMapLoader implements ILoader {
 			type: !Array.isArray(url)
 				? ENVIRONMENT_MAP_TYPE.HDR
 				: ENVIRONMENT_MAP_TYPE.LDR,
+			isBuiltIn:
+				!Array.isArray(url) &&
+				url.startsWith("https://viewer.shapediver.com/v3/envmaps/"),
 			map: new Promise<THREE.CubeTexture | THREE.Texture | null>(
 				async (resolve, reject) => {
 					try {
