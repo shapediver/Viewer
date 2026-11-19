@@ -1,6 +1,7 @@
 import {test as base, type Page} from "@playwright/test";
 import * as fs from "fs";
 import * as path from "path";
+import {isSoftwareRenderer} from "../budgets/harness";
 
 /**
  * Exact checks for SS-10382–SS-10397.
@@ -198,6 +199,17 @@ export function installApi() {
 		renders,
 		renderers,
 	};
+}
+
+export {isSoftwareRenderer};
+
+/**
+ * Skip a test that needs a hardware GPU. Call it first in the test body, before
+ * `test.fail`, so that on SwiftShader the skip wins and the test cannot pass
+ * for the wrong reason. Run it on SwiftShader with `PERF_RENDERER=swiftshader`.
+ */
+export async function skipOnSoftwareRenderer(page: Page, reason: string) {
+	test.skip(await isSoftwareRenderer(page), `GPU only: ${reason}`);
 }
 
 export async function open(page: Page) {

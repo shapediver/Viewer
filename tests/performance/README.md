@@ -69,6 +69,16 @@ test("SS-<key> what must be true", async ({page}) => {
 
 Helpers used by one ticket stay in its file. A helper that two tickets need goes into `exact/harness.ts`; never import one `*.perf.ts` from another, Playwright would register its tests twice.
 
+## Run the exact tests without a GPU
+
+`PERF_RENDERER=swiftshader` runs Chrome on SwiftShader (`--use-angle=swiftshader`) instead of `d3d11`:
+
+```bash
+PERF_RENDERER=swiftshader pnpm exec playwright test --config tests/performance/playwright.config.ts exact/
+```
+
+The viewer turns shadow maps and the soft-shadow fade off on SwiftShader, so a test about shadows, the fade or the beauty blend would not run its code there. Rule for a new exact test: it is software-safe by default. If it needs shadows, the fade, a hardware-renderer assertion or anything else the viewer disables on SwiftShader, start the body with `await skipOnSoftwareRenderer(page, "<reason>")`. Put it before `test.fail`, so the skip wins and the test cannot pass for the wrong reason. A software-safe test must pass on both renderers.
+
 ## Add a budget counter
 
 1. A counter of the facade variants goes into `collect` in `budgets/facade.perf.ts`. A counter of another scenario goes into that scenario's file.

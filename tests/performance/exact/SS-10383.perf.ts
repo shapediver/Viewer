@@ -1,9 +1,13 @@
 import {expect} from "@playwright/test";
-import {open, test} from "./harness";
+import {open, skipOnSoftwareRenderer, test} from "./harness";
 
 test("SS-10383 hidden contact shadow does not render the scene", async ({
 	page,
 }) => {
+	await skipOnSoftwareRenderer(
+		page,
+		"shadows are off on SwiftShader and the test asserts a hardware renderer",
+	);
 	test.fail(true, "SS-10383 not implemented: remove this line in its PR");
 	await open(page);
 	const result = await page.evaluate(async () => {

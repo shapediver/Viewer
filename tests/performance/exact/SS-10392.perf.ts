@@ -1,9 +1,13 @@
 import {expect} from "@playwright/test";
-import {open, test} from "./harness";
+import {open, skipOnSoftwareRenderer, test} from "./harness";
 
 test("SS-10392 the beauty blend renders 16 frames across 1500ms", async ({
 	page,
 }) => {
+	await skipOnSoftwareRenderer(
+		page,
+		"the beauty blend is the soft-shadow fade, off on SwiftShader",
+	);
 	test.fail(true, "SS-10392 not implemented: remove this line in its PR");
 	await page.clock.install({time: new Date("2026-01-01T00:00:00Z")});
 	await open(page);

@@ -1,9 +1,13 @@
 import {expect} from "@playwright/test";
-import {open, test} from "./harness";
+import {open, skipOnSoftwareRenderer, test} from "./harness";
 
 test("SS-10387 camera start and beauty activation do not dirty materials", async ({
 	page,
 }) => {
+	await skipOnSoftwareRenderer(
+		page,
+		"needs shadows and the soft-shadow fade, both off on SwiftShader",
+	);
 	await open(page);
 	await page.evaluate(async () => {
 		const perf = (window as any).__perf;

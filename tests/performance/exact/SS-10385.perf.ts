@@ -1,7 +1,11 @@
 import {expect} from "@playwright/test";
-import {open, test} from "./harness";
+import {open, skipOnSoftwareRenderer, test} from "./harness";
 
 test("SS-10385 blending 0 returns before the PCSS kernel", async ({page}) => {
+	await skipOnSoftwareRenderer(
+		page,
+		"needs soft shadows, which are off on SwiftShader",
+	);
 	await open(page);
 	const source = await page.evaluate(async () => {
 		const perf = (window as any).__perf;
