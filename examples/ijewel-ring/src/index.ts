@@ -126,6 +126,9 @@ const createGemMaterial = () =>
 	viewport.environmentMapAsBackground = false;
 	viewport.environmentMapPbrMode = SDV.ENVIRONMENT_MAP_PBR_MODE.MODERN;
 	viewport.physicalGemDispersion = PHYSICAL_DISPERSION;
+	// the example was tuned with facet plane tracing and 512 px normal maps
+	viewport.gemTracing = "facets";
+	viewport.gemNormalMapResolution = 512;
 	// The background does not bloom (`backgroundBloom: false` below). The grey
 	// stays only because the reference's white background is tone mapped to a
 	// light grey.
