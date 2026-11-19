@@ -1,5 +1,6 @@
 import type {Page} from "@playwright/test";
 import {installAecScene} from "./aecScene";
+import {COUNTER_INSTALLERS} from "./counters";
 
 /**
  * Reads counters and timings from outside the viewer. It wraps
@@ -47,6 +48,27 @@ export function installProbe() {
 	let renderDepth = 0;
 	let updatesInRender = 0;
 	let updatesOutsideRender = 0;
+
+	/**
+	 * Counters that `fixtures/counters/` installs after this probe. Each has
+	 * `attach` (wraps what it counts, idempotent), `reset` and `read`.
+	 * `attach` runs when the viewport exists and again after `build`.
+	 */
+	const counters: Record<
+		string,
+		{attach: () => void; reset: () => void; read: () => unknown}
+	> = {};
+
+	function attachCounters() {
+		for (const counter of Object.values(counters)) counter.attach();
+	}
+
+	function readCounters() {
+		const result: Record<string, unknown> = {};
+		for (const [name, counter] of Object.entries(counters))
+			result[name] = counter.read();
+		return result;
+	}
 
 	// All callbacks of one animation frame get the same timestamp.
 	const requestFrame = window.requestAnimationFrame.bind(window);
@@ -162,6 +184,7 @@ export function installProbe() {
 		probe.renderer = core.renderer;
 		probe.scene = core.scene;
 		probe.gl = gl;
+		attachCounters();
 		return probe.gpu;
 	}
 
@@ -184,6 +207,7 @@ export function installProbe() {
 
 		viewport.camera.position = aec.camera.position;
 		viewport.camera.target = aec.camera.target;
+		attachCounters();
 		return probe.buildMs;
 	}
 
@@ -374,7 +398,11 @@ export function installProbe() {
 	 * reads it about once per node. One that does so per node, per node, shows
 	 * up as a count that grows with the square of the scene.
 	 */
+	let treeDataTracked = false;
+
 	function trackTreeDataReads() {
+		if (treeDataTracked) return;
+		treeDataTracked = true;
 		const probe = (window as any).__probe;
 		let proto = Object.getPrototypeOf(probe.aec.root);
 		while (proto && !Object.getOwnPropertyDescriptor(proto, "data"))
@@ -603,6 +631,11 @@ export function installProbe() {
 		frames,
 		passes,
 		programsReady,
+		counters,
+		readCounters,
+		/** The animation frame the viewer is in (see `PassRecord.frame`). */
+		currentFrame: () => frame,
+		trackTreeDataReads,
 		setupInteraction,
 		setupAttributes,
 		showAttribute,
@@ -618,14 +651,24 @@ export function installProbe() {
 			raycastCalls = 0;
 			treeDataReads = 0;
 			for (const key of Object.keys(events)) delete events[key];
+			for (const counter of Object.values(counters)) counter.reset();
 		},
 	};
 }
 
 const EMPTY_SVG = "<svg xmlns='http://www.w3.org/2000/svg'/>";
 
-/** Opens the local test-cdn build and installs the fixture and the probe. */
-export async function openViewer(page: Page, url: string = "/index.html") {
+/**
+ * Opens the local test-cdn build and installs the fixture and the probe.
+ * With `options.counters`, also the counters of `fixtures/counters/`. They
+ * wrap three.js functions, so the work-count and timing benchmarks leave
+ * them out: a wrapper is itself a call.
+ */
+export async function openViewer(
+	page: Page,
+	url: string = "/index.html",
+	options: {counters?: boolean} = {},
+) {
 	// The default logo and spinner are hosted images. Keep the run offline.
 	await page.route("https://viewer.shapediver.com/**", (route) =>
 		route.fulfill({
@@ -638,4 +681,6 @@ export async function openViewer(page: Page, url: string = "/index.html") {
 	await page.waitForFunction(() => Boolean((window as any).SDV));
 	await page.evaluate(installAecScene);
 	await page.evaluate(installProbe);
+	if (options.counters)
+		for (const install of COUNTER_INSTALLERS) await page.evaluate(install);
 }

@@ -2,7 +2,7 @@
 
 Compares two builds of `examples/test-cdn` on the AEC facade fixture (`../fixtures/aecScene.ts`) and prints a Markdown table. It is a report. It never fails because of a number.
 
-The counters that can fail a run are in `../budgets/`. For numbers that are exactly the same on every run, see [Work-count benchmark](#work-count-benchmark) below.
+The layout of the whole suite, and how to re-derive a baseline, is in [../README.md](../README.md). The counters that can fail a run are in `../budgets/`. For numbers that are exactly the same on every run, see [Work-count benchmark](#work-count-benchmark) below.
 
 ## Run it
 

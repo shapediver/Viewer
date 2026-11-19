@@ -24,6 +24,22 @@ const VARIANTS: SceneVariant[] = [
 	{id: "noShadowsSsao", shadows: false, ssao: true},
 ];
 
+/**
+ * Runs the page clock one animation frame (16 ms) at a time and waits for
+ * every shader compile before each step. A compile that starts in a frame
+ * (the beauty pass, the denoise passes) would otherwise stall the frames
+ * after it for as long as the driver needs, and the frames counted, with the
+ * work done in them, would change from run to run.
+ */
+async function runCompiled(page: Page, ms: number) {
+	for (let elapsed = 0; elapsed < ms; elapsed += 16) {
+		await page.waitForFunction(() =>
+			(window as any).__probe.programsReady(),
+		);
+		await page.clock.runFor(16);
+	}
+}
+
 async function collect(page: Page, variant: SceneVariant): Promise<Counters> {
 	const gpu = await page.evaluate(
 		([v, options]) => (window as any).__probe.create(v, options),
@@ -88,6 +104,7 @@ async function collect(page: Page, variant: SceneVariant): Promise<Counters> {
 		frames: (window as any).__probe.frames(),
 		materials: (window as any).__probe.materialChanges(),
 		batchBoundsReads: (window as any).__probe.batchBoundsReads(),
+		counters: (window as any).__probe.readCounters(),
 	}));
 	const frames = move.frames as Frame[];
 	expect(frames.length, "the camera drag did not render").toBeGreaterThan(1);
@@ -135,14 +152,37 @@ async function collect(page: Page, variant: SceneVariant): Promise<Counters> {
 	counters["cameraMove.materialUpdatesOutsideRender"] =
 		move.materials.updatesOutsideRender;
 	counters["cameraMove.materialsCreated"] = move.materials.created;
+	// Calls made inside `renderer.render` while the first drag frame drew.
+	counters["cameraFrame.updateMatrixWorldCalls"] =
+		move.counters.matrixWorld.byFrame[frames[0].frame] ?? 0;
 
-	// One hidden glass pane.
+	// One hidden glass pane. The counters below cover the change and the
+	// frames it causes, up to the read after the settle.
+	await page.evaluate(() => {
+		(window as any).__probe.trackTreeDataReads();
+		(window as any).__probe.reset();
+	});
 	const change = await page.evaluate(() =>
 		(window as any).__probe.oneNodeChange(),
 	);
 	counters["oneNodeChange.treeNodesReversioned"] = change.reversioned;
 	counters["oneNodeChange.treeNodesRead"] = change.nodesRead;
 	counters["oneNodeChange.batchesRebuilt"] = change.batchesRebuilt;
+
+	// The frames the change causes. Shader compiles run in real time while
+	// the clock is paused, and the viewer draws once they are done (SS-10384),
+	// so wait for them as `measure` does. Otherwise the number of frames, and
+	// the work counted in them, depends on the speed of the driver.
+	await runCompiled(page, SETTLE_MS);
+	const update = await page.evaluate(() => ({
+		counters: (window as any).__probe.readCounters(),
+		picks: (window as any).__probe.picks(),
+	}));
+	counters["oneNodeChange.programCacheKeyCalls"] =
+		update.counters.programCacheKey.calls;
+	counters["oneNodeChange.updateMatrixWorldCalls"] =
+		update.counters.matrixWorld.total;
+	counters["oneNodeChange.treeDataReads"] = update.picks.treeDataReads;
 
 	// After everything above, so late compiles and uploads are included.
 	await page.clock.runFor(500);
@@ -161,7 +201,7 @@ async function collect(page: Page, variant: SceneVariant): Promise<Counters> {
 for (const variant of VARIANTS) {
 	test(`budget: AEC facade, ${variant.id}`, async ({page}) => {
 		await page.clock.install({time: new Date("2026-01-01T00:00:00Z")});
-		await openViewer(page);
+		await openViewer(page, "/index.html", {counters: true});
 		const software = await isSoftwareRenderer(page);
 		test.skip(
 			variant.shadows && software,
