@@ -1,6 +1,7 @@
 import {
 	MaterialStandardData,
-	MaterialUnlitData} from "@shapediver/viewer.shared.node-tree";
+	MaterialUnlitData,
+} from "@shapediver/viewer.shared.node-tree";
 import {Converter} from "@shapediver/viewer.shared.services";
 import {
 	ATTRIBUTE_VISUALIZATION,
@@ -10,7 +11,8 @@ import {
 	type IMaterialAbstractData,
 	type INumberGradient,
 	type ISDTFAttributeVisualizationData,
-	type IStringGradient} from "@shapediver/viewer.shared.types";
+	type IStringGradient,
+} from "@shapediver/viewer.shared.types";
 import {mat4} from "gl-matrix";
 import {isNumberGradient, isStringGradient} from "../interfaces/IGradient";
 
@@ -856,12 +858,15 @@ const numberVisualization = (
 
 const stringVisualization = (
 	value: string,
-	values: string[],
+	values: string[] | undefined,
 	type: Gradient,
 	materialType: "unlit" | "standard",
 	defaultMaterial: IMaterialAbstractData,
 ): ISDTFAttributeVisualizationData | undefined => {
-	let factor = values.indexOf(value) / (values.length - 1);
+	// Without an sdTF overview there are no values (SS-10516).
+	let factor = values?.length
+		? values.indexOf(value) / (values.length - 1)
+		: 0.5;
 	if (isNaN(factor)) factor = 0.5;
 	// check if the type is part of the enum
 	if (typeof type === "string") {
