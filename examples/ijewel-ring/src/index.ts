@@ -127,7 +127,7 @@ const createGemMaterial = () =>
 	// light grey.
 	viewport.clearColor = "#e4e4e4";
 	viewport.clearAlpha = 1;
-	viewport.toneMapping = SDV.TONE_MAPPING.ACES_FILMIC;
+	viewport.toneMapping = SDV.TONE_MAPPING.NEUTRAL;
 	viewport.groundPlaneVisibility = false;
 	viewport.gridVisibility = false;
 	// tuned by eye towards the soft, faint ground shadow of the reference
@@ -146,10 +146,7 @@ const createGemMaterial = () =>
 	viewport.postProcessing.addEffect({
 		type: SDV.POST_PROCESSING_EFFECT_TYPE.BLOOM,
 		properties: {
-			intensity: 0.8,
-			luminanceThreshold: 1.2,
-			luminanceSmoothing: 0.4,
-			mipmapBlur: true,
+			highlightsOnly: true,
 			backgroundBloom: false,
 		},
 	});
