@@ -34,7 +34,7 @@ const SKIP_DIRS = [
 	"test-results",
 ];
 const SESSION_CONTEXT = [
-	"Viewer worktree setup ran (scripts/agents/setup-worktree.mjs): local files copied, dependencies installed, packages built to dist/.",
+	"Viewer worktree setup ran (scripts/agents/setup-worktree.mjs): it copies local files, installs dependencies and builds packages to dist/ (see warnings below if a step failed).",
 	"- If a package's `pnpm check` reports missing workspace types, build its dependencies: `npx lerna run build --scope <package name> --include-dependencies`.",
 ].join("\n");
 
@@ -132,10 +132,26 @@ function copyIncluded(root, main) {
 
 // Runs one shell command (pnpm is a .cmd shim on Windows and needs a shell). On timeout, kills the whole
 // process tree so no orphaned build keeps running into the next session.
+// Package builds run `bash ../../scripts/building/build.sh`. Started outside Git Bash (Cursor from
+// PowerShell), `bash` on Windows resolves to WSL's bash.exe, which fails without a distro. Put Git's
+// bin folder first so `bash` is Git Bash.
+function childEnv(root) {
+	const env = {...process.env};
+	if (process.platform !== "win32") return env;
+	const exec = git(root, ["--exec-path"]);
+	if (!exec) return env;
+	const bin = path.resolve(exec, "..", "..", "..", "bin");
+	if (!fs.existsSync(path.join(bin, "bash.exe"))) return env;
+	const key = Object.keys(env).find((k) => k.toUpperCase() === "PATH");
+	env[key ?? "PATH"] = `${bin}${path.delimiter}${env[key] ?? ""}`;
+	return env;
+}
+
 function run(command, cwd, timeoutMs) {
 	return new Promise((resolve) => {
 		const child = spawn(command, {
 			cwd,
+			env: childEnv(cwd),
 			stdio: "ignore",
 			shell: true,
 			windowsHide: true,

@@ -46,6 +46,7 @@ All content is tool-neutral and lives in `AGENTS.md`, `.agents/`, `.worktreeincl
 
 - New or renamed rule or skill: add the file in `.agents/` and its line in the matching list below. Don't add tool-specific rule or skill files.
 - Don't `@`-import rules or skills: Claude Code expands `@` imports at session start, which loads all of them into every session.
+- Cursor also runs the `.claude/settings.json` hook and it fails there (`$CLAUDE_PROJECT_DIR` is unset). That is expected: the `.cursor/hooks.json` hooks do the setup.
 
 When you learn a durable repo fact that would have prevented a recurring agent mistake (build or test pitfall, load semantics, package boundary, "don't do X"), update the matching topic rule or add one in the same session: one topic per file, short. Record the reusable constraint, not the one-off bugfix. No ticket notes, example paths or restatements of a change. Don't add feature notes to this file.
 
