@@ -113,7 +113,19 @@ test("SS-10383 contact shadow reuses one depth material per opacity", async ({
 		perf.viewport.contactShadowVisibility = true;
 		await perf.nextFrame();
 		const shown = await update();
-		return {first, second, hidden, shown};
+		// The viewport API follows the setter with update(). Without it
+		// (a direct engine call) only the setter asks for the frame, and
+		// an idle viewport must still draw the contact shadow.
+		perf.viewport.contactShadowVisibility = false;
+		await perf.nextFrame();
+		const keep = perf.viewport.update;
+		perf.viewport.update = () => {};
+		const beforeIdle = contactRenders;
+		perf.viewport.contactShadowVisibility = true;
+		await perf.nextFrame();
+		perf.viewport.update = keep;
+		const idle = {renders: contactRenders - beforeIdle};
+		return {first, second, hidden, shown, idle};
 	});
 	const json = JSON.stringify(result);
 	// distinct opacities in the scene: 1 and 0.5
@@ -124,4 +136,5 @@ test("SS-10383 contact shadow reuses one depth material per opacity", async ({
 	expect(result.hidden.created, json).toBe(0);
 	expect(result.hidden.renders, json).toBe(0);
 	expect(result.shown.renders, json).toBeGreaterThan(0);
+	expect(result.idle.renders, json).toBeGreaterThan(0);
 });
