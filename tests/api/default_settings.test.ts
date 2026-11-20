@@ -20,6 +20,8 @@ const readOptions = () => {
 		environmentMapPbrMode: viewport.environmentMapPbrMode,
 		environmentMapOrientation: viewport.environmentMapOrientation,
 		physicalGemDispersion: viewport.physicalGemDispersion,
+		physicalGemFresnel: viewport.physicalGemFresnel,
+		gemEnvironmentMapIntensity: viewport.gemEnvironmentMapIntensity,
 		gemTracing: viewport.gemTracing,
 		gemNormalMapResolution: viewport.gemNormalMapResolution,
 		toneMapping: viewport.toneMapping,
@@ -38,6 +40,8 @@ const OLD_LOOK = {
 	environmentMapPbrMode: "legacy",
 	environmentMapOrientation: "legacy",
 	physicalGemDispersion: false,
+	physicalGemFresnel: false,
+	gemEnvironmentMapIntensity: 1,
 	gemTracing: "sphere",
 	gemNormalMapResolution: 1024,
 };
@@ -46,6 +50,8 @@ const NEW_LOOK = {
 	environmentMapPbrMode: "modern",
 	environmentMapOrientation: "threejs",
 	physicalGemDispersion: true,
+	physicalGemFresnel: false,
+	gemEnvironmentMapIntensity: 1,
 	gemTracing: "facets",
 	gemNormalMapResolution: 512,
 };

@@ -61,6 +61,8 @@ describe("settings V7.2", () => {
 			mapPbrMode: "legacy",
 			mapOrientation: "legacy",
 			physicalGemDispersion: false,
+			physicalGemFresnel: false,
+			gemEnvironmentMapIntensity: 1,
 			gemTracing: "sphere",
 			gemNormalMapResolution: 1024,
 			accumulationFrames: 0,
@@ -123,6 +125,8 @@ describe("settings V7.2", () => {
 			(s) => delete (s.environment as any).mapPbrMode,
 			(s) => delete (s.environment as any).mapOrientation,
 			(s) => delete (s.material as any).physicalGemDispersion,
+			(s) => delete (s.material as any).physicalGemFresnel,
+			(s) => delete (s.material as any).gemEnvironmentMapIntensity,
 			(s) => delete (s.material as any).gemTracing,
 			(s) => delete (s.material as any).gemNormalMapResolution,
 			(s) => delete (s.rendering as any).accumulationFrames,
@@ -154,6 +158,9 @@ describe("settings V7.2", () => {
 			(s) => ((s.environment as any).mapPbrMode = true),
 			(s) => ((s.environment as any).mapOrientation = "other"),
 			(s) => ((s.material as any).physicalGemDispersion = "yes"),
+			(s) => ((s.material as any).physicalGemFresnel = "yes"),
+			(s) => ((s.material as any).gemEnvironmentMapIntensity = "1"),
+			(s) => ((s.material as any).gemEnvironmentMapIntensity = -1),
 			(s) => ((s.material as any).gemTracing = "foo"),
 			(s) => ((s.material as any).gemNormalMapResolution = 300),
 			(s) => ((s.material as any).gemNormalMapResolution = "512"),
@@ -196,6 +203,8 @@ describe("settings V7.2", () => {
 		expect(converted.environment.mapPbrMode).toBe("legacy");
 		expect(converted.environment.mapOrientation).toBe("legacy");
 		expect(converted.material.physicalGemDispersion).toBe(false);
+		expect(converted.material.physicalGemFresnel).toBe(false);
+		expect(converted.material.gemEnvironmentMapIntensity).toBe(1);
 		expect(converted.material.gemTracing).toBe("sphere");
 		expect(converted.material.gemNormalMapResolution).toBe(1024);
 		expect(converted.rendering.accumulationFrames).toBe(0);
@@ -226,6 +235,8 @@ describe("settings V7.2", () => {
 		settingsV7_1.postprocessing.hdr = true;
 		settingsV7_1.environment.mapPbrMode = "modern";
 		settingsV7_1.material.physicalGemDispersion = true;
+		settingsV7_1.material.physicalGemFresnel = true;
+		settingsV7_1.material.gemEnvironmentMapIntensity = 1.5;
 		settingsV7_1.material.gemTracing = "facets";
 		settingsV7_1.material.gemNormalMapResolution = 512;
 		settingsV7_1.rendering.accumulationFrames = 16;
@@ -249,6 +260,8 @@ describe("settings V7.2", () => {
 		expect(converted.environment.mapPbrMode).toBe("modern");
 		expect(converted.environment.mapOrientation).toBe("legacy");
 		expect(converted.material.physicalGemDispersion).toBe(true);
+		expect(converted.material.physicalGemFresnel).toBe(true);
+		expect(converted.material.gemEnvironmentMapIntensity).toBe(1.5);
 		expect(converted.material.gemTracing).toBe("facets");
 		expect(converted.material.gemNormalMapResolution).toBe(512);
 		expect(converted.rendering.accumulationFrames).toBe(16);
@@ -304,6 +317,10 @@ describe("settings V7.2", () => {
 		expect(converted.environment).not.toHaveProperty("mapPbrMode");
 		expect(converted.environment).not.toHaveProperty("mapOrientation");
 		expect(converted.material).not.toHaveProperty("physicalGemDispersion");
+		expect(converted.material).not.toHaveProperty("physicalGemFresnel");
+		expect(converted.material).not.toHaveProperty(
+			"gemEnvironmentMapIntensity",
+		);
 		expect(converted.material).not.toHaveProperty("gemTracing");
 		expect(converted.material).not.toHaveProperty("gemNormalMapResolution");
 		expect(converted.rendering).not.toHaveProperty("accumulationFrames");
