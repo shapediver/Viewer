@@ -32,8 +32,17 @@ type IAmbientOcclusionEffect = {
  */
 export type ISettingsV7_2 = Omit<
 	ISettings,
-	"settings_version" | "environment" | "postprocessing" | "material"
+	| "settings_version"
+	| "environment"
+	| "postprocessing"
+	| "material"
+	| "rendering"
 > & {
+	rendering: ISettings["rendering"] & {
+		// not set = no frame accumulation
+		accumulationFrames?: number;
+		accumulationFramesMobile?: number;
+	};
 	settings_version: "7.2";
 	environment: ISettings["environment"] & {
 		mapPbrMode: "legacy" | "modern";
