@@ -211,10 +211,14 @@ export class SceneTreeManager implements IManager {
 									geometryData,
 									existingGeometry,
 								)
-							)
+							) {
 								this._renderingEngine.geometryLoader.updateGeometryMaterial(
 									geometryData,
 								);
+								this._renderingEngine.renderingManager.requestCompile(
+									existingGeometry,
+								);
+							}
 						} else {
 							// In attribute-visualization mode instancing works with
 							// per-instance flat colors, but transparency needs
@@ -285,6 +289,9 @@ export class SceneTreeManager implements IManager {
 							dataChild.userData.SDid = treeNodeData.id;
 							dataChild.userData.SDversion = treeNodeData.version;
 							convertedObject.add(dataChild);
+							this._renderingEngine.renderingManager.requestCompile(
+								dataChild,
+							);
 						}
 					} else if (existingGeometry) {
 						// A transformation-only update keeps the geometry,
@@ -303,6 +310,17 @@ export class SceneTreeManager implements IManager {
 					(<ThreejsData>treeNodeData).obj.userData.SDversion =
 						treeNodeData.version;
 					convertedObject.add(dataChild);
+					this._renderingEngine.renderingManager.requestCompile(
+						dataChild,
+					);
+					// A compile target that holds lights would count them a
+					// second time. Such an object takes the full compile.
+					let hasLight = false;
+					dataChild.traverse((object) => {
+						if ((object as THREE.Light).isLight) hasLight = true;
+					});
+					if (hasLight)
+						this._renderingEngine.renderingManager.requestFullCompile();
 
 					// set the currently used environment map
 					assignEnvironmentMapForThreeJsDataObject(
@@ -780,10 +798,15 @@ export class SceneTreeManager implements IManager {
 			}
 		}
 
-		// we compile the shaders, the rendering waits until they are ready
+		// we compile the shaders, the rendering waits until they are ready.
+		// Only the objects this update created or re-materialized are
+		// compiled. A renderer type or instancing switch and the attribute
+		// visualization change the programs of every object.
 		this._renderingEngine.renderingManager.compileShaders(
 			this._renderingEngine.scene,
 			this._hiddenCamera,
+			this._newRendererType ||
+				this._renderingEngine.type !== RENDERER_TYPE.STANDARD,
 		);
 
 		// Instancing (and renderer-type) toggles dispose and recreate meshes.
