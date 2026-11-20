@@ -358,10 +358,10 @@ export class RenderingManager implements IManager {
 			this._compileAll ||
 			this._firstCompilePending ||
 			signature !== this._lightSignature;
-		this._compileAll = false;
 		// An update of a scene without objects, such as the one that creates
 		// the viewport, is not yet the first update that needs programs.
 		if (objects.length > 0) this._firstCompilePending = false;
+		this._compileAll = false;
 		this._lightSignature = signature;
 		if (full) return null;
 		return objects.filter((object) => {
@@ -594,8 +594,11 @@ export class RenderingManager implements IManager {
 			this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES
 				? false
 				: this._renderingEngine.shadows;
-		if (enabled !== shadowMap.enabled)
+		if (enabled !== shadowMap.enabled) {
 			this._renderingEngine.materialLoader.updateMaterials();
+			// Every program depends on it.
+			this.requestFullCompile();
+		}
 	}
 
 	// #endregion Public Methods (10)

@@ -310,6 +310,9 @@ export class SceneTreeManager implements IManager {
 					(<ThreejsData>treeNodeData).obj.userData.SDversion =
 						treeNodeData.version;
 					convertedObject.add(dataChild);
+					this._renderingEngine.renderingManager.requestCompile(
+						dataChild,
+					);
 					// A compile target that holds lights would count them a
 					// second time. Such an object takes the full compile.
 					let hasLight = false;
@@ -318,10 +321,6 @@ export class SceneTreeManager implements IManager {
 					});
 					if (hasLight)
 						this._renderingEngine.renderingManager.requestFullCompile();
-					else
-						this._renderingEngine.renderingManager.requestCompile(
-							dataChild,
-						);
 
 					// set the currently used environment map
 					assignEnvironmentMapForThreeJsDataObject(
