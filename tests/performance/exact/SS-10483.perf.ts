@@ -266,3 +266,68 @@ test("SS-10483 a material change reaches both materials and leaves no stale pair
 	expect(result.backFrame.updates).toBe(0);
 	expect(result.backFrame.draws.length % (2 * PANES)).toBe(0);
 });
+
+test("SS-10483 removing every pane releases the shared split geometry", async ({
+	page,
+}) => {
+	await open(page);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		perf.viewport.update();
+		perf.viewport.show = true;
+		perf.viewport.camera.position = [6, -6, 4];
+		perf.viewport.camera.target = [0, 0, 0.5];
+		await perf.nextFrame();
+		const geometries = () => perf.renderer.info.memory.geometries;
+		const start = geometries();
+
+		const glass = new SDV.MaterialStandardData({
+			color: "#9fc4d6",
+			opacity: 0.35,
+		});
+		const first = perf.boxGeometry([-0.4, -0.4, 0], [0.4, 0.4, 0.8]);
+		first.material = glass;
+		const nodes: any[] = [];
+		// three meshes that share one primitive, so they share one split
+		for (let i = 0; i < 3; i++) {
+			const geometry =
+				i === 0
+					? first
+					: new SDV.GeometryData(
+							first.primitive,
+							SDV.PRIMITIVE_MODE.TRIANGLES,
+						);
+			geometry.material = glass;
+			const node = new SDV.TreeNode(`pane${i}`);
+			node.addData(geometry);
+			SDV.sceneTree.root.addChild(node);
+			nodes.push(node);
+		}
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		await perf.nextFrame();
+		const shown = geometries();
+		const meshes = nodes.map(
+			(node) => node.data[0].convertedObject[perf.viewport.id],
+		);
+		const pairs = meshes.every((mesh: any) => Array.isArray(mesh.material));
+		const sameGeometry = meshes.every(
+			(mesh: any) => mesh.geometry === meshes[0].geometry,
+		);
+
+		for (const node of nodes) SDV.sceneTree.root.removeChild(node);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		await perf.nextFrame();
+		return {start, shown, end: geometries(), pairs, sameGeometry};
+	});
+	expect(result.pairs).toBe(true);
+	// one split geometry for all three meshes; the shared primitive itself is
+	// never drawn
+	expect(result.sameGeometry).toBe(true);
+	expect(result.shown - result.start).toBe(1);
+	// it is released again
+	expect(result.end).toBe(result.start);
+});
