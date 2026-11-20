@@ -31,7 +31,7 @@ const ACCUMULATION_FRAMES = Number(urlParameters.get("accumulation") ?? 32);
 // `?physicalDispersion=1` uses the physically based gem dispersion
 const PHYSICAL_DISPERSION = urlParameters.get("physicalDispersion") === "1";
 // `?physicalFresnel=1` lets most light leave the stone at the first facet it
-// can pass (larger, calmer facets); the gem contrast is then left at 1
+// can pass (larger, calmer facets)
 const PHYSICAL_FRESNEL = urlParameters.get("physicalFresnel") === "1";
 // `?gemIntensity=<factor>` scales the environment light of the gems only
 // (the reference uses 1.2 for its diamonds)
@@ -85,9 +85,8 @@ const createGemMaterial = () =>
 		dispersion: PHYSICAL_DISPERSION ? 0.044 : 0.07,
 		tracingDepth: 5,
 		tracingOpacity: 1,
-		// tuned by eye against the reference, with facet-plane tracing and the
-		// legacy weights
-		contrast: PHYSICAL_FRESNEL ? 1 : 1.4,
+		// tuned by eye against the reference, with facet-plane tracing
+		contrast: 1.4,
 	});
 
 (async () => {

@@ -50,8 +50,8 @@ const NEW_LOOK = {
 	environmentMapPbrMode: "modern",
 	environmentMapOrientation: "threejs",
 	physicalGemDispersion: true,
-	physicalGemFresnel: false,
-	gemEnvironmentMapIntensity: 1,
+	physicalGemFresnel: true,
+	gemEnvironmentMapIntensity: 1.2,
 	gemTracing: "facets",
 	gemNormalMapResolution: 512,
 };

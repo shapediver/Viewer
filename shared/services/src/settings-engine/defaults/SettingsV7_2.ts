@@ -64,9 +64,8 @@ export const NEW_LOOK_V7_2 = {
 	},
 	material: {
 		physicalGemDispersion: true,
-		// TODO SS-10532: default still to be decided by Michael
-		physicalGemFresnel: false,
-		gemEnvironmentMapIntensity: 1,
+		physicalGemFresnel: true,
+		gemEnvironmentMapIntensity: 1.2,
 		gemTracing: "facets",
 		gemNormalMapResolution: 512,
 	},
