@@ -566,9 +566,11 @@ export class GeometryLoader implements ILoader {
 		object: GeometryType,
 		material: THREE.Material,
 	): void {
+		// a removed mesh stays in _geometryObjects but is no user of a split
 		if (
 			!(object instanceof THREE.Mesh) ||
-			object instanceof THREE.InstancedMesh
+			object instanceof THREE.InstancedMesh ||
+			object.userData.removed === true
 		) {
 			object.material = material;
 			return;
