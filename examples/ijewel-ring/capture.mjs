@@ -3,7 +3,8 @@
  * Renders the comparison shots of this example to PNG files.
  *
  *   node capture.mjs [--out captures] [--shots front,quarter,back,top,head,side]
- *                    [--sceneEnv <preset or .hdr url>] [--gemEnv <preset or .hdr url>]
+ *                    [--sceneEnv <preset, .hdr url or local .hdr file>]
+ *                    [--gemEnv <preset, .hdr url or local .hdr file>]
  *                    [--aoMode composite|shading]
  *                    [--accumulation <frames> (0 turns the accumulation off)]
  *                    [--late (apply the materials after the first render)]
@@ -42,6 +43,19 @@ if (!args.includes("--skip-build")) {
 		"pnpm exec webpack --config ../scripts/webpack.dev.js --output-filename bundle.js --output-path dist-dev",
 		{cwd: root, stdio: "inherit"},
 	);
+}
+
+// a local .hdr file is copied next to the bundle and loaded from this server
+const environments = {};
+for (const name of ["sceneEnv", "gemEnv"]) {
+	const value = option(name);
+	if (!value) continue;
+	if (value.endsWith(".hdr") && existsSync(resolve(value))) {
+		cpSync(resolve(value), join(dist, `${name}.hdr`));
+		environments[name] = `http://localhost:${port}/${name}.hdr`;
+	} else {
+		environments[name] = value;
+	}
 }
 
 const contentTypes = {
@@ -84,10 +98,12 @@ try {
 	for (const shot of shots) {
 		const url = new URL(`http://localhost:${port}/`);
 		url.searchParams.set("shot", shot);
-		for (const name of ["sceneEnv", "gemEnv", "aoMode", "accumulation"]) {
+		for (const name of ["aoMode", "accumulation"]) {
 			const value = option(name);
 			if (value) url.searchParams.set(name, value);
 		}
+		for (const name in environments)
+			url.searchParams.set(name, environments[name]);
 		if (args.includes("--late")) url.searchParams.set("late", "1");
 		// the first load after a build can time out, so it is tried twice
 		for (let attempt = 0; ; attempt++) {
@@ -103,6 +119,10 @@ try {
 				if (attempt === 1) throw error;
 			}
 		}
+		// a fresh browser compiles the shaders first, which can take 30 seconds
+		await page
+			.locator("#canvas")
+			.waitFor({state: "visible", timeout: 120000});
 		// environment maps, the gem normal maps and the soft shadow fade
 		await page.waitForTimeout(6000);
 		const file = join(out, `${shot}.png`);

@@ -18,7 +18,9 @@ import * as SDV from "@shapediver/viewer";
 const urlParameters = new URLSearchParams(location.search);
 const environmentMap = (name: string | null, fallback: string): string => {
 	if (!name) return fallback;
-	if (name.startsWith("https://")) return name;
+	// capture.mjs serves local .hdr files from localhost
+	if (name.startsWith("https://") || name.startsWith("http://localhost:"))
+		return name;
 	return name in SDV.ENVIRONMENT_MAP
 		? SDV.ENVIRONMENT_MAP[name as keyof typeof SDV.ENVIRONMENT_MAP]
 		: fallback;
