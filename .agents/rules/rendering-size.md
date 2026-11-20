@@ -4,6 +4,6 @@
 
 - `RenderingManager.calculateSize` multiplies the CSS size by the device ratio, caps that physical width and height, then sets the renderer pixel ratio to `physical / css`. `setSize` multiplies the CSS size by that ratio, so the product stays inside the cap.
 - Do not cap CSS pixels and then multiply by `devicePixelRatio`. A 1280×720 view at device pixel ratio 2 must be a 1920×1080 buffer, not 2560×1440. At device pixel ratio 1, a view at or under the cap stays that size.
-- Defaults stay 1920×1080 on desktop and 1280×720 on mobile.
+- Engine defaults stay 1920×1080 on desktop and 1280×720 on mobile. Settings 7.2 store both (`rendering.maximumRenderingSize`, `rendering.maximumRenderingSizeMobile`); the engine property holds only the value of the current device. Settings without the two values must leave the engine value alone, so models from before 7.2 keep their size. A larger default belongs in the default settings objects (`NEW_LOOK_V7_2`), not in the engine.
 - Screenshots of the on-screen frame use that same buffer. An explicit screenshot resolution still describes output pixels (`pixelRatioOverride = 1` and `maximumRenderingSize` set to the requested size).
 - `PostProcessingManager.resize` sizes effect targets (ambient occlusion and the passes it sets before the composer) to the smaller of the CSS size and the drawing buffer. The composer still receives the CSS size and then sizes its passes from `getDrawingBufferSize`.

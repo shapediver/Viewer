@@ -269,12 +269,18 @@ export class SettingsManager {
 			const rendering = settings.rendering as {
 				accumulationFrames?: number;
 				accumulationFramesMobile?: number;
+				maximumRenderingSize?: {width: number; height: number};
+				maximumRenderingSizeMobile?: {width: number; height: number};
 			};
 			const currentRendering =
 				currentSettings.rendering as typeof rendering;
 			currentRendering.accumulationFrames = rendering.accumulationFrames;
 			currentRendering.accumulationFramesMobile =
 				rendering.accumulationFramesMobile;
+			currentRendering.maximumRenderingSize =
+				rendering.maximumRenderingSize;
+			currentRendering.maximumRenderingSizeMobile =
+				rendering.maximumRenderingSizeMobile;
 		}
 
 		if (sections.viewport.general) {
