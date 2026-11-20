@@ -48,6 +48,7 @@ export enum ENVIRONMENT_MAP {
 	GEM_STUDIO = "gem_studio",
 	HOSPITAL = "hospital",
 	JEWELRY_STUDIO = "jewelry_studio",
+	JEWELRY_HIGH_CONTRAST = "jewelry_high_contrast",
 	ANNIVERSARY_LOUNGE = "anniversary_lounge",
 	BALLROOM = "ballroom",
 	CANNON_EXTERIOR = "cannon_exterior",
@@ -107,6 +108,7 @@ export class EnvironmentMapLoader implements ILoader {
 		"gem_studio",
 		"hospital",
 		"jewelry_studio",
+		"jewelry_high_contrast",
 	];
 	private readonly _environmentMapNamesHDRKhronos = [
 		"cannon_exterior",
