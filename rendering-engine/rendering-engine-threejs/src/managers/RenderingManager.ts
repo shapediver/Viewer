@@ -52,7 +52,11 @@ export class RenderingManager implements IManager {
 	private _activeRendering: boolean = true;
 	private _cameraChanged: boolean = false;
 	private _compileSkippedFrame: boolean = false;
+	private _compileAll: boolean = false;
+	private _firstCompilePending: boolean = true;
+	private _compileObjects = new Set<THREE.Object3D>();
 	private _compilingPrograms: Set<IProgramStatus> | null = null;
+	private _lightSignature: string | null = null;
 	private _continuousRendering: boolean = false;
 	private _continuousShadowMapUpdate: boolean = false;
 	private _height: number = 0;
@@ -272,11 +276,100 @@ export class RenderingManager implements IManager {
 			);
 			// Only the transition rebuilds programs. Later scene updates that
 			// are still over the limit must not dirty every cached material.
-			if (!alreadyDisabled)
+			if (!alreadyDisabled) {
 				this._renderingEngine.materialLoader.updateMaterials();
+				this.requestFullCompile();
+			}
 		} else {
+			if (this._renderingEngine.lightLoader.forceDisabledShadows)
+				this.requestFullCompile();
 			this._renderingEngine.lightLoader.forceDisabledShadows = false;
 		}
+	}
+
+	/**
+	 * Mark an object whose programs the next {@link compileShaders} must
+	 * prepare: a mesh the scene update created or gave a new material, a
+	 * batch or instanced mesh, a source mesh that left its batch.
+	 */
+	public requestCompile(object: THREE.Object3D): void {
+		// Interactions create effect meshes between scene updates. Drop
+		// what left the scene so a session without updates does not keep it.
+		if (this._compileObjects.size >= 1024) {
+			const scene = this._renderingEngine.scene;
+			for (const candidate of this._compileObjects) {
+				let parent: THREE.Object3D | null = candidate;
+				while (parent && parent !== scene) parent = parent.parent;
+				if (parent !== scene) this._compileObjects.delete(candidate);
+			}
+		}
+		this._compileObjects.add(object);
+	}
+
+	/**
+	 * The next {@link compileShaders} prepares every object of the scene.
+	 * For a change of something all programs depend on.
+	 */
+	public requestFullCompile(): void {
+		this._compileAll = true;
+	}
+
+	/**
+	 * The program key of every lit material depends on the number of lights
+	 * per type and on which of them cast shadows.
+	 */
+	private lightSignature(scene: THREE.Object3D): string {
+		// Per type: lights, and lights that cast shadows.
+		const counts: Record<string, number> = {};
+		scene.traverseVisible((object) => {
+			const light = object as THREE.Light;
+			if (!light.isLight) return;
+			const type = (light as THREE.Light & {type: string}).type;
+			counts[type] = (counts[type] ?? 0) + 1;
+			if (light.castShadow)
+				counts[type + "Shadow"] = (counts[type + "Shadow"] ?? 0) + 1;
+		});
+		return (
+			Object.keys(counts)
+				.sort()
+				.map((key) => key + ":" + counts[key])
+				.join("|") +
+			"|" +
+			this._renderingEngine.lightLoader.forceDisabledShadows
+		);
+	}
+
+	/**
+	 * The objects to compile, or the whole scene when something all programs
+	 * depend on changed: the light set, shadows forced off or on, a renderer
+	 * type or instancing switch (`newRendererType`), the first update.
+	 * Objects that are no longer in the scene, and source meshes hidden
+	 * behind a batch, are left out.
+	 */
+	private compileTargets(
+		scene: THREE.Object3D,
+		fullCompile: boolean,
+	): THREE.Object3D[] | null {
+		const objects = [...this._compileObjects];
+		this._compileObjects.clear();
+		const signature = this.lightSignature(scene);
+		const full =
+			fullCompile ||
+			this._compileAll ||
+			this._firstCompilePending ||
+			signature !== this._lightSignature;
+		this._compileAll = false;
+		// An update of a scene without objects, such as the one that creates
+		// the viewport, is not yet the first update that needs programs.
+		if (objects.length > 0) this._firstCompilePending = false;
+		this._lightSignature = signature;
+		if (full) return null;
+		return objects.filter((object) => {
+			if (object.userData.batchedMesh) return false;
+			let parent: THREE.Object3D | null = object;
+			while (parent && parent !== scene) parent = parent.parent;
+			return parent === scene;
+		});
 	}
 
 	/**
@@ -288,10 +381,23 @@ export class RenderingManager implements IManager {
 	 * timer: that one throws when a material is disposed while it waits.
 	 * Without the extension the first draw compiles, as it always did.
 	 */
-	public compileShaders(scene: THREE.Object3D, camera: THREE.Camera): void {
+	public compileShaders(
+		scene: THREE.Scene,
+		camera: THREE.Camera,
+		fullCompile: boolean = false,
+	): void {
 		const renderer = this._renderingEngine.renderer;
 		const before = new Set(this.livePrograms());
-		renderer.compile(scene, camera);
+		const targets = this.compileTargets(scene, fullCompile);
+		if (targets === null) renderer.compile(scene, camera);
+		else if (targets.length > 0) {
+			// One call for all objects: every call collects the lights of
+			// the scene again. The group only lists the objects, they keep
+			// their parents.
+			const group = new THREE.Group();
+			group.children = targets;
+			renderer.compile(group, camera, scene);
+		}
 		// The contact shadow draws its own passes in the same frame. Its
 		// depth programs vary only with what the scene programs vary with
 		// (batching, instancing, skinning, morphs, attributes), so it needs a

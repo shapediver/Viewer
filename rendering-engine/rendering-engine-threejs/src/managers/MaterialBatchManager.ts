@@ -150,8 +150,13 @@ export class MaterialBatchManager {
 		}
 
 		this._signature = signature;
-		this.disposeBatches();
+		const released = this.disposeBatches();
 		this.build(entries);
+		// A source mesh that left its batch is drawn again with its own
+		// program. Those that joined a new batch stay hidden.
+		for (const mesh of released)
+			if (mesh.visible)
+				this._renderingEngine.renderingManager.requestCompile(mesh);
 		this._renderingEngine.postProcessingManager.refreshInstancedEffectSelections();
 	}
 
@@ -528,6 +533,7 @@ export class MaterialBatchManager {
 			};
 			this._batches.push(batch);
 			this.root.add(batchMesh);
+			this._renderingEngine.renderingManager.requestCompile(batchMesh);
 
 			for (const entry of chunk) {
 				this.rememberBounds(entry);
@@ -699,6 +705,12 @@ export class MaterialBatchManager {
 	private applyMember(member: BatchMember): void {
 		if (this.isIndividual(member)) {
 			member.batch.mesh.setVisibleAt(member.instanceId, false);
+			// A source mesh that is drawn on its own from now on needs its
+			// own program.
+			if (!member.mesh.visible)
+				this._renderingEngine.renderingManager.requestCompile(
+					member.mesh,
+				);
 			member.mesh.visible = true;
 			delete member.mesh.userData.batchedMesh;
 			delete member.mesh.userData.batchId;
@@ -791,8 +803,10 @@ export class MaterialBatchManager {
 		member.batch.mesh.setColorAt(member.instanceId, this._color);
 	}
 
-	private disposeBatches(): void {
+	private disposeBatches(): THREE.Object3D[] {
+		const released: THREE.Object3D[] = [];
 		for (const member of this._members.values()) {
+			released.push(member.mesh);
 			member.mesh.visible = true;
 			delete member.mesh.userData.batchedMesh;
 			delete member.mesh.userData.batchId;
@@ -808,6 +822,7 @@ export class MaterialBatchManager {
 		this._batches.length = 0;
 		this._members.clear();
 		this._byNode.clear();
+		return released;
 	}
 
 	private disposeBatchMesh(mesh: THREE.BatchedMesh): void {

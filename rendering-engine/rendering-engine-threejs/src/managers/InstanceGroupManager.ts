@@ -161,6 +161,9 @@ export class InstanceGroupManager {
 			};
 			this._groups.set(groupKey, group);
 			this.instancedRoot.add(instancedMesh);
+			this._renderingEngine.renderingManager.requestCompile(
+				instancedMesh,
+			);
 		}
 
 		const nodeId = this._getNodeKey(node, geometry.id);
@@ -424,6 +427,9 @@ export class InstanceGroupManager {
 				`gpu-instance/${group.groupKey}`,
 			);
 			group.defaultMesh.material.needsUpdate = true;
+			this._renderingEngine.renderingManager.requestCompile(
+				group.defaultMesh,
+			);
 			group.effectMeshes.forEach((mesh) => {
 				if (mesh.userData.hasMaterialOverride) return;
 				this._disposeMaterial(mesh.material as THREE.Material);
@@ -435,6 +441,7 @@ export class InstanceGroupManager {
 					].join("|")}`,
 				);
 				(mesh.material as THREE.Material).needsUpdate = true;
+				this._renderingEngine.renderingManager.requestCompile(mesh);
 			});
 		});
 	}
@@ -477,6 +484,9 @@ export class InstanceGroupManager {
 						`gpu-instance/${group.groupKey}/${MATERIAL_OVERRIDE_PREFIX}${geometryId}`,
 					);
 					(effectMesh.material as THREE.Material).needsUpdate = true;
+					this._renderingEngine.renderingManager.requestCompile(
+						effectMesh,
+					);
 				}
 			}
 		}
@@ -1078,6 +1088,7 @@ export class InstanceGroupManager {
 		effectMesh.userData.instanceKeys = [] as (string | undefined)[];
 		group.effectMeshes.set(meshKey, effectMesh);
 		this.instancedRoot.add(effectMesh);
+		this._renderingEngine.renderingManager.requestCompile(effectMesh);
 		this._renderingEngine.materialLoader.trackMaterial(
 			`gpu-instance/${group.groupKey}/${meshKey}`,
 			effectMesh.material as THREE.Material,
