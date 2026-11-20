@@ -1,16 +1,7 @@
----
-paths:
-    - "rendering-engine/rendering-engine-threejs/src/**"
-    - "data-engine/geometry-engine/src/**"
-    - "data-engine/gltf-converter/src/**"
-    - "shared/node-tree/src/**"
-    - "tests/instancing/**"
----
-
 # GPU instancing
 
-- Default is **off**. Detection uses glTF accessor identity and a count/type fingerprint; byte hashing and baked-transform vertex walks run only when a second primitive shares that fingerprint.
-- Enable with `viewport.gpuInstancing.enabled = true`. Detection is reference-counted across viewports; enabling also scans already-loaded opaque triangle geometry and reconverts the current scene. That scan must match parse-time grouping: same primitive or byte-identical attributes, material **except color**. Do **not** key on `material.id` or the runtime scan will miss color variants. Disabling drops instance groups and reconverts to regular meshes. Baked-transform recovery still runs only at glTF parse time.
+- Default is **on**: `GeometryEngine.gpuInstancing` (parse-time detection) and each viewport's `viewport.gpuInstancing.enabled` (internal API, runtime batching). Detection uses glTF accessor identity and a count/type fingerprint; byte hashing and baked-transform vertex walks run only when a second primitive shares that fingerprint.
+- Disable with `viewport.gpuInstancing.enabled = false`. Turning it back on scans already-loaded opaque triangle geometry (`GeometryEngine.applyGpuInstancing`) and reconverts the current scene. That scan must match parse-time grouping: same primitive or byte-identical attributes, material **except color**. Do **not** key on `material.id` or the runtime scan will miss color variants. Disabling drops instance groups and reconverts to regular meshes. Baked-transform recovery still runs only at glTF parse time.
 - `EXT_mesh_gpu_instancing` is unchanged and does not go through this path.
 - Instance world bounds use the same local AABB × (`worldMatrix` × offset) as regular meshes. Do not vertex-walk placeholders.
 - Color-only variants of a batched primitive keep distinct `material.id`s; the tint lives in `instanceColor`. Do **not** treat that id mismatch as a per-occurrence material override (`effectMeshCount`). Overrides are for interaction highlights and for a material assigned after the occurrence joined the batch.

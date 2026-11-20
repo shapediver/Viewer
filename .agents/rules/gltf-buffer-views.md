@@ -1,8 +1,3 @@
----
-paths:
-    - "data-engine/geometry-engine/src/**"
----
-
 # glTF buffer views
 
 - Overlapping `bufferView`s on one BIN are valid glTF. Do **not** `ArrayBuffer.slice()` each view; thousands of line primitives will copy ~1 GB from ~1–2 MB of data and can throw `RangeError: Array buffer allocation failed`.

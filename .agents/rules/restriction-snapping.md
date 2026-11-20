@@ -1,11 +1,3 @@
----
-paths:
-    - "rendering-engine/intersection-restriction-engine/src/**"
-    - "features/drawing-tools/src/**"
-    - "features/interaction/src/**"
-    - "features/transformation-tools/src/**"
----
-
 # Restriction snapping: grids, picking, occlusion
 
 Placement on a mesh uses drawing-tool geometry restrictions. A missing cursor means `RestrictionManager.rayTrace` returned nothing.

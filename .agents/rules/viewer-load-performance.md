@@ -1,12 +1,3 @@
----
-paths:
-    - "rendering-engine/rendering-engine-threejs/src/**"
-    - "api/viewport/src/**"
-    - "shared/node-tree/src/**"
-    - "examples/simple/**"
-    - "tests/**"
----
-
 # Viewer load: visibility, bounds, lines
 
 ## When the viewport is actually visible

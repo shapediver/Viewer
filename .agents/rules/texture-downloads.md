@@ -1,12 +1,3 @@
----
-paths:
-    - "shared/services/src/http-client/**"
-    - "session-engine/session-engine/src/**"
-    - "api/session/src/**"
-    - "data-engine/geometry-engine/src/gltfv2/loaders/TextureLoader.ts"
-    - "data-engine/material-engine/src/**"
----
-
 # Texture downloads
 
 `HttpClient.loadTexture` calls the session's `downloadTexture` callback. That callback uses `UtilsApi.downloadImage`.
