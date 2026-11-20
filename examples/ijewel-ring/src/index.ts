@@ -25,6 +25,9 @@ const environmentMap = (name: string | null, fallback: string): string => {
 };
 // `?late=1` applies the materials after the first render instead of before
 const LATE = urlParameters.get("late") === "1";
+// `?accumulation=<frames>` averages that many jittered frames of the still
+// view (default 32, 0 turns it off)
+const ACCUMULATION_FRAMES = Number(urlParameters.get("accumulation") ?? 32);
 // `?physicalDispersion=1` uses the physically based gem dispersion
 const PHYSICAL_DISPERSION = urlParameters.get("physicalDispersion") === "1";
 const SCENE_ENVIRONMENT_MAP = environmentMap(
@@ -160,6 +163,10 @@ const createGemMaterial = () =>
 		},
 	});
 	viewport.maximumRenderingSize = {width: 3840, height: 2160};
+	// the reference refines the still image over many frames: smoother
+	// edges, facets and highlights
+	viewport.accumulationFrames = ACCUMULATION_FRAMES;
+	viewport.accumulationFramesMobile = Math.min(ACCUMULATION_FRAMES, 8);
 
 	if (viewport.camera?.type === SDV.CAMERA_TYPE.PERSPECTIVE)
 		(<SDV.IPerspectiveCameraApi>viewport.camera).fov = 25;

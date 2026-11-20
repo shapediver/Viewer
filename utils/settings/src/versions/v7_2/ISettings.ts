@@ -44,7 +44,20 @@ export interface ISettings extends IGlobalSettings {
 		 */
 		hdr: boolean;
 	};
-	rendering: ISettingsV7_1["rendering"];
+	rendering: ISettingsV7_1["rendering"] & {
+		/**
+		 * The number of jittered frames averaged while nothing changes (desktop).
+		 * 0 and 1 turn the accumulation off.
+		 * Settings converted from before 7.2 use 0.
+		 */
+		accumulationFrames: number;
+		/**
+		 * The number of jittered frames averaged while nothing changes on mobile devices.
+		 * 0 and 1 turn the accumulation off.
+		 * Settings converted from before 7.2 use 0.
+		 */
+		accumulationFramesMobile: number;
+	};
 	session: ISettingsV7_1["session"];
 	material: ISettingsV7_1["material"] & {
 		/**

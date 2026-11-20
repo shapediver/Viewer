@@ -265,6 +265,16 @@ export class SettingsManager {
 				settings.rendering.toneMapping;
 			currentSettings.rendering.toneMappingExposure =
 				settings.rendering.toneMappingExposure;
+			// TODO: drop the casts once the @shapediver/viewer.settings pin includes settings 7.2
+			const rendering = settings.rendering as {
+				accumulationFrames?: number;
+				accumulationFramesMobile?: number;
+			};
+			const currentRendering =
+				currentSettings.rendering as typeof rendering;
+			currentRendering.accumulationFrames = rendering.accumulationFrames;
+			currentRendering.accumulationFramesMobile =
+				rendering.accumulationFramesMobile;
 		}
 
 		if (sections.viewport.general) {

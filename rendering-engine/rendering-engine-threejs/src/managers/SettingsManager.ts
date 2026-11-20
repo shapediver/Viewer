@@ -364,6 +364,15 @@ export class SettingsManager implements IManager {
 		settingsEngine.rendering.shadows = this._renderingEngine.shadows;
 		settingsEngine.rendering.softShadows =
 			this._renderingEngine.softShadows;
+		// TODO: drop the cast once the @shapediver/viewer.settings pin includes settings 7.2
+		const renderingAccumulation = settingsEngine.rendering as {
+			accumulationFrames?: number;
+			accumulationFramesMobile?: number;
+		};
+		renderingAccumulation.accumulationFrames =
+			this._renderingEngine.accumulationFrames;
+		renderingAccumulation.accumulationFramesMobile =
+			this._renderingEngine.accumulationFramesMobile;
 	}
 
 	private applySyncSettings(
@@ -445,6 +454,21 @@ export class SettingsManager implements IManager {
 			);
 			this._renderingEngine.toneMappingExposure =
 				settingsEngine.rendering.toneMappingExposure;
+
+			// TODO: drop the cast once the @shapediver/viewer.settings pin includes settings 7.2
+			// a missing or invalid value is the old look (no accumulation)
+			const rendering = settingsEngine.rendering as {
+				accumulationFrames?: unknown;
+				accumulationFramesMobile?: unknown;
+			};
+			this._renderingEngine.accumulationFrames =
+				typeof rendering.accumulationFrames === "number"
+					? rendering.accumulationFrames
+					: 0;
+			this._renderingEngine.accumulationFramesMobile =
+				typeof rendering.accumulationFramesMobile === "number"
+					? rendering.accumulationFramesMobile
+					: 0;
 		}
 
 		if (sections.general) {

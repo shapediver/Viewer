@@ -220,6 +220,42 @@ export class ViewportApi implements IViewportApi {
 		this.update("arTranslation");
 	}
 
+	public get accumulationFrames(): number {
+		return this.#renderingEngine.accumulationFrames;
+	}
+
+	public set accumulationFrames(value: number) {
+		const scope = "accumulationFrames";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"number",
+		);
+		this.#renderingEngine.accumulationFrames = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("accumulationFrames");
+	}
+
+	public get accumulationFramesMobile(): number {
+		return this.#renderingEngine.accumulationFramesMobile;
+	}
+
+	public set accumulationFramesMobile(value: number) {
+		const scope = "accumulationFramesMobile";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"number",
+		);
+		this.#renderingEngine.accumulationFramesMobile = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("accumulationFramesMobile");
+	}
+
 	public get automaticColorAdjustment(): boolean {
 		return this.#renderingEngine.automaticColorAdjustment;
 	}
@@ -1634,6 +1670,27 @@ export class ViewportApi implements IViewportApi {
 		);
 		this.update("getScreenshot");
 		return this.#renderingEngine.getScreenshot(type, quality);
+	}
+
+	public async getSettledScreenshot(
+		type?: string,
+		quality?: number,
+	): Promise<string> {
+		const scope = "getSettledScreenshot";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			type,
+			"string",
+			false,
+		);
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			quality,
+			"number",
+			false,
+		);
+		this.update("getSettledScreenshot");
+		return await this.#renderingEngine.getSettledScreenshot(type, quality);
 	}
 
 	public getScreenshotAdvanced(

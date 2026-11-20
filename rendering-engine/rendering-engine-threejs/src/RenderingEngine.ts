@@ -152,6 +152,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		"https://viewer.shapediver.com/v3/graphics/spinner_ripple.svg";
 
 	// settings
+	private _accumulationFrames: number = 0;
+	private _accumulationFramesMobile: number = 0;
 	private _arRotation: vec3 = vec3.create();
 	private _arScale: vec3 = vec3.fromValues(1, 1, 1);
 	private _arTranslation: vec3 = vec3.create();
@@ -319,6 +321,30 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._geometryLoader.init();
 		this._htmlElementAnchorLoader.init();
 		this._lightLoader.init();
+	}
+
+	/**
+	 * The number of jittered frames that are averaged while nothing changes
+	 * (desktop). 0 and 1 turn the accumulation off.
+	 */
+	public get accumulationFrames(): number {
+		return this._accumulationFrames;
+	}
+
+	public set accumulationFrames(value: number) {
+		this._accumulationFrames = toFrameCount(value);
+	}
+
+	/**
+	 * The number of jittered frames that are averaged while nothing changes
+	 * on mobile devices. 0 and 1 turn the accumulation off.
+	 */
+	public get accumulationFramesMobile(): number {
+		return this._accumulationFramesMobile;
+	}
+
+	public set accumulationFramesMobile(value: number) {
+		this._accumulationFramesMobile = toFrameCount(value);
 	}
 
 	public get arRotation(): vec3 {
@@ -1176,6 +1202,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._materialBatchManager.clear();
 		this._lightEngine.close();
 		this._cameraEngine.close();
+		this._renderingManager.dispose();
 		this._renderer.clear(true, true, true);
 		this._renderer.dispose();
 		this._domEventEngine.removeAllDomEventListener();
@@ -1242,6 +1269,16 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
 	public getScreenshot(type?: string, encoderOptions?: number): string {
 		return this._renderingManager.getScreenshot(type, encoderOptions);
+	}
+
+	public getSettledScreenshot(
+		type?: string,
+		encoderOptions?: number,
+	): Promise<string> {
+		return this._renderingManager.getSettledScreenshot(
+			type,
+			encoderOptions,
+		);
 	}
 
 	public async getScreenshotAdvanced(
@@ -1621,3 +1658,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		return this._arManager.viewableInAR();
 	}
 }
+
+/** A non-negative whole number of frames; anything else is 0. */
+const toFrameCount = (value: number): number =>
+	Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;

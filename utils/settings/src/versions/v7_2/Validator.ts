@@ -124,6 +124,11 @@ export const environmentSettingsSchemaV7_2 = environmentSettingsSchema.extend({
 	mapOrientation: z.enum(["legacy", "threejs"]),
 });
 
+export const renderingSettingsSchemaV7_2 = renderingSettingsSchema.extend({
+	accumulationFrames: z.number().int().min(0),
+	accumulationFramesMobile: z.number().int().min(0),
+});
+
 export const materialSettingsSchemaV7_2 = materialSettingsSchema.extend({
 	physicalGemDispersion: z.boolean(),
 	gemTracing: z.enum(["sphere", "facets"]),
@@ -146,7 +151,7 @@ const schema = z
 		general: generalSettingsSchema,
 		light: lightSettingsSchema,
 		postprocessing: postProcessingSettingsSchema,
-		rendering: renderingSettingsSchema,
+		rendering: renderingSettingsSchemaV7_2,
 		session: sessionSettingsSchema,
 		material: materialSettingsSchemaV7_2,
 		configuration: configurationSettingsSchema,

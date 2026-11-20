@@ -26,6 +26,10 @@ export const OLD_LOOK_V7_2 = {
 	gemTracing: "sphere",
 	/** `material.gemNormalMapResolution` */
 	gemNormalMapResolution: 1024,
+	/** `rendering.accumulationFrames` */
+	accumulationFrames: 0,
+	/** `rendering.accumulationFramesMobile` */
+	accumulationFramesMobile: 0,
 } as const;
 
 export const convertFromPrevious = (
@@ -71,10 +75,20 @@ export const convertFromPrevious = (
 	const oldEnvironment: any = oldSettings.environment;
 	const oldPostprocessing: any = oldSettings.postprocessing;
 	const oldMaterial: any = oldSettings.material;
+	const oldRendering: any = oldSettings.rendering;
 
 	const settings = {
 		...oldSettings,
 		settings_version: "7.2",
+		rendering: {
+			...oldSettings.rendering,
+			accumulationFrames:
+				oldRendering.accumulationFrames ??
+				OLD_LOOK_V7_2.accumulationFrames,
+			accumulationFramesMobile:
+				oldRendering.accumulationFramesMobile ??
+				OLD_LOOK_V7_2.accumulationFramesMobile,
+		},
 		environment: {
 			...oldSettings.environment,
 			mapPbrMode: oldEnvironment.mapPbrMode ?? OLD_LOOK_V7_2.mapPbrMode,
@@ -111,6 +125,7 @@ export const convertToPrevious = (
 	// - postprocessing.hdr
 	// - environment.mapPbrMode, environment.mapOrientation
 	// - material.physicalGemDispersion, material.gemTracing, material.gemNormalMapResolution
+	// - rendering.accumulationFrames, rendering.accumulationFramesMobile
 	// - bloom properties: backgroundBloom, highlightsOnly (mipmapBlur is required in 7.1)
 	// - HBAO/SSAO properties: mode, excludeGems
 	const oldEffects = newSettings.postprocessing.effects.map((effect) => {
@@ -142,6 +157,10 @@ export const convertToPrevious = (
 	delete material.gemTracing;
 	delete material.gemNormalMapResolution;
 
+	const rendering: any = {...newSettings.rendering};
+	delete rendering.accumulationFrames;
+	delete rendering.accumulationFramesMobile;
+
 	const postprocessing: any = {
 		...newSettings.postprocessing,
 		effects: oldEffects,
@@ -153,6 +172,7 @@ export const convertToPrevious = (
 		settings_version: "7.1",
 		environment,
 		material,
+		rendering,
 		postprocessing,
 	};
 

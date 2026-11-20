@@ -63,6 +63,8 @@ describe("settings V7.2", () => {
 			physicalGemDispersion: false,
 			gemTracing: "sphere",
 			gemNormalMapResolution: 1024,
+			accumulationFrames: 0,
+			accumulationFramesMobile: 0,
 		});
 	});
 
@@ -123,6 +125,8 @@ describe("settings V7.2", () => {
 			(s) => delete (s.material as any).physicalGemDispersion,
 			(s) => delete (s.material as any).gemTracing,
 			(s) => delete (s.material as any).gemNormalMapResolution,
+			(s) => delete (s.rendering as any).accumulationFrames,
+			(s) => delete (s.rendering as any).accumulationFramesMobile,
 			(s) =>
 				delete (s.postprocessing.effects[0].properties as any)
 					.excludeGems,
@@ -153,6 +157,9 @@ describe("settings V7.2", () => {
 			(s) => ((s.material as any).gemTracing = "foo"),
 			(s) => ((s.material as any).gemNormalMapResolution = 300),
 			(s) => ((s.material as any).gemNormalMapResolution = "512"),
+			(s) => ((s.rendering as any).accumulationFrames = "16"),
+			(s) => ((s.rendering as any).accumulationFrames = -1),
+			(s) => ((s.rendering as any).accumulationFramesMobile = 2.5),
 			(s) =>
 				((s.postprocessing.effects[0].properties as any).excludeGems =
 					"yes"),
@@ -191,6 +198,8 @@ describe("settings V7.2", () => {
 		expect(converted.material.physicalGemDispersion).toBe(false);
 		expect(converted.material.gemTracing).toBe("sphere");
 		expect(converted.material.gemNormalMapResolution).toBe(1024);
+		expect(converted.rendering.accumulationFrames).toBe(0);
+		expect(converted.rendering.accumulationFramesMobile).toBe(0);
 		expect(converted.postprocessing.effects).toStrictEqual([
 			{
 				type: "hbao",
@@ -219,6 +228,7 @@ describe("settings V7.2", () => {
 		settingsV7_1.material.physicalGemDispersion = true;
 		settingsV7_1.material.gemTracing = "facets";
 		settingsV7_1.material.gemNormalMapResolution = 512;
+		settingsV7_1.rendering.accumulationFrames = 16;
 		settingsV7_1.postprocessing.effects = [
 			{type: "hbao", properties: {intensity: 2, excludeGems: true}},
 			{
@@ -241,6 +251,8 @@ describe("settings V7.2", () => {
 		expect(converted.material.physicalGemDispersion).toBe(true);
 		expect(converted.material.gemTracing).toBe("facets");
 		expect(converted.material.gemNormalMapResolution).toBe(512);
+		expect(converted.rendering.accumulationFrames).toBe(16);
+		expect(converted.rendering.accumulationFramesMobile).toBe(0);
 		expect(converted.postprocessing.effects).toStrictEqual([
 			{type: "hbao", properties: {intensity: 2, excludeGems: true}},
 			{
@@ -294,6 +306,10 @@ describe("settings V7.2", () => {
 		expect(converted.material).not.toHaveProperty("physicalGemDispersion");
 		expect(converted.material).not.toHaveProperty("gemTracing");
 		expect(converted.material).not.toHaveProperty("gemNormalMapResolution");
+		expect(converted.rendering).not.toHaveProperty("accumulationFrames");
+		expect(converted.rendering).not.toHaveProperty(
+			"accumulationFramesMobile",
+		);
 		expect(() => validate(converted, "7.1")).not.toThrow();
 		// the input must not be changed
 		expect(JSON.stringify(settingsV7_2)).toBe(before);
@@ -344,6 +360,8 @@ describe("settings V7.2", () => {
 		settings.rendering.toneMapping = "AgX";
 		settings.environment.mapPbrMode = "modern";
 		settings.environment.mapOrientation = "threejs";
+		settings.rendering.accumulationFrames = 16;
+		settings.rendering.accumulationFramesMobile = 8;
 		const roundTripped = <ISettingsV7_2>(
 			JSON.parse(JSON.stringify(settings))
 		);
@@ -356,6 +374,8 @@ describe("settings V7.2", () => {
 		expect(converted.rendering.toneMapping).toBe("AgX");
 		expect(converted.environment.mapPbrMode).toBe("modern");
 		expect(converted.environment.mapOrientation).toBe("threejs");
+		expect(converted.rendering.accumulationFrames).toBe(16);
+		expect(converted.rendering.accumulationFramesMobile).toBe(8);
 		expect(converted.postprocessing.effects[0].properties).toMatchObject({
 			mode: "shading",
 			excludeGems: true,
