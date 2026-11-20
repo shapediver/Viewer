@@ -201,6 +201,7 @@ const createGemMaterial = () =>
 		viewport.updateNode(session.node);
 		viewport.render();
 	}
-	// read by capture.mjs
+	// read by capture.mjs; SDV lets capture scripts apply settings presets
+	(<any>window).SDV = SDV;
 	(<any>window).exampleReady = true;
 })();
