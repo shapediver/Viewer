@@ -60,6 +60,8 @@ export class GeometryLoader implements ILoader {
 	} = {};
 	private _geometryObjects = new WeakMap<GeometryData, Set<GeometryType>>();
 	// The shared geometry of a mesh that shows a back and front material pair
+	// meshes that left the scene, they are no users of a split geometry
+	private _releasedMeshes = new WeakSet<THREE.Object3D>();
 	// the split geometry of a shared geometry, one for all meshes that show it
 	private _splitOfSource = new WeakMap<
 		THREE.BufferGeometry,
@@ -337,6 +339,8 @@ export class GeometryLoader implements ILoader {
 		if (cachedGeometry) {
 			cachedGeometry.counter++;
 			threeGeometryObject = cachedGeometry.obj;
+			// a mesh released on removal can be shown again
+			this._releasedMeshes.delete(threeGeometryObject);
 			threeGeometryObject.material = material;
 
 			// Conventional InstancedMeshes are still used for explicit InstanceData.
@@ -566,11 +570,11 @@ export class GeometryLoader implements ILoader {
 		object: GeometryType,
 		material: THREE.Material,
 	): void {
-		// a removed mesh stays in _geometryObjects but is no user of a split
+		// a released mesh stays in _geometryObjects but is no user of a split
 		if (
 			!(object instanceof THREE.Mesh) ||
 			object instanceof THREE.InstancedMesh ||
-			object.userData.removed === true
+			this._releasedMeshes.has(object)
 		) {
 			object.material = material;
 			return;
@@ -647,7 +651,9 @@ export class GeometryLoader implements ILoader {
 
 	/** Release what a mesh holds for its back and front pair. */
 	public releaseSideSplit(object: THREE.Object3D): void {
-		if (object instanceof THREE.Mesh) this.mergeGeometry(object);
+		if (!(object instanceof THREE.Mesh)) return;
+		this.mergeGeometry(object);
+		this._releasedMeshes.add(object);
 	}
 
 	public updateGeometryMaterial(geometry: GeometryData): void {
@@ -862,6 +868,7 @@ export class GeometryLoader implements ILoader {
 			geometryObjects = new Set();
 			this._geometryObjects.set(geometry, geometryObjects);
 		}
+		this._releasedMeshes.delete(object);
 		geometryObjects.add(object as GeometryType);
 		// a clone of a mesh with a back and front pair shares its geometry
 		if (object instanceof THREE.Mesh)
