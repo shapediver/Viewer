@@ -35,6 +35,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
 	environmentMapRotation: quat;
 	readonly effectiveEnvironmentMapRotation: quat;
 	gemNormalMapResolution: number;
+	gemEnvironmentMapIntensity: number;
 	gemTracing: "sphere" | "facets";
 	gridColor: Color;
 	gridVisibility: boolean;
@@ -53,6 +54,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
 
 	outputEncoding: TEXTURE_ENCODING;
 	physicalGemDispersion: boolean;
+	physicalGemFresnel: boolean;
 	physicallyCorrectLights: boolean;
 	postRenderCallback?: (
 		renderer: THREE.WebGLRenderer,

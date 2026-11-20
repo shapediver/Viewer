@@ -66,6 +66,16 @@ export interface ISettings extends IGlobalSettings {
 		 */
 		physicalGemDispersion: boolean;
 		/**
+		 * Whether the light inside gems leaves the stone by the physical Fresnel weights.
+		 * Settings converted from before 7.2 use false.
+		 */
+		physicalGemFresnel: boolean;
+		/**
+		 * Factor on the environment light that gems receive.
+		 * Settings converted from before 7.2 use 1.
+		 */
+		gemEnvironmentMapIntensity: number;
+		/**
 		 * How gems are traced.
 		 * Settings converted from before 7.2 use "sphere".
 		 */

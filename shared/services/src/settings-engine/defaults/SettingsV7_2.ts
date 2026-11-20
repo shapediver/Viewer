@@ -45,6 +45,8 @@ export type ISettingsV7_2 = Omit<
 	};
 	material: ISettings["material"] & {
 		physicalGemDispersion: boolean;
+		physicalGemFresnel: boolean;
+		gemEnvironmentMapIntensity: number;
 		gemTracing: "sphere" | "facets";
 		gemNormalMapResolution: 256 | 512 | 1024;
 	};
@@ -62,6 +64,9 @@ export const NEW_LOOK_V7_2 = {
 	},
 	material: {
 		physicalGemDispersion: true,
+		// TODO SS-10532: default still to be decided by Michael
+		physicalGemFresnel: false,
+		gemEnvironmentMapIntensity: 1,
 		gemTracing: "facets",
 		gemNormalMapResolution: 512,
 	},

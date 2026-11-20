@@ -193,6 +193,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		: {width: 1920, height: 1080};
 	private _pause: boolean = false;
 	private _physicalGemDispersion: boolean = false;
+	private _physicalGemFresnel: boolean = false;
+	private _gemEnvironmentMapIntensity: number = 1;
 	private _postRenderingCallback?:
 		| ((
 				renderer: THREE.WebGLRenderer,
@@ -713,6 +715,15 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._geometryLoader.recaptureGemNormalMaps();
 	}
 
+	public get gemEnvironmentMapIntensity(): number {
+		return this._gemEnvironmentMapIntensity;
+	}
+
+	public set gemEnvironmentMapIntensity(value: number) {
+		this._gemEnvironmentMapIntensity = value;
+		this._materialLoader.assignGemEnvironmentMapIntensity(value);
+	}
+
 	public get gemTracing(): "sphere" | "facets" {
 		return this._gemTracing;
 	}
@@ -930,6 +941,15 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	public set physicalGemDispersion(value: boolean) {
 		this._physicalGemDispersion = value;
 		this._materialLoader.assignPhysicalGemDispersion(value);
+	}
+
+	public get physicalGemFresnel(): boolean {
+		return this._physicalGemFresnel;
+	}
+
+	public set physicalGemFresnel(value: boolean) {
+		this._physicalGemFresnel = value;
+		this._materialLoader.assignPhysicalGemFresnel(value);
 	}
 
 	public get pointSize(): number {
