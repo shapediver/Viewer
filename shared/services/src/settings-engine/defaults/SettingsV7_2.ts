@@ -14,6 +14,7 @@ type IBloomEffect = {
 		mipmapBlur?: boolean;
 		backgroundBloom: boolean;
 		highlightsOnly: boolean;
+		highlightLimit?: number;
 	};
 };
 

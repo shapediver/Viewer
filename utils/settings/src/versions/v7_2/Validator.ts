@@ -85,6 +85,8 @@ const bloomEffectSchema = z.object({
 			mipmapBlur: z.boolean().optional(),
 			backgroundBloom: z.boolean(),
 			highlightsOnly: z.boolean(),
+			// optional: an unset value means 8 at runtime (the look before the option existed)
+			highlightLimit: zNumOrInf.optional(),
 		})
 		.optional(),
 	type: z.literal("bloom"),

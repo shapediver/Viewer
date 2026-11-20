@@ -75,7 +75,10 @@ import {HBAOEffect} from "./postprocessing/ao/hbao/HBAOEffect";
 import {PoissionDenoisePass} from "./postprocessing/ao/poissionDenoise/PoissionDenoisePass";
 import {SSAOEffect} from "./postprocessing/ao/ssao/SSAOEffect";
 import {BackgroundMaskedBloomEffect} from "./postprocessing/effects/bloom/BackgroundMaskedBloomEffect";
-import {HighlightBloomEffect} from "./postprocessing/effects/bloom/HighlightBloomEffect";
+import {
+	DEFAULT_HIGHLIGHT_LIMIT,
+	HighlightBloomEffect,
+} from "./postprocessing/effects/bloom/HighlightBloomEffect";
 import {ToneMappingEffect} from "./postprocessing/effects/tone-mapping/ToneMappingEffect";
 import {GodRaysManager} from "./postprocessing/GodRaysManager";
 import {OutlineManager} from "./postprocessing/OutlineManager";
@@ -476,9 +479,13 @@ export class PostProcessingManager implements IManager {
 									? new BackgroundMaskedBloomEffect(
 											bloomOptions,
 											highlightsOnly,
+											properties.highlightLimit,
 										)
 									: highlightsOnly
-										? new HighlightBloomEffect(bloomOptions)
+										? new HighlightBloomEffect(
+												bloomOptions,
+												properties.highlightLimit,
+											)
 										: new BloomEffect(bloomOptions),
 						});
 					}
@@ -1238,6 +1245,7 @@ export class PostProcessingManager implements IManager {
 					blendFunction: BlendFunction.ADD,
 					intensity: 1.0,
 					kernelSize: KernelSize.LARGE,
+					highlightLimit: DEFAULT_HIGHLIGHT_LIMIT,
 					highlightsOnly: false,
 					luminanceSmoothing: 0.025,
 					luminanceThreshold: 0.9,
@@ -1427,6 +1435,7 @@ export class PostProcessingManager implements IManager {
 							properties: {
 								backgroundBloom: properties.backgroundBloom,
 								blendFunction: properties.blendFunction,
+								highlightLimit: properties.highlightLimit,
 								highlightsOnly: properties.highlightsOnly,
 								luminanceThreshold:
 									properties.luminanceThreshold,
