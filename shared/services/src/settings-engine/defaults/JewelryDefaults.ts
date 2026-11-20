@@ -73,7 +73,8 @@ export const JewelryDefaults: () => ISettings = () => {
 					// a glow on the brightest highlights only; the threshold,
 					// smoothing and mipmap blur use the highlight defaults
 					properties: {
-						intensity: 1,
+						// stronger bloom puts halos around every pavé stone
+						intensity: 0.25,
 						highlightsOnly: true,
 						backgroundBloom: false,
 					},
@@ -92,7 +93,8 @@ export const JewelryDefaults: () => ISettings = () => {
 			softShadows: true,
 			textureEncoding: "srgb",
 			toneMapping: "neutral",
-			toneMappingExposure: 1,
+			// brings the gold under jewelry_studio closer to the WebGi reference (SS-10494)
+			toneMappingExposure: 1.4,
 		},
 		session: {},
 		material: {
