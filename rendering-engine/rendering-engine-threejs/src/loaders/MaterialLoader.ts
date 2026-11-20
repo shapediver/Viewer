@@ -99,6 +99,14 @@ type ThreeJsTextureCacheObject = {
 	initialized: boolean;
 };
 
+type SidePair = {
+	source: THREE.Material;
+	back: THREE.Material;
+	front: THREE.Material;
+	backKey: string;
+	frontKey: string;
+};
+
 // #endregion Type aliases (6)
 
 // #region Classes (1)
@@ -135,8 +143,14 @@ export class MaterialLoader implements ILoader {
 			materialData: IMaterialAbstractData | null;
 			material: ThreeJsMaterialTypes;
 			materialSettings?: MaterialSettings;
+			/** a derived back or front material, see renderMaterialFor */
+			sidePair?: true;
 		};
 	} = {};
+	// The back and front material of every source material that is drawn in
+	// two passes. Looked up by the source and by either derived material.
+	private readonly _sidePairs = new Map<THREE.Material, SidePair>();
+	private readonly _sidePairOf = new WeakMap<THREE.Material, SidePair>();
 	// no occlusion (alpha 1) until the shading pass provides the AO texture;
 	// three binds a black texture for null, which would occlude everything
 	private readonly _screenAONone = (() => {
@@ -213,6 +227,7 @@ export class MaterialLoader implements ILoader {
 			this._materialCache[key].material.dispose();
 			delete this._materialCache[key];
 		}
+		this._sidePairs.clear();
 		this._sceneTree.root.updateVersion();
 	}
 
@@ -526,6 +541,22 @@ uniform vec3 sdvScreenAOColor;
 				material.needsUpdate = true;
 				material.userData.SDid = SDid;
 				material.userData.SDversion = SDversion;
+				// copy takes the side of the default material. A derived back
+				// or front material keeps its own side and is drawn only if
+				// the default material shows that side.
+				const pair = this._sidePairOf.get(material);
+				if (pair) {
+					const defaultSide = material.side;
+					const isBack = material === pair.back;
+					material.visible =
+						defaultSide === THREE.DoubleSide ||
+						defaultSide ===
+							(isBack ? THREE.BackSide : THREE.FrontSide);
+					material.side = isBack ? THREE.BackSide : THREE.FrontSide;
+					if (typeof trackedKey === "string")
+						material.userData.cacheKey = trackedKey;
+					continue;
+				}
 				if (!batch) continue;
 				material.onBeforeCompile = compile;
 				material.userData.materialBatch = true;
@@ -1003,7 +1034,141 @@ uniform vec3 sdvScreenAOColor;
 	}
 
 	public cacheSize() {
-		return Object.entries(this._materialCache).length;
+		return Object.values(this._materialCache).filter(
+			(entry) => entry.sidePair !== true,
+		).length;
+	}
+
+	/**
+	 * Adds the soft shadow uniforms and the screen space ambient occlusion
+	 * patch to the shader of the material and keeps the compiled shader in
+	 * `userData.shader` for {@link updateSoftShadow}.
+	 */
+	private attachCompileHook(material: THREE.Material): void {
+		const before = material.onBeforeCompile;
+		material.onBeforeCompile = (
+			shader: THREE.WebGLProgramParametersWithUniforms,
+			renderer: THREE.WebGLRenderer,
+		) => {
+			before(shader, renderer);
+			// Only add uniforms once per shader program to improve performance
+			if (!shader.uniforms.lightSizeUV) {
+				shader.uniforms.lightSizeUV = {
+					value: this._lightSizeUV,
+				};
+				shader.uniforms.blending = {value: this._blending};
+				// shared by reference, the shading pass updates them
+				shader.uniforms.sdvScreenAOMap =
+					this._screenAOUniforms.sdvScreenAOMap;
+				shader.uniforms.sdvScreenAOPower =
+					this._screenAOUniforms.sdvScreenAOPower;
+				shader.uniforms.sdvScreenAOColor =
+					this._screenAOUniforms.sdvScreenAOColor;
+			}
+			this.patchScreenSpaceAmbientOcclusion(shader);
+			material.userData.shader = shader;
+		};
+	}
+
+	/**
+	 * three.js draws a transparent double-sided material in two passes (back
+	 * faces, then front faces) and flips `material.side` plus `needsUpdate`
+	 * for each of them, which looks the material up again twice per draw.
+	 * Such a mesh gets a fixed back and front material instead, in two
+	 * geometry groups. The pair draws the same picture in the same order.
+	 *
+	 * Returns the pair `[back, front]` for a material that takes this path
+	 * and the material itself for every other one. Only materials of this
+	 * loader's cache qualify; the pair is cached next to its source.
+	 *
+	 * Materials with depth write off are left alone: they can be batched,
+	 * and a mesh with an array material cannot. Transmission needs the extra
+	 * back pass of the renderer, and a gem is drawn by its own shader.
+	 */
+	public renderMaterialFor(
+		material: THREE.Material,
+	): THREE.Material | THREE.Material[] {
+		const pair = this._sidePairs.get(material);
+		if (
+			!material.transparent ||
+			!material.depthWrite ||
+			material.side !== THREE.DoubleSide ||
+			material.forceSinglePass ||
+			material instanceof GemMaterial ||
+			((material as THREE.MeshPhysicalMaterial).transmission ?? 0) > 0
+		)
+			return material;
+		const key = material.userData.cacheKey;
+		const entry = typeof key === "string" ? this._materialCache[key] : null;
+		if (!entry || entry.material !== material) return material;
+		if (
+			pair &&
+			this._materialCache[pair.backKey]?.material === pair.back &&
+			this._materialCache[pair.frontKey]?.material === pair.front
+		)
+			return [pair.back, pair.front];
+
+		const create = (side: THREE.Side, suffix: string): THREE.Material => {
+			// Material.clone() deep-copies userData through JSON, which would
+			// serialize the textures of the compiled shader. Clone without it.
+			const userData = material.userData;
+			material.userData = {};
+			let derived: THREE.Material;
+			try {
+				derived = material.clone();
+			} finally {
+				material.userData = userData;
+			}
+			derived.userData = {...userData, cacheKey: key + suffix};
+			delete derived.userData.shader;
+			derived.side = side;
+			// copy resets the defines (environment map type, PBR mode)
+			const defines = (material as {defines?: Record<string, string>})
+				.defines;
+			if (defines)
+				(derived as {defines?: Record<string, string>}).defines = {
+					...defines,
+				};
+			this.attachCompileHook(derived);
+			this._materialCache[key + suffix] = {
+				material: derived as ThreeJsMaterialTypes,
+				materialData: entry.materialData,
+				materialSettings: entry.materialSettings,
+				sidePair: true,
+			};
+			return derived;
+		};
+		const created: SidePair = {
+			source: material,
+			back: create(THREE.BackSide, "#back"),
+			front: create(THREE.FrontSide, "#front"),
+			backKey: key + "#back",
+			frontKey: key + "#front",
+		};
+		this._sidePairs.set(material, created);
+		this._sidePairOf.set(created.back, created);
+		this._sidePairOf.set(created.front, created);
+		return [created.back, created.front];
+	}
+
+	/** The material a derived back or front material was made from. */
+	public sourceMaterialOf(
+		material: THREE.Material | THREE.Material[],
+	): THREE.Material {
+		const first = Array.isArray(material) ? material[0] : material;
+		return this._sidePairOf.get(first)?.source ?? first;
+	}
+
+	private removeSidePair(source: THREE.Material): void {
+		const pair = this._sidePairs.get(source);
+		if (!pair) return;
+		this._sidePairs.delete(source);
+		for (const key of [pair.backKey, pair.frontKey]) {
+			this._materialCache[key]?.material.dispose();
+			delete this._materialCache[key];
+		}
+		pair.back.dispose();
+		pair.front.dispose();
 	}
 
 	public createMaterial(
@@ -1085,29 +1250,7 @@ uniform vec3 sdvScreenAOColor;
 						material = new THREE.MeshPhysicalMaterial(properties);
 					}
 				}
-				const before = material.onBeforeCompile;
-				material.onBeforeCompile = (
-					shader: THREE.WebGLProgramParametersWithUniforms,
-					renderer: THREE.WebGLRenderer,
-				) => {
-					before(shader, renderer);
-					// Only add uniforms once per shader program to improve performance
-					if (!shader.uniforms.lightSizeUV) {
-						shader.uniforms.lightSizeUV = {
-							value: this._lightSizeUV,
-						};
-						shader.uniforms.blending = {value: this._blending};
-						// shared by reference, the shading pass updates them
-						shader.uniforms.sdvScreenAOMap =
-							this._screenAOUniforms.sdvScreenAOMap;
-						shader.uniforms.sdvScreenAOPower =
-							this._screenAOUniforms.sdvScreenAOPower;
-						shader.uniforms.sdvScreenAOColor =
-							this._screenAOUniforms.sdvScreenAOColor;
-					}
-					this.patchScreenSpaceAmbientOcclusion(shader);
-					material.userData.shader = shader;
-				};
+				this.attachCompileHook(material);
 				if (
 					material instanceof SpecularGlossinessMaterial ||
 					material instanceof THREE.MeshPhysicalMaterial
@@ -1188,6 +1331,7 @@ uniform vec3 sdvScreenAOColor;
 
 	public emptyMaterialCache() {
 		this._materialCache = {};
+		this._sidePairs.clear();
 		this._shaderProgramCache.clear();
 		this._compiledShaderSignatures.clear();
 	}
@@ -2357,6 +2501,7 @@ uniform vec3 sdvScreenAOColor;
 
 	public removeFromMaterialCache(cacheKey: string): void {
 		if (!this._materialCache[cacheKey]) return;
+		this.removeSidePair(this._materialCache[cacheKey].material);
 		this._materialCache[cacheKey].material.dispose();
 		delete this._materialCache[cacheKey];
 	}

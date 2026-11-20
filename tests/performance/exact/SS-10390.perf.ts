@@ -758,14 +758,19 @@ test("SS-10390 transparent panes stay individual meshes", async ({page}) => {
 		};
 		const paneA = meshOf("paneA");
 		const paneB = meshOf("paneB");
+		// SS-10483: a transparent double-sided pane shows a back and front
+		// material pair; both have the same transparency and depth write
+		const shown = Array.isArray(paneA?.material)
+			? paneA.material[0]
+			: paneA?.material;
 		return {
 			visible: [paneA?.visible ?? null, paneB?.visible ?? null],
 			batched: [
 				Boolean(paneA?.userData?.batchedMesh),
 				Boolean(paneB?.userData?.batchedMesh),
 			],
-			transparent: paneA?.material?.transparent ?? null,
-			depthWrite: paneA?.material?.depthWrite ?? null,
+			transparent: shown?.transparent ?? null,
+			depthWrite: shown?.depthWrite ?? null,
 		};
 	});
 	expect(result.visible, JSON.stringify(result)).toEqual([true, true]);

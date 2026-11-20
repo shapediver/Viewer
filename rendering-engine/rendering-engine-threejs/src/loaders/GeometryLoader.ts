@@ -59,6 +59,20 @@ export class GeometryLoader implements ILoader {
 		};
 	} = {};
 	private _geometryObjects = new WeakMap<GeometryData, Set<GeometryType>>();
+	// The shared geometry of a mesh that shows a back and front material pair
+	// meshes that left the scene, they are no users of a split geometry
+	private _releasedMeshes = new WeakSet<THREE.Object3D>();
+	// the split geometry of a shared geometry, one for all meshes that show it
+	private _splitOfSource = new WeakMap<
+		THREE.BufferGeometry,
+		THREE.BufferGeometry
+	>();
+	// per split geometry: the shared geometry and the meshes that show it (a
+	// clone of a mesh shares the split geometry of the original)
+	private _sideSplits = new WeakMap<
+		THREE.BufferGeometry,
+		{source: THREE.BufferGeometry; users: Set<THREE.Mesh>}
+	>();
 	private _logger: Logger = Logger.instance;
 	private _primitiveCache: {
 		[key: string]: {
@@ -325,6 +339,8 @@ export class GeometryLoader implements ILoader {
 		if (cachedGeometry) {
 			cachedGeometry.counter++;
 			threeGeometryObject = cachedGeometry.obj;
+			// a mesh released on removal can be shown again
+			this._releasedMeshes.delete(threeGeometryObject);
 			threeGeometryObject.material = material;
 
 			// Conventional InstancedMeshes are still used for explicit InstanceData.
@@ -360,6 +376,8 @@ export class GeometryLoader implements ILoader {
 					geometry.primitive.id + "_" + geometry.primitive.version,
 			};
 		}
+
+		this.applyMaterial(threeGeometryObject, material);
 
 		threeGeometryObject.castShadow = geometry.castShadow;
 		threeGeometryObject.receiveShadow = !(material instanceof GemMaterial)
@@ -536,8 +554,106 @@ export class GeometryLoader implements ILoader {
 			source = geometry.material;
 		}
 		const current = (object as THREE.Mesh).material;
-		if (!current || Array.isArray(current)) return false;
-		return current.userData.SDid !== (source || geometry).id;
+		if (!current) return false;
+		// a back and front pair carries the ids of its source
+		const shown = Array.isArray(current) ? current[0] : current;
+		if (!shown) return false;
+		return shown.userData.SDid !== (source || geometry).id;
+	}
+
+	/**
+	 * Show the material on the object. A transparent double-sided material
+	 * is shown as a fixed back and front pair over two geometry groups, see
+	 * MaterialLoader.renderMaterialFor.
+	 */
+	private applyMaterial(
+		object: GeometryType,
+		material: THREE.Material,
+	): void {
+		// a released mesh stays in _geometryObjects but is no user of a split
+		if (
+			!(object instanceof THREE.Mesh) ||
+			object instanceof THREE.InstancedMesh ||
+			this._releasedMeshes.has(object)
+		) {
+			object.material = material;
+			return;
+		}
+		const shown =
+			this._renderingEngine.materialLoader.renderMaterialFor(material);
+		if (Array.isArray(shown) && this.splitGeometry(object)) {
+			object.material = shown;
+			return;
+		}
+		this.mergeGeometry(object);
+		object.material = Array.isArray(shown) ? material : shown;
+	}
+
+	/**
+	 * Give the mesh its own geometry with a back and a front group. It
+	 * shares the attributes of the primitive geometry, which stays as it is
+	 * for the meshes that share it (a batch rejects a geometry with groups).
+	 */
+	private splitGeometry(mesh: THREE.Mesh): boolean {
+		const existing = this._sideSplits.get(mesh.geometry);
+		if (existing) {
+			existing.users.add(mesh);
+			return true;
+		}
+		const source = mesh.geometry;
+		const shared = this._splitOfSource.get(source);
+		if (shared) {
+			this._sideSplits.get(shared)?.users.add(mesh);
+			mesh.geometry = shared;
+			return true;
+		}
+		const index = source.getIndex();
+		const count = index
+			? index.count
+			: source.getAttribute("position")?.count;
+		if (!count) return false;
+		const split = new THREE.BufferGeometry();
+		if (index) split.setIndex(index);
+		for (const name in source.attributes)
+			split.setAttribute(name, source.attributes[name]);
+		split.morphAttributes = {...source.morphAttributes};
+		split.morphTargetsRelative = source.morphTargetsRelative;
+		split.boundingBox = source.boundingBox?.clone() ?? null;
+		split.boundingSphere = source.boundingSphere?.clone() ?? null;
+		split.drawRange = {...source.drawRange};
+		split.addGroup(0, count, 0);
+		split.addGroup(0, count, 1);
+		this._sideSplits.set(split, {source, users: new Set([mesh])});
+		this._splitOfSource.set(source, split);
+		mesh.geometry = split;
+		return true;
+	}
+
+	/** Give the mesh its shared geometry back. */
+	private mergeGeometry(mesh: THREE.Mesh): void {
+		const split = mesh.geometry;
+		const entry = this._sideSplits.get(split);
+		if (!entry) return;
+		entry.users.delete(mesh);
+		mesh.geometry = entry.source;
+		// a clone may still show it
+		if (entry.users.size > 0) return;
+		this._sideSplits.delete(split);
+		this._splitOfSource.delete(entry.source);
+		// dispose frees the buffers of the attributes it holds, and those
+		// belong to the shared geometry
+		for (const name of Object.keys(split.attributes))
+			split.deleteAttribute(name);
+		split.setIndex(null);
+		split.morphAttributes = {};
+		split.dispose();
+	}
+
+	/** Release what a mesh holds for its back and front pair. */
+	public releaseSideSplit(object: THREE.Object3D): void {
+		if (!(object instanceof THREE.Mesh)) return;
+		this.mergeGeometry(object);
+		this._releasedMeshes.add(object);
 	}
 
 	public updateGeometryMaterial(geometry: GeometryData): void {
@@ -722,7 +838,7 @@ export class GeometryLoader implements ILoader {
 		];
 		geometryObjects.forEach((geometryObject) => {
 			this._renderingEngine.pulseEffectManager.clear(geometryObject);
-			geometryObject.material = material;
+			this.applyMaterial(geometryObject, material);
 			geometryObject.receiveShadow =
 				material instanceof GemMaterial
 					? false
@@ -752,7 +868,11 @@ export class GeometryLoader implements ILoader {
 			geometryObjects = new Set();
 			this._geometryObjects.set(geometry, geometryObjects);
 		}
+		this._releasedMeshes.delete(object);
 		geometryObjects.add(object as GeometryType);
+		// a clone of a mesh with a back and front pair shares its geometry
+		if (object instanceof THREE.Mesh)
+			this._sideSplits.get(object.geometry)?.users.add(object);
 		this._renderingEngine.pulseEffectManager.update(geometry, [
 			object as GeometryType,
 		]);

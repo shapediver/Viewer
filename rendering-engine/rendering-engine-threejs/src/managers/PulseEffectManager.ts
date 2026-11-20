@@ -27,7 +27,7 @@ export class PulseEffectManager {
 			blendColor: THREE.Color;
 			baseColor: THREE.Color;
 			baseOpacity?: number;
-			baseMaterial: THREE.Material;
+			baseMaterial: THREE.Material | THREE.Material[];
 			effectColor: THREE.Color;
 			colorDefinition?: Color;
 			effect: IPulseEffectDefinition;
@@ -91,8 +91,13 @@ export class PulseEffectManager {
 				)
 			)
 				continue;
-			const source = object.material;
-			if (Array.isArray(source) || !("color" in source)) continue;
+			// A back and front pair is pulsed through its source material
+			// (drawn in two passes while it pulses) and comes back afterwards.
+			const base = object.material;
+			const source =
+				this._renderingEngine.materialLoader.sourceMaterialOf(base);
+			if (Array.isArray(base) && source === base[0]) continue;
+			if (!("color" in source)) continue;
 
 			// Material.clone() deep-copies userData through JSON. The material
 			// loader stores the compiled shader (with its texture uniforms) in
@@ -122,7 +127,7 @@ export class PulseEffectManager {
 					material.transparent && "opacity" in material
 						? material.opacity
 						: undefined,
-				baseMaterial: source,
+				baseMaterial: base,
 				blendColor: this.getBlendColor(baseColor, effectColor),
 				colorDefinition: effect.color,
 				effect,

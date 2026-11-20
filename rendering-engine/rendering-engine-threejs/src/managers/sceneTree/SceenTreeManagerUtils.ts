@@ -59,20 +59,27 @@ export const removeData = (
 					renderingEngine.scene.remove(o);
 					renderingEngine.pulseEffectManager.remove(o);
 
+					// a back and front pair is released with its source
+					renderingEngine.geometryLoader.releaseSideSplit(o);
+					const material =
+						renderingEngine.materialLoader.sourceMaterialOf(
+							o.material,
+						) as typeof o.material;
+
 					renderingEngine.geometryLoader.removeFromGeometryCache(
 						o.userData.cacheKey,
 					);
 					renderingEngine.materialLoader.removeFromMaterialCache(
-						o.material.userData.cacheKey,
+						material.userData.cacheKey,
 					);
 
 					const texturesToRemove: THREE.Texture[] = [];
-					for (const t in o.material) {
-						if (o.material[t] instanceof THREE.Texture) {
-							o.material[t].name = t;
+					for (const t in material) {
+						if (material[t] instanceof THREE.Texture) {
+							material[t].name = t;
 							if (t !== "envMap") {
-								if (!texturesToRemove.includes(o.material[t]))
-									texturesToRemove.push(o.material[t]);
+								if (!texturesToRemove.includes(material[t]))
+									texturesToRemove.push(material[t]);
 							}
 						}
 					}
