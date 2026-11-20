@@ -111,7 +111,10 @@ export class ContactShadow implements IEnvironmentGeometry {
 		if (value) {
 			// The target was not rendered while hidden: draw it on the
 			// next frame, also when the caller does not call update().
+			// An idle viewport clears the flag without a frame, so ask
+			// for a frame as well.
 			this._renderingEngine.renderingManager.updateShadowMap();
+			this._renderingEngine.renderingManager.render();
 		} else {
 			this.disposeDepthMaterials();
 		}
