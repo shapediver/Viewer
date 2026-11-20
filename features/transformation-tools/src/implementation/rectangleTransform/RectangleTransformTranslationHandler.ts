@@ -141,6 +141,9 @@ export class RectangleTransformTranslationHandler
 			viewport.id,
 			(event, ray) => this.pointerClaim(event, ray),
 			this.#interactionEngine,
+			// the transformed nodes are selected by the press itself (a press
+			// on the object acts on it)
+			{nodes: this.#transformedNodes},
 		);
 		this.#interactionEngine.pointerDownFilter = (event) =>
 			this.pointerDownAllowed(event);
@@ -315,26 +318,46 @@ export class RectangleTransformTranslationHandler
 
 	/**
 	 * The claim of the pointer (see InteractionEngine.addPointerDownClaim).
-	 * Over the plane its distance is the closest hit of the plane or of the
-	 * transformed objects: an object of this handler in front of its plane
-	 * still belongs to it, an object of another tool in front of both wins.
+	 * Over the plane its distance is the closest hit of the rectangle's base
+	 * plane or of the transformed objects: an object of this handler in front
+	 * of its plane still belongs to it, an object of another tool in front of
+	 * both wins. The plane mesh is offset toward the camera, so an object
+	 * lying within that offset (e.g. text on a banner) must not lose to it.
+	 * Geometry of a nested interactive object is not this rectangle's
+	 * surface: it stays in front of the claim and receives the pointer.
 	 */
 	private pointerClaim(event: PointerEvent, ray: IRay): PointerClaim {
 		if (this.#interactionEngine.paused) return false;
 		if (this.#isDragging) return true;
 		// a hovered or dragged handle claims the pointer itself
 		if (this.#isInteractionBlocked()) return false;
-		// a preview leaves the hover to the objects (e.g. its own object keeps
-		// its hover effect)
-		if (this.#options.isPreview?.() && event.type === "pointermove")
-			return false;
 		if (event.type === "pointerdown" && !this.pointerDownAllowed(event))
 			return false;
 		const planeDistance = this.planeDistance(ray);
 		if (planeDistance === Infinity && !this.#options.translateOnObjects)
 			return false;
-		const distance = Math.min(planeDistance, this.objectDistance(ray));
+		const distance = Math.min(
+			this.basePlaneDistance(ray, planeDistance),
+			this.ownSurfaceDistance(ray),
+		);
 		return distance === Infinity ? false : distance;
+	}
+
+	/**
+	 * The distance along the ray to the rectangle's plane without the
+	 * PLANE_Z_OFFSET of the plane mesh, given the hit distance of the mesh.
+	 */
+	private basePlaneDistance(ray: IRay, planeDistance: number): number {
+		if (planeDistance === Infinity) return Infinity;
+		const M = this.#parentNode.worldMatrix;
+		const normal = vec3.normalize(
+			vec3.create(),
+			vec3.fromValues(M[8], M[9], M[10]),
+		);
+		const direction = vec3.normalize(vec3.create(), ray.direction);
+		const cos = vec3.dot(normal, direction);
+		if (Math.abs(cos) < 1e-9) return planeDistance;
+		return Math.max(0, planeDistance - PLANE_Z_OFFSET / cos);
 	}
 
 	/**
@@ -355,6 +378,18 @@ export class RectangleTransformTranslationHandler
 
 	private planeDistance(ray: IRay): number {
 		return this.#interactionEngine.closestHitDistance(ray, [this.#node]);
+	}
+
+	/**
+	 * The rectangle's own surface. A nested object with its own interaction
+	 * (the text on a banner) is not part of it, so it can win the pointer.
+	 */
+	private ownSurfaceDistance(ray: IRay): number {
+		return this.#interactionEngine.closestHitDistance(
+			ray,
+			this.#transformedNodes,
+			{excludeInteractiveDescendants: true},
+		);
 	}
 
 	/** The distance of the closest hit of the transformed objects. */

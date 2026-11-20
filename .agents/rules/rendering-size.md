@@ -1,8 +1,3 @@
----
-description: Drawing-buffer cap is in physical pixels, after the device pixel ratio
-alwaysApply: true
----
-
 # Drawing buffer size
 
 `maximumRenderingSize` caps the drawing buffer in physical pixels. `devicePixelRatio` (or `pixelRatioOverride`) is applied before the cap. The CSS size of the viewport can stay larger; the buffer is scaled down to fit.

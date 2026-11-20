@@ -27,6 +27,46 @@ import {
 	type SettingsOptional,
 } from "../interfaces/ITransformationToolsManager";
 
+/**
+ * Entries of a matrix closer to the identity than this count as the identity.
+ * Computing the matrix of a tool at rest leaves rounding errors, e.g. up to
+ * 4e-5 for a rectangle transform on a slanted plane, and a listener would
+ * take them for a move.
+ */
+const IDENTITY_TOLERANCE = 1e-4;
+
+/**
+ * The identity matrix if the given matrix is the identity up to rounding
+ * errors (see {@link IDENTITY_TOLERANCE}), the given matrix otherwise.
+ *
+ * @param extent The distance of the object from the origin: the rounding
+ * errors of the translation grow with it (the rotation errors applied around
+ * the position of the object, float32 coordinates).
+ */
+const snapToIdentity = (matrix: mat4, extent: number): mat4 => {
+	const identity = mat4.create();
+	for (let i = 0; i < 16; i++) {
+		// the translation (identity 0) against the distance of the object,
+		// the other entries relative to their value
+		const tolerance =
+			i >= 12 && i <= 14
+				? IDENTITY_TOLERANCE * Math.max(1, extent)
+				: IDENTITY_TOLERANCE * Math.max(1, Math.abs(matrix[i]));
+		if (Math.abs(matrix[i] - identity[i]) > tolerance) return matrix;
+	}
+	return identity;
+};
+
+/**
+ * The largest absolute coordinate of the bounding box of the node, 0 if the
+ * node has no bounding box.
+ */
+const extentOf = (node: ITreeNode): number => {
+	const box = node.boundingBox;
+	if (!box || box.isEmpty()) return 0;
+	return Math.max(...[...box.min, ...box.max].map(Math.abs));
+};
+
 export abstract class TransformationToolsManager implements ITransformationToolsManager {
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	#id: string;
@@ -697,11 +737,12 @@ export abstract class TransformationToolsManager implements ITransformationTools
 	}
 
 	/**
-	 * Write the tool matrix onto the nodes and refresh the scene.
+	 * Write the tool matrix onto the nodes.
 	 *
-	 * @param emit Report `MATRIX_CHANGED`. A drag omits it: the scene still
-	 * shows the matrix (a later scene update reads `node.transformations`),
-	 * and the event is sent once the gesture ends.
+	 * @param emit Report `MATRIX_CHANGED` and publish a new node version.
+	 * A drag omits both and applies the matrix with
+	 * `updateNodeTransformation`, so the object moves without rebuilding
+	 * its descendants. The event is sent once the gesture ends.
 	 */
 	protected updateObjectMatrices(emit = true): void {
 		const eventData: ITransformationToolsEvent = {
@@ -728,6 +769,7 @@ export abstract class TransformationToolsManager implements ITransformationTools
 			const localTransformationMatrix = localTransformationMatrices[i];
 
 			eventData.nodes.push(node);
+			const extent = extentOf(node);
 
 			if (localTransformationMatrix) {
 				// Compute the event transformation using the same formula
@@ -743,7 +785,9 @@ export abstract class TransformationToolsManager implements ITransformationTools
 						mat4.invert(mat4.create(), this.instanceTransform[i])!,
 						eventMatrix,
 					);
-					eventData.transformations.push(mat4.clone(eventMatrix));
+					eventData.transformations.push(
+						snapToIdentity(mat4.clone(eventMatrix), extent),
+					);
 				} else {
 					const eventDataMatrix = mat4.clone(eventMatrix);
 					mat4.multiply(
@@ -756,12 +800,17 @@ export abstract class TransformationToolsManager implements ITransformationTools
 						mat4.invert(mat4.create(), this.instanceTransform[i])!,
 						eventDataMatrix,
 					);
-					eventData.transformations.push(eventDataMatrix);
+					eventData.transformations.push(
+						snapToIdentity(eventDataMatrix, extent),
+					);
 				}
 
 				// Use the localTransformationMatrix as the new matrixId value
 				// (this is what gets stored in node.transformations).
-				const matrix = mat4.clone(localTransformationMatrix);
+				const matrix = snapToIdentity(
+					mat4.clone(localTransformationMatrix),
+					extent,
+				);
 
 				const transformation = node.transformations.find(
 					(t) => t.id === this.#matrixId,
@@ -785,12 +834,15 @@ export abstract class TransformationToolsManager implements ITransformationTools
 					mat4.invert(mat4.create(), this.instanceTransform[i])!,
 					matrix,
 				);
-				eventData.transformations.push(mat4.clone(matrix));
+				eventData.transformations.push(
+					snapToIdentity(mat4.clone(matrix), extent),
+				);
 				mat4.multiply(
 					matrix,
 					matrix,
 					mat4.invert(mat4.create(), this.initialTransform[i])!,
 				);
+				mat4.copy(matrix, snapToIdentity(matrix, extent));
 
 				const transformation = node.transformations.find(
 					(t) => t.id === this.#matrixId,
@@ -820,13 +872,16 @@ export abstract class TransformationToolsManager implements ITransformationTools
 					mat4.invert(mat4.create(), this.instanceTransform[i])!,
 					eventDataMatrix,
 				);
-				eventData.transformations.push(eventDataMatrix);
+				eventData.transformations.push(
+					snapToIdentity(eventDataMatrix, extent),
+				);
 
 				mat4.multiply(
 					matrix,
 					mat4.invert(mat4.create(), this.instanceTransform[i])!,
 					matrix,
 				);
+				mat4.copy(matrix, snapToIdentity(matrix, extent));
 
 				const transformation = node.transformations.find(
 					(t) => t.id === this.#matrixId,
@@ -842,13 +897,15 @@ export abstract class TransformationToolsManager implements ITransformationTools
 				}
 			}
 
-			node.updateVersion();
+			// updateVersion rebuilds this node and its descendants. A drag only
+			// needs the matrix on screen; the committed gesture is the one
+			// that publishes a new node version.
+			if (emit) node.updateVersion();
+			else this.#viewport.updateNodeTransformation(node);
 		});
 
-		// A drag writes the matrix without an event. The scene update that
-		// follows a node version change applies node.transformations, so the
-		// object moves while the pointer is down. Emitting here would report
-		// every move as a committed transformation.
+		// A drag writes the matrix and applies that transformation. Emitting
+		// here would report every move as a committed transformation.
 		if (!emit) return;
 
 		this.#eventEngine.emitEvent(

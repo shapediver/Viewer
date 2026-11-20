@@ -1,0 +1,17 @@
+{
+	"version": 1,
+	"hooks": {
+		"workspaceOpen": [
+			{
+				"command": "node scripts/agents/setup-worktree.mjs",
+				"timeout": 600
+			}
+		],
+		"sessionStart": [
+			{
+				"command": "node scripts/agents/setup-worktree.mjs",
+				"timeout": 600
+			}
+		]
+	}
+}

@@ -1,8 +1,3 @@
----
-description: When camera motion and the beauty fade may rebuild shadow materials
-alwaysApply: true
----
-
 # Beauty fade and shadow materials
 
 `activateBeautyRenderShaders` and `deactivateBeautyRenderShaders` both set `shadowMap.type` to `BasicShadowMap`. Camera start calls deactivate, and the fade after camera stop calls activate. Neither state changes the shadow program.

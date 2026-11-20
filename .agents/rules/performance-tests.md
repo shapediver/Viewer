@@ -1,0 +1,6 @@
+# Performance tests
+
+- `pnpm test:performance` runs `tests/performance/*.perf.ts` against a locally built `examples/test-cdn`. Build that example first (`pnpm build` in `examples/test-cdn`). The script is not part of `pnpm test` and does not run on CI.
+- These tests assert counts and identities: UUID creations, draw calls, canvas pixels, material side and three.js type, shader source, `preserveDrawingBuffer`, shared buffers, worker constructions. They do not assert milliseconds or FPS.
+- The suite launches installed Chrome (`channel: "chrome"`) with `--use-angle=d3d11`. Playwright's bundled Chromium on this machine is SwiftShader. This viewer turns shadows off when the renderer string is SwiftShader, so the contact-shadow test would not exercise the code.
+- Do not run the suite in a Playwright Docker image to make the numbers exact. Headless Chrome there is SwiftShader or an unpredictable GPU, and a CPU or memory limit does not make frame times identical. A shadow test must fail when `UNMASKED_RENDERER_WEBGL` contains SwiftShader. That result is not a measurement.

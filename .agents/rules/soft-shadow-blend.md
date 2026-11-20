@@ -1,8 +1,3 @@
----
-description: When the PCSS soft-shadow blend runs and when it is exactly zero
-alwaysApply: true
----
-
 # Soft-shadow blend
 
 - `shaders/PCSS.ts` `getShadow` returns the 9-tap result when `blending == 0.0` and does not call `getPCSSShadow`. Apply `shadowIntensity` on that path. The final `mix(1.0, shadow, shadowIntensity)` is only reached when the blend is above zero.

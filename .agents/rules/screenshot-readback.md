@@ -1,8 +1,3 @@
----
-description: Drawing-buffer swaps and screenshot readback
-alwaysApply: true
----
-
 # Screenshot readback
 
 `createRenderer` sets `preserveDrawingBuffer: false`. The browser swaps the drawing buffer after the turn that drew it. `canvas.toDataURL` outside that turn is blank.

@@ -2,29 +2,34 @@ import {
 	FLAG_TYPE,
 	type IGeometryData,
 	type IMaterialAbstractData,
-	type IViewportApi} from "@shapediver/viewer";
+	type IViewportApi,
+} from "@shapediver/viewer";
 import {
 	type DraggingRestrictionMetaData,
 	type LineRestrictionProperties,
 	type PlaneRestrictionProperties,
 	type PointRestrictionProperties,
 	type RayTraceResult,
+	RESTRICTION_TYPE,
 	RestrictionManager,
 	type RestrictionProperties,
-	RESTRICTION_TYPE} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+} from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
 import {
 	type ITransformation,
 	type ITreeNode,
-	Tree} from "@shapediver/viewer.shared.node-tree";
+	Tree,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
 	Logger,
-	UuidGenerator} from "@shapediver/viewer.shared.services";
+	UuidGenerator,
+} from "@shapediver/viewer.shared.services";
 import {
 	type IIntersectionDefinition,
 	type IRay,
-	type IRayTracingIntersection} from "@shapediver/viewer.shared.types";
+	type IRayTracingIntersection,
+} from "@shapediver/viewer.shared.types";
 
 import {mat4, vec3} from "gl-matrix";
 
@@ -41,6 +46,11 @@ import {PointConstraint} from "../dragConstraints/PointConstraint";
 import {type IDragAnchor} from "../InteractionData";
 import {InteractionManagerUtils} from "../utils/InteractionManagerUtils";
 
+// the distance (CSS px) from the pointerdown after which a press becomes a
+// drag, see DragManager.dragThreshold
+const DRAG_THRESHOLD = 4;
+const DRAG_THRESHOLD_TOUCH = 10;
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export class DragManager extends AbstractInteractionManager {
 	readonly #eventEngine: EventEngine = EventEngine.instance;
@@ -48,6 +58,7 @@ export class DragManager extends AbstractInteractionManager {
 	readonly #tree: Tree = Tree.instance;
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
+	#dragThreshold: boolean = false;
 	#draggedNode?: {
 		node: ITreeNode;
 		worldMatrix: mat4;
@@ -67,6 +78,14 @@ export class DragManager extends AbstractInteractionManager {
 	#interactionEffectToken?: string;
 	#intersection: IRayTracingIntersection | null = null;
 	#occlusionExcludedNodes: ITreeNode[] = [];
+	// a press on a draggable node that did not pass the drag threshold yet
+	#pendingPress?: {
+		intersection: IRayTracingIntersection;
+		event: PointerEvent;
+		ray: IRay;
+		threshold: number;
+		tokenCameraFreeze: string;
+	};
 	#restrictedNodesOnly: boolean = false;
 	#restrictionManager?: RestrictionManager;
 	#setupOptions: {
@@ -88,6 +107,22 @@ export class DragManager extends AbstractInteractionManager {
 
 	public get filter(): IInteractionFilterOptions {
 		return this.#filter;
+	}
+
+	/**
+	 * When true, a press on a draggable node only becomes a drag once the
+	 * pointer moved by 4 CSS px (mouse and pen) or 10 CSS px (touch) from the
+	 * pointerdown. A shorter press (a click) moves nothing and emits no drag
+	 * events. When false, the node is moved to the restriction on pointerdown
+	 * (default: false). {@link setNode} always starts the drag right away.
+	 */
+	public get dragThreshold(): boolean {
+		return this.#dragThreshold;
+	}
+
+	public set dragThreshold(value: boolean) {
+		this.#dragThreshold = value;
+		if (!value) this.clearPendingPress();
 	}
 
 	/**
@@ -252,6 +287,25 @@ export class DragManager extends AbstractInteractionManager {
 			filteredIntersections.length > 0 ? filteredIntersections[0] : null;
 
 		if (firstIntersection) {
+			// (a press while a drag runs takes it over right away, as before)
+			if (this.#dragThreshold && !this.#draggedNode) {
+				// the drag starts in onMove once the pointer passed the
+				// threshold, the camera stays still meanwhile
+				this.clearPendingPress();
+				this.#pendingPress = {
+					intersection: firstIntersection,
+					event,
+					ray,
+					threshold:
+						event.pointerType === "touch"
+							? DRAG_THRESHOLD_TOUCH
+							: DRAG_THRESHOLD,
+					tokenCameraFreeze: this.viewport.addFlag(
+						FLAG_TYPE.CAMERA_FREEZE,
+					),
+				};
+				return;
+			}
 			this.setNode(
 				firstIntersection.node,
 				firstIntersection.geometryData,
@@ -279,6 +333,13 @@ export class DragManager extends AbstractInteractionManager {
 			return;
 
 		this.#restrictionManager!.showRestrictionVisualization = false;
+		// a press below the drag threshold ends without a drag, at the end of
+		// its own pointer only (see onMove)
+		if (this.#pendingPress) {
+			if (event.pointerId === this.#pendingPress.event.pointerId)
+				this.clearPendingPress();
+			return;
+		}
 		if (!this.#draggedNode) return;
 
 		const transformationResult = this.#restrictionManager!.rayTrace(
@@ -326,6 +387,27 @@ export class DragManager extends AbstractInteractionManager {
 			)
 		)
 			return;
+		const pending = this.#pendingPress;
+		if (pending) {
+			if (event.pointerId !== pending.event.pointerId) return;
+			const distance = Math.hypot(
+				event.clientX - pending.event.clientX,
+				event.clientY - pending.event.clientY,
+			);
+			if (distance < pending.threshold) return;
+			// the press became a drag: start it where the pointer went down
+			this.#pendingPress = undefined;
+			const {intersection: i} = pending;
+			this.setNode(
+				i.node,
+				i.geometryData,
+				i.distance,
+				i.point,
+				pending.event,
+				pending.ray,
+			);
+			this.viewport.removeFlag(pending.tokenCameraFreeze);
+		}
 		if (!this.#draggedNode) return;
 		this.#restrictionManager!.showRestrictionVisualization = true;
 
@@ -404,6 +486,7 @@ export class DragManager extends AbstractInteractionManager {
 			)
 		)
 			return;
+		this.clearPendingPress();
 		if (!this.#draggedNode) return;
 
 		const {node, previousDragMatrix, previousGroupDragMatrices} =
@@ -427,7 +510,18 @@ export class DragManager extends AbstractInteractionManager {
 	 * @returns
 	 */
 	public removeNode(event?: PointerEvent, ray?: IRay) {
+		this.clearPendingPress();
 		this.endDrag(event, ray, false);
+	}
+
+	/**
+	 * Drop a press that did not become a drag (see {@link dragThreshold}).
+	 */
+	private clearPendingPress() {
+		const pending = this.#pendingPress;
+		if (!pending) return;
+		this.#pendingPress = undefined;
+		this.viewport?.removeFlag(pending.tokenCameraFreeze);
 	}
 
 	/**
@@ -577,6 +671,8 @@ export class DragManager extends AbstractInteractionManager {
 			)
 		)
 			return;
+		// a direct call replaces a press that did not become a drag yet
+		this.clearPendingPress();
 		if (this.#draggedNode) this.removeNode();
 
 		this.#restrictionManager!.showRestrictionVisualization = true;

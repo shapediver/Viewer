@@ -50,9 +50,10 @@ export class InteractionManagerUtils {
 	 * Common filter implementation
 	 *
 	 * @param restrictedNodesOnly Only intersect nodes whose interaction data
-	 * explicitly lists the manager in its restricted managers (by default every
-	 * node with interaction data of the type is intersected, unrestricted ones
-	 * included, so that the closest interactive node wins).
+	 * explicitly lists the manager. A node restricted to other managers is
+	 * never a hit: it must not sit in front of this manager (the translation
+	 * plane is restricted to its own managers). Unrestricted nodes still are,
+	 * so the closest of those wins.
 	 */
 	public static createInteractionFilter(
 		interactionType: keyof IInteractionTypes,
@@ -74,7 +75,7 @@ export class InteractionManagerUtils {
 				return (node: ITreeNode) => {
 					return !!this.getInteractionData(
 						node,
-						false,
+						true,
 						managerId,
 						interactionType,
 					);

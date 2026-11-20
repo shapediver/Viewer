@@ -4,9 +4,13 @@ import {
 	type IOrthographicCameraApi,
 	type ITreeNode,
 	type IViewportApi,
-	ORTHOGRAPHIC_CAMERA_DIRECTION} from "@shapediver/viewer";
+	ORTHOGRAPHIC_CAMERA_DIRECTION,
+} from "@shapediver/viewer";
 import {type IPlane, Plane} from "@shapediver/viewer.shared.math";
-import {type IRay, type IVisualizationSettings} from "@shapediver/viewer.shared.types";
+import {
+	type IRay,
+	type IVisualizationSettings,
+} from "@shapediver/viewer.shared.types";
 import {mat4, vec3} from "gl-matrix";
 import {
 	type IRestriction,
@@ -14,21 +18,26 @@ import {
 	isDrawingRestriction,
 	type RestrictionMetaData,
 	type RestrictionPropertiesBase,
-	type RestrictionResult} from "../../../interfaces/IRestriction";
+	type RestrictionResult,
+} from "../../../interfaces/IRestriction";
 import {
 	type ISnapRestriction,
-	type SnapRestrictionProperties} from "../../../interfaces/ISnapRestriction";
+	type SnapRestrictionProperties,
+} from "../../../interfaces/ISnapRestriction";
 import {GeometryMathManager} from "../../GeometryMathManager";
 import {AbstractRestriction} from "../AbstractRestriction";
 import {
 	AngularRestriction,
-	type AngularRestrictionProperties} from "./snap/AngularRestriction";
+	type AngularRestrictionProperties,
+} from "./snap/AngularRestriction";
 import {
 	AxisRestriction,
-	type AxisRestrictionProperties} from "./snap/AxisRestriction";
+	type AxisRestrictionProperties,
+} from "./snap/AxisRestriction";
 import {
 	GridRestriction,
-	type GridRestrictionProperties} from "./snap/GridRestriction";
+	type GridRestrictionProperties,
+} from "./snap/GridRestriction";
 
 // #region Type aliases (1)
 
@@ -85,6 +94,11 @@ export class PlaneRestriction
 	#angularRestriction: AngularRestriction;
 	#axisRestriction: AxisRestriction;
 	#cameraId: string = "";
+	/**
+	 * The defined plane while a camera-facing fallback plane is used
+	 * because an orthographic camera sees the defined plane edge-on.
+	 */
+	#edgeOnDefinedPlane?: IPlane;
 	#gridRestriction: GridRestriction;
 	#normal: vec3 = vec3.create();
 	#origin: vec3 = vec3.create();
@@ -277,7 +291,19 @@ export class PlaneRestriction
 
 			return this.snap(ray, intersection, t, metaData);
 		} else if (isDraggingRestriction(metaData)) {
-			const distance = this.#plane.intersect(ray.origin, ray.direction);
+			if (this.#cameraId !== this.#viewport.camera!.id)
+				this.updatePlaneDefinition();
+
+			// With the camera-facing fallback plane, move it through the drag
+			// start point so the dragged object keeps its depth.
+			const plane =
+				this.#edgeOnDefinedPlane && metaData.startPoint
+					? new Plane().setFromNormalAndCoplanarPoint(
+							this.#normal,
+							metaData.startPoint,
+						)
+					: this.#plane;
+			const distance = plane.intersect(ray.origin, ray.direction);
 			if (distance && distance > 0) {
 				const intersection = vec3.add(
 					vec3.create(),
@@ -288,7 +314,21 @@ export class PlaneRestriction
 					),
 					ray.origin,
 				);
-				return this.snap(ray, intersection, distance, metaData);
+				const result = this.snap(ray, intersection, distance, metaData);
+
+				// The fallback plane faces the camera, so dragging on it would
+				// leave the defined plane (e.g. lift an object off the XY plane
+				// in an orthographic front view). Project back onto it.
+				if (result && this.#edgeOnDefinedPlane) {
+					return {
+						...result,
+						targetPoint: this.#edgeOnDefinedPlane.clampPoint(
+							result.targetPoint,
+						),
+					};
+				}
+
+				return result;
 			}
 		}
 	}
@@ -491,6 +531,7 @@ export class PlaneRestriction
 		const planeDefined = origin && vectorU && vectorV;
 
 		let normal = vec3.fromValues(0, 0, 1);
+		this.#edgeOnDefinedPlane = undefined;
 
 		if (planeDefined) {
 			vec3.normalize(vectorU, vectorU);
@@ -550,6 +591,11 @@ export class PlaneRestriction
 				// be degenerate — fall back to a camera-facing plane instead.
 				if (Math.abs(vec3.dot(cameraDirection, normal)) < 0.0001) {
 					this.createDefaultPlane(camera);
+					this.#edgeOnDefinedPlane =
+						new Plane().setFromNormalAndCoplanarPoint(
+							normal,
+							origin,
+						);
 				} else {
 					this.#vectorU = vectorU;
 					this.#vectorV = vectorV;

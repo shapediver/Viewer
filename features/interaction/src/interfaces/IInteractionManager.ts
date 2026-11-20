@@ -149,6 +149,23 @@ export interface IInteractionManager {
 	 */
 	cancelInteraction?(): void;
 
+	/**
+	 * Optional: called when the pointer was pressed on this manager's nodes
+	 * but another tool won the press (e.g. the plane of a rectangle transform),
+	 * once the pointer is released, whether or not it moved. A selecting
+	 * manager selects the node under the press, it never deselects. The
+	 * intersections are the ones at the press; the node may have moved since.
+	 *
+	 * @param event The pointerdown event of the press.
+	 * @param ray The ray of the press.
+	 * @param intersection The intersections at the press.
+	 */
+	onClaimedPress?(
+		event: PointerEvent,
+		ray: IRay,
+		intersection: IIntersectionDefinition[],
+	): void;
+
 	// #endregion Public Methods (6)
 }
 
