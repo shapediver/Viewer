@@ -26,7 +26,7 @@
 	"idle.renderCalls": 0,
 	"load.programsCompiledInRender": 0,
 	"oneNodeChange.batchesRebuilt": 0,
-	"oneNodeChange.programCacheKeyCalls": 5148,
+	"oneNodeChange.programCacheKeyCalls": 0,
 	"oneNodeChange.treeDataReads": 74913,
 	"oneNodeChange.treeNodesRead": 50,
 	"oneNodeChange.treeNodesReversioned": 8,
