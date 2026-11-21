@@ -166,6 +166,7 @@ uniform float brightness;
 uniform float hdrOutput;
 uniform float dispersion;
 uniform float tracingOpacity;
+uniform float gemEnvMapIntensity;
 
 #ifdef PHYSICAL_DISPERSION
 	// Per-channel IOR offsets for physical dispersion. refractionIndex is the
@@ -184,7 +185,7 @@ vec3 getIBLRadianceVariation( const in vec3 viewDir, const in vec3 normal, const
 		reflectVec = normalize( mix( reflectVec, normal, pow4( roughness ) ) );
 		reflectVec = inverseTransformDirection( reflectVec, viewMatrix );
 		vec4 envMapColor = textureCubeUV( envMap, envMapRotation * reflectVec, roughness );
-		return envMapColor.rgb * envMapIntensity;
+		return envMapColor.rgb * envMapIntensity * gemEnvMapIntensity;
 	#else
 		return vec3( 0.0 );
 	#endif
@@ -605,8 +606,18 @@ void main() {
 					ratio = 1.0 / channelIor;
 				}
 				float cos_theta_2 = 1.0 - ratio*ratio * (1.0 - cos_theta*cos_theta);
-				float probability = channelR0 + (1.0 - channelR0)*pow(1.0 - cos_theta, 5.0);
-				if(cos_theta_2 < 0.0) probability = 0.0;
+				// share of the light that leaves the stone at this hit, none on total internal reflection
+				#ifdef PHYSICAL_FRESNEL
+					// 1 - Fresnel reflectance (Schlick, with the angle outside the stone):
+					// most light leaves at the first facet it can pass, the rest keeps bouncing
+					float probability = 0.0;
+					if(cos_theta_2 >= 0.0) probability = 1.0 - (channelR0 + (1.0 - channelR0)*pow(1.0 - sqrt(cos_theta_2), 5.0));
+				#else
+					// The legacy weight is the reflectance itself, so most light keeps
+					// bouncing and the facet pattern gets finer.
+					float probability = channelR0 + (1.0 - channelR0)*pow(1.0 - cos_theta, 5.0);
+					if(cos_theta_2 < 0.0) probability = 0.0;
+				#endif
 
 				vec3 refracted = refract(newDirection, newNormal*-1.0, exitRatio);
 				tempColor += probability * currentProbability * calculateReflectedLight(newPosition, newNormal*-1.0, reflect(refracted, newNormal), material, i);

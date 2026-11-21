@@ -687,6 +687,24 @@ export class ViewportApi implements IViewportApi {
 		this.update("environmentMapRotation");
 	}
 
+	public get gemEnvironmentMapIntensity(): number {
+		return this.#renderingEngine.gemEnvironmentMapIntensity;
+	}
+
+	public set gemEnvironmentMapIntensity(value: number) {
+		const scope = "gemEnvironmentMapIntensity";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"positive",
+		);
+		this.#renderingEngine.gemEnvironmentMapIntensity = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("gemEnvironmentMapIntensity");
+	}
+
 	public get gemNormalMapResolution(): number {
 		return this.#renderingEngine.gemNormalMapResolution;
 	}
@@ -1015,6 +1033,24 @@ export class ViewportApi implements IViewportApi {
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
 		this.update("physicalGemDispersion");
+	}
+
+	public get physicalGemFresnel(): boolean {
+		return this.#renderingEngine.physicalGemFresnel;
+	}
+
+	public set physicalGemFresnel(value: boolean) {
+		const scope = "physicalGemFresnel";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"boolean",
+		);
+		this.#renderingEngine.physicalGemFresnel = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("physicalGemFresnel");
 	}
 
 	public get physicallyCorrectLights(): boolean {

@@ -136,6 +136,8 @@ export class MaterialLoader implements ILoader {
 	private _environmentMapRotationEuler: THREE.Euler = new THREE.Euler();
 	private _height: number = 1020;
 	private _physicalGemDispersion: boolean = false;
+	private _physicalGemFresnel: boolean = false;
+	private _gemEnvironmentMapIntensity: number = 1;
 	private _lightSizeUV: number = 0.025;
 	private _materialOverrideType: MATERIAL_TYPE | undefined = undefined;
 	private _materialCache: {
@@ -367,6 +369,13 @@ export class MaterialLoader implements ILoader {
 	): void {
 		if (material instanceof GemMaterial) {
 			material.physicalDispersion = this._physicalGemDispersion;
+		}
+	}
+
+	private assignGemLightSettingsToMaterial(material: THREE.Material): void {
+		if (material instanceof GemMaterial) {
+			material.physicalFresnel = this._physicalGemFresnel;
+			material.gemEnvMapIntensity = this._gemEnvironmentMapIntensity;
 		}
 	}
 
@@ -764,6 +773,24 @@ uniform vec3 sdvScreenAOColor;
 				<unknown>entry.materialData.sphericalNormalMap === oldTexture
 			)
 				(<unknown>entry.materialData.sphericalNormalMap) = newTexture;
+		}
+	}
+
+	public assignPhysicalGemFresnel(value: boolean) {
+		this._physicalGemFresnel = value;
+		for (const cacheKey in this._materialCache) {
+			this.assignGemLightSettingsToMaterial(
+				this._materialCache[cacheKey].material,
+			);
+		}
+	}
+
+	public assignGemEnvironmentMapIntensity(value: number) {
+		this._gemEnvironmentMapIntensity = value;
+		for (const cacheKey in this._materialCache) {
+			this.assignGemLightSettingsToMaterial(
+				this._materialCache[cacheKey].material,
+			);
 		}
 	}
 
@@ -1282,6 +1309,7 @@ uniform vec3 sdvScreenAOColor;
 			this._environmentMapPbrMode,
 		);
 		this.assignPhysicalGemDispersionToMaterial(material);
+		this.assignGemLightSettingsToMaterial(material);
 		this.assignScreenAOToMaterial(material);
 
 		if (
@@ -2898,20 +2926,18 @@ export const adaptShaders = () => {
 	#endif
 }`;
 
-		THREE.ShaderChunk.lights_physical_pars_fragment =
-			replaceShaderFunction(
-				THREE.ShaderChunk.lights_physical_pars_fragment,
-				"void RE_IndirectSpecular_Physical",
-				legacyIndirectSpecular,
-			);
+		THREE.ShaderChunk.lights_physical_pars_fragment = replaceShaderFunction(
+			THREE.ShaderChunk.lights_physical_pars_fragment,
+			"void RE_IndirectSpecular_Physical",
+			legacyIndirectSpecular,
+		);
 
 		// In legacy mode, use the r162 IBLSheenBRDF formula (piecewise curve-fit
 		// with PI normalization). r184 changed to a different curve-fit without it.
-		THREE.ShaderChunk.lights_physical_pars_fragment =
-			replaceShaderFunction(
-				THREE.ShaderChunk.lights_physical_pars_fragment,
-				"float IBLSheenBRDF",
-				`float IBLSheenBRDF( const in vec3 normal, const in vec3 viewDir, const in float roughness ) {
+		THREE.ShaderChunk.lights_physical_pars_fragment = replaceShaderFunction(
+			THREE.ShaderChunk.lights_physical_pars_fragment,
+			"float IBLSheenBRDF",
+			`float IBLSheenBRDF( const in vec3 normal, const in vec3 viewDir, const in float roughness ) {
 	float dotNV = saturate( dot( normal, viewDir ) );
 	#ifdef SDV_LEGACY_DFG_APPROX
 		float r2 = roughness * roughness;
@@ -2928,7 +2954,7 @@ export const adaptShaders = () => {
 		return saturate( DG );
 	#endif
 }`,
-			);
+		);
 
 		// In legacy mode, skip sheen energy compensation in RE_Direct_Physical
 		// that was added in r181. r162 had no sheen energy comp for direct lights.
@@ -2961,16 +2987,18 @@ export const adaptShaders = () => {
 	// here we replace in the background cube fragment shader the y component of the reflection vector with the negative y component in the case of a LDR environment map
 	// older and newer three.js versions set up the background rotation matrix differently, so we patch both shader variants
 	THREE.ShaderChunk.backgroundCube_frag =
-		THREE.ShaderChunk.backgroundCube_frag.replace(
-			"vec4 texColor = textureCube( envMap, backgroundRotation * vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );",
-			"vec4 texColor = textureCube( envMap, inverse(backgroundRotation) * vec3( flipEnvMap * vWorldDirection.x, -vWorldDirection.y, vWorldDirection.z ) );",
-		).replace(
-			"vec4 texColor = textureCube( envMap, backgroundRotation * vWorldDirection );",
-			`
+		THREE.ShaderChunk.backgroundCube_frag
+			.replace(
+				"vec4 texColor = textureCube( envMap, backgroundRotation * vec3( flipEnvMap * vWorldDirection.x, vWorldDirection.yz ) );",
+				"vec4 texColor = textureCube( envMap, inverse(backgroundRotation) * vec3( flipEnvMap * vWorldDirection.x, -vWorldDirection.y, vWorldDirection.z ) );",
+			)
+			.replace(
+				"vec4 texColor = textureCube( envMap, backgroundRotation * vWorldDirection );",
+				`
 			vec3 rotatedBackgroundDir = backgroundRotation * vec3( -vWorldDirection.x, -vWorldDirection.y, vWorldDirection.z );
 			vec4 texColor = textureCube( envMap, vec3( -rotatedBackgroundDir.x, rotatedBackgroundDir.y, rotatedBackgroundDir.z ) );
 			`,
-		);
+			);
 	THREE.ShaderLib.backgroundCube.fragmentShader =
 		THREE.ShaderChunk.backgroundCube_frag;
 
@@ -3007,8 +3035,8 @@ export const adaptShaders = () => {
 		);
 
 	// here we replace in the envmap_fragment the z component of the reflection vector with the negative z component in the case of a LDR environment map
-	THREE.ShaderChunk.envmap_fragment =
-		THREE.ShaderChunk.envmap_fragment.replace(
+	THREE.ShaderChunk.envmap_fragment = THREE.ShaderChunk.envmap_fragment
+		.replace(
 			"vec4 envColor = textureCube( envMap, envMapRotation * vec3( flipEnvMap * reflectVec.x, reflectVec.yz ) );",
 			`
         #ifdef ENVMAP_TYPE_LDR
@@ -3017,7 +3045,8 @@ export const adaptShaders = () => {
             vec4 envColor = textureCube( envMap, envMapRotation * vec3(flipEnvMap * reflectVec.x, reflectVec.zy ) );
         #endif
         `,
-		).replace(
+		)
+		.replace(
 			"vec4 envColor = textureCube( envMap, envMapRotation * reflectVec );",
 			`
         #ifdef ENVMAP_TYPE_LDR

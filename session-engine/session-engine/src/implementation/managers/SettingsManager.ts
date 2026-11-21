@@ -287,12 +287,17 @@ export class SettingsManager {
 			// TODO: drop the casts once the @shapediver/viewer.settings pin includes settings 7.2
 			const material = settings.material as {
 				physicalGemDispersion?: boolean;
+				physicalGemFresnel?: boolean;
+				gemEnvironmentMapIntensity?: number;
 				gemTracing?: string;
 				gemNormalMapResolution?: number;
 			};
 			const currentMaterial = currentSettings.material as typeof material;
 			currentMaterial.physicalGemDispersion =
 				material.physicalGemDispersion;
+			currentMaterial.physicalGemFresnel = material.physicalGemFresnel;
+			currentMaterial.gemEnvironmentMapIntensity =
+				material.gemEnvironmentMapIntensity;
 			currentMaterial.gemTracing = material.gemTracing;
 			currentMaterial.gemNormalMapResolution =
 				material.gemNormalMapResolution;
