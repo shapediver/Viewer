@@ -1,7 +1,6 @@
 import {
 	GeometryData,
 	type ITreeNode,
-	Tree,
 } from "@shapediver/viewer.shared.node-tree";
 import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {PRIMITIVE_MODE} from "@shapediver/viewer.shared.types";
@@ -18,16 +17,39 @@ interface MaterialBatch {
 	key: string;
 	cacheKey: string;
 	mesh: THREE.BatchedMesh;
+	indexed: boolean;
+	members: Set<BatchMember>;
+	/** The geometries stored in the batch and how many members draw each. */
+	geometries: Map<THREE.BufferGeometry, BatchGeometry>;
+	maxInstances: number;
+	maxVertices: number;
+	maxIndices: number;
+	/** Space of deleted geometries. It is free again after `optimize()`. */
+	wastedVertices: number;
+	wastedIndices: number;
+}
+
+interface BatchGeometry {
+	id: number;
+	count: number;
 }
 
 interface BatchMember {
+	/** `nodeId:geometryDataId`. The version of the data is not part of it. */
 	id: string;
 	batch: MaterialBatch;
 	geometryId: number;
 	instanceId: number;
 	mesh: THREE.Mesh;
+	/** The geometry the batch holds for this member. */
+	buffer: THREE.BufferGeometry;
 	node: ITreeNode;
 	geometry: GeometryData;
+	/**
+	 * The source mesh was removed from the scene. The member waits for the
+	 * mesh that replaces it, or leaves the batch at the end of the update.
+	 */
+	orphan: boolean;
 }
 
 interface BatchEntry {
@@ -49,6 +71,8 @@ interface DragBatchEvent {
 const MAX_INSTANCES = 4096;
 const MAX_VERTICES = 1_000_000;
 const MAX_INDICES = 3_000_000;
+/** A full chunk grows by this factor, so a series of additions stays linear. */
+const GROWTH = 1.5;
 
 /**
  * Draws static triangle meshes that share a material as one BatchedMesh.
@@ -57,16 +81,32 @@ const MAX_INDICES = 3_000_000;
  * id and the base color; the tint is setColorAt. Lines, points, morph
  * targets, GPU instances, and a node that is being dragged stay individual
  * meshes. The batch is a rendering structure: the scene tree is unchanged.
+ *
+ * A scene update touches only the nodes it visited. `markNode` collects them,
+ * `rebuild` compares their meshes with the members of the batches and changes
+ * only the difference: a member is added, removed, or gets a new geometry in
+ * its own chunk. The other chunks are not touched.
  */
 export class MaterialBatchManager {
 	readonly root: THREE.Group = new THREE.Group();
 
 	private readonly _eventEngine: EventEngine = EventEngine.instance;
 	private readonly _listeners: string[] = [];
+	/** Members by `nodeId:geometryDataId`. */
 	private readonly _members = new Map<string, BatchMember>();
 	private readonly _byNode = new Map<string, BatchMember[]>();
 	private readonly _byMesh = new Map<THREE.Object3D, BatchMember>();
-	private readonly _batches: MaterialBatch[] = [];
+	private readonly _batches = new Set<MaterialBatch>();
+	private readonly _batchesByKey = new Map<string, MaterialBatch[]>();
+	/**
+	 * Batchable meshes that are alone with their key. They stay meshes until
+	 * a second one with the same key arrives.
+	 */
+	private readonly _lone = new Map<THREE.Mesh, BatchEntry>();
+	private readonly _loneByKey = new Map<string, Set<THREE.Mesh>>();
+	private readonly _orphans = new Set<BatchMember>();
+	/** The nodes the scene updates visited since the last `rebuild`. */
+	private readonly _touched = new Map<string, ITreeNode>();
 	private readonly _dragged = new Set<string>();
 	private readonly _held = new Set<string>();
 	private readonly _lightSources = new Set<string>();
@@ -77,7 +117,6 @@ export class MaterialBatchManager {
 		{version: number; key: string}
 	>();
 
-	private readonly _keyIds = new Map<string, number>();
 	private _worldMatricesFresh = false;
 	private readonly _batchKeys = new WeakMap<
 		THREE.Mesh,
@@ -92,8 +131,6 @@ export class MaterialBatchManager {
 			key: string;
 		}
 	>();
-	private readonly _memberByData = new Map<string, BatchMember>();
-	private _signature: string | undefined;
 	private _chunkSerial = 0;
 	private _closed = false;
 
@@ -112,52 +149,135 @@ export class MaterialBatchManager {
 		);
 	}
 
-	/** Rebuild membership after the scene tree has been converted. */
-	public rebuild(): void {
+	/**
+	 * A scene update visited this node. Its meshes are compared with the
+	 * batches at the next `rebuild`. The set is kept per viewport, because
+	 * every viewport updates on its own schedule.
+	 */
+	public markNode(node: ITreeNode): void {
+		if (!this._closed) this._touched.set(node.id, node);
+	}
+
+	/**
+	 * A source mesh is removed from the scene. Its member keeps the instance
+	 * until the next `rebuild` decides whether a new mesh of the same data
+	 * takes it over.
+	 */
+	public releaseMesh(mesh: THREE.Object3D): void {
 		if (this._closed) return;
+		if (mesh instanceof THREE.Mesh) this.forgetLone(mesh);
+		const member = this._byMesh.get(mesh);
+		if (!member || member.orphan) return;
+		member.orphan = true;
+		this._orphans.add(member);
+		this._byMesh.delete(mesh);
+		member.batch.mesh.setVisibleAt(member.instanceId, false);
+	}
+
+	/** Update the batches of the nodes the scene update visited. */
+	public rebuild(): void {
+		if (this._closed) {
+			this._touched.clear();
+			return;
+		}
 		this.refreshLightSources();
 		const scene = this._renderingEngine.sceneTreeManager.scene;
 		if (this.root.parent !== scene) scene.add(this.root);
-		scene.updateMatrixWorld(true);
-		// Every world matrix is current until rebuild returns. Members do
-		// not walk their parents again; with thousands of members that walk
-		// was most of a one-node update.
+		const nodes = [...this._touched.values()];
+		this._touched.clear();
+		// The world matrices of the nodes in `nodes` are made current one by
+		// one. Members that are not among them did not move, so their matrix
+		// is current as well and they do not walk their parents again.
 		this._worldMatricesFresh = true;
 		try {
-			this.rebuildEntries();
+			this.reconcile(nodes);
 		} finally {
 			this._worldMatricesFresh = false;
 		}
 	}
 
-	private rebuildEntries(): void {
-		const entries = this.collect();
-		// The signature is geometry identity plus the batch key. A material
-		// replacement, such as the attribute visualization, rebuilds the
-		// batches. Hover, selection, and pulse effects keep the key of the
-		// batch the member is in, so they draw that one object on its own
-		// and do not recopy every vertex in the batch.
-		const signature = entries
-			.map(
-				(entry) =>
-					`${entry.id}|${this.keyId(this.signatureKey(entry))}`,
-			)
-			.sort()
-			.join("\n");
-		if (this._signature === signature) {
-			this.applyEntries(entries);
-			return;
+	private reconcile(nodes: ITreeNode[]): void {
+		const entries: BatchEntry[] = [];
+		for (const node of nodes) this.collectNode(node, entries);
+
+		const matched = new Set<BatchMember>();
+		const stale = new Set<BatchMember>();
+		const adds: BatchEntry[] = [];
+		const replaced: {member: BatchMember; entry: BatchEntry}[] = [];
+		const apply: BatchMember[] = [];
+		for (const entry of entries) {
+			const member = this._members.get(entry.id);
+			if (!member) {
+				adds.push(entry);
+				continue;
+			}
+			// A material replacement, such as the attribute visualization,
+			// moves the member to another batch. Hover, selection, and pulse
+			// effects keep the key of the batch the member is in, so they
+			// draw that one object on its own and do not recopy anything.
+			if (this.signatureKey(entry) !== member.batch.key) {
+				stale.add(member);
+				adds.push(entry);
+				continue;
+			}
+			matched.add(member);
+			if (member.buffer !== entry.mesh.geometry) {
+				replaced.push({member, entry});
+			} else {
+				this.adopt(member, entry);
+				apply.push(member);
+			}
 		}
 
-		this._signature = signature;
-		const released = this.disposeBatches();
-		this.build(entries);
+		// Members of a visited node without a mesh any more, and members whose
+		// mesh was removed and not replaced, leave their batch.
+		for (const node of nodes)
+			for (const member of this._byNode.get(node.id) ?? [])
+				if (!matched.has(member)) stale.add(member);
+		for (const member of this._orphans)
+			if (!matched.has(member)) stale.add(member);
+		this._orphans.clear();
+
+		const released: THREE.Mesh[] = [];
+		let changed = stale.size > 0;
+		// Batches that lost members. They are checked once the update is done:
+		// a member that is still to be replaced or added can keep one alive.
+		const shrunk = new Set<MaterialBatch>();
+		this.removeMembers(stale, released, shrunk);
+
+		const chunks = new Map<MaterialBatch, Map<BatchMember, BatchEntry>>();
+		for (const {member, entry} of replaced) {
+			changed = true;
+			const pending = chunks.get(member.batch);
+			if (pending) {
+				pending.set(member, entry);
+			} else if (this.replaceInPlace(member, entry)) {
+				apply.push(member);
+			} else {
+				chunks.set(member.batch, new Map([[member, entry]]));
+			}
+		}
+		for (const [batch, pending] of chunks)
+			this.rebuildChunk(batch, pending, released);
+
+		if (adds.length > 0) {
+			changed = true;
+			this.addEntries(adds);
+		}
+		for (const batch of shrunk)
+			if (this._batches.has(batch) && batch.members.size < 2)
+				this.dissolve(batch, released);
+		for (const member of apply)
+			if (this._members.get(member.id) === member)
+				this.applyMember(member);
+
 		// A source mesh that left its batch is drawn again with its own
-		// program. Those that joined a new batch stay hidden.
+		// program. Those that joined another batch stay hidden.
 		for (const mesh of released)
 			if (mesh.visible)
 				this._renderingEngine.renderingManager.requestCompile(mesh);
-		this._renderingEngine.postProcessingManager.refreshInstancedEffectSelections();
+		if (changed)
+			this._renderingEngine.postProcessingManager.refreshInstancedEffectSelections();
 	}
 
 	private signatureKey(entry: BatchEntry): string {
@@ -166,20 +286,7 @@ export class MaterialBatchManager {
 			entry.geometry.effectPulses.length === 0
 		)
 			return entry.key;
-		return (
-			this._memberByData.get(`${entry.node.id}:${entry.geometry.id}`)
-				?.batch.key ?? entry.key
-		);
-	}
-
-	/** A short id per batch key, so the signature stays small. */
-	private keyId(key: string): number {
-		let id = this._keyIds.get(key);
-		if (id === undefined) {
-			id = this._keyIds.size;
-			this._keyIds.set(key, id);
-		}
-		return id;
+		return this._members.get(entry.id)?.batch.key ?? entry.key;
 	}
 
 	/**
@@ -204,23 +311,35 @@ export class MaterialBatchManager {
 	 * Instance colors are snapshots of the source color, so write them again.
 	 */
 	public syncBatchColors(material: THREE.Material): void {
-		// The default-material copy can change transparency.
-		for (const batch of this._batches)
-			if (batch.mesh.material === material)
-				this.applyDrawOrder(batch.mesh);
-		for (const member of this._members.values()) {
-			if (member.batch.mesh.material !== material) continue;
+		for (const batch of this._batches) {
+			if (batch.mesh.material !== material) continue;
+			// The default-material copy can change transparency.
+			this.applyDrawOrder(batch.mesh);
 			// A default-material copy changes the source. The member can still
 			// be drawn from the batch, so refresh its tint either way.
-			this.writeColor(member);
+			for (const member of batch.members) {
+				this.writeColor(member);
+				// The copy can have changed the batch key of its members. The
+				// next update checks them.
+				this._touched.set(member.node.id, member.node);
+			}
 		}
 	}
 
 	/** A mesh material was replaced. Stay in the batch when only the color changed. */
 	public syncObject(object: THREE.Object3D): void {
 		const member = this._byMesh.get(object);
-		if (!member || !this._members.has(member.id)) return;
-		this.applyMember(member);
+		if (member) {
+			this.applyMember(member);
+			// A change other than the color moved the member out of its
+			// batch, or can bring it back. The next update decides.
+			this._touched.set(member.node.id, member.node);
+			return;
+		}
+		if (object instanceof THREE.Mesh) {
+			const lone = this._lone.get(object);
+			if (lone) this._touched.set(lone.node.id, lone.node);
+		}
 	}
 
 	/**
@@ -229,11 +348,7 @@ export class MaterialBatchManager {
 	 */
 	public syncLightSources(): void {
 		if (this._closed) return;
-		const next = this.lightSourceIds();
-		if (this.sameIds(next, this._lightSources)) return;
-		this._lightSources.clear();
-		for (const id of next) this._lightSources.add(id);
-		for (const member of this._members.values()) this.applyMember(member);
+		this.syncIds(this._lightSources, this.lightSourceIds());
 	}
 
 	/**
@@ -241,31 +356,40 @@ export class MaterialBatchManager {
 	 * of its batch stays together.
 	 */
 	public syncHeldNodes(): void {
-		const next = new Set(
-			this._renderingEngine.postProcessingManager.effectNodeIds(),
+		this.syncIds(
+			this._held,
+			new Set(
+				this._renderingEngine.postProcessingManager.effectNodeIds(),
+			),
 		);
-		if (next.size === this._held.size) {
-			let same = true;
-			for (const id of next) {
-				if (!this._held.has(id)) {
-					same = false;
-					break;
-				}
-			}
-			if (same) return;
-		}
-		this._held.clear();
-		for (const id of next) this._held.add(id);
-		for (const member of this._members.values()) this.applyMember(member);
 	}
 
 	public clear(): void {
 		this._closed = true;
-		this.disposeBatches();
-		this._signature = undefined;
+		for (const batch of [...this._batches]) this.disposeBatch(batch, []);
+		this._lone.clear();
+		this._loneByKey.clear();
+		this._orphans.clear();
+		this._touched.clear();
 		for (const token of this._listeners)
 			this._eventEngine.removeListener(token);
 		this._listeners.length = 0;
+	}
+
+	/**
+	 * Make `current` the new set. Only the members of the nodes that entered
+	 * or left the set are applied again.
+	 */
+	private syncIds(current: Set<string>, next: Set<string>): void {
+		const changed: string[] = [];
+		for (const id of next) if (!current.has(id)) changed.push(id);
+		for (const id of current) if (!next.has(id)) changed.push(id);
+		if (changed.length === 0) return;
+		current.clear();
+		for (const id of next) current.add(id);
+		for (const id of changed)
+			for (const member of this._byNode.get(id) ?? [])
+				this.applyMember(member);
 	}
 
 	private onDrag(event: DragBatchEvent, active: boolean): void {
@@ -284,54 +408,54 @@ export class MaterialBatchManager {
 		}
 	}
 
-	private collect(): BatchEntry[] {
-		const entries: BatchEntry[] = [];
-		const viewportId = this._renderingEngine.id;
-		// Batch membership by node and geometry, ignoring the version: an
-		// effect can bump the version of a member.
-		this._memberByData.clear();
-		for (const member of this._members.values())
-			this._memberByData.set(
-				`${member.node.id}:${member.geometry.id}`,
-				member,
-			);
-		Tree.instance.root.traverse((node) => {
-			const converted = node.convertedObject[viewportId] as
-				| THREE.Object3D
-				| undefined;
-			if (!converted) return;
-			for (const data of node.data) {
-				if (!(data instanceof GeometryData)) continue;
-				const mesh = this.findMesh(converted, data);
-				if (!mesh || !this.isBatchable(mesh, data)) continue;
-				const id = `${node.id}:${data.id}:${data.version}`;
-				// A hover or selection material is temporary. A mesh that is
-				// batchable only while it wears one would change the
-				// signature and rebuild every batch on each hover.
-				if (
-					(data.effectMaterials.length > 0 ||
-						data.effectPulses.length > 0) &&
-					!this._memberByData.has(`${node.id}:${data.id}`)
-				)
-					continue;
-				const position = mesh.geometry.getAttribute("position");
-				const vertices = position?.count ?? 0;
-				if (vertices === 0 || vertices > MAX_VERTICES) continue;
-				const index = mesh.geometry.getIndex();
-				const indices = index ? index.count : 0;
-				if (indices > MAX_INDICES) continue;
-				entries.push({
-					id,
-					key: this.batchKey(mesh),
-					mesh,
-					node,
-					geometry: data,
-					vertices,
-					indices,
-				});
+	/** The batchable meshes of one node, as entries. */
+	private collectNode(node: ITreeNode, entries: BatchEntry[]): void {
+		const converted = node.convertedObject[this._renderingEngine.id] as
+			| THREE.Object3D
+			| undefined;
+		if (!converted) return;
+		// The node is looked at again, so none of its meshes is lone any more.
+		for (const child of converted.children)
+			if (child instanceof THREE.Mesh) this.forgetLone(child);
+		let fresh = false;
+		for (const data of node.data) {
+			if (!(data instanceof GeometryData)) continue;
+			const mesh = this.findMesh(converted, data);
+			if (!mesh) continue;
+			// The matrix decides whether the mesh batches (a mirrored one does
+			// not). Make the chain of this node current, once.
+			if (!fresh) {
+				converted.updateWorldMatrix(true, false);
+				fresh = true;
 			}
-		});
-		return entries;
+			mesh.updateWorldMatrix(false, false);
+			if (!this.isBatchable(mesh, data)) continue;
+			const id = `${node.id}:${data.id}`;
+			// A hover or selection material is temporary. A mesh that is
+			// batchable only while it wears one would leave its batch again
+			// when the effect ends.
+			if (
+				(data.effectMaterials.length > 0 ||
+					data.effectPulses.length > 0) &&
+				!this._members.has(id)
+			)
+				continue;
+			const position = mesh.geometry.getAttribute("position");
+			const vertices = position?.count ?? 0;
+			if (vertices === 0 || vertices > MAX_VERTICES) continue;
+			const index = mesh.geometry.getIndex();
+			const indices = index ? index.count : 0;
+			if (indices > MAX_INDICES) continue;
+			entries.push({
+				id,
+				key: this.batchKey(mesh),
+				mesh,
+				node,
+				geometry: data,
+				vertices,
+				indices,
+			});
+		}
 	}
 
 	private findMesh(
@@ -343,6 +467,8 @@ export class MaterialBatchManager {
 				child.userData.SDtype === SD_DATA_TYPE.GEOMETRY &&
 				child.userData.SDid === geometry.id &&
 				child.userData.SDversion === geometry.version &&
+				// A removed node keeps its meshes, and its data still points at them.
+				child.userData.removed !== true &&
 				child instanceof THREE.Mesh &&
 				!(child instanceof THREE.InstancedMesh) &&
 				!(child instanceof THREE.SkinnedMesh) &&
@@ -381,9 +507,8 @@ export class MaterialBatchManager {
 	 */
 	private batchKey(mesh: THREE.Mesh): string {
 		const material = mesh.material as THREE.Material;
-		// The same string object for an unchanged mesh. A rebuild compares
-		// and looks up keys of about a kilobyte for every entry, and a new
-		// string has to be hashed again each time.
+		// The same string object for an unchanged mesh. Keys are about a
+		// kilobyte, and a new string has to be hashed again each time.
 		const cached = this._batchKeys.get(mesh);
 		if (
 			cached &&
@@ -460,27 +585,81 @@ export class MaterialBatchManager {
 		return `${geometry.getIndex() ? "i" : "n"}:${names}`;
 	}
 
-	private applyEntries(entries: BatchEntry[]): void {
-		for (const entry of entries) {
-			const member = this._members.get(entry.id);
-			if (!member) continue;
-			if (member.mesh !== entry.mesh) this._byMesh.delete(member.mesh);
-			member.mesh = entry.mesh;
-			member.geometry = entry.geometry;
-			member.node = entry.node;
-			this._byMesh.set(entry.mesh, member);
-			this.applyMember(member);
+	/** The member follows a new mesh of the same data. */
+	private adopt(member: BatchMember, entry: BatchEntry): void {
+		if (member.mesh !== entry.mesh) this._byMesh.delete(member.mesh);
+		member.mesh = entry.mesh;
+		member.geometry = entry.geometry;
+		member.node = entry.node;
+		member.orphan = false;
+		this._byMesh.set(entry.mesh, member);
+		const batchMesh = member.batch.mesh;
+		(batchMesh.userData.batchNodes as (ITreeNode | undefined)[])[
+			member.instanceId
+		] = entry.node;
+		(batchMesh.userData.batchGeometries as (GeometryData | undefined)[])[
+			member.instanceId
+		] = entry.geometry;
+	}
+
+	/**
+	 * Place new entries. A key with a chunk that has room (or can grow)
+	 * takes them. The rest is packed into new chunks.
+	 */
+	private addEntries(adds: BatchEntry[]): void {
+		const groups = new Map<string, BatchEntry[]>();
+		for (const entry of adds) {
+			let group = groups.get(entry.key);
+			if (!group) {
+				group = [];
+				groups.set(entry.key, group);
+			}
+			group.push(entry);
+		}
+		for (const [key, group] of groups) {
+			// A mesh that was alone with its key waits for a partner.
+			const lone = this._loneByKey.get(key);
+			if (lone) {
+				const known = new Set(group.map((entry) => entry.mesh));
+				for (const mesh of [...lone]) {
+					const entry = this._lone.get(mesh);
+					if (!entry || known.has(mesh)) continue;
+					// Its node was not visited by this update. The material, the
+					// matrix and the node may have changed since it was found.
+					mesh.updateWorldMatrix(true, false);
+					if (
+						mesh.userData.removed === true ||
+						this.batchKey(mesh) !== key ||
+						!this.isBatchable(mesh, entry.geometry)
+					) {
+						this.forgetLone(mesh);
+						continue;
+					}
+					group.push(entry);
+				}
+			}
+			let rest = group;
+			const existing = this._batchesByKey.get(key);
+			if (existing)
+				rest = group.filter(
+					(entry) =>
+						!existing.some((batch) => this.tryAdd(batch, entry)),
+				);
+			if (rest.length > 0) this.build(this.pack(rest));
 		}
 	}
 
-	private build(entries: BatchEntry[]): void {
-		const chunks = this.pack(entries);
+	private build(chunks: BatchEntry[][]): void {
+		const released: THREE.Mesh[] = [];
 		for (const chunk of chunks) {
 			// One mesh is already one draw. A single transmissive shell
 			// (the amber around the insect) must stay a mesh. Several
 			// panes that share a transmissive material still batch:
 			// separate transmission draws stack and darken the volume.
-			if (chunk.length < 2) continue;
+			if (chunk.length < 2) {
+				for (const entry of chunk) this.rememberLone(entry);
+				continue;
+			}
 			// A pulse replaces the mesh material with a clone that has no
 			// compile hook. The cache still holds the source material.
 			const displayed = chunk[0].mesh.material as THREE.Material;
@@ -498,12 +677,12 @@ export class MaterialBatchManager {
 			const indexed = chunk[0].indices > 0;
 			// Meshes that share a primitive share its BufferGeometry. The
 			// batch stores each one once and draws it per instance.
-			const geometryIds = new Map<THREE.BufferGeometry, number>();
+			const unique = new Set<THREE.BufferGeometry>();
 			let vertices = 0;
 			let indices = 0;
 			for (const entry of chunk) {
-				if (geometryIds.has(entry.mesh.geometry)) continue;
-				geometryIds.set(entry.mesh.geometry, -1);
+				if (unique.has(entry.mesh.geometry)) continue;
+				unique.add(entry.mesh.geometry);
 				vertices += entry.vertices;
 				indices += entry.indices;
 			}
@@ -530,60 +709,267 @@ export class MaterialBatchManager {
 				key: chunk[0].key,
 				cacheKey,
 				mesh: batchMesh,
+				indexed,
+				members: new Set(),
+				geometries: new Map(),
+				maxInstances: chunk.length,
+				maxVertices: vertices,
+				maxIndices: indexed ? indices : 1,
+				wastedVertices: 0,
+				wastedIndices: 0,
 			};
-			this._batches.push(batch);
+			this._batches.add(batch);
+			const sameKey = this._batchesByKey.get(batch.key);
+			if (sameKey) sameKey.push(batch);
+			else this._batchesByKey.set(batch.key, [batch]);
 			this.root.add(batchMesh);
 			this._renderingEngine.renderingManager.requestCompile(batchMesh);
 
-			for (const entry of chunk) {
-				this.rememberBounds(entry);
-				let geometryId = geometryIds.get(entry.mesh.geometry) ?? -1;
-				if (geometryId < 0) {
-					try {
-						geometryId = batchMesh.addGeometry(entry.mesh.geometry);
-					} catch {
-						entry.mesh.visible = true;
-						continue;
-					}
-					geometryIds.set(entry.mesh.geometry, geometryId);
-				}
-				const instanceId = batchMesh.addInstance(geometryId);
-				const nodes = batchMesh.userData.batchNodes as (
-					| ITreeNode
-					| undefined
-				)[];
-				const keys = batchMesh.userData.batchKeys as (
-					| string
-					| undefined
-				)[];
-				const geometries = batchMesh.userData.batchGeometries as (
-					| GeometryData
-					| undefined
-				)[];
-				nodes[instanceId] = entry.node;
-				keys[instanceId] = `${entry.node.id}:${entry.geometry.id}`;
-				geometries[instanceId] = entry.geometry;
-
-				const member: BatchMember = {
-					id: entry.id,
-					batch,
-					geometryId,
-					instanceId,
-					mesh: entry.mesh,
-					node: entry.node,
-					geometry: entry.geometry,
-				};
-				this._members.set(entry.id, member);
-				this._byMesh.set(entry.mesh, member);
-				let nodeMembers = this._byNode.get(entry.node.id);
-				if (!nodeMembers) {
-					nodeMembers = [];
-					this._byNode.set(entry.node.id, nodeMembers);
-				}
-				nodeMembers.push(member);
-				this.applyMember(member);
-			}
+			for (const entry of chunk) this.attach(batch, entry);
+			// Entries that did not fit in three.js leave a batch of one or none.
+			if (batch.members.size < 2) this.dissolve(batch, released);
 		}
+		for (const mesh of released)
+			this._renderingEngine.renderingManager.requestCompile(mesh);
+	}
+
+	/**
+	 * A batch of one mesh is one draw already, and it hides the source mesh
+	 * (see the rule on single transmissive shells). The member goes back to
+	 * being a mesh that waits for a partner.
+	 */
+	private dissolve(batch: MaterialBatch, released: THREE.Mesh[]): void {
+		const entries = [...batch.members].map((member) =>
+			this.entryOfMember(member),
+		);
+		this.disposeBatch(batch, released);
+		for (const entry of entries) this.rememberLone(entry);
+	}
+
+	/** Add an entry to a batch that has room for it. */
+	private attach(batch: MaterialBatch, entry: BatchEntry): boolean {
+		const batchMesh = batch.mesh;
+		this.rememberBounds(entry);
+		let info = batch.geometries.get(entry.mesh.geometry);
+		if (!info) {
+			let id: number;
+			try {
+				id = batchMesh.addGeometry(entry.mesh.geometry);
+			} catch {
+				entry.mesh.visible = true;
+				return false;
+			}
+			info = {id, count: 0};
+			batch.geometries.set(entry.mesh.geometry, info);
+		}
+		info.count++;
+		const instanceId = batchMesh.addInstance(info.id);
+		(batchMesh.userData.batchNodes as (ITreeNode | undefined)[])[
+			instanceId
+		] = entry.node;
+		(batchMesh.userData.batchKeys as (string | undefined)[])[instanceId] =
+			entry.id;
+		(batchMesh.userData.batchGeometries as (GeometryData | undefined)[])[
+			instanceId
+		] = entry.geometry;
+
+		const member: BatchMember = {
+			id: entry.id,
+			batch,
+			geometryId: info.id,
+			instanceId,
+			mesh: entry.mesh,
+			buffer: entry.mesh.geometry,
+			node: entry.node,
+			geometry: entry.geometry,
+			orphan: false,
+		};
+		batch.members.add(member);
+		this._members.set(entry.id, member);
+		this._byMesh.set(entry.mesh, member);
+		let nodeMembers = this._byNode.get(entry.node.id);
+		if (!nodeMembers) {
+			nodeMembers = [];
+			this._byNode.set(entry.node.id, nodeMembers);
+		}
+		nodeMembers.push(member);
+		this.forgetLone(entry.mesh);
+		this.applyMember(member);
+		return true;
+	}
+
+	/** Add an entry to a batch that already exists. False if it does not fit. */
+	private tryAdd(batch: MaterialBatch, entry: BatchEntry): boolean {
+		if (batch.members.size >= MAX_INSTANCES) return false;
+		if (
+			!batch.geometries.has(entry.mesh.geometry) &&
+			!this.reserve(batch, entry.vertices, entry.indices)
+		)
+			return false;
+		this.reserveInstance(batch);
+		return this.attach(batch, entry);
+	}
+
+	/** Make room for a geometry of the given size, growing the buffers if needed. */
+	private reserve(
+		batch: MaterialBatch,
+		vertices: number,
+		indices: number,
+	): boolean {
+		const mesh = batch.mesh;
+		const unusedIndices = () =>
+			(mesh as unknown as {unusedIndexCount: number}).unusedIndexCount;
+		const fits = () =>
+			mesh.unusedVertexCount >= vertices &&
+			(!batch.indexed || unusedIndices() >= indices);
+		if (fits()) return true;
+		// Deleted geometries leave holes. Packing the buffer is cheaper than
+		// growing them.
+		if (batch.wastedVertices > 0 || batch.wastedIndices > 0) {
+			mesh.optimize();
+			batch.wastedVertices = 0;
+			batch.wastedIndices = 0;
+			if (fits()) return true;
+		}
+		const usedVertices = batch.maxVertices - mesh.unusedVertexCount;
+		const usedIndices = batch.maxIndices - unusedIndices();
+		if (
+			usedVertices + vertices > MAX_VERTICES ||
+			(batch.indexed && usedIndices + indices > MAX_INDICES)
+		)
+			return false;
+		const nextVertices = Math.min(
+			MAX_VERTICES,
+			Math.max(
+				usedVertices + vertices,
+				Math.ceil(batch.maxVertices * GROWTH),
+			),
+		);
+		const nextIndices = batch.indexed
+			? Math.min(
+					MAX_INDICES,
+					Math.max(
+						usedIndices + indices,
+						Math.ceil(batch.maxIndices * GROWTH),
+					),
+				)
+			: batch.maxIndices;
+		mesh.setGeometrySize(nextVertices, nextIndices);
+		batch.maxVertices = nextVertices;
+		batch.maxIndices = nextIndices;
+		return true;
+	}
+
+	private reserveInstance(batch: MaterialBatch): void {
+		if (batch.mesh.instanceCount < batch.mesh.maxInstanceCount) return;
+		const next = Math.min(
+			MAX_INSTANCES,
+			Math.max(
+				batch.mesh.maxInstanceCount + 1,
+				Math.ceil(batch.mesh.maxInstanceCount * GROWTH),
+			),
+		);
+		batch.mesh.setInstanceCount(next);
+		batch.maxInstances = next;
+	}
+
+	/**
+	 * Give a member the geometry of its new mesh without rebuilding the chunk.
+	 * False when the chunk has to be rebuilt.
+	 */
+	private replaceInPlace(member: BatchMember, entry: BatchEntry): boolean {
+		const batch = member.batch;
+		const batchMesh = batch.mesh;
+		const target = entry.mesh.geometry;
+		const previous = batch.geometries.get(member.buffer);
+		if (!previous) return false;
+		try {
+			this.rememberBounds(entry);
+			let info = batch.geometries.get(target);
+			if (info) {
+				// The batch holds this geometry already.
+				info.count++;
+				batchMesh.setGeometryIdAt(member.instanceId, info.id);
+			} else {
+				const range = batchMesh.getGeometryRangeAt(previous.id);
+				if (
+					range &&
+					previous.count === 1 &&
+					entry.vertices <= range.reservedVertexCount &&
+					(!batch.indexed ||
+						entry.indices <= range.reservedIndexCount)
+				) {
+					// Nobody else draws the old geometry and the new one fits
+					// into its space: overwrite it.
+					batchMesh.setGeometryAt(previous.id, target);
+					batch.geometries.delete(member.buffer);
+					batch.geometries.set(target, previous);
+					member.buffer = target;
+					this.adopt(member, entry);
+					return true;
+				}
+				if (!this.reserve(batch, entry.vertices, entry.indices))
+					return false;
+				const id = batchMesh.addGeometry(target);
+				info = {id, count: 1};
+				batch.geometries.set(target, info);
+				batchMesh.setGeometryIdAt(member.instanceId, id);
+			}
+			previous.count--;
+			if (previous.count === 0) this.deleteGeometry(batch, previous.id);
+			if (previous.count === 0) batch.geometries.delete(member.buffer);
+			member.buffer = target;
+			member.geometryId = info.id;
+			this.adopt(member, entry);
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	private deleteGeometry(batch: MaterialBatch, geometryId: number): void {
+		const range = batch.mesh.getGeometryRangeAt(geometryId);
+		if (range) {
+			batch.wastedVertices += range.reservedVertexCount;
+			batch.wastedIndices += batch.indexed ? range.reservedIndexCount : 0;
+		}
+		batch.mesh.deleteGeometry(geometryId);
+	}
+
+	/**
+	 * Build the chunk again from its members, with the replacements. Only
+	 * this chunk is touched.
+	 */
+	private rebuildChunk(
+		batch: MaterialBatch,
+		replacements: Map<BatchMember, BatchEntry>,
+		released: THREE.Mesh[],
+	): void {
+		const entries: BatchEntry[] = [];
+		for (const member of batch.members) {
+			const replacement = replacements.get(member);
+			// The replacement can wear a hover material. The chunk keeps its key.
+			entries.push(
+				replacement
+					? {...replacement, key: member.batch.key}
+					: this.entryOfMember(member),
+			);
+		}
+		this.disposeBatch(batch, released);
+		this.build(this.pack(entries));
+	}
+
+	private entryOfMember(member: BatchMember): BatchEntry {
+		const index = member.mesh.geometry.getIndex();
+		return {
+			id: member.id,
+			key: member.batch.key,
+			mesh: member.mesh,
+			node: member.node,
+			geometry: member.geometry,
+			vertices: member.mesh.geometry.getAttribute("position").count,
+			indices: index ? index.count : 0,
+		};
 	}
 
 	private pack(entries: BatchEntry[]): BatchEntry[][] {
@@ -624,6 +1010,26 @@ export class MaterialBatchManager {
 		return chunks.map((chunk) => chunk.entries);
 	}
 
+	private rememberLone(entry: BatchEntry): void {
+		this._lone.set(entry.mesh, entry);
+		let meshes = this._loneByKey.get(entry.key);
+		if (!meshes) {
+			meshes = new Set();
+			this._loneByKey.set(entry.key, meshes);
+		}
+		meshes.add(entry.mesh);
+	}
+
+	private forgetLone(mesh: THREE.Mesh): void {
+		const entry = this._lone.get(mesh);
+		if (!entry) return;
+		this._lone.delete(mesh);
+		const meshes = this._loneByKey.get(entry.key);
+		if (!meshes) return;
+		meshes.delete(mesh);
+		if (meshes.size === 0) this._loneByKey.delete(entry.key);
+	}
+
 	private createBatchMaterial(source: THREE.Material): THREE.Material {
 		const saved = source.userData;
 		source.userData = {};
@@ -641,8 +1047,8 @@ export class MaterialBatchManager {
 		// batch is shaded by the stock three.js path, and a metal with no
 		// environment map turns black.
 		if (source.defines) batchMaterial.defines = {...source.defines};
-		// Material.copy does not copy onBeforeCompile. That hook declares
-		// the shadow uniforms. It also stores the compiled shader on the
+		// Material.copy does not copy onBeforeCompile. That hook declares the
+		// shadow uniforms. It also stores the compiled shader on the
 		// source material, so keep that reference and record the batch program
 		// on this material instead.
 		const compile = source.onBeforeCompile;
@@ -703,6 +1109,8 @@ export class MaterialBatchManager {
 	}
 
 	private applyMember(member: BatchMember): void {
+		// The mesh is gone. The member is removed with the next rebuild.
+		if (member.orphan) return;
 		if (this.isIndividual(member)) {
 			member.batch.mesh.setVisibleAt(member.instanceId, false);
 			// A source mesh that is drawn on its own from now on needs its
@@ -764,12 +1172,6 @@ export class MaterialBatchManager {
 		return ids;
 	}
 
-	private sameIds(a: Set<string>, b: Set<string>): boolean {
-		if (a.size !== b.size) return false;
-		for (const id of a) if (!b.has(id)) return false;
-		return true;
-	}
-
 	private mirrored(mesh: THREE.Object3D): boolean {
 		if (!this._worldMatricesFresh) mesh.updateWorldMatrix(true, false);
 		return mesh.matrixWorld.determinant() < 0;
@@ -803,26 +1205,92 @@ export class MaterialBatchManager {
 		member.batch.mesh.setColorAt(member.instanceId, this._color);
 	}
 
-	private disposeBatches(): THREE.Object3D[] {
-		const released: THREE.Object3D[] = [];
-		for (const member of this._members.values()) {
-			released.push(member.mesh);
-			member.mesh.visible = true;
-			delete member.mesh.userData.batchedMesh;
-			delete member.mesh.userData.batchId;
+	/**
+	 * Take members out of their batches. A batch that loses every member is
+	 * disposed as a whole.
+	 */
+	private removeMembers(
+		members: Set<BatchMember>,
+		released: THREE.Mesh[],
+		shrunk: Set<MaterialBatch>,
+	): void {
+		if (members.size === 0) return;
+		const perBatch = new Map<MaterialBatch, BatchMember[]>();
+		for (const member of members) {
+			const list = perBatch.get(member.batch);
+			if (list) list.push(member);
+			else perBatch.set(member.batch, [member]);
+		}
+		for (const [batch, list] of perBatch) {
+			if (list.length === batch.members.size) {
+				this.disposeBatch(batch, released);
+				continue;
+			}
+			for (const member of list) {
+				this.detach(member);
+				this.forget(member, released);
+			}
+			shrunk.add(batch);
+		}
+	}
+
+	/** Free the instance of a member and, with the last user, its geometry. */
+	private detach(member: BatchMember): void {
+		const batch = member.batch;
+		const batchMesh = batch.mesh;
+		batchMesh.deleteInstance(member.instanceId);
+		(batchMesh.userData.batchNodes as (ITreeNode | undefined)[])[
+			member.instanceId
+		] = undefined;
+		(batchMesh.userData.batchKeys as (string | undefined)[])[
+			member.instanceId
+		] = undefined;
+		(batchMesh.userData.batchGeometries as (GeometryData | undefined)[])[
+			member.instanceId
+		] = undefined;
+		const info = batch.geometries.get(member.buffer);
+		if (!info) return;
+		info.count--;
+		if (info.count > 0) return;
+		batch.geometries.delete(member.buffer);
+		this.deleteGeometry(batch, info.id);
+	}
+
+	/** Remove a member from the lookups. Its source mesh is drawn again. */
+	private forget(member: BatchMember, released: THREE.Mesh[]): void {
+		member.batch.members.delete(member);
+		this._members.delete(member.id);
+		this._orphans.delete(member);
+		const nodeMembers = this._byNode.get(member.node.id);
+		if (nodeMembers) {
+			const index = nodeMembers.indexOf(member);
+			if (index >= 0) nodeMembers.splice(index, 1);
+			if (nodeMembers.length === 0) this._byNode.delete(member.node.id);
+		}
+		if (this._byMesh.get(member.mesh) === member)
 			this._byMesh.delete(member.mesh);
+		if (member.orphan) return;
+		member.mesh.visible = true;
+		delete member.mesh.userData.batchedMesh;
+		delete member.mesh.userData.batchId;
+		released.push(member.mesh);
+	}
+
+	/** Dispose one chunk. Its members' meshes are drawn on their own again. */
+	private disposeBatch(batch: MaterialBatch, released: THREE.Mesh[]): void {
+		for (const member of [...batch.members]) this.forget(member, released);
+		this.root.remove(batch.mesh);
+		this.disposeBatchMesh(batch.mesh);
+		this._renderingEngine.materialLoader.removeFromMaterialCache(
+			batch.cacheKey,
+		);
+		this._batches.delete(batch);
+		const sameKey = this._batchesByKey.get(batch.key);
+		if (sameKey) {
+			const index = sameKey.indexOf(batch);
+			if (index >= 0) sameKey.splice(index, 1);
+			if (sameKey.length === 0) this._batchesByKey.delete(batch.key);
 		}
-		for (const batch of this._batches) {
-			this.root.remove(batch.mesh);
-			this.disposeBatchMesh(batch.mesh);
-			this._renderingEngine.materialLoader.removeFromMaterialCache(
-				batch.cacheKey,
-			);
-		}
-		this._batches.length = 0;
-		this._members.clear();
-		this._byNode.clear();
-		return released;
 	}
 
 	private disposeBatchMesh(mesh: THREE.BatchedMesh): void {
