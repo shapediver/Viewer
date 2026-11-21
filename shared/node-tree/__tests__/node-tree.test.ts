@@ -405,4 +405,21 @@ describe("scene graph node - test", () => {
 		for (const node of nodes)
 			expect(changes.get(node)).toBe(node === children[0] ? 1 : 0);
 	});
+
+	test("versions differ across nodes", async () => {
+		const versions = new Set<string>();
+		const nodes = Array.from({length: 50}, (_, i) => new TreeNode());
+		nodes.forEach((node) => versions.add(node.version));
+		nodes.forEach((node) => node.updateVersion());
+		nodes.forEach((node) => versions.add(node.version));
+		const clone = nodes[0].clone();
+		versions.add(clone.version);
+		expect(versions.size).toBe(101);
+		for (const version of versions) expect(version).toMatch(/^v\d+$/);
+		// ids stay uuids and do not change with the version
+		const id = nodes[0].id;
+		nodes[0].updateVersion();
+		expect(nodes[0].id).toBe(id);
+		expect(clone.originalId).toBe(nodes[0].originalId);
+	});
 });
