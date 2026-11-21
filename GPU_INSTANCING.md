@@ -58,6 +58,7 @@ Detection does **not** walk vertex bytes for unique meshes. It first matches
 glTF accessor identity (same buffer range) and a count/type fingerprint.
 Byte hashing and baked-transform vertex walks run only when a second
 primitive shares that fingerprint.
+Shared meshes reuse the detection result of their first occurrence.
 
 ## Attribute visualization
 
