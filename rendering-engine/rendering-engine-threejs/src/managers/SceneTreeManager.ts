@@ -136,8 +136,11 @@ export class SceneTreeManager implements IManager {
 				);
 			}
 		} else {
-			const sdtfTransform = treeNode.getTransformation("sdtf");
-			if (sdtfTransform) treeNode.removeTransformation(sdtfTransform);
+			let sdtfTransform = treeNode.getTransformation("sdtf");
+			while (sdtfTransform) {
+				treeNode.removeTransformation(sdtfTransform);
+				sdtfTransform = treeNode.getTransformation("sdtf");
+			}
 
 			if (treeNodeData instanceof GeometryData)
 				treeNodeData.attributeMaterial = null;
@@ -619,6 +622,30 @@ export class SceneTreeManager implements IManager {
 		}
 	}
 
+	/**
+	 * Update several nodes with one reconcile of the material batches at the
+	 * end. A nested call (or a scene update inside it) reconciles at the
+	 * outermost one.
+	 */
+	public updateNodes(nodes: ITreeNode[]): void {
+		if (nodes.length === 0) return;
+		const outer = this._deferBatch;
+		this._deferBatch = true;
+		try {
+			for (const node of nodes)
+				this.updateNode(
+					node,
+					node.convertedObject[
+						this._renderingEngine.id
+					] as THREE.Object3D,
+				);
+		} finally {
+			this._deferBatch = outer;
+			if (!outer && this._batchDepth === 0)
+				this._renderingEngine.materialBatchManager.rebuild();
+		}
+	}
+
 	public updateSceneTree(rootTreeNode: ITreeNode): void {
 		const instancingChanged =
 			this._renderingEngine.instanceGroupManager.enabled !==
@@ -695,6 +722,7 @@ export class SceneTreeManager implements IManager {
 			this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES
 				? createSDTFOverview(rootTreeNode)
 				: {};
+		const outerDefer = this._deferBatch;
 		this._deferBatch = true;
 		// Branches whose version, transformation and visibility are unchanged
 		// are left out. A renderer type or instancing switch and the
@@ -708,10 +736,10 @@ export class SceneTreeManager implements IManager {
 			this.updateNode(rootTreeNode, this._mainConvertedObject);
 		} finally {
 			this._renderingEngine.instanceGroupManager.endBoundsUpdate();
-			this._deferBatch = false;
+			this._deferBatch = outerDefer;
 			this._skipUnchanged = false;
 		}
-		this._renderingEngine.materialBatchManager.rebuild();
+		if (!outerDefer) this._renderingEngine.materialBatchManager.rebuild();
 		this._boundingBox =
 			rootTreeNode.boundingBoxViewport[this._renderingEngine.id].clone();
 
