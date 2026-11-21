@@ -159,6 +159,12 @@ async function collect(page: Page, variant: SceneVariant): Promise<Counters> {
 	// Calls made inside `renderer.render` while the first drag frame drew.
 	counters["cameraFrame.updateMatrixWorldCalls"] =
 		move.counters.matrixWorld.byFrame[frames[0].frame] ?? 0;
+	// SS-10485: calls of the SDObject override that left a branch out.
+	counters["cameraFrame.updateMatrixWorldSkips"] =
+		move.counters.matrixWorld.skipsByFrame[frames[0].frame] ?? 0;
+	// The last frame of the beauty blend, no input before it.
+	counters["beautyFrame.updateMatrixWorldCalls"] =
+		move.counters.matrixWorld.byFrame[frames[frames.length - 1].frame] ?? 0;
 
 	// One hidden glass pane. The `oneNodeChange.*` counters below cover the
 	// change and the first frame drawn after it.
