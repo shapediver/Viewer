@@ -68,6 +68,21 @@ interface IHierarchyNode {
 	leaves?: number[];
 }
 
+/**
+ * Work counts of the validation. They are written only if a test put the
+ * object there first (`globalThis.__nodeBoundsStats`, see the `picking`
+ * counter of the performance tests): the module publishes nothing itself.
+ */
+interface IStats {
+	queries: number;
+	objectsChecked: number;
+	rebuilds: number;
+}
+
+function testStats(): IStats | undefined {
+	return (globalThis as {__nodeBoundsStats?: IStats}).__nodeBoundsStats;
+}
+
 const LEAVES_PER_NODE = 4;
 const BOX_EXPANSION = 1e-6;
 
@@ -98,13 +113,8 @@ const BOX_EXPANSION = 1e-6;
  * geometry has none is computed into a box of its own.
  */
 export class NodeBoundsHierarchy {
-	/** Work done by the validation, for tests and counters. */
-	public static readonly stats = {
-		queries: 0,
-		objectsChecked: 0,
-		rebuilds: 0,
-	};
-
+	/** Objects compared with the scene since the last query was counted. */
+	private _checked = 0;
 	private _entries: INodeBoundsEntry[] = [];
 	private _leaves: ILeaf[] = [];
 	private _recordings: IRecording[] = [];
@@ -131,8 +141,13 @@ export class NodeBoundsHierarchy {
 	 * The indices of the entries that can have a hit with the ray, ascending.
 	 */
 	public candidates(ray: THREE.Ray): number[] {
-		NodeBoundsHierarchy.stats.queries++;
 		this.validate();
+		const stats = testStats();
+		if (stats) {
+			stats.queries++;
+			stats.objectsChecked += this._checked;
+		}
+		this._checked = 0;
 
 		const found = new Set<number>(this._always);
 		const stack: IHierarchyNode[] = this._root ? [this._root] : [];
@@ -201,7 +216,8 @@ export class NodeBoundsHierarchy {
 			stale = true;
 		}
 		if (!stale) return;
-		NodeBoundsHierarchy.stats.rebuilds++;
+		const stats = testStats();
+		if (stats) stats.rebuilds++;
 		this.setAlways();
 		const alwaysChanged = this.alwaysKey() !== this._alwaysKey;
 		if (structural || alwaysChanged || !this._root) this.buildTree();
@@ -215,7 +231,7 @@ export class NodeBoundsHierarchy {
 			| undefined;
 		if (root !== recording.root) return false;
 		const objects = recording.objects;
-		NodeBoundsHierarchy.stats.objectsChecked += objects.length;
+		this._checked += objects.length;
 		for (let i = 0; i < objects.length; i++) {
 			const recorded = objects[i];
 			const object = recorded.object;
@@ -463,8 +479,3 @@ export class NodeBoundsHierarchy {
 		};
 	}
 }
-
-// A test or a tool reads how much a query validated, without a handle to
-// the class: the bundle does not export it.
-(globalThis as {__nodeBoundsStats?: unknown}).__nodeBoundsStats =
-	NodeBoundsHierarchy.stats;

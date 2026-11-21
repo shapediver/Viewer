@@ -16,9 +16,10 @@
  *   of the batch,
  * - `batchBoundsReads`: `getBoundingSphereAt` calls made inside
  *   `BatchedMesh.raycast`,
- * - `objectsValidated`: objects the bounds hierarchy compared with the scene
- *   (it publishes its work as `globalThis.__nodeBoundsStats`; 0 on a build
- *   without the hierarchy).
+ * - `objectsValidated`: objects the bounds hierarchy compared with the scene.
+ *   The hierarchy writes its work into `globalThis.__nodeBoundsStats` only if
+ *   this installer created the object before the first pick; 0 on a build
+ *   without the hierarchy.
  */
 export function installPicking() {
 	const probe = (window as any).__probe;
@@ -28,8 +29,13 @@ export function installPicking() {
 	let batchBoundsReads = 0;
 	let insideBatchRaycast = 0;
 	let validatedBase = 0;
+	(globalThis as any).__nodeBoundsStats = {
+		queries: 0,
+		objectsChecked: 0,
+		rebuilds: 0,
+	};
 	const validated = () =>
-		(globalThis as any).__nodeBoundsStats?.objectsChecked ?? 0;
+		(globalThis as any).__nodeBoundsStats.objectsChecked;
 	let attached = false;
 
 	const protoWith = (object: any, name: string) => {
