@@ -46,8 +46,8 @@ import {
 	type ISDTFAttributeVisualizationData,
 	type ISDTFItemData,
 	type ISDTFOverview,
-	type IViewportEvent,
 	type IViewportSettingsSections,
+	type IViewportUpdatedEvent,
 	MATERIAL_TYPE,
 	RENDERER_TYPE,
 	SPINNER_POSITIONING,
@@ -1651,12 +1651,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		if (this.closed) return;
 		if (this.sceneTreeManager.suspendSceneUpdates === true) return;
 		this._sceneTreeManager.updateSceneTree(this._tree.root);
+		const sceneChanges = this._sceneTreeManager.takeSceneChanges();
 		this._renderingManager.updateShadowMap();
-		this._animationEngine.updateAnimationData();
+		this._animationEngine.updateAnimationData(sceneChanges);
 		this._renderingManager.render();
 		this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED, {
 			viewportId: this.id,
-		} as IViewportEvent);
+			sceneChanges,
+		} as IViewportUpdatedEvent);
 	}
 
 	public updateEnvironmentGeometry(): void {

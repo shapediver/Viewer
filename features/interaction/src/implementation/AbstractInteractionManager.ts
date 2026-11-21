@@ -2,34 +2,53 @@ import {
 	type IMaterialAbstractData,
 	type ITreeNode,
 	type IViewportApi,
-	Tree} from "@shapediver/viewer";
+	Tree,
+} from "@shapediver/viewer";
+import {TreeNodeIndex} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
-	UuidGenerator} from "@shapediver/viewer.shared.services";
-import {type IIntersectionDefinition, type IRay} from "@shapediver/viewer.shared.types";
+	UuidGenerator,
+} from "@shapediver/viewer.shared.services";
+import {
+	type IIntersectionDefinition,
+	type IRay,
+	type IViewportUpdatedEvent,
+} from "@shapediver/viewer.shared.types";
 
 import {INTERACTION_STATE} from "../interfaces/IInteractionEngine";
 import {
 	type IInteractionFilterOptions,
-	type IInteractionManager} from "../interfaces/IInteractionManager";
+	type IInteractionManager,
+} from "../interfaces/IInteractionManager";
 import {
 	type IInteractionEffect,
 	type IInteractionEffectUtils,
-	isMaterialData} from "../interfaces/utils/IInteractionEffectUtils";
+	isMaterialData,
+} from "../interfaces/utils/IInteractionEffectUtils";
 import {InteractionData} from "./InteractionData";
 import {InteractionEffectUtils} from "./utils/InteractionEffectUtils";
 
-export abstract class AbstractInteractionManager
-	implements IInteractionManager
-{
+export abstract class AbstractInteractionManager implements IInteractionManager {
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #id: string;
 	readonly #tree: Tree = Tree.instance;
 
+	// The ids of the groups of each node that is in a group and can be seen
+	// in the viewport of the manager, kept up to date from the nodes of a
+	// scene update.
+	readonly #groupIndex = new TreeNodeIndex<string[]>(
+		(node) => this.groupIdsOf(node),
+		(a, b) => a.length === b.length && a.every((id, i) => id === b[i]),
+	);
+	// The index is read from the tree when it is needed for the first time
+	// and after the viewport changed.
+	#groupIndexBuilt = false;
 	#gatheredGroupedNodes: {
 		[key: string]: ITreeNode[];
 	} = {};
+	// The version of the index the grouped nodes were made for.
+	#gatheredVersion = -1;
 	#interactionEffect?: IInteractionEffect;
 	#interactionEffectUtils: IInteractionEffectUtils;
 	#occludeBySceneGeometry: boolean = false;
@@ -46,11 +65,16 @@ export abstract class AbstractInteractionManager
 		this.#interactionEffect = interactionEffect;
 		this.#interactionEffectUtils = new InteractionEffectUtils();
 
-		this.gatherGroupNodes();
 		this.#eventEngine.addListener(
 			EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED,
-			() => {
-				this.gatherGroupNodes();
+			(e) => {
+				// Nothing to keep up to date before the groups are used.
+				if (!this.#groupIndexBuilt) return;
+				const changes = (<IViewportUpdatedEvent>e).sceneChanges;
+				// Without the nodes a scene update went through, the
+				// whole tree is read.
+				if (changes) this.#groupIndex.apply(changes, this.#tree.root);
+				else this.#groupIndex.rebuild(this.#tree.root);
 			},
 		);
 	}
@@ -66,9 +90,26 @@ export abstract class AbstractInteractionManager
 		this.#interactionEffect = value;
 	}
 
+	/**
+	 * The nodes of each group, by group id, in tree order.
+	 */
 	public get gatheredGroupedNodes(): {
 		[key: string]: ITreeNode[];
 	} {
+		if (!this.#groupIndexBuilt) {
+			this.#groupIndex.rebuild(this.#tree.root);
+			this.#groupIndexBuilt = true;
+		}
+		if (this.#gatheredVersion !== this.#groupIndex.version) {
+			this.#gatheredVersion = this.#groupIndex.version;
+			const grouped: {[key: string]: ITreeNode[]} = {};
+			for (const entry of this.#groupIndex.entries(this.#tree.root))
+				for (const groupId of entry.value) {
+					if (!grouped[groupId]) grouped[groupId] = [];
+					grouped[groupId].push(entry.node);
+				}
+			this.#gatheredGroupedNodes = grouped;
+		}
 		return this.#gatheredGroupedNodes;
 	}
 
@@ -107,6 +148,8 @@ export abstract class AbstractInteractionManager
 	public set viewport(value: IViewportApi | undefined) {
 		this.#viewport = value;
 		this.#interactionEffectUtils.viewport = value;
+		// Which nodes can be seen depends on the viewport.
+		this.#groupIndexBuilt = false;
 	}
 
 	public abstract add(viewport: IViewportApi): void;
@@ -142,40 +185,30 @@ export abstract class AbstractInteractionManager
 
 	public abstract remove(): void;
 
-	private gatherGroupNodes() {
-		this.#gatheredGroupedNodes = {};
-		this.#tree.root.traverse((node) => {
-			if (node.visible === false) return;
-			if (
-				this.#viewport &&
-				node.excludeViewports.includes(this.#viewport.id)
-			)
-				return;
-			if (
-				this.#viewport &&
-				node.restrictViewports.length > 0 &&
-				!node.restrictViewports.includes(this.#viewport.id)
-			)
-				return;
+	/**
+	 * The group ids of the node (one for each interaction data that has one),
+	 * or `undefined` if the node is hidden, not in the viewport of the
+	 * manager, or in no group.
+	 */
+	private groupIdsOf(node: ITreeNode): string[] | undefined {
+		if (node.visible === false) return;
+		if (this.#viewport && node.excludeViewports.includes(this.#viewport.id))
+			return;
+		if (
+			this.#viewport &&
+			node.restrictViewports.length > 0 &&
+			!node.restrictViewports.includes(this.#viewport.id)
+		)
+			return;
 
-			for (let i = 0; i < node.data.length; i++) {
-				if (
-					node.data[i] instanceof InteractionData &&
-					(<InteractionData>node.data[i]).groupId
-				) {
-					if (
-						!this.#gatheredGroupedNodes[
-							(<InteractionData>node.data[i]).groupId!
-						]
-					)
-						this.#gatheredGroupedNodes[
-							(<InteractionData>node.data[i]).groupId!
-						] = [];
-					this.#gatheredGroupedNodes[
-						(<InteractionData>node.data[i]).groupId!
-					].push(node);
-				}
-			}
-		});
+		const groupIds: string[] = [];
+		for (let i = 0; i < node.data.length; i++) {
+			if (
+				node.data[i] instanceof InteractionData &&
+				(<InteractionData>node.data[i]).groupId
+			)
+				groupIds.push((<InteractionData>node.data[i]).groupId!);
+		}
+		return groupIds.length > 0 ? groupIds : undefined;
 	}
 }

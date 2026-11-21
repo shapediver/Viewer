@@ -1,4 +1,7 @@
-import {type IAnimationData} from "@shapediver/viewer.shared.types";
+import {
+	type IAnimationData,
+	type ISceneChanges,
+} from "@shapediver/viewer.shared.types";
 
 export interface IAnimationEngine {
 	// #region Properties (1)
@@ -20,9 +23,11 @@ export interface IAnimationEngine {
 	 */
 	update(deltaTime: number): boolean;
 	/**
-	 * Traverse the scene tree and gather all the animation data present in it.
+	 * Gather all the animation data present in the scene tree. With the
+	 * nodes a scene update went through, only those are looked at; without
+	 * them the whole tree is.
 	 */
-	updateAnimationData(): void;
+	updateAnimationData(changes?: ISceneChanges): void;
 
 	// #endregion Public Methods (2)
 }
