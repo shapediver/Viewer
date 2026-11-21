@@ -558,14 +558,16 @@ export class SceneTreeManager implements IManager {
 			// Lights, cameras and three.js objects move without a change of
 			// the tree: the matrix walk always goes through their branch.
 			let alwaysWalk = false;
+			let forceChildren = false;
 			for (let i = 0, len = treeNode.data.length; i < len; i++) {
 				const dataItem = treeNode.data[i];
 				if (
 					dataItem instanceof AbstractLight ||
 					dataItem instanceof ThreejsData
 				)
-					alwaysUpdate = alwaysWalk = true;
-				else if (dataItem instanceof AbstractCamera) alwaysWalk = true;
+					alwaysUpdate = alwaysWalk = forceChildren = true;
+				else if (dataItem instanceof AbstractCamera)
+					alwaysWalk = forceChildren = true;
 				const convertedObjectData = convertedChildrenMap.get(
 					dataItem.id,
 				);
@@ -656,6 +658,8 @@ export class SceneTreeManager implements IManager {
 			} else {
 				convertedObject.SDalwaysUpdate = false;
 			}
+			// Only this node, its ancestors do not force their children.
+			convertedObject.SDforceChildren = forceChildren;
 			if (alwaysWalk) {
 				this.flagAncestors(treeNode, convertedObject, "SDalwaysWalk");
 			} else {

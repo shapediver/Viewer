@@ -339,4 +339,27 @@ describe("uuid - test", () => {
 		);
 		expect(uuid1).toBe(uuid1Converted);
 	});
+
+	test("100,000 ids are unique, version 4 and variant 10xx", async () => {
+		const ids = new Set<string>();
+		for (let i = 0; i < 100_000; i++) {
+			const id = uuidGenerator.create();
+			expect(uuidGenerator.validate(id)).toBe(true);
+			expect(id[14]).toBe("4");
+			expect("89ab").toContain(id[19]);
+			ids.add(id);
+		}
+		expect(ids.size).toBe(100_000);
+	});
+
+	test("ids across a refill of the random pool keep the format", async () => {
+		const ids: string[] = [];
+		for (let i = 0; i < 600; i++) ids.push(uuidGenerator.create());
+		for (const id of ids.slice(250, 262)) {
+			expect(id).toMatch(
+				/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+			);
+		}
+		expect(new Set(ids).size).toBe(600);
+	});
 });

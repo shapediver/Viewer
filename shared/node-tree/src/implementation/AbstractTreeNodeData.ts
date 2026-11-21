@@ -1,5 +1,6 @@
 import {UuidGenerator} from "@shapediver/viewer.shared.services";
 import {type ITreeNodeData} from "@shapediver/viewer.shared.types";
+import {nextVersion} from "./version";
 
 export abstract class AbstractTreeNodeData implements ITreeNodeData {
 	readonly #id: string;
@@ -23,7 +24,7 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
 	 */
 	constructor(id?: string, version?: string) {
 		this.#id = id || this.#uuidGenerator.create();
-		this.#version = version || this.#uuidGenerator.create();
+		this.#version = version || nextVersion();
 	}
 
 	public get convertedObject(): {[key: string]: unknown} {
@@ -87,7 +88,7 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
 	 */
 	public updateVersion(): void {
 		const oldVersion = this.#version;
-		this.#version = this.#uuidGenerator.create();
+		this.#version = nextVersion();
 
 		// notify all parents about the version change
 		Object.values(this.#parentsUpdateVersions).forEach((cb) => cb());

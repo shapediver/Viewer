@@ -10,6 +10,7 @@ import {
 } from "@shapediver/viewer.shared.types";
 
 import {mat4} from "gl-matrix";
+import {nextVersion} from "./version";
 
 /** The last structure version given to a node (see structureChanged). */
 let lastStructureVersion = 0;
@@ -69,7 +70,7 @@ export class TreeNode implements ITreeNode {
 
 		this.#id = this.#uuidGenerator.create();
 		this.#originalId = this.#id;
-		this.#version = this.#uuidGenerator.create();
+		this.#version = nextVersion();
 		this.#parent?.addChild(this);
 	}
 
@@ -522,7 +523,7 @@ export class TreeNode implements ITreeNode {
 		}
 
 		const oldVersion = this.#version;
-		this.#version = this.#uuidGenerator.create();
+		this.#version = nextVersion();
 		if (this.#updateCallback)
 			this.#updateCallback(this.#version, oldVersion);
 	}

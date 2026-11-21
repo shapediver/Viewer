@@ -7,7 +7,7 @@
 	"beautyFrame.scenePass0.triangles": 61680,
 	"beautyFrame.scenePasses": 1,
 	"beautyFrame.triangles": 61680,
-	"beautyFrame.updateMatrixWorldCalls": 29,
+	"beautyFrame.updateMatrixWorldCalls": 28,
 	"cameraFrame.drawCalls": 2563,
 	"cameraFrame.fullScreenPasses": 0,
 	"cameraFrame.materialUpdatesInRender": 0,
@@ -16,7 +16,7 @@
 	"cameraFrame.scenePass0.triangles": 61680,
 	"cameraFrame.scenePasses": 1,
 	"cameraFrame.triangles": 61680,
-	"cameraFrame.updateMatrixWorldCalls": 29,
+	"cameraFrame.updateMatrixWorldCalls": 28,
 	"cameraFrame.updateMatrixWorldSkips": 2,
 	"cameraMove.batchBoundsReads": 0,
 	"cameraMove.framesRendered": 164,
@@ -33,12 +33,12 @@
 	"oneNodeChange.treeDataReads": 45,
 	"oneNodeChange.treeNodesRead": 50,
 	"oneNodeChange.treeNodesReversioned": 8,
-	"oneNodeChange.updateMatrixWorldCalls": 29,
+	"oneNodeChange.updateMatrixWorldCalls": 28,
 	"scene.batchedMeshes": 2,
 	"scene.materials": 12,
 	"scene.matrixAutoUpdate": 23,
 	"scene.meshes": 3867,
 	"scene.objects": 16811,
 	"scene.treeNodes": 12924,
-	"versionUpdate.idsCreated": 12922
+	"versionUpdate.idsCreated": 0
 }
