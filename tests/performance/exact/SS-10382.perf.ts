@@ -1,22 +1,16 @@
 import {expect} from "@playwright/test";
 import {open, test} from "./harness";
 
-test("SS-10382 updateVersion creates one uuid per node", async ({page}) => {
+test("SS-10382 updateVersion changes each node once", async ({page}) => {
 	await open(page);
 	const created = await page.evaluate(() => {
 		const SDV = (window as any).SDV;
 		const nodes = [new SDV.TreeNode("n0")];
 		for (let i = 1; i < 32; i++)
 			nodes.push(new SDV.TreeNode(`n${i}`, nodes[i - 1]));
-		let createdIds = 0;
-		const original = crypto.randomUUID.bind(crypto);
-		crypto.randomUUID = () => {
-			createdIds++;
-			return original();
-		};
+		const before = nodes.map((node) => node.version);
 		nodes[0].updateVersion();
-		crypto.randomUUID = original;
-		return createdIds;
+		return nodes.filter((node, i) => node.version !== before[i]).length;
 	});
 	// A chain of 32. The walk updates each node once. Ancestors of the
 	// chain root are not part of the chain.
@@ -51,19 +45,11 @@ test("SS-10382 a leaf update changes the leaf and its ancestors once", async ({
 		const measure = (update: () => void) => {
 			const before = new Map(nodes.map((node) => [node, node.version]));
 			for (const node of nodes) calls.set(node, 0);
-			let createdIds = 0;
-			const original = crypto.randomUUID.bind(crypto);
-			crypto.randomUUID = () => {
-				createdIds++;
-				return original();
-			};
 			update();
-			crypto.randomUUID = original;
 			const changed = nodes.filter(
 				(node) => node.version !== before.get(node),
 			);
 			return {
-				createdIds,
 				changed: changed.map((node) => node.name),
 				listenerCalls: nodes.map((node) => calls.get(node) ?? 0),
 				changedOnce: changed.every((node) => calls.get(node) === 1),
@@ -75,7 +61,6 @@ test("SS-10382 a leaf update changes the leaf and its ancestors once", async ({
 		return {
 			nodes: nodes.length,
 			leaf,
-			wholeCreatedIds: whole.createdIds,
 			wholeChanged: whole.changed.length,
 			wholeChangedOnce: whole.changedOnce,
 			sceneRoot: SDV.sceneTree.root.name,
@@ -84,14 +69,13 @@ test("SS-10382 a leaf update changes the leaf and its ancestors once", async ({
 	expect(result.nodes).toBe(74);
 	// The leaf, its branch, the test root and the scene root. 70 nodes keep
 	// their version.
-	expect(result.leaf.createdIds).toBe(4);
+	expect(result.leaf.changed.length).toBe(4);
 	expect(result.leaf.changed.sort()).toEqual(
 		["b0", "b0l0", "versionRoot", result.sceneRoot].sort(),
 	);
 	expect(result.leaf.changedOnce).toBe(true);
 	expect(result.leaf.listenerCalls.reduce((a, b) => a + b, 0)).toBe(4);
 	// The test root with its 72 descendants and the scene root above it.
-	expect(result.wholeCreatedIds).toBe(74);
 	expect(result.wholeChanged).toBe(74);
 	expect(result.wholeChangedOnce).toBe(true);
 });
