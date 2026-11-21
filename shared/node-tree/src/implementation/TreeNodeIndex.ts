@@ -53,15 +53,21 @@ export class TreeNodeIndex<T> {
 	/**
 	 * Apply what a scene update went through. A node of `removedNodeIds` is
 	 * dropped if it is not attached to the tree of `root` any more, and
-	 * computed again if it is (it can have been moved). Then every attached
+	 * computed again if it is (it was moved: its place in tree order is made
+	 * again). Then every attached
 	 * node of `changes.nodes` is computed again.
 	 */
 	public apply(changes: ISceneChanges, root: ITreeNode): void {
 		for (const id of changes.removedNodeIds) {
 			const entry = this._entries.get(id);
 			if (!entry) continue;
-			if (this.isAttached(entry.node, root)) this.update(entry.node);
-			else this.remove(id);
+			if (this.isAttached(entry.node, root)) {
+				// Its converted object left a parent and the node is still in the
+				// tree: it moved, so its place in tree order can have changed.
+				this._order = "walk";
+				this._version++;
+				this.update(entry.node);
+			} else this.remove(id);
 		}
 		for (const node of changes.nodes)
 			if (this.isAttached(node, root)) this.update(node);

@@ -474,6 +474,14 @@ export class SceneTreeManager implements IManager {
 			const nodeMatrix = treeNode.nodeMatrix;
 			const isVisible = this.isNodeVisible(treeNode);
 			const isVisibleInHierarchy = visibleInHierarchy && isVisible;
+			// A transformation-only pass also applies the visibility of the
+			// node. The next scene update then finds it applied and leaves the
+			// node out, so it is reported here.
+			if (
+				filter.transformationOnly &&
+				convertedObject.visible !== isVisible
+			)
+				this._changedNodes.add(treeNode);
 
 			// The transformation and the visibility are inherited by the
 			// whole branch (world matrices, bounding boxes, instances and

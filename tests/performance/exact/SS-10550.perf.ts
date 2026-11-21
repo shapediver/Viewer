@@ -110,9 +110,13 @@ function installTools() {
 			.map((hit: any) => hit.node.name);
 	}
 
+	/**
+	 * Update the viewport after a change of `node` (its parents get a new
+	 * version, nothing else), or after a change of the tree itself.
+	 */
 	function update(node?: any) {
-		node?.updateVersion();
-		SDV.sceneTree.root.updateVersion();
+		if (node) node.updateVersion();
+		else SDV.sceneTree.root.updateVersion();
 		perf.viewport.update();
 	}
 
@@ -235,6 +239,66 @@ test("SS-10550 picking follows a node that is added, hidden, shown, moved and re
 	expect(result.added, text).toEqual(["C", "B", "A"]);
 	expect(result.reparented, text).toEqual(["C", "B", "A"]);
 	expect(result.removed, text).toEqual(["B", "A"]);
+});
+
+test("SS-10550 a node that is moved in the tree is picked in its new tree order", async ({
+	page,
+}) => {
+	await setup(page);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const tools = (window as any).__tools;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const a = tools.triangle("A", 0);
+		tools.triangle("B", 0);
+		const group = new SDV.TreeNode("group");
+		SDV.sceneTree.root.addChild(group);
+		tools.update();
+		perf.viewport.show = true;
+		await perf.nextFrame();
+		const steps: Record<string, string[]> = {};
+		steps.start = tools.pick();
+		// A moves below the group, which comes after B. Both are at the
+		// same distance, so the tree order decides.
+		group.addChild(a);
+		tools.update(group);
+		steps.moved = tools.pick();
+		return steps;
+	});
+	const text = JSON.stringify(result);
+	expect(result.start, text).toEqual(["A", "B"]);
+	expect(result.moved, text).toEqual(["B", "A"]);
+});
+
+test("SS-10550 a visibility that a transformation-only update applied is not lost", async ({
+	page,
+}) => {
+	await setup(page);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const tools = (window as any).__tools;
+		await perf.create({shadows: false});
+		const a = tools.triangle("A", 0);
+		const b = tools.triangle("B", 0);
+		tools.update();
+		perf.viewport.show = true;
+		await perf.nextFrame();
+		tools.pick();
+		// The visibility of A is applied by an update of its transformation
+		// only: no scene update goes through A. A scene update of B follows.
+		a.visible = false;
+		perf.viewport.updateNodeTransformation(a);
+		b.addTransformation({
+			id: "move",
+			matrix: new Float32Array([
+				1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0.5, 1,
+			]),
+		});
+		tools.update(b);
+		return tools.pick();
+	});
+	expect(result).toEqual(["B"]);
 });
 
 test("SS-10550 a visible change without a new version is still honoured by a plain update", async ({
@@ -370,4 +434,219 @@ test("SS-10550 picking works after updates were suspended, and no hit remains fo
 	const text = JSON.stringify(result);
 	expect(result.after, text).toEqual(["B"]);
 	expect(result.removed, text).toEqual([]);
+});
+
+/** Hover with `SDVInteractions` on the nodes with interaction data. */
+function installHover() {
+	const perf = (window as any).__perf;
+	const SDV = (window as any).SDV;
+	const {InteractionEngine, HoverManager, InteractionData} = (window as any)
+		.SDVInteractions;
+	const hits: string[] = [];
+	const manager = new HoverManager();
+	manager.effectMaterial = new SDV.MaterialStandardData({color: "#dddddd"});
+	const engine = new InteractionEngine(perf.viewport);
+	engine.addInteractionManager(manager);
+	SDV.addListener(SDV.EVENTTYPE.INTERACTION.HOVER_ON, (event: any) => {
+		hits.push(...(event.nodes ?? []).map((node: any) => node.name));
+	});
+	(window as any).__hover = {
+		hits,
+		manager,
+		InteractionData,
+		client: (point: number[]) => {
+			const projected = perf.viewport.convert3Dto2D(point).client;
+			return {x: projected[0], y: projected[1]};
+		},
+	};
+}
+
+test("SS-10550 interaction data added to an existing node makes it hoverable", async ({
+	page,
+}) => {
+	await setup(page);
+	await page.evaluate(() => (window as any).__perf.create({shadows: false}));
+	await page.evaluate(installHover);
+	const setupResult = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const tools = (window as any).__tools;
+		const hover = (window as any).__hover;
+		const meshes = tools.bays(5);
+		tools.update();
+		perf.viewport.show = true;
+		await perf.nextFrame();
+		// The managers read the tree once, now: nothing is interactive.
+		void hover.manager.gatheredGroupedNodes;
+		const rect = perf.renderer.domElement.getBoundingClientRect();
+		const target = meshes[2];
+		target.addData(new hover.InteractionData({hover: true}));
+		tools.update(target);
+		await perf.nextFrame();
+		return {
+			rect: {x: rect.x, y: rect.y},
+			target: hover.client([2 * 2 + 0.5, 0.5, 1]),
+			name: target.name,
+		};
+	});
+	await page.mouse.move(setupResult.rect.x + 4, setupResult.rect.y + 4);
+	await page.waitForTimeout(250);
+	await page.mouse.move(setupResult.target.x, setupResult.target.y);
+	await page.waitForTimeout(300);
+	const hits = await page.evaluate(() => [...(window as any).__hover.hits]);
+	expect(hits, JSON.stringify(setupResult)).toEqual([setupResult.name]);
+});
+
+test("SS-10550 the nodes of a group stay in tree order when nodes are added, hidden and removed", async ({
+	page,
+}) => {
+	await setup(page);
+	await page.evaluate(() => (window as any).__perf.create({shadows: false}));
+	await page.evaluate(installHover);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const tools = (window as any).__tools;
+		const hover = (window as any).__hover;
+		const SDV = (window as any).SDV;
+		const grouped = (name: string) => {
+			const node = tools.triangle(name, 0);
+			node.addData(new hover.InteractionData({hover: true}, "g"));
+			return node;
+		};
+		const n1 = grouped("n1");
+		const n2 = grouped("n2");
+		const n3 = grouped("n3");
+		tools.update();
+		perf.viewport.show = true;
+		await perf.nextFrame();
+		const names = () =>
+			(hover.manager.gatheredGroupedNodes.g ?? []).map(
+				(node: any) => node.name,
+			);
+		const steps: Record<string, string[]> = {};
+		steps.start = names();
+
+		// Added below the first node: tree order, not the order of adding.
+		const n0 = new SDV.TreeNode("n0", n1);
+		n0.addData(new hover.InteractionData({hover: true}, "g"));
+		tools.update(n0);
+		steps.added = names();
+
+		n2.visible = false;
+		tools.update(n2);
+		steps.hidden = names();
+
+		SDV.sceneTree.root.removeChild(n1);
+		tools.update();
+		steps.removed = names();
+		void n3;
+		return steps;
+	});
+	const text = JSON.stringify(result);
+	expect(result.start, text).toEqual(["n1", "n2", "n3"]);
+	expect(result.added, text).toEqual(["n1", "n0", "n2", "n3"]);
+	expect(result.hidden, text).toEqual(["n1", "n0", "n3"]);
+	expect(result.removed, text).toEqual(["n3"]);
+});
+
+test("SS-10550 two viewports: a pick in the second one follows a change made through the first", async ({
+	page,
+}) => {
+	await setup(page);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const tools = (window as any).__tools;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const first = perf.viewport;
+		const canvas = document.createElement("canvas");
+		canvas.width = 320;
+		canvas.height = 240;
+		document.body.appendChild(canvas);
+		const second = await SDV.createViewport({
+			canvas,
+			id: "second",
+			visibility: SDV.VISIBILITY_MANUAL ?? SDV.VISIBILITY_MODE.MANUAL,
+		});
+		const pick = (viewport: any) =>
+			viewport
+				.raytraceScene([0.2, 0.2, 10], [0, 0, -1])
+				.map((hit: any) => hit.node.name);
+		const a = tools.triangle("A", 0);
+		SDV.sceneTree.root.updateVersion();
+		first.update();
+		second.update();
+		first.show = true;
+		second.show = true;
+		await perf.nextFrame();
+		const steps: Record<string, string[]> = {};
+		steps.first = pick(first);
+		steps.second = pick(second);
+
+		// Hidden through the first viewport; the second has not updated.
+		a.visible = false;
+		a.updateVersion();
+		first.update();
+		steps.hiddenSecond = pick(second);
+		second.update();
+		steps.hiddenSecondUpdated = pick(second);
+
+		// And shown again, the second viewport updates first.
+		a.visible = true;
+		a.updateVersion();
+		second.update();
+		steps.shownSecond = pick(second);
+		first.update();
+		steps.shownFirst = pick(first);
+		return steps;
+	});
+	const text = JSON.stringify(result);
+	expect(result.first, text).toEqual(["A"]);
+	expect(result.second, text).toEqual(["A"]);
+	expect(result.hiddenSecond, text).toEqual([]);
+	expect(result.hiddenSecondUpdated, text).toEqual([]);
+	expect(result.shownSecond, text).toEqual(["A"]);
+	expect(result.shownFirst, text).toEqual(["A"]);
+});
+
+test("SS-10550 a camera is found by its own viewport only", async ({page}) => {
+	await setup(page);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const tools = (window as any).__tools;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const first = perf.viewport;
+		const canvas = document.createElement("canvas");
+		canvas.width = 320;
+		canvas.height = 240;
+		document.body.appendChild(canvas);
+		const second = await SDV.createViewport({
+			canvas,
+			id: "second",
+			visibility: SDV.VISIBILITY_MODE.MANUAL,
+		});
+		tools.triangle("A", 0);
+		tools.update();
+		first.show = true;
+		second.show = true;
+		await perf.nextFrame();
+		const before = [
+			Object.keys(first.cameras),
+			Object.keys(second.cameras),
+		];
+		first.createPerspectiveCamera("mine");
+		const triangle = tools.triangle("B", 0);
+		tools.update(triangle);
+		second.update();
+		return {
+			before,
+			first: Object.keys(first.cameras),
+			second: Object.keys(second.cameras),
+		};
+	});
+	const text = JSON.stringify(result);
+	expect(result.first, text).toContain("mine");
+	expect(result.second, text).not.toContain("mine");
+	expect(result.first.length, text).toBe(result.before[0].length + 1);
+	expect(result.second.length, text).toBe(result.before[1].length);
 });

@@ -171,6 +171,16 @@ async function collect(page: Page, variant: SceneVariant): Promise<Counters> {
 	await page.evaluate(() => {
 		(window as any).__probe.trackTreeDataReads();
 		(window as any).__probe.reset();
+		// The nodes the scene update went through (-1: the whole tree).
+		(window as any).__sceneChangeNodes = null;
+		const SDV = (window as any).SDV;
+		SDV.addListener(
+			SDV.EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED,
+			(event: any) => {
+				(window as any).__sceneChangeNodes =
+					event.sceneChanges?.nodes.length ?? -1;
+			},
+		);
 	});
 	const change = await page.evaluate(() =>
 		(window as any).__probe.oneNodeChange(),
@@ -212,6 +222,9 @@ async function collect(page: Page, variant: SceneVariant): Promise<Counters> {
 	counters["oneNodeChange.updateMatrixWorldCalls"] =
 		update.counters.matrixWorld.total;
 	counters["oneNodeChange.treeDataReads"] = update.picks.treeDataReads;
+	counters["oneNodeChange.sceneChangeNodes"] = await page.evaluate(
+		() => (window as any).__sceneChangeNodes,
+	);
 
 	// After everything above, so late compiles and uploads are included.
 	await page.clock.runFor(500);
