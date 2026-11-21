@@ -1,3 +1,4 @@
+import * as attributeShow from "./attributeShow";
 import * as attributeSwitch from "./attributeSwitch";
 import * as batchedMemberHidden from "./batchedMemberHidden";
 import * as batchedMemberReplaced from "./batchedMemberReplaced";
@@ -35,6 +36,7 @@ export const ALL_SECTIONS = [
 	["gltfPlain", gltfPlain.label, gltfPlain.run],
 	["gltfDraco", gltfDraco.label, gltfDraco.run],
 	["versionUpdate", versionUpdate.label, versionUpdate.run],
+	["attributeShow", attributeShow.label, attributeShow.run, true],
 	["attributeSwitch", attributeSwitch.label, attributeSwitch.run, true],
 ] as const satisfies readonly (readonly [
 	string,

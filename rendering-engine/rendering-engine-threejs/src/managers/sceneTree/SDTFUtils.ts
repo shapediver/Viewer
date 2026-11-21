@@ -4,11 +4,13 @@ import {
 	type ITreeNodeData,
 	MaterialStandardData,
 	SDTFItemData,
-	SDTFOverviewData} from "@shapediver/viewer.shared.node-tree";
+	SDTFOverviewData,
+} from "@shapediver/viewer.shared.node-tree";
 import {InputValidator} from "@shapediver/viewer.shared.services";
 import {
 	type IMaterialAbstractData,
-	type ISDTFOverview} from "@shapediver/viewer.shared.types";
+	type ISDTFOverview,
+} from "@shapediver/viewer.shared.types";
 import {mat4} from "gl-matrix";
 import {RenderingEngine} from "../..";
 
@@ -76,10 +78,15 @@ export const injectAttributeData = (
 		visData.matrix = userVisData.matrix;
 	}
 
-	node.addTransformation({
-		id: "sdtf",
-		matrix: visData.matrix,
-	});
+	// One entry per node. Every conversion used to push another one, and
+	// leaving the mode removed only one of them.
+	const existing = node.getTransformation("sdtf");
+	if (existing) existing.matrix = visData.matrix;
+	else
+		node.addTransformation({
+			id: "sdtf",
+			matrix: visData.matrix,
+		});
 
 	if (data instanceof GeometryData) data.attributeMaterial = visData.material;
 };

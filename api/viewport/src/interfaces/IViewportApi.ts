@@ -775,6 +775,18 @@ export interface IViewportApi {
 	 */
 	updateNode(node: ITreeNode): void;
 	/**
+	 * Update the viewport with the current changes of the given scene tree nodes and their descendants,
+	 * as {@link IViewportApi.updateNode} does for each, in order. The material batches are reconciled once
+	 * at the end instead of once per node. If one node's update throws, the remaining nodes are not updated,
+	 * the batches are still reconciled for the nodes updated so far, and the error is rethrown.
+	 * Like {@link IViewportApi.updateNode}, it ignores `suspendSceneUpdates`. A node without a converted object
+	 * updates its nearest converted ancestor. Nested calls reconcile once, at the outermost call.
+	 * Only this viewport is affected.
+	 *
+	 * @param nodes The nodes to update.
+	 */
+	updateNodes(nodes: ITreeNode[]): void;
+	/**
 	 * Update the viewport with the current changes in transformation of given scene tree node and its descendants.
 	 * This carries out preparations for rendering. Call it after doing direct changes to the scene tree transformations.
 	 *

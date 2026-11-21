@@ -41,7 +41,9 @@ const OUT_DIR = path.join(__dirname, "../../test-results/bench");
 const ATTRIBUTES = process.env.COUNT_ATTRIBUTES === "1";
 
 const SECTIONS = ALL_SECTIONS.filter(
-	([section]) => ATTRIBUTES || section !== "attributeSwitch",
+	([section]) =>
+		ATTRIBUTES ||
+		(section !== "attributeSwitch" && section !== "attributeShow"),
 );
 
 type PageCounts = Record<Section, Counts>;

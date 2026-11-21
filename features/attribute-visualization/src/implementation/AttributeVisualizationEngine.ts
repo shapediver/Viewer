@@ -3,26 +3,30 @@ import {
 	addListener,
 	type ITreeNode,
 	type IViewportApi,
-	sceneTree} from "@shapediver/viewer";
+	sceneTree,
+} from "@shapediver/viewer";
 import {
 	MaterialGemData,
 	MaterialShadowData,
 	MaterialSpecularGlossinessData,
 	MaterialStandardData,
 	MaterialUnlitData,
-	SDTFItemData} from "@shapediver/viewer.shared.node-tree";
+	SDTFItemData,
+} from "@shapediver/viewer.shared.node-tree";
 import {EVENTTYPE, UuidGenerator} from "@shapediver/viewer.shared.services";
 import {
 	type IMaterialAbstractData,
 	type ISDTFItemData,
 	type ISDTFOverview,
-	SdtfPrimitiveTypeGuard} from "@shapediver/viewer.shared.types";
+	SdtfPrimitiveTypeGuard,
+} from "@shapediver/viewer.shared.types";
 import {mat4} from "gl-matrix";
 import {
 	type IAttribute,
 	type IDefaultAttribute,
 	type INumberAttribute,
-	type IStringAttribute} from "../interfaces/IAttribute";
+	type IStringAttribute,
+} from "../interfaces/IAttribute";
 import {type IAttributeVisualizationEngine} from "../interfaces/IAttributeVisualizationEngine";
 import {type ILayer} from "../interfaces/ILayer";
 import {AttributeVisualizationUtils} from "./AttributeVisualizationUtils";
@@ -32,9 +36,7 @@ const IDENTITY_MATRIX: mat4 = mat4.create();
 
 type SDTFOverviewEntry = ISDTFOverview[string][number];
 
-export class AttributeVisualizationEngine
-	implements IAttributeVisualizationEngine
-{
+export class AttributeVisualizationEngine implements IAttributeVisualizationEngine {
 	// #region Properties (7)
 
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
@@ -75,7 +77,10 @@ export class AttributeVisualizationEngine
 		this.createLayers();
 		this.gatherNodesWithAttributeData();
 		this.buildOverviewCache();
-		this.constructAttributeVisualization();
+		// The callback is set at once. The items are updated in a microtask, so
+		// an `updateAttributes` in the same task converts them once.
+		this.assignVisualizationCallback();
+		this.scheduleUpdate();
 
 		const cb = () => {
 			this.#overview = this.#viewport.createSDTFOverview(sceneTree.root);
@@ -237,6 +242,14 @@ export class AttributeVisualizationEngine
 	}
 
 	private constructAttributeVisualization() {
+		this.assignVisualizationCallback();
+		// One update of all items: the material batches are reconciled once,
+		// not once per item. This re-runs injectAttributeData (and the callback)
+		// for each affected node without version-stomping the whole tree.
+		this.#viewport.updateNodes(this.#nodesWithAttributeData);
+	}
+
+	private assignVisualizationCallback() {
 		this.#viewport.visualizeAttributes = (
 			_overview: ISDTFOverview,
 			itemData?: ISDTFItemData,
@@ -399,13 +412,6 @@ export class AttributeVisualizationEngine
 				};
 			}
 		};
-
-		// Use the viewport's updateNode helper to directly re-convert each
-		// affected node, which re-runs injectAttributeData (and our visualizeAttributes
-		// callback) without the overhead of version-stomping the entire tree.
-		for (let i = 0; i < this.#nodesWithAttributeData.length; i++) {
-			this.#viewport.updateNode(this.#nodesWithAttributeData[i]);
-		}
 	}
 
 	private createMaterialCopy(

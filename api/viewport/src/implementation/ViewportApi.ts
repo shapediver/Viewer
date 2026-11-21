@@ -1966,6 +1966,20 @@ export class ViewportApi implements IViewportApi {
 		);
 	}
 
+	public updateNodes(nodes: ITreeNode[]): void {
+		const scope = "updateNodes";
+		// Validate every entry before anything is updated.
+		for (const node of nodes)
+			if (!(node instanceof TreeNode))
+				throw new ShapeDiverViewerValidationError(
+					`${scope}: Input could not be validated. ${node} is not of type node.`,
+					node,
+					"nodes",
+				);
+
+		this.#renderingEngine.sceneTreeManager.updateNodes(nodes);
+	}
+
 	public updateNodeTransformation(node: ITreeNode): void {
 		const scope = "updateNodeTransformation";
 		if (!(node instanceof TreeNode))

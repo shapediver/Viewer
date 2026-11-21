@@ -1,4 +1,5 @@
 import {installBatchedMesh} from "./batchedMesh";
+import {installBatchRebuild} from "./batchRebuild";
 import {installMatrixWorld} from "./matrixWorld";
 import {installProgramCacheKey} from "./programCacheKey";
 
@@ -17,4 +18,5 @@ export const COUNTER_INSTALLERS = [
 	installMatrixWorld,
 	installProgramCacheKey,
 	installBatchedMesh,
+	installBatchRebuild,
 ];
