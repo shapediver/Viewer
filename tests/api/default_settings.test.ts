@@ -23,6 +23,8 @@ const readOptions = () => {
 		gemTracing: viewport.gemTracing,
 		gemNormalMapResolution: viewport.gemNormalMapResolution,
 		toneMapping: viewport.toneMapping,
+		accumulationFrames: viewport.accumulationFrames,
+		accumulationFramesMobile: viewport.accumulationFramesMobile,
 		aoExcludeGems: [...properties("ssao"), ...properties("hbao")].map(
 			(p) => p.excludeGems === true,
 		),
@@ -40,6 +42,8 @@ const OLD_LOOK = {
 	physicalGemDispersion: false,
 	gemTracing: "sphere",
 	gemNormalMapResolution: 1024,
+	accumulationFrames: 0,
+	accumulationFramesMobile: 0,
 };
 
 const NEW_LOOK = {
@@ -89,6 +93,9 @@ test.describe("Default settings", () => {
 			...NEW_LOOK,
 			hdr: true,
 			toneMapping: "aces_filmic",
+			// only the jewelry preset accumulates frames (SS-10508)
+			accumulationFrames: 0,
+			accumulationFramesMobile: 0,
 			aoExcludeGems: [true],
 			bloom: [],
 		});
@@ -100,6 +107,8 @@ test.describe("Default settings", () => {
 			...NEW_LOOK,
 			hdr: true,
 			toneMapping: "neutral",
+			accumulationFrames: 32,
+			accumulationFramesMobile: 8,
 			aoExcludeGems: [true],
 			bloom: [{highlightsOnly: true, backgroundBloom: false}],
 		});

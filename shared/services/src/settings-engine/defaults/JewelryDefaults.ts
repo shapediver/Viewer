@@ -95,6 +95,10 @@ export const JewelryDefaults: () => ISettings = () => {
 			toneMapping: "neutral",
 			// brings the gold under jewelry_studio closer to the WebGi reference (SS-10494)
 			toneMappingExposure: 1.4,
+			// averages jittered frames while the view is still (SS-10508);
+			// fewer frames on mobile, where each one costs more
+			accumulationFrames: 32,
+			accumulationFramesMobile: 8,
 		},
 		session: {},
 		material: {
