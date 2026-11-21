@@ -30,6 +30,9 @@ import {StillFrameAccumulator} from "./postprocessing/StillFrameAccumulator";
 import {updateMorphWeights} from "./sceneTree/SceenTreeManagerUtils";
 import {SceneTreeManager} from "./SceneTreeManager";
 
+/** Objects waiting for a compile at which the set is first pruned. */
+const COMPILE_SET_PRUNE = 1024;
+
 /** The part of a three.js WebGLProgram that the compile gate reads. */
 interface IProgramStatus {
 	isReady(): boolean;
@@ -55,6 +58,10 @@ export class RenderingManager implements IManager {
 	private _compileAll: boolean = false;
 	private _firstCompilePending: boolean = true;
 	private _compileObjects = new Set<THREE.Object3D>();
+	/** An object was requested since the last compile, kept or not. */
+	private _compileRequested: boolean = false;
+	/** The size of the set at which the objects that left the scene go. */
+	private _pruneAt: number = COMPILE_SET_PRUNE;
 	private _compilingPrograms: Set<IProgramStatus> | null = null;
 	private _lightSignature: string | null = null;
 	private _continuousRendering: boolean = false;
@@ -293,15 +300,25 @@ export class RenderingManager implements IManager {
 	 * batch or instanced mesh, a source mesh that left its batch.
 	 */
 	public requestCompile(object: THREE.Object3D): void {
-		// Interactions create effect meshes between scene updates. Drop
-		// what left the scene so a session without updates does not keep it.
-		if (this._compileObjects.size >= 1024) {
+		this._compileRequested = true;
+		// The next compile takes the whole scene, so there is nothing to
+		// remember. A load adds thousands of objects this way.
+		if (this._compileAll || this._firstCompilePending) return;
+		// Interactions create effect meshes between scene updates. Drop what
+		// left the scene so a session without updates does not keep it. The
+		// walk is paid when the set has doubled since the last one, not on
+		// every call.
+		if (this._compileObjects.size >= this._pruneAt) {
 			const scene = this._renderingEngine.scene;
 			for (const candidate of this._compileObjects) {
 				let parent: THREE.Object3D | null = candidate;
 				while (parent && parent !== scene) parent = parent.parent;
 				if (parent !== scene) this._compileObjects.delete(candidate);
 			}
+			this._pruneAt = Math.max(
+				COMPILE_SET_PRUNE,
+				this._compileObjects.size * 2,
+			);
 		}
 		this._compileObjects.add(object);
 	}
@@ -351,7 +368,10 @@ export class RenderingManager implements IManager {
 		fullCompile: boolean,
 	): THREE.Object3D[] | null {
 		const objects = [...this._compileObjects];
+		const requested = this._compileRequested;
 		this._compileObjects.clear();
+		this._compileRequested = false;
+		this._pruneAt = COMPILE_SET_PRUNE;
 		const signature = this.lightSignature(scene);
 		const full =
 			fullCompile ||
@@ -360,7 +380,7 @@ export class RenderingManager implements IManager {
 			signature !== this._lightSignature;
 		// An update of a scene without objects, such as the one that creates
 		// the viewport, is not yet the first update that needs programs.
-		if (objects.length > 0) this._firstCompilePending = false;
+		if (requested) this._firstCompilePending = false;
 		this._compileAll = false;
 		this._lightSignature = signature;
 		if (full) return null;

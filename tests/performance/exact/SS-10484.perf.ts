@@ -365,3 +365,149 @@ test("SS-10484 shadows forced off and back on compile the whole scene", async ({
 	expect(result.steps.forcedOff.renderCompiled).toBeLessThanOrEqual(1);
 	expect(result.steps.forcedOn.renderCompiled).toBe(0);
 });
+
+/**
+ * Runs in the page, after the viewport exists. Counts reads of `parent` on
+ * every object added to a parent from now on, while `counting` is set. A walk
+ * up the parents of each object that waits for a compile shows up as reads
+ * that grow with the square of the number of objects.
+ */
+function installParentReads() {
+	const perf = (window as any).__perf;
+	const scene = perf.viewport.threeJsCoreObjects.scene;
+	let proto = Object.getPrototypeOf(scene);
+	while (proto && !Object.prototype.hasOwnProperty.call(proto, "add"))
+		proto = Object.getPrototypeOf(proto);
+	const add = proto.add;
+	const state = {reads: 0, counting: false};
+	proto.add = function (...objects: any[]) {
+		for (const object of objects) {
+			if (Object.getOwnPropertyDescriptor(object, "parent")?.get)
+				continue;
+			let value = object.parent;
+			Object.defineProperty(object, "parent", {
+				configurable: true,
+				get() {
+					if (state.counting) state.reads++;
+					return value;
+				},
+				set(next) {
+					value = next;
+				},
+			});
+		}
+		return add.apply(this, objects);
+	};
+	perf.parentReads = state;
+}
+
+const MANY = 3000;
+
+/** Boxes with a material of their own look: a new program, no batch. */
+function addMany([count, opacity]: [number, number]) {
+	const perf = (window as any).__perf;
+	const SDV = (window as any).SDV;
+	const material = new SDV.MaterialStandardData({
+		color: "#6688cc",
+		opacity,
+		side: SDV.MATERIAL_SIDE.FRONT,
+	});
+	for (let i = 0; i < count; i++) {
+		const geometry = perf.boxGeometry(
+			[(i % 60) * 1.2, Math.floor(i / 60) * 1.2, 0],
+			[(i % 60) * 1.2 + 0.8, Math.floor(i / 60) * 1.2 + 0.8, 0.8],
+		);
+		geometry.material = material;
+		const node = new SDV.TreeNode(`many${i}`);
+		node.addData(geometry);
+		SDV.sceneTree.root.addChild(node);
+	}
+	SDV.sceneTree.root.updateVersion();
+}
+
+/** Parent reads during the next scene update, which adds `MANY` objects. */
+async function readsOfUpdate(page: any, opacity: number, firstUpdate: boolean) {
+	await page.evaluate(async (first: boolean) => {
+		const perf = (window as any).__perf;
+		await perf.create({shadows: false});
+		if (!first) {
+			// A small first update, so the one that follows is not the first.
+			perf.addBoxes(
+				4,
+				new (window as any).SDV.MaterialStandardData({
+					color: "#999999",
+				}),
+			);
+			perf.viewport.update();
+			perf.viewport.show = true;
+			await perf.nextFrame();
+		}
+	}, firstUpdate);
+	await page.evaluate(installParentReads);
+	await page.evaluate(addMany, [MANY, opacity] as [number, number]);
+	return page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		perf.parentReads.counting = true;
+		try {
+			perf.viewport.update();
+			// A shown viewport may convert on its next frame.
+			await perf.nextFrame();
+		} finally {
+			perf.parentReads.counting = false;
+		}
+		let meshes = 0;
+		perf.viewport.threeJsCoreObjects.scene.traverse((object: any) => {
+			if (object.isMesh) meshes++;
+		});
+		return {reads: perf.parentReads.reads as number, meshes};
+	});
+}
+
+test("SS-10484 the first update with thousands of objects walks parents linearly", async ({
+	page,
+}) => {
+	await setup(page);
+	const {reads, meshes} = await readsOfUpdate(page, 1, true);
+	expect(meshes).toBeGreaterThanOrEqual(MANY);
+	// About 30 reads per object. A walk up the parents of every waiting
+	// object, per call, is about 4,000 per object at this size.
+	expect(reads / MANY).toBeLessThan(150);
+});
+
+test("SS-10484 a later update with thousands of objects also walks parents linearly (guard)", async ({
+	page,
+}) => {
+	await setup(page);
+	const {reads, meshes} = await readsOfUpdate(page, 0.5, false);
+	expect(meshes).toBeGreaterThanOrEqual(MANY);
+	expect(reads / MANY).toBeLessThan(150);
+});
+
+test("SS-10484 objects requested in a large update are compiled by it", async ({
+	page,
+}) => {
+	await setup(page);
+	await skipOnSoftwareRenderer(page, "programs compile in the driver");
+	await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		await perf.create({shadows: false});
+		perf.addBoxes(
+			4,
+			new (window as any).SDV.MaterialStandardData({color: "#999999"}),
+		);
+		perf.viewport.update();
+		perf.viewport.show = true;
+		await perf.nextFrame();
+	});
+	await page.evaluate(addMany, [MANY, 0.5] as [number, number]);
+	const created = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const watch = perf.watch();
+		perf.viewport.update();
+		await perf.nextFrame();
+		return watch.log.renderCompiled as number[];
+	});
+	// The program of the new material is created by the compile of the
+	// update, not inside a draw.
+	expect(created.reduce((sum, n) => sum + n, 0)).toBe(0);
+});
