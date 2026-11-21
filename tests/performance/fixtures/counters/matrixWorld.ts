@@ -3,6 +3,10 @@
  * the page. Adds `window.__probe.counters.matrixWorld`.
  * It must not reference anything outside its own body.
  *
+ * `updateWorldMatrix` (the walk up the parents of one object) is counted
+ * separately in `worldMatrixTotal`, so that code which replaces a scene walk
+ * with it shows the work it still does.
+ *
  * `read()` gives `total`, every call since the last reset, and `byFrame`,
  * the calls made inside `renderer.render` per animation frame (the keys are
  * `probe.currentFrame()`, the same numbers as `PassRecord.frame`).
@@ -10,6 +14,7 @@
 export function installMatrixWorld() {
 	const probe = (window as any).__probe;
 	let total = 0;
+	let worldMatrixTotal = 0;
 	let renderDepth = 0;
 	const byFrame: Record<number, number> = {};
 	let attached = false;
@@ -34,6 +39,11 @@ export function installMatrixWorld() {
 			}
 			return original.apply(this, args);
 		};
+		const updateWorldMatrix = proto.updateWorldMatrix;
+		proto.updateWorldMatrix = function (this: unknown, ...args: any[]) {
+			worldMatrixTotal++;
+			return updateWorldMatrix.apply(this, args);
+		};
 		// Outside the probe's own wrapper, so every pass of a frame counts.
 		const renderer = probe.renderer;
 		const render = renderer.render;
@@ -52,8 +62,9 @@ export function installMatrixWorld() {
 		attach,
 		reset() {
 			total = 0;
+			worldMatrixTotal = 0;
 			for (const key of Object.keys(byFrame)) delete byFrame[Number(key)];
 		},
-		read: () => ({total, byFrame: {...byFrame}}),
+		read: () => ({total, worldMatrixTotal, byFrame: {...byFrame}}),
 	};
 }

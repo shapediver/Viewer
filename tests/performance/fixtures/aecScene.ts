@@ -203,6 +203,7 @@ export function installAecScene() {
 
 		const root = new SDV.TreeNode("aec");
 		const glassNodes: any[] = [];
+		const mullionNodes: any[] = [];
 		// Item nodes carry interaction and sdTF data, as in a session model.
 		const glassItems: any[] = [];
 		const items: any[] = [];
@@ -263,6 +264,7 @@ export function installAecScene() {
 							item,
 						);
 						items.push(item);
+						if (part.name === "mullion") mullionNodes.push(node);
 						if (part.name === "glass") {
 							glassNodes.push(node);
 							glassItems.push(item);
@@ -279,6 +281,7 @@ export function installAecScene() {
 		return {
 			root,
 			glassNodes,
+			mullionNodes,
 			glassItems,
 			items,
 			meshes,
@@ -291,5 +294,5 @@ export function installAecScene() {
 		};
 	}
 
-	(window as any).__aec = {build};
+	(window as any).__aec = {build, boxPrimitive};
 }

@@ -1,4 +1,7 @@
 import * as attributeSwitch from "./attributeSwitch";
+import * as batchedMemberHidden from "./batchedMemberHidden";
+import * as batchedMemberReplaced from "./batchedMemberReplaced";
+import * as batchedMemberVersioned from "./batchedMemberVersioned";
 import * as build from "./build";
 import type {Counts, Viewer} from "./context";
 import * as gltfDraco from "./gltfDraco";
@@ -17,6 +20,17 @@ export const ALL_SECTIONS = [
 	["build", build.label, build.run],
 	["renderFrame", renderFrame.label, renderFrame.run],
 	["oneNodeUpdate", oneNodeUpdate.label, oneNodeUpdate.run],
+	["batchedMemberHidden", batchedMemberHidden.label, batchedMemberHidden.run],
+	[
+		"batchedMemberReplaced",
+		batchedMemberReplaced.label,
+		batchedMemberReplaced.run,
+	],
+	[
+		"batchedMemberVersioned",
+		batchedMemberVersioned.label,
+		batchedMemberVersioned.run,
+	],
 	["ssaoFrame", ssaoFrame.label, ssaoFrame.run],
 	["gltfPlain", gltfPlain.label, gltfPlain.run],
 	["gltfDraco", gltfDraco.label, gltfDraco.run],
