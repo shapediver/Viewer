@@ -68,6 +68,10 @@ export class SDObject extends Object3D implements ISDObject {
 		this.#SDid = SDid;
 		this.#SDversion = SDversion;
 		this.#SDtype = type;
+		// The cached matrix belongs to the parent it was taken from.
+		this.addEventListener("removed", () => {
+			this.#parentMatrixWorld = undefined;
+		});
 	}
 
 	public applyTransformation(transformation: mat4): void {
