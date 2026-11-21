@@ -12,9 +12,11 @@ import {
 } from "./harness";
 
 const GLTF_ASSET_HOST = "https://budget-assets.viewertests.invalid";
-// Shaped like ShapeDiverGltfV2Writer output, facade-sized (1,249 nodes).
+// Shaped like ShapeDiverGltfV2Writer output, 4,000 nodes. The conversion has to
+// be longer than one time slice for `plain.conversionYielded` to be 1; with
+// 1,249 nodes it was about one slice and cheaper ids (SS-10491) ended it.
 const GLTF_PLAIN = syntheticGlb({
-	meshes: 312,
+	meshes: 1000,
 	instancesPerMesh: 3,
 	gridSize: 8,
 	jitter: true,
