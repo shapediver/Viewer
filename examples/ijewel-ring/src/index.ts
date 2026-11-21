@@ -159,6 +159,9 @@ const createGemMaterial = () =>
 		type: SDV.POST_PROCESSING_EFFECT_TYPE.BLOOM,
 		properties: {
 			highlightsOnly: true,
+			// the gems are far brighter than white: a higher limit lets their
+			// bloom wash out the bezels around them
+			highlightLimit: 1,
 			backgroundBloom: false,
 		},
 	});

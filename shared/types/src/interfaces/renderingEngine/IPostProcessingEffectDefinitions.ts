@@ -48,6 +48,8 @@ export interface IBloomEffectDefinition extends IPostProcessingEffectDefinition 
 		backgroundBloom?: boolean;
 		/** Bloom only the light above `luminanceThreshold` (soft knee of width `luminanceSmoothing`, per-pixel cap, tighter mipmap blur), so only highlights glow and bright surfaces keep their colour. Recommended together with `IPostProcessingApi.hdr`. When enabled, unset `luminanceThreshold`, `luminanceSmoothing` and `mipmapBlur` default to 1, 0.25 and true. With 8-bit buffers the threshold is capped at 0.8. (default: false) */
 		highlightsOnly?: boolean;
+		/** Only with `highlightsOnly` and `IPostProcessingApi.hdr`: the most bloom light a single pixel can add, in multiples of white. Lower it (e.g. 1) when very bright gems leave a glow on the metal around them. (default: 8) */
+		highlightLimit?: number;
 		/** The blend function of this effect. (default: BlendFunction.ADD) */
 		blendFunction?: number;
 		/** The bloom intensity. (default: 1.0) */

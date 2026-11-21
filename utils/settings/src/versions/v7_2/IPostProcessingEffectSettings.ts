@@ -37,6 +37,12 @@ export interface IBloomEffectDefinition extends Omit<
 		 * Settings converted from before 7.2 use false.
 		 */
 		highlightsOnly: boolean;
+		/**
+		 * Only with `highlightsOnly` and HDR post-processing: the most bloom
+		 * light a single pixel can add, in multiples of white.
+		 * Default: 8
+		 */
+		highlightLimit?: number;
 	};
 }
 
