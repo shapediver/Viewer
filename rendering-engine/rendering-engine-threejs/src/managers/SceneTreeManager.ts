@@ -18,6 +18,7 @@ import {
 	Tree,
 } from "@shapediver/viewer.shared.node-tree";
 import {
+	type ISceneChanges,
 	type ISDTFOverview,
 	RENDERER_TYPE,
 } from "@shapediver/viewer.shared.types";
@@ -64,6 +65,15 @@ export class SceneTreeManager implements IManager {
 	private _skipUnchanged = false;
 	/** Counts the nodes a transformation-only pass updated. */
 	private _movedNodes = 0;
+	// What the scene updates since the last `takeSceneChanges` went through:
+	// the nodes they converted again, in the order they visited them (parents
+	// first), and the ids of the nodes whose converted objects they removed.
+	private readonly _changedNodes = new Set<ITreeNode>();
+	private readonly _removedNodeIds = new Set<string>();
+	// A scene update ran since the last `takeSceneChanges`.
+	private _passRan = false;
+	// One of them went through the whole tree, so the sets say nothing.
+	private _fullPass = false;
 
 	constructor(private readonly _renderingEngine: RenderingEngine) {
 		this._scene.background = new THREE.Color("#ffffff");
@@ -87,6 +97,30 @@ export class SceneTreeManager implements IManager {
 
 	public get scene() {
 		return this._scene;
+	}
+
+	/**
+	 * What the scene updates since the last call went through, to be sent
+	 * with `VIEWPORT_UPDATED`, and forgets it. `undefined` if no scene
+	 * update ran, or if one of them went through the whole tree (first
+	 * update, renderer type or instancing switch, attribute visualization):
+	 * a listener has to read the whole tree then.
+	 */
+	public takeSceneChanges(): ISceneChanges | undefined {
+		const changes =
+			this._passRan && !this._fullPass
+				? Object.freeze({
+						nodes: Object.freeze([...this._changedNodes]),
+						removedNodeIds: Object.freeze([
+							...this._removedNodeIds,
+						]),
+					})
+				: undefined;
+		this._changedNodes.clear();
+		this._removedNodeIds.clear();
+		this._passRan = false;
+		this._fullPass = false;
+		return changes;
 	}
 
 	public get suspendSceneUpdates(): boolean {
@@ -492,6 +526,7 @@ export class SceneTreeManager implements IManager {
 
 			// cleanup obsolete data and children
 			if (filter.transformationOnly === false) {
+				this._changedNodes.add(treeNode);
 				this.cleanupObsoleteData(treeNode, convertedObject);
 				this.cleanupObsoleteChildren(treeNode, convertedObject);
 				// Children added or removed below this node from now on make
@@ -706,7 +741,10 @@ export class SceneTreeManager implements IManager {
 		this._boundingBox = new Box();
 		this._renderingEngine.lightLoader.shadowMapCount = 0;
 
+		this._passRan = true;
 		if (!this._mainConvertedObject) {
+			// The first update of a viewport goes through the whole tree.
+			this._fullPass = true;
 			this._mainConvertedObject = new SDObject(
 				rootTreeNode.id,
 				rootTreeNode.version,
@@ -748,6 +786,7 @@ export class SceneTreeManager implements IManager {
 		this._skipUnchanged =
 			!this._newRendererType &&
 			this._renderingEngine.type === RENDERER_TYPE.STANDARD;
+		if (!this._skipUnchanged) this._fullPass = true;
 		this._renderingEngine.instanceGroupManager.beginBoundsUpdate();
 		try {
 			this.updateNode(rootTreeNode, this._mainConvertedObject);
@@ -969,6 +1008,9 @@ export class SceneTreeManager implements IManager {
 		});
 		childrenToRemove.forEach((cTR) => {
 			cTR.traverse((o) => {
+				// The node and every node below it left this viewport.
+				if (o instanceof SDObject && o.SDtype === SD_DATA_TYPE.OBJECT)
+					this._removedNodeIds.add(o.SDid);
 				if (o instanceof SDObject && o.SDtype !== SD_DATA_TYPE.OBJECT) {
 					removeData(this._renderingEngine, o);
 				} else if (

@@ -3,6 +3,7 @@ import {
 	type ITree,
 	type ITreeNode,
 	Tree,
+	TreeNodeIndex,
 } from "@shapediver/viewer.shared.node-tree";
 import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {
@@ -10,6 +11,7 @@ import {
 	type IIntersectionFilter,
 	type IRay,
 	type IRayTracingIntersection,
+	type IViewportUpdatedEvent,
 } from "@shapediver/viewer.shared.types";
 import * as THREE from "three";
 import {type IIntersectionEngine} from "../interfaces/IIntersectionEngine";
@@ -35,24 +37,55 @@ export class IntersectionEngine implements IIntersectionEngine {
 
 	private static _instance: IntersectionEngine;
 
-	private _intersectNodes: {
+	// The geometry data of every visible node that takes part in picking,
+	// kept up to date from the nodes of a scene update. A value holds the
+	// version of each geometry data it was made for.
+	private readonly _index = new TreeNodeIndex<
+		{data: GeometryData; key: string}[]
+	>(
+		(node) => {
+			if (node.visible === false) return;
+			if (node.intersectionTest === false) return;
+			const own: {data: GeometryData; key: string}[] = [];
+			for (let i = 0; i < node.data.length; i++) {
+				const data = node.data[i];
+				if (data instanceof GeometryData)
+					own.push({data, key: `${data.id}_${data.version}`});
+			}
+			return own.length > 0 ? own : undefined;
+		},
+		(a, b) =>
+			a.length === b.length &&
+			a.every(
+				(entry, i) =>
+					entry.data === b[i].data && entry.key === b[i].key,
+			),
+	);
+	// The index is read from the tree when it is needed for the first time.
+	private _indexBuilt = false;
+	// The nodes of the index, one entry for each geometry data, in tree
+	// order, for the version of the index in `_listVersion`.
+	private _list: {
 		node: ITreeNode;
 		geometryData: {[key: string]: GeometryData};
-		visible: boolean;
-		excludeViewports: string[];
-		restrictViewports: string[];
 	}[] = [];
+	private _listVersion = -1;
 
 	// #endregion Properties (9)
 
 	// #region Constructors (1)
 
 	private constructor() {
-		this.gatherNodes();
 		this._eventEngine.addListener(
 			EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED,
-			() => {
-				this.gatherNodes();
+			(e) => {
+				// Nothing to keep up to date before the first pick.
+				if (!this._indexBuilt) return;
+				const changes = (<IViewportUpdatedEvent>e).sceneChanges;
+				// Without the nodes a scene update went through, the
+				// whole tree is read.
+				if (changes) this._index.apply(changes, this._tree.root);
+				else this._index.rebuild(this._tree.root);
 			},
 		);
 	}
@@ -81,7 +114,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 		if (options?.selectionBox) {
 			const selectionBox = options.selectionBox;
 			return selectionBox.intersectObjects(
-				this._intersectNodes.map((n) => n.node),
+				this.intersectNodes.map((n) => n.node),
 				filterCriteria || [],
 			);
 		} else {
@@ -95,11 +128,12 @@ export class IntersectionEngine implements IIntersectionEngine {
 			>();
 			let intersections: IRayTracingIntersection[] = [];
 			// Only the nodes a ray can hit are tested, in list order.
+			const nodes = this.intersectNodes;
 			const candidates = this.hierarchyFor(viewportId).candidates(
 				this.toThreeRay(ray),
 			);
 			candidates.forEach((index) => {
-				const i = this._intersectNodes[index];
+				const i = nodes[index];
 				const currentIntersections = this.intersectNode(
 					ray,
 					i.node,
@@ -224,7 +258,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 		let hierarchy = this._hierarchies.get(key);
 		if (!hierarchy) {
 			hierarchy = new NodeBoundsHierarchy(viewportId);
-			hierarchy.setNodes(this._intersectNodes);
+			hierarchy.setNodes(this.intersectNodes);
 			this._hierarchies.set(key, hierarchy);
 		}
 		return hierarchy;
@@ -302,48 +336,29 @@ export class IntersectionEngine implements IIntersectionEngine {
 	}
 
 	/**
-	 * Gather all nodes that contain geometry data.
+	 * The nodes that contain geometry data, in tree order, one entry for each
+	 * geometry data. Made again only when a node entered or left the index or
+	 * a geometry data changed; the bounds hierarchies are made again with it.
 	 */
-	private gatherNodes() {
-		this._intersectNodes = [];
-		this._hierarchies.clear();
-		this._tree.root.traverse((node) => {
-			if (node.visible === false) return;
-			if (node.intersectionTest === false) return;
-
-			for (let i = 0; i < node.data.length; i++) {
-				if (node.data[i] instanceof GeometryData) {
-					const geometryData: GeometryData = node.data[
-						i
-					] as GeometryData;
-					let tempNode = node;
-					let visible = true,
-						restrictViewports: string[] = [],
-						excludeViewports: string[] = [];
-					while (tempNode.parent) {
-						visible = tempNode.visible && visible;
-						restrictViewports = restrictViewports.concat(
-							tempNode.restrictViewports,
-						);
-						excludeViewports = excludeViewports.concat(
-							tempNode.excludeViewports,
-						);
-						tempNode = tempNode.parent;
-					}
-
-					this._intersectNodes.push({
-						node,
-						geometryData: {
-							[`${geometryData.id}_${geometryData.version}`]:
-								geometryData,
-						},
-						visible,
-						restrictViewports: [...new Set(restrictViewports)],
-						excludeViewports: [...new Set(excludeViewports)],
-					});
-				}
-			}
-		});
+	private get intersectNodes(): {
+		node: ITreeNode;
+		geometryData: {[key: string]: GeometryData};
+	}[] {
+		if (!this._indexBuilt) {
+			this._index.rebuild(this._tree.root);
+			this._indexBuilt = true;
+		}
+		if (this._listVersion !== this._index.version) {
+			this._listVersion = this._index.version;
+			this._list = this._index.entries(this._tree.root).flatMap((entry) =>
+				entry.value.map((value) => ({
+					node: entry.node,
+					geometryData: {[value.key]: value.data},
+				})),
+			);
+			this._hierarchies.clear();
+		}
+		return this._list;
 	}
 
 	/**

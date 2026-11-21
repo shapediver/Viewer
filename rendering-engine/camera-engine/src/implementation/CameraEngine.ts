@@ -18,7 +18,9 @@ import {
 } from "@shapediver/viewer.shared.services";
 import {
 	CAMERA_TYPE,
+	type ISceneChanges,
 	type ISceneEvent,
+	type IViewportUpdatedEvent,
 	ORTHOGRAPHIC_CAMERA_DIRECTION,
 } from "@shapediver/viewer.shared.types";
 
@@ -96,9 +98,9 @@ export class CameraEngine implements ICameraEngine {
 		this._eventEngine.addListener(
 			EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED,
 			(e: IEvent) => {
-				const viewerEvent = <ISceneEvent>e;
+				const viewerEvent = <IViewportUpdatedEvent>e;
 				if (viewerEvent.viewportId === this._renderingEngine.id) {
-					this.searchForNewCameras();
+					this.searchForNewCameras(viewerEvent.sceneChanges);
 				}
 			},
 		);
@@ -733,8 +735,13 @@ export class CameraEngine implements ICameraEngine {
 		}
 	}
 
-	private searchForNewCameras() {
-		const getCameraData = (node: ITreeNode) => {
+	/**
+	 * Add the cameras of the scene tree that are not known yet. With the nodes
+	 * a scene update of this viewport went through, only those are looked at:
+	 * a camera that is new is on one of them. Without them the whole tree is.
+	 */
+	private searchForNewCameras(changes?: ISceneChanges) {
+		const addCameras = (node: ITreeNode) => {
 			for (let i = 0; i < node.data.length; i++)
 				if (
 					node.data[i] instanceof AbstractCamera &&
@@ -744,11 +751,23 @@ export class CameraEngine implements ICameraEngine {
 					if (camera.viewportId === this._renderingEngine.id)
 						this._cameras[camera.id] = camera;
 				}
-
-			for (let i = 0; i < node.children.length; i++)
-				getCameraData(node.children[i]);
 		};
-		getCameraData(this._tree.root);
+		if (changes) {
+			for (const node of changes.nodes) {
+				// A node of the update that was removed since is not a source
+				// of cameras.
+				let top: ITreeNode = node;
+				while (top.parent) top = top.parent;
+				if (top === this._tree.root) addCameras(node);
+			}
+		} else {
+			const addTree = (node: ITreeNode) => {
+				addCameras(node);
+				for (let i = 0; i < node.children.length; i++)
+					addTree(node.children[i]);
+			};
+			addTree(this._tree.root);
+		}
 		if (this._update) this._update();
 	}
 }

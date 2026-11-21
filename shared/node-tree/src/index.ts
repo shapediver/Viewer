@@ -37,6 +37,9 @@ import {SDTFItemData} from "./implementation/sdtf/SDTFItemData";
 import {SDTFOverviewData} from "./implementation/sdtf/SDTFOverviewData";
 import {Tree} from "./implementation/Tree";
 import {TreeNode} from "./implementation/TreeNode";
+import {
+	type ITreeNodeIndexEntry,
+	TreeNodeIndex} from "./implementation/TreeNodeIndex";
 
 export {AbstractMaterialData,
 	AbstractTreeNodeData,
@@ -68,8 +71,10 @@ export {AbstractMaterialData,
 	SDTFItemData,
 	SDTFOverviewData,
 	Tree,
-	TreeNode};
+	TreeNode,
+	TreeNodeIndex};
 export type {ITransformation,
 	ITree,
 	ITreeNode,
-	ITreeNodeData};
+	ITreeNodeData,
+	ITreeNodeIndexEntry};

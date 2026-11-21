@@ -198,7 +198,11 @@ import {
 	TASK_TYPE,
 	type TaskCategoryTypes,
 } from "./interfaces/events/ITaskEvent";
-import type {IViewportEvent} from "./interfaces/events/IViewportEvent";
+import type {
+	ISceneChanges,
+	IViewportEvent,
+	IViewportUpdatedEvent,
+} from "./interfaces/events/IViewportEvent";
 import type {IBox} from "./interfaces/math/IBox";
 import type {IGeometry} from "./interfaces/math/IGeometry";
 import type {IPlane} from "./interfaces/math/IPlane";
@@ -508,6 +512,7 @@ export type {
 	ISDTFOverviewData,
 	ISSAOEffectDefinition,
 	IScanlineEffectDefinition,
+	ISceneChanges,
 	ISceneEvent,
 	ISelectionParameterProps,
 	ISelectiveBloomEffectDefinition,
@@ -529,6 +534,7 @@ export type {
 	ITriangle,
 	IViewportEvent,
 	IViewportSettingsSections,
+	IViewportUpdatedEvent,
 	IVignetteEffectDefinition,
 	IVisualizationSettings,
 	InteractionEffect,

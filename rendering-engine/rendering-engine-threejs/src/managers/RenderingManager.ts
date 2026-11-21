@@ -19,7 +19,7 @@ import {
 import {
 	BUSY_MODE_DISPLAY,
 	type ICameraEvent,
-	type IViewportEvent,
+	type IViewportUpdatedEvent,
 	RENDERER_TYPE,
 	SPINNER_POSITIONING,
 } from "@shapediver/viewer.shared.types";
@@ -656,12 +656,15 @@ export class RenderingManager implements IManager {
 			this._renderingEngine.sceneTreeManager.updateSceneTree(
 				this._tree.root,
 			);
+			const sceneChanges =
+				this._renderingEngine.sceneTreeManager.takeSceneChanges();
 			this.updateShadowMap();
-			this._animationEngine.updateAnimationData();
+			this._animationEngine.updateAnimationData(sceneChanges);
 			this.render();
 			this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED, {
 				viewportId: this._renderingEngine.id,
-			} as IViewportEvent);
+				sceneChanges,
+			} as IViewportUpdatedEvent);
 		}
 
 		if (this._renderingEngine.preRenderingCallback)
