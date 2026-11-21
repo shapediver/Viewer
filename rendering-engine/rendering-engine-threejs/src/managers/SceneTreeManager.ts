@@ -479,6 +479,10 @@ export class SceneTreeManager implements IManager {
 				return;
 			}
 			if (filter.transformationOnly) this._movedNodes++;
+			// The batches compare the meshes of the nodes visited since their
+			// last rebuild, a moved node among them (it can leave or join a
+			// batch by being mirrored).
+			this._renderingEngine.materialBatchManager.markNode(treeNode);
 
 			// reset bounding boxes
 			this.resetBoundingBoxes(treeNode);
@@ -685,7 +689,12 @@ export class SceneTreeManager implements IManager {
 				this._renderingEngine.instanceGroupManager.instancedRoot,
 			);
 
-		this._currentSDTFOverview = createSDTFOverview(rootTreeNode);
+		// Only the attribute visualization reads the overview. Collecting it
+		// walks every node of the tree.
+		this._currentSDTFOverview =
+			this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES
+				? createSDTFOverview(rootTreeNode)
+				: {};
 		this._deferBatch = true;
 		// Branches whose version, transformation and visibility are unchanged
 		// are left out. A renderer type or instancing switch and the
