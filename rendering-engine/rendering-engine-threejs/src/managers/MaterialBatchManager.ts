@@ -6,7 +6,7 @@ import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {PRIMITIVE_MODE} from "@shapediver/viewer.shared.types";
 import * as THREE from "three";
 import {GemMaterial} from "../materials/GemMaterial";
-import {SD_DATA_TYPE} from "../objects/SDObject";
+import {SD_DATA_TYPE, SDObject} from "../objects/SDObject";
 import {RenderingEngine} from "../RenderingEngine";
 
 /**
@@ -172,6 +172,11 @@ export class MaterialBatchManager {
 		this._orphans.add(member);
 		this._byMesh.delete(mesh);
 		member.batch.mesh.setVisibleAt(member.instanceId, false);
+		// The geometry cache can hand this mesh (or a clone of it) to another
+		// node. It must not stay hidden, and must not point at the batch.
+		mesh.visible = true;
+		delete mesh.userData.batchedMesh;
+		delete mesh.userData.batchId;
 	}
 
 	/** Update the batches of the nodes the scene update visited. */
@@ -197,6 +202,7 @@ export class MaterialBatchManager {
 	}
 
 	private reconcile(nodes: ITreeNode[]): void {
+		this.freshenMatrices(nodes);
 		const entries: BatchEntry[] = [];
 		for (const node of nodes) this.collectNode(node, entries);
 
@@ -297,6 +303,8 @@ export class MaterialBatchManager {
 		const members = this._byNode.get(node.id);
 		if (!members) return;
 		for (const member of members) {
+			// The mesh is gone. The next rebuild decides about the member.
+			if (member.orphan) continue;
 			// applyMember hides the source mesh again when the member is no
 			// longer individual. Updating only the instance leaves that mesh
 			// visible, so an un-mirror draws the surface twice.
@@ -408,6 +416,35 @@ export class MaterialBatchManager {
 		}
 	}
 
+	/**
+	 * Make the world matrices of the visited nodes current: the node objects
+	 * and what hangs on them (meshes, lines, points, three.js objects). The
+	 * matrix of a mesh decides whether it batches. The scene walk that did this
+	 * for everything is gone, and three.js updates matrices only for the next
+	 * frame, so others that read a matrix after an update (picking, anchors)
+	 * need it as well.
+	 */
+	private freshenMatrices(nodes: ITreeNode[]): void {
+		const done = new Set<THREE.Object3D>();
+		const fresh = (object: THREE.Object3D) => {
+			if (done.has(object)) return;
+			done.add(object);
+			if (object.parent) fresh(object.parent);
+			object.updateWorldMatrix(false, false);
+		};
+		for (const node of nodes) {
+			const converted = node.convertedObject[this._renderingEngine.id] as
+				| THREE.Object3D
+				| undefined;
+			if (!converted) continue;
+			fresh(converted);
+			// Child nodes are visited or unchanged. The rest hangs on this one.
+			for (const child of converted.children)
+				if (!(child instanceof SDObject))
+					child.updateWorldMatrix(false, true);
+		}
+	}
+
 	/** The batchable meshes of one node, as entries. */
 	private collectNode(node: ITreeNode, entries: BatchEntry[]): void {
 		const converted = node.convertedObject[this._renderingEngine.id] as
@@ -417,18 +454,10 @@ export class MaterialBatchManager {
 		// The node is looked at again, so none of its meshes is lone any more.
 		for (const child of converted.children)
 			if (child instanceof THREE.Mesh) this.forgetLone(child);
-		let fresh = false;
 		for (const data of node.data) {
 			if (!(data instanceof GeometryData)) continue;
 			const mesh = this.findMesh(converted, data);
 			if (!mesh) continue;
-			// The matrix decides whether the mesh batches (a mirrored one does
-			// not). Make the chain of this node current, once.
-			if (!fresh) {
-				converted.updateWorldMatrix(true, false);
-				fresh = true;
-			}
-			mesh.updateWorldMatrix(false, false);
 			if (!this.isBatchable(mesh, data)) continue;
 			const id = `${node.id}:${data.id}`;
 			// A hover or selection material is temporary. A mesh that is
@@ -915,6 +944,7 @@ export class MaterialBatchManager {
 				batch.geometries.set(target, info);
 				batchMesh.setGeometryIdAt(member.instanceId, id);
 			}
+			this.markDrawListStale(batchMesh);
 			previous.count--;
 			if (previous.count === 0) this.deleteGeometry(batch, previous.id);
 			if (previous.count === 0) batch.geometries.delete(member.buffer);
@@ -925,6 +955,12 @@ export class MaterialBatchManager {
 		} catch {
 			return false;
 		}
+	}
+
+	/** three.js r184 does not flag a draw list change in setGeometryIdAt. */
+	private markDrawListStale(mesh: THREE.BatchedMesh): void {
+		(mesh as unknown as {_visibilityChanged: boolean})._visibilityChanged =
+			true;
 	}
 
 	private deleteGeometry(batch: MaterialBatch, geometryId: number): void {
