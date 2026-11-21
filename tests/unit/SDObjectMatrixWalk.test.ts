@@ -205,6 +205,34 @@ test("an object that goes back to the scene is computed again", () => {
 	expect(object.matrixWorld.elements[12]).toBeCloseTo(1);
 });
 
+test("a node that holds a three.js object forces its plain children, not the tree", () => {
+	const {scene, branches, leaves, meshes} = tree();
+	const host = leaves[1][1];
+	host.SDalwaysWalk = host.SDforceChildren = true;
+	for (const object of [branches[1], scene.children[0]])
+		(object as SDObject).SDalwaysWalk = true;
+	// A fixed object inside, as an API user has it.
+	const user = new THREE.Object3D();
+	user.matrixAutoUpdate = false;
+	host.add(user);
+	scene.updateMatrixWorld();
+	// A matrix written without a flag, and a child added without one.
+	user.matrix.makeTranslation(3, 0, 0);
+	const late = new THREE.Object3D();
+	late.matrixAutoUpdate = false;
+	late.matrix.makeTranslation(0, 4, 0);
+	THREE.Object3D.prototype.add.call(user, late);
+	withCounter((counter) => {
+		scene.updateMatrixWorld();
+		// the rest of the tree is not walked
+		expect(counter.walked.has(meshes[0][0])).toBe(false);
+		expect(counter.walked.has(meshes[2][2])).toBe(false);
+	});
+	expect(user.matrixWorld.elements[12]).toBeCloseTo(3);
+	expect(late.matrixWorld.elements[13]).toBeCloseTo(4);
+	expect(late.matrixWorld.elements[12]).toBeCloseTo(3);
+});
+
 test("the world matrix property of an SDObject is a plain boolean", () => {
 	const object = new SDObject("a", "1");
 	expect(object.matrixWorldNeedsUpdate).toBe(false);
