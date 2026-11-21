@@ -277,12 +277,19 @@ export class IntersectionEngine implements IIntersectionEngine {
 	): boolean {
 		const batchId = member.userData.batchId as number | undefined;
 		if (batchId === undefined) return true;
-		const sphere = batch.getBoundingSphereAt(
-			batch.getGeometryIdAt(batchId),
-			this._memberSphere,
-		);
-		if (!sphere) return true;
-		batch.getMatrixAt(batchId, this._instanceMatrix);
+		let sphere: THREE.Sphere | null;
+		try {
+			// These throw for an instance that is inactive or out of range.
+			// Then the batch is tested, as it was before this check.
+			sphere = batch.getBoundingSphereAt(
+				batch.getGeometryIdAt(batchId),
+				this._memberSphere,
+			);
+			if (!sphere) return true;
+			batch.getMatrixAt(batchId, this._instanceMatrix);
+		} catch {
+			return true;
+		}
 		this._instanceWorldMatrix.multiplyMatrices(
 			batch.matrixWorld,
 			this._instanceMatrix,
