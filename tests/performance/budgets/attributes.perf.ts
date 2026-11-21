@@ -33,20 +33,36 @@ async function collectAttributes(page: Page): Promise<Counters> {
 	);
 	await settle(page);
 	const counters: Counters = {};
+	// Reads of tree data are counted from the start, also in the plain step.
+	await page.evaluate(() => (window as any).__probe.trackTreeDataReads());
+	// What the batches did during a measured step: reconciles and regrowth.
+	const batches = async (prefix: string) => {
+		const read = await page.evaluate(() =>
+			(window as any).__probe.readCounters(),
+		);
+		return {
+			[`attributes.${prefix}.batchRebuilds`]: read.batchRebuild.calls,
+			[`attributes.${prefix}.batchBufferGrowths`]:
+				read.batchedMesh.bufferGrowths,
+		};
+	};
 	Object.assign(
 		counters,
 		await measure(page, "attributes.plain", () => orbitStep(page)),
+		await batches("plain"),
 	);
 
 	await page.evaluate(() => (window as any).__probe.setupAttributes());
 	await page.clock.runFor(SETTLE_MS);
-	const step = (prefix: string, key: string | null) =>
-		measure(page, `attributes.${prefix}`, async () => {
+	const step = async (prefix: string, key: string | null) => ({
+		...(await measure(page, `attributes.${prefix}`, async () => {
 			await page.evaluate(
 				(k) => (window as any).__probe.showAttribute(k),
 				key,
 			);
-		});
+		})),
+		...(await batches(prefix)),
+	});
 	Object.assign(counters, await step("show", "load"));
 	// Texture decoding and compiles are real time.
 	await page.waitForTimeout(500);
@@ -64,10 +80,12 @@ async function collectAttributes(page: Page): Promise<Counters> {
 				(window as any).__probe.leaveAttributes(),
 			);
 		}),
+		await batches("leave"),
 	);
 	Object.assign(
 		counters,
 		await measure(page, "attributes.afterLeave", () => orbitStep(page)),
+		await batches("afterLeave"),
 	);
 	counters["attributes.idleRenderCalls"] = await idleRenderCalls(page);
 
@@ -77,7 +95,7 @@ async function collectAttributes(page: Page): Promise<Counters> {
 
 test("budget: AEC facade, attributes", async ({page}) => {
 	await page.clock.install({time: new Date("2026-01-01T00:00:00Z")});
-	await openViewer(page);
+	await openViewer(page, "/index.html", {counters: true});
 	if (await isSoftwareRenderer(page)) test.setTimeout(900_000);
 
 	const counters = await collectAttributes(page);
