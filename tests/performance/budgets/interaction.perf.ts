@@ -155,6 +155,7 @@ async function pickingCounters(page: Page, prefix: string, counters: Counters) {
 	counters[`${prefix}.hiddenSourceRaycasts`] = picking.hiddenSourceRaycasts;
 	counters[`${prefix}.batchRaycasts`] = picking.batchRaycasts;
 	counters[`${prefix}.batchBoundsReads`] = picking.batchBoundsReads;
+	counters[`${prefix}.objectsValidated`] = picking.objectsValidated;
 }
 
 test("budget: AEC facade, interaction", async ({page}) => {

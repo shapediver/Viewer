@@ -15,7 +15,10 @@
  * - `batchRaycasts`: `BatchedMesh.raycast` calls, which visit every instance
  *   of the batch,
  * - `batchBoundsReads`: `getBoundingSphereAt` calls made inside
- *   `BatchedMesh.raycast`.
+ *   `BatchedMesh.raycast`,
+ * - `objectsValidated`: objects the bounds hierarchy compared with the scene
+ *   (it publishes its work as `globalThis.__nodeBoundsStats`; 0 on a build
+ *   without the hierarchy).
  */
 export function installPicking() {
 	const probe = (window as any).__probe;
@@ -24,6 +27,9 @@ export function installPicking() {
 	let batchRaycasts = 0;
 	let batchBoundsReads = 0;
 	let insideBatchRaycast = 0;
+	let validatedBase = 0;
+	const validated = () =>
+		(globalThis as any).__nodeBoundsStats?.objectsChecked ?? 0;
 	let attached = false;
 
 	const protoWith = (object: any, name: string) => {
@@ -86,12 +92,14 @@ export function installPicking() {
 			hiddenSourceRaycasts = 0;
 			batchRaycasts = 0;
 			batchBoundsReads = 0;
+			validatedBase = validated();
 		},
 		read: () => ({
 			picks,
 			hiddenSourceRaycasts,
 			batchRaycasts,
 			batchBoundsReads,
+			objectsValidated: validated() - validatedBase,
 		}),
 	};
 }
