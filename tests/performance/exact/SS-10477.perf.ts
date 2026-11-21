@@ -547,6 +547,48 @@ test("SS-10477 a batch that shrinks to one member is a mesh again", async ({
 	expect(result.joined).toEqual({batches: 2, singles: 0});
 });
 
+test("SS-10477 a member that gets a new geometry while its batch shrinks is kept", async ({
+	page,
+}) => {
+	await open(page);
+	await page.evaluate(installBatchTools);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const b = (window as any).__b;
+		const SDV = (window as any).SDV;
+		const errors: string[] = [];
+		window.addEventListener("error", (event) => errors.push(event.message));
+		await perf.create({shadows: false});
+		const nodes = b.twoBatches(2);
+		perf.viewport.update();
+		perf.viewport.show = true;
+		await perf.nextFrame();
+		// One member of A leaves, the other gets a new version of its data,
+		// so the viewer builds its geometry again.
+		SDV.sceneTree.root.removeChild(nodes.a[0]);
+		nodes.a[1].data[0].updateVersion();
+		nodes.a[1].updateVersion();
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		await perf.nextFrame();
+		const mesh = nodes.a[1].data[0].convertedObject[perf.viewport.id];
+		return {
+			errors,
+			batches: b.batches().length,
+			singles: b.visibleMeshes(),
+			meshVisible: mesh.visible,
+			inScene: Boolean(mesh.parent),
+		};
+	});
+
+	expect(result.errors).toEqual([]);
+	// B is still a batch. A has one member left: a mesh.
+	expect(result.batches).toBe(1);
+	expect(result.singles).toBe(1);
+	expect(result.meshVisible).toBe(true);
+	expect(result.inScene).toBe(true);
+});
+
 test("SS-10477 a mirrored member leaves its batch and comes back", async ({
 	page,
 }) => {

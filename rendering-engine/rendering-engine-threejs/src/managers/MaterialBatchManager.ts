@@ -240,7 +240,10 @@ export class MaterialBatchManager {
 
 		const released: THREE.Mesh[] = [];
 		let changed = stale.size > 0;
-		this.removeMembers(stale, released);
+		// Batches that lost members. They are checked once the update is done:
+		// a member that is still to be replaced or added can keep one alive.
+		const shrunk = new Set<MaterialBatch>();
+		this.removeMembers(stale, released, shrunk);
 
 		const chunks = new Map<MaterialBatch, Map<BatchMember, BatchEntry>>();
 		for (const {member, entry} of replaced) {
@@ -261,6 +264,9 @@ export class MaterialBatchManager {
 			changed = true;
 			this.addEntries(adds);
 		}
+		for (const batch of shrunk)
+			if (this._batches.has(batch) && batch.members.size < 2)
+				this.dissolve(batch, released);
 		for (const member of apply)
 			if (this._members.get(member.id) === member)
 				this.applyMember(member);
@@ -1206,6 +1212,7 @@ export class MaterialBatchManager {
 	private removeMembers(
 		members: Set<BatchMember>,
 		released: THREE.Mesh[],
+		shrunk: Set<MaterialBatch>,
 	): void {
 		if (members.size === 0) return;
 		const perBatch = new Map<MaterialBatch, BatchMember[]>();
@@ -1223,7 +1230,7 @@ export class MaterialBatchManager {
 				this.detach(member);
 				this.forget(member, released);
 			}
-			if (batch.members.size < 2) this.dissolve(batch, released);
+			shrunk.add(batch);
 		}
 	}
 
