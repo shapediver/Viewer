@@ -26,6 +26,11 @@ export type IGemTracing = "sphere" | "facets";
  */
 export type IGemNormalMapResolution = 256 | 512 | 1024;
 
+/**
+ * A drawing buffer size in physical pixels. Both values are whole numbers of at least 1.
+ */
+export type IRenderingSize = {width: number; height: number};
+
 export interface ISettings extends IGlobalSettings {
 	ar: ISettingsV7_1["ar"];
 	camera: ISettingsV7_1["camera"];
@@ -57,6 +62,17 @@ export interface ISettings extends IGlobalSettings {
 		 * Settings converted from before 7.2 use 0.
 		 */
 		accumulationFramesMobile: number;
+		/**
+		 * The largest drawing buffer on desktop devices, in physical pixels
+		 * (after the device pixel ratio). A larger viewport is rendered at this size and scaled up.
+		 * Settings converted from before 7.2 use 1920x1080.
+		 */
+		maximumRenderingSize: IRenderingSize;
+		/**
+		 * The largest drawing buffer on mobile devices, in physical pixels.
+		 * Settings converted from before 7.2 use 1280x720.
+		 */
+		maximumRenderingSizeMobile: IRenderingSize;
 	};
 	session: ISettingsV7_1["session"];
 	material: ISettingsV7_1["material"] & {

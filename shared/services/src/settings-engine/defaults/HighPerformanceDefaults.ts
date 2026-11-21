@@ -94,6 +94,9 @@ export const HighPerformanceDefaults: () => ISettings = () => {
 			effects: [],
 		},
 		rendering: {
+			// the sizes of settings from before 7.2
+			maximumRenderingSize: {width: 1920, height: 1080},
+			maximumRenderingSizeMobile: {width: 1280, height: 720},
 			automaticColorAdjustment: true,
 			beautyRenderDelay: 50,
 			beautyRenderBlendingDuration: 1500,

@@ -33,6 +33,11 @@ const readOptions = () => {
 	};
 };
 
+/** The largest drawing buffer of the viewport on desktop (SS-10506). */
+const readMaximumRenderingSize = () =>
+	(<typeof ShapeDiverViewer>(<any>window).SDV).viewports["myViewport"]
+		.maximumRenderingSize;
+
 const OLD_LOOK = {
 	hdr: false,
 	environmentMapPbrMode: "legacy",
@@ -92,6 +97,10 @@ test.describe("Default settings", () => {
 			aoExcludeGems: [true],
 			bloom: [],
 		});
+		expect(await page.evaluate(readMaximumRenderingSize)).toEqual({
+			width: 2560,
+			height: 1440,
+		});
 	});
 
 	test("the jewelry preset has the new look", async ({page}) => {
@@ -114,6 +123,10 @@ test.describe("Default settings", () => {
 			});
 		});
 		expect(await page.evaluate(readOptions)).toMatchObject(OLD_LOOK);
+		expect(await page.evaluate(readMaximumRenderingSize)).toEqual({
+			width: 1920,
+			height: 1080,
+		});
 	});
 
 	test("a model with settings from before 7.2 keeps the old look", async ({
@@ -136,5 +149,9 @@ test.describe("Default settings", () => {
 		const options = await page.evaluate(readOptions);
 		expect(options).toMatchObject(OLD_LOOK);
 		expect(options.aoExcludeGems).not.toContain(true);
+		expect(await page.evaluate(readMaximumRenderingSize)).toEqual({
+			width: 1920,
+			height: 1080,
+		});
 	});
 });

@@ -30,6 +30,10 @@ export const OLD_LOOK_V7_2 = {
 	accumulationFrames: 0,
 	/** `rendering.accumulationFramesMobile` */
 	accumulationFramesMobile: 0,
+	/** `rendering.maximumRenderingSize` */
+	maximumRenderingSize: {width: 1920, height: 1080},
+	/** `rendering.maximumRenderingSizeMobile` */
+	maximumRenderingSizeMobile: {width: 1280, height: 720},
 } as const;
 
 export const convertFromPrevious = (
@@ -88,6 +92,13 @@ export const convertFromPrevious = (
 			accumulationFramesMobile:
 				oldRendering.accumulationFramesMobile ??
 				OLD_LOOK_V7_2.accumulationFramesMobile,
+			maximumRenderingSize: oldRendering.maximumRenderingSize ?? {
+				...OLD_LOOK_V7_2.maximumRenderingSize,
+			},
+			maximumRenderingSizeMobile:
+				oldRendering.maximumRenderingSizeMobile ?? {
+					...OLD_LOOK_V7_2.maximumRenderingSizeMobile,
+				},
 		},
 		environment: {
 			...oldSettings.environment,
@@ -126,6 +137,7 @@ export const convertToPrevious = (
 	// - environment.mapPbrMode, environment.mapOrientation
 	// - material.physicalGemDispersion, material.gemTracing, material.gemNormalMapResolution
 	// - rendering.accumulationFrames, rendering.accumulationFramesMobile
+	// - rendering.maximumRenderingSize, rendering.maximumRenderingSizeMobile
 	// - bloom properties: backgroundBloom, highlightsOnly (mipmapBlur is required in 7.1)
 	// - HBAO/SSAO properties: mode, excludeGems
 	const oldEffects = newSettings.postprocessing.effects.map((effect) => {
@@ -160,6 +172,8 @@ export const convertToPrevious = (
 	const rendering: any = {...newSettings.rendering};
 	delete rendering.accumulationFrames;
 	delete rendering.accumulationFramesMobile;
+	delete rendering.maximumRenderingSize;
+	delete rendering.maximumRenderingSizeMobile;
 
 	const postprocessing: any = {
 		...newSettings.postprocessing,

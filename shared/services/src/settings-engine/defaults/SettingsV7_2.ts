@@ -32,9 +32,18 @@ type IAmbientOcclusionEffect = {
  */
 export type ISettingsV7_2 = Omit<
 	ISettings,
-	"settings_version" | "environment" | "postprocessing" | "material"
+	| "settings_version"
+	| "environment"
+	| "postprocessing"
+	| "material"
+	| "rendering"
 > & {
 	settings_version: "7.2";
+	rendering: ISettings["rendering"] & {
+		// Without the two values a viewport keeps its maximum rendering size.
+		maximumRenderingSize?: {width: number; height: number};
+		maximumRenderingSizeMobile?: {width: number; height: number};
+	};
 	environment: ISettings["environment"] & {
 		mapPbrMode: "legacy" | "modern";
 		mapOrientation: "legacy" | "threejs";
@@ -64,6 +73,15 @@ export const NEW_LOOK_V7_2 = {
 		physicalGemDispersion: true,
 		gemTracing: "facets",
 		gemNormalMapResolution: 512,
+	},
+	// SS-10506: sharper on HiDPI desktops. At 3840x2160 a close-up of the
+	// ring example took 125 ms per frame on a mid-range GPU, at 2560x1440 54 ms.
+	// A getter, so that every default settings object gets its own size objects.
+	get rendering() {
+		return {
+			maximumRenderingSize: {width: 2560, height: 1440},
+			maximumRenderingSizeMobile: {width: 1280, height: 720},
+		};
 	},
 } as const;
 
