@@ -693,3 +693,113 @@ test("SS-10485 11: new children and re-parented nodes render at their place", as
 	expect(result.byHand.fixed).toBeCloseTo(9, 4);
 	expect(Math.max(...result.byHand.errors)).toBeLessThan(1e-4);
 });
+
+test("SS-10485 12: objects inside a three.js object keep three.js behaviour", async ({
+	page,
+}) => {
+	await prepare(page);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		const tools = perf.tools;
+		await tools.setup();
+		const Object3D = tools.object3D();
+		const object = new Object3D();
+		// A fixed matrix: three.js did not recompute it on its own, the
+		// force of the scene did.
+		object.matrixAutoUpdate = false;
+		object.matrix.makeTranslation(2, 0, 0);
+		const existing = new Object3D();
+		existing.matrixAutoUpdate = false;
+		object.add(existing);
+		const node = new SDV.TreeNode("three");
+		node.addData(new SDV.ThreejsData(object));
+		SDV.sceneTree.root.addChild(node);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		await tools.draw();
+
+		// (a) a child with a fixed matrix, added later, no flag
+		const added = new Object3D();
+		added.matrixAutoUpdate = false;
+		added.matrix.makeTranslation(0, 0, 6);
+		object.add(added);
+		// (b) a matrix written without a flag
+		existing.matrix.makeTranslation(0, 8, 0);
+		await tools.draw();
+		const e = (o: any) => [...o.matrixWorld.elements].slice(12, 15);
+		return {
+			added: e(added),
+			existing: e(existing),
+			errors: [added, existing].map(tools.error),
+		};
+	});
+	expect(result.added[0]).toBeCloseTo(2, 4);
+	expect(result.added[2]).toBeCloseTo(6, 4);
+	expect(result.existing[0]).toBeCloseTo(2, 4);
+	expect(result.existing[1]).toBeCloseTo(8, 4);
+	expect(Math.max(...result.errors)).toBeLessThan(1e-4);
+});
+
+test("SS-10485 13: a directional light follows the scene bounds without being converted again", async ({
+	page,
+}) => {
+	await prepare(page);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		const tools = perf.tools;
+		const tree = await tools.setup();
+		const lights =
+			perf.viewport.lightScene ?? perf.viewport.createLightScene();
+		const api = lights.addDirectionalLight({});
+		perf.viewport.update();
+		await tools.draw();
+		const find = () => {
+			let found: any;
+			perf.viewport.threeJsCoreObjects.scene.traverse((o: any) => {
+				if (o.isDirectionalLight) found = o;
+			});
+			return found;
+		};
+		const state = () => {
+			const light = find();
+			const sphere =
+				SDV.sceneTree.root.boundingBoxViewport[perf.viewport.id]
+					.boundingSphere;
+			const p = (o: any) => [...o.matrixWorld.elements].slice(12, 15);
+			return {
+				light: p(light),
+				target: p(light.target),
+				center: [...sphere.center],
+				radius: sphere.radius,
+				errors: [light, light.target].map(tools.error),
+			};
+		};
+		const before = state();
+		// Geometry far away: the bounds change, the light data does not.
+		const geometry = perf.boxGeometry([0, 0, 0], [1, 1, 1]);
+		geometry.material = new SDV.MaterialStandardData({color: "#cc6688"});
+		const far = new SDV.TreeNode("far");
+		far.addData(geometry);
+		far.addTransformation(tree.shift(400));
+		tree.top.addChild(far);
+		tree.top.updateVersion();
+		perf.viewport.update();
+		await tools.draw();
+		return {before, after: state(), direction: [...api.direction]};
+	});
+	const {before, after, direction} = result;
+	expect(after.center[0]).toBeGreaterThan(before.center[0] + 50);
+	expect(after.radius).toBeGreaterThan(before.radius);
+	// the target is at the centre of the bounding sphere
+	for (let i = 0; i < 3; i++)
+		expect(after.target[i]).toBeCloseTo(after.center[i], 3);
+	// the light is at centre + direction * radius * 2.35
+	for (let i = 0; i < 3; i++)
+		expect(after.light[i]).toBeCloseTo(
+			after.center[i] + direction[i] * after.radius * 2.35,
+			2,
+		);
+	expect(Math.max(...after.errors)).toBeLessThan(1e-4);
+});
