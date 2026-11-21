@@ -521,7 +521,8 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		// Camera state is read every frame; no scene update needed.
+		this.#viewportApi.render();
 	}
 
 	public get revertAtMouseUp(): boolean {
@@ -700,7 +701,8 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		// Camera state is read every frame; no scene update needed.
+		this.#viewportApi.render();
 	}
 
 	public get turntableCenter(): vec3 {

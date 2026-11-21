@@ -135,6 +135,7 @@ export interface ICameraApi {
 	panSpeed: number;
 	/**
 	 * The current position of the camera.
+	 * Setting it requests a frame; it does not update the scene tree.
 	 */
 	position: vec3;
 	/**
@@ -168,6 +169,7 @@ export interface ICameraApi {
 	sphereTargetRestriction: {center: vec3; radius: number};
 	/**
 	 * The current target of the camera.
+	 * Setting it requests a frame; it does not update the scene tree.
 	 */
 	target: vec3;
 	/**

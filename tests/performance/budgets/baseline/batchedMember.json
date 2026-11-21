@@ -12,7 +12,7 @@
 	"mullionHidden.optimizes": 0,
 	"mullionHidden.programCacheKeyCalls": 0,
 	"mullionHidden.treeDataReads": 61997,
-	"mullionHidden.updateMatrixWorldCalls": 16811,
+	"mullionHidden.updateMatrixWorldCalls": 29,
 	"mullionHidden.updateWorldMatrixCalls": 14,
 	"mullionHidden.vertexCopies": 0,
 	"mullionReplaced.batchedMeshes": 2,
@@ -28,7 +28,7 @@
 	"mullionReplaced.optimizes": 0,
 	"mullionReplaced.programCacheKeyCalls": 0,
 	"mullionReplaced.treeDataReads": 61998,
-	"mullionReplaced.updateMatrixWorldCalls": 16811,
+	"mullionReplaced.updateMatrixWorldCalls": 37,
 	"mullionReplaced.updateWorldMatrixCalls": 14,
 	"mullionReplaced.vertexCopies": 8,
 	"mullionVersioned.batchedMeshes": 2,
@@ -44,7 +44,7 @@
 	"mullionVersioned.optimizes": 0,
 	"mullionVersioned.programCacheKeyCalls": 0,
 	"mullionVersioned.treeDataReads": 61997,
-	"mullionVersioned.updateMatrixWorldCalls": 16811,
+	"mullionVersioned.updateMatrixWorldCalls": 37,
 	"mullionVersioned.updateWorldMatrixCalls": 14,
 	"mullionVersioned.vertexCopies": 8
 }

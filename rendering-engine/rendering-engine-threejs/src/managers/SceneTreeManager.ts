@@ -512,13 +512,17 @@ export class SceneTreeManager implements IManager {
 
 			// Lights and three.js objects are read on every scene update.
 			let alwaysUpdate = false;
+			// Lights, cameras and three.js objects move without a change of
+			// the tree: the matrix walk always goes through their branch.
+			let alwaysWalk = false;
 			for (let i = 0, len = treeNode.data.length; i < len; i++) {
 				const dataItem = treeNode.data[i];
 				if (
 					dataItem instanceof AbstractLight ||
 					dataItem instanceof ThreejsData
 				)
-					alwaysUpdate = true;
+					alwaysUpdate = alwaysWalk = true;
+				else if (dataItem instanceof AbstractCamera) alwaysWalk = true;
 				const convertedObjectData = convertedChildrenMap.get(
 					dataItem.id,
 				);
@@ -592,6 +596,14 @@ export class SceneTreeManager implements IManager {
 						))?.SDalwaysUpdate
 					)
 						alwaysUpdate = true;
+					if (
+						(<SDObject | undefined>(
+							treeNodeChild.convertedObject[
+								this._renderingEngine.id
+							]
+						))?.SDalwaysWalk
+					)
+						alwaysWalk = true;
 				}
 			} finally {
 				if (dirty) this._dirtyDepth--;
@@ -600,6 +612,11 @@ export class SceneTreeManager implements IManager {
 				this.flagAncestors(treeNode, convertedObject, "SDalwaysUpdate");
 			} else {
 				convertedObject.SDalwaysUpdate = false;
+			}
+			if (alwaysWalk) {
+				this.flagAncestors(treeNode, convertedObject, "SDalwaysWalk");
+			} else {
+				convertedObject.SDalwaysWalk = false;
 			}
 			this._renderingEngine.instanceGroupManager.updateNode(treeNode);
 			this._renderingEngine.instanceGroupManager.setNodeVisible(
@@ -911,7 +928,7 @@ export class SceneTreeManager implements IManager {
 	private flagAncestors(
 		treeNode: ITreeNode,
 		convertedObject: SDObject,
-		flag: "SDalwaysUpdate" | "SDboundsStale",
+		flag: "SDalwaysUpdate" | "SDalwaysWalk" | "SDboundsStale",
 	): void {
 		if (convertedObject[flag]) return;
 		convertedObject[flag] = true;
