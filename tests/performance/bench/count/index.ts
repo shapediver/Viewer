@@ -8,6 +8,8 @@ import type {Counts, Viewer} from "./context";
 import * as gltfDraco from "./gltfDraco";
 import * as gltfPlain from "./gltfPlain";
 import * as oneNodeUpdate from "./oneNodeUpdate";
+import * as pickHit from "./pickHit";
+import * as pickMiss from "./pickMiss";
 import * as renderFrame from "./renderFrame";
 import * as ssaoFrame from "./ssaoFrame";
 import * as versionUpdate from "./versionUpdate";
@@ -21,6 +23,8 @@ export const ALL_SECTIONS = [
 	["build", build.label, build.run],
 	["renderFrame", renderFrame.label, renderFrame.run],
 	["oneNodeUpdate", oneNodeUpdate.label, oneNodeUpdate.run],
+	["pickHit", pickHit.label, pickHit.run],
+	["pickMiss", pickMiss.label, pickMiss.run],
 	["batchedMemberHidden", batchedMemberHidden.label, batchedMemberHidden.run],
 	[
 		"batchedMemberReplaced",

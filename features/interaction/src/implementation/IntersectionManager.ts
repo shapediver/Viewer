@@ -3,6 +3,7 @@ import * as THREE from "three";
 import {
 	type IIntersectionEngine,
 	IntersectionEngine,
+	NodeBoundsHierarchy,
 	RaycasterParameters,
 	SelectionBox,
 } from "@shapediver/viewer.rendering-engine.intersection-engine";
@@ -90,6 +91,7 @@ export class IntersectionManager implements IIntersectionEngine {
 	private readonly _eventEngine: EventEngine = EventEngine.instance;
 	private readonly _intersectionEngine: IntersectionEngine =
 		IntersectionEngine.instance;
+	private readonly _hierarchies: Map<string, NodeBoundsHierarchy> = new Map();
 	private readonly _tree: ITree = Tree.instance;
 
 	private static _instance: IntersectionManager;
@@ -192,8 +194,20 @@ export class IntersectionManager implements IIntersectionEngine {
 		return geometryData;
 	}
 
+	private hierarchyFor(viewportId: string): NodeBoundsHierarchy {
+		const key = viewportId ?? "";
+		let hierarchy = this._hierarchies.get(key);
+		if (!hierarchy) {
+			hierarchy = new NodeBoundsHierarchy(viewportId);
+			hierarchy.setNodes(this._intersectNodes);
+			this._hierarchies.set(key, hierarchy);
+		}
+		return hierarchy;
+	}
+
 	private gatherNodes() {
 		this._intersectNodes = [];
+		this._hierarchies.clear();
 		this._tree.root.traverse((node) => {
 			if (node.visible === false) return;
 			if (node.intersectionTest === false) return;
@@ -234,20 +248,36 @@ export class IntersectionManager implements IIntersectionEngine {
 			THREE.Intersection[]
 		>();
 
-		// intersect all nodes
-		this._intersectNodes.forEach((i) => {
-			const currentIntersection = this._intersectionEngine.intersectNode(
-				ray,
-				i.node,
-				i.geometryData,
-				viewportId,
-				filterCriteria,
-				rayCasterParams,
-				instancedIntersectionCache,
-			);
-			if (currentIntersection)
-				intersections = intersections.concat(currentIntersection);
-		});
+		// The batched meshes of one ray are raycast once, not once per node.
+		const batchedIntersectionCache = new Map<
+			THREE.BatchedMesh,
+			THREE.Intersection[]
+		>();
+
+		// intersect the nodes the ray can hit, in list order
+		this.hierarchyFor(viewportId)
+			.candidates(
+				new THREE.Ray(
+					new THREE.Vector3(...ray.origin),
+					new THREE.Vector3(...ray.direction),
+				),
+			)
+			.forEach((index) => {
+				const i = this._intersectNodes[index];
+				const currentIntersection =
+					this._intersectionEngine.intersectNode(
+						ray,
+						i.node,
+						i.geometryData,
+						viewportId,
+						filterCriteria,
+						rayCasterParams,
+						instancedIntersectionCache,
+						batchedIntersectionCache,
+					);
+				if (currentIntersection)
+					intersections = intersections.concat(currentIntersection);
+			});
 
 		intersections.sort((a, b) => {
 			const distanceDiff = a.distance - b.distance;

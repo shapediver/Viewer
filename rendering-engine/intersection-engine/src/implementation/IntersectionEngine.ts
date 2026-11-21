@@ -13,12 +13,19 @@ import {
 } from "@shapediver/viewer.shared.types";
 import * as THREE from "three";
 import {type IIntersectionEngine} from "../interfaces/IIntersectionEngine";
+import {NodeBoundsHierarchy} from "./NodeBoundsHierarchy";
 import {SelectionBox} from "./SelectionBox";
 
 export class IntersectionEngine implements IIntersectionEngine {
 	// #region Properties (9)
 
+	private readonly _candidateDirection: THREE.Vector3 = new THREE.Vector3();
+	private readonly _candidateOrigin: THREE.Vector3 = new THREE.Vector3();
+	private readonly _candidateRay: THREE.Ray = new THREE.Ray();
 	private readonly _eventEngine: EventEngine = EventEngine.instance;
+	private readonly _hierarchies: Map<string, NodeBoundsHierarchy> = new Map();
+	private readonly _memberSphere: THREE.Sphere = new THREE.Sphere();
+	private readonly _unitRay: THREE.Ray = new THREE.Ray();
 	private readonly _instanceMatrix: THREE.Matrix4 = new THREE.Matrix4();
 	private readonly _instanceWorldMatrix: THREE.Matrix4 = new THREE.Matrix4();
 	private readonly _normalMatrix: THREE.Matrix3 = new THREE.Matrix3();
@@ -87,7 +94,12 @@ export class IntersectionEngine implements IIntersectionEngine {
 				THREE.Intersection[]
 			>();
 			let intersections: IRayTracingIntersection[] = [];
-			this._intersectNodes.forEach((i) => {
+			// Only the nodes a ray can hit are tested, in list order.
+			const candidates = this.hierarchyFor(viewportId).candidates(
+				this.toThreeRay(ray),
+			);
+			candidates.forEach((index) => {
+				const i = this._intersectNodes[index];
 				const currentIntersections = this.intersectNode(
 					ray,
 					i.node,
@@ -207,11 +219,94 @@ export class IntersectionEngine implements IIntersectionEngine {
 
 	// #region Private Methods (5)
 
+	private hierarchyFor(viewportId: string): NodeBoundsHierarchy {
+		const key = viewportId ?? "";
+		let hierarchy = this._hierarchies.get(key);
+		if (!hierarchy) {
+			hierarchy = new NodeBoundsHierarchy(viewportId);
+			hierarchy.setNodes(this._intersectNodes);
+			this._hierarchies.set(key, hierarchy);
+		}
+		return hierarchy;
+	}
+
+	private toThreeRay(ray: IRay): THREE.Ray {
+		return this._candidateRay.set(
+			this._candidateOrigin.set(
+				ray.origin[0],
+				ray.origin[1],
+				ray.origin[2],
+			),
+			this._candidateDirection.set(
+				ray.direction[0],
+				ray.direction[1],
+				ray.direction[2],
+			),
+		);
+	}
+
+	/**
+	 * Raycast the object and its children like `intersectObject`, but leave
+	 * out the hidden source meshes of batched members: the BatchedMesh
+	 * returns those hits, and three r184 raycasts `visible === false`.
+	 * `raycast` of the other objects is still called, so a silenced one
+	 * stays silent.
+	 */
+	private intersectSkippingBatchedSources(
+		object: THREE.Object3D,
+		output: THREE.Intersection[] = [],
+	): THREE.Intersection[] {
+		if (object.userData.batchedMesh == null)
+			this._raycaster.intersectObject(object, false, output);
+		for (let i = 0; i < object.children.length; i++)
+			this.intersectSkippingBatchedSources(object.children[i], output);
+		return output;
+	}
+
+	/**
+	 * Whether the ray can hit the member of the batch that the hidden source
+	 * mesh stands for. The sphere is the one `BatchedMesh.raycast` tests for
+	 * that instance: the bounds of the batch geometry under the world matrix
+	 * of the instance. `intersectsSphere` needs a ray of unit length, and
+	 * the ray of a pick may not have one.
+	 */
+	private rayHitsMemberBounds(
+		ray: THREE.Ray,
+		member: THREE.Object3D,
+		batch: THREE.BatchedMesh,
+	): boolean {
+		const batchId = member.userData.batchId as number | undefined;
+		if (batchId === undefined) return true;
+		let sphere: THREE.Sphere | null;
+		try {
+			// These throw for an instance that is inactive or out of range.
+			// Then the batch is tested, as it was before this check.
+			sphere = batch.getBoundingSphereAt(
+				batch.getGeometryIdAt(batchId),
+				this._memberSphere,
+			);
+			if (!sphere) return true;
+			batch.getMatrixAt(batchId, this._instanceMatrix);
+		} catch {
+			return true;
+		}
+		this._instanceWorldMatrix.multiplyMatrices(
+			batch.matrixWorld,
+			this._instanceMatrix,
+		);
+		sphere.applyMatrix4(this._instanceWorldMatrix);
+		sphere.radius += Math.max(1e-6, 1e-6 * sphere.radius);
+		this._unitRay.copy(ray);
+		this._unitRay.direction.normalize();
+		return this._unitRay.intersectsSphere(sphere);
+	}
+
 	/**
 	 * Gather all nodes that contain geometry data.
 	 */
 	private gatherNodes() {
 		this._intersectNodes = [];
+		this._hierarchies.clear();
 		this._tree.root.traverse((node) => {
 			if (node.visible === false) return;
 			if (node.intersectionTest === false) return;
@@ -386,7 +481,14 @@ export class IntersectionEngine implements IIntersectionEngine {
 			const batch = child.userData.batchedMesh as
 				| THREE.BatchedMesh
 				| undefined;
-			if (batch) batchedMeshes.add(batch);
+			// A batch is only tested if the ray can hit one of its members
+			// of this node (the batch raycast visits every instance).
+			if (
+				batch &&
+				!batchedMeshes.has(batch) &&
+				this.rayHitsMemberBounds(this._raycaster.ray, child, batch)
+			)
+				batchedMeshes.add(batch);
 		});
 		batchedMeshes.forEach((mesh) => {
 			let meshIntersections = batchedIntersectionCache.get(mesh);
@@ -455,12 +557,12 @@ export class IntersectionEngine implements IIntersectionEngine {
 			viewportId!
 		] as THREE.Object3D;
 		if (threeJsObject) {
-			// three r184 raycasts visible === false. A batched member is
-			// already returned from the BatchedMesh, so the hidden source
-			// mesh would be a second hit of the same surface.
-			const intersectionThree = this._raycaster
-				.intersectObject(threeJsObject)
-				.filter((hit) => hit.object.userData.batchedMesh == null);
+			// A batched member is already returned from the BatchedMesh, so
+			// its hidden source mesh would be a second hit of the same
+			// surface. It is not raycast at all.
+			const intersectionThree = this.intersectSkippingBatchedSources(
+				threeJsObject,
+			).sort((a, b) => a.distance - b.distance);
 			intersections = intersections.concat(
 				intersectionThree.map((i) => {
 					const parent = i.object.parent as {
