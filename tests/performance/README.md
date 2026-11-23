@@ -10,19 +10,19 @@ The rule that keeps parallel work apart: **a new test, counter or benchmark sect
 
 ## Layout
 
-| Path                                                           | What it is                                                                                                        |
-| -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `exact/`                                                       | Pass/fail tests of one mechanism on a toy scene. One `SS-<key>.perf.ts` per ticket.                               |
-| `exact/harness.ts`                                             | `test` (routes the asset host to `assets/`), `installApi`, `open`, helpers that two tickets share.                |
-| `budgets/`                                                     | Exact counters of an AEC facade, compared with a committed baseline.                                              |
-| `budgets/harness.ts`                                           | Baseline read/write/compare, per-frame counters, settle and measure helpers.                                      |
+| Path                                                           | What it is                                                                                                                         |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `exact/`                                                       | Pass/fail tests of one mechanism on a toy scene. One `SS-<key>.perf.ts` per ticket.                                                |
+| `exact/harness.ts`                                             | `test` (routes the asset host to `assets/`), `installApi`, `open`, helpers that two tickets share.                                 |
+| `budgets/`                                                     | Exact counters of an AEC facade, compared with a committed baseline.                                                               |
+| `budgets/harness.ts`                                           | Baseline read/write/compare, per-frame counters, settle and measure helpers.                                                       |
 | `budgets/<scenario>.perf.ts`                                   | One scenario: `facade` (4 rendering variants), `interaction`, `attributes`, `blendedGlass`, `gltf`, `instancing`, `batchedMember`. |
-| `budgets/baseline/<id>.json`                                   | The baseline of one id. Sorted keys, tabs, CRLF.                                                                  |
-| `fixtures/probe.ts`                                            | `window.__probe`: wraps the renderer and reads `renderer.info`. Used by budgets and benchmarks.                   |
-| `fixtures/counters/`                                           | Counters that wrap three.js functions. One file each, listed in `counters/index.ts`.                              |
-| `fixtures/aecScene.ts`, `instancingGlbs.ts`, `syntheticGlb.ts` | Generated scenes and files.                                                                                       |
-| `bench/`                                                       | Work counts and timing for two builds. See [bench/README.md](bench/README.md).                                    |
-| `bench/timing/`, `bench/count/`                                | One file per timing metric and per work-count section, listed in `timing/index.ts` and `count/index.ts`.          |
+| `budgets/baseline/<id>.json`                                   | The baseline of one id. Sorted keys, tabs, CRLF.                                                                                   |
+| `fixtures/probe.ts`                                            | `window.__probe`: wraps the renderer and reads `renderer.info`. Used by budgets and benchmarks.                                    |
+| `fixtures/counters/`                                           | Counters that wrap three.js functions. One file each, listed in `counters/index.ts`.                                               |
+| `fixtures/aecScene.ts`, `instancingGlbs.ts`, `syntheticGlb.ts` | Generated scenes and files.                                                                                                        |
+| `bench/`                                                       | Work counts and timing for two builds. See [bench/README.md](bench/README.md).                                                     |
+| `bench/timing/`, `bench/count/`                                | One file per timing metric and per work-count section, listed in `timing/index.ts` and `count/index.ts`.                           |
 
 Configs: `playwright.config.ts` (`pnpm test:performance`) runs everything that matches `**/*.perf.ts`, so exact tests and budgets, on port 8099. `budgets.playwright.config.ts` runs only `budgets/**/*.perf.ts` on port 8191. The benchmarks use 8195 to 8198 (see `bench/`). Before a run, check that the ports are free: a second run on a port reads the other run's build.
 
@@ -78,6 +78,28 @@ PERF_RENDERER=swiftshader pnpm exec playwright test --config tests/performance/p
 ```
 
 The viewer turns shadow maps and the soft-shadow fade off on SwiftShader, so a test about shadows, the fade or the beauty blend would not run its code there. Rule for a new exact test: it is software-safe by default. If it needs shadows, the fade, a hardware-renderer assertion or anything else the viewer disables on SwiftShader, start the body with `await skipOnSoftwareRenderer(page, "<reason>")`. Put it before `test.fail`, so the skip wins and the test cannot pass for the wrong reason. A software-safe test must pass on both renderers.
+
+## Software baseline set and CI
+
+With `PERF_RENDERER=swiftshader` the budgets read and write `budgets/baseline/swiftshader/<id>.json` instead of `budgets/baseline/<id>.json`. SwiftShader turns shadows off, so `default` and `ssao` (which need shadows) are skipped there and have no software baseline. The GPU baselines are never touched by a software run. `openViewer` fails with a clear message when the browser's renderer does not match `PERF_RENDERER`, so a GPU baseline is never compared with SwiftShader counters, or the other way round.
+
+```bash
+PERF_RENDERER=swiftshader UPDATE_BUDGETS=1 pnpm exec playwright test --config tests/performance/budgets.playwright.config.ts
+```
+
+The counters are the same on Windows and on the Linux runner. If a counter turns out to depend on timing or the platform, list it in the harness for the software set only, with the reason, and keep it in the GPU set.
+
+`.github/workflows/pull-request.yml` ("Pull Request Checks") runs on every pull request to `development` and `staging`, drafts included:
+
+| Job                                    | What                                        | Blocks the PR                  |
+| -------------------------------------- | ------------------------------------------- | ------------------------------ |
+| Unit tests                             | `pnpm test:unit`                            | yes                            |
+| Performance: exact tests (SwiftShader) | `exact/` with `PERF_RENDERER=swiftshader`   | yes                            |
+| Performance: budgets (SwiftShader)     | `budgets/` with `PERF_RENDERER=swiftshader` | no, reports in the job summary |
+
+`continue-on-error` on a job is the switch between blocking and reporting. Which checks are required is a branch-protection setting.
+
+**Take a baseline from CI.** When the budgets job fails, it runs the budgets once more with `UPDATE_BUDGETS=1` on the runner and uploads `tests/performance/budgets/baseline/swiftshader/` as the artifact `swiftshader-baseline`. Download it, copy the files over `budgets/baseline/swiftshader/`, and review the diff like any other baseline change. Do not hand-edit a number.
 
 ## Add a budget counter
 
