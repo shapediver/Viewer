@@ -142,6 +142,12 @@ export class GeometryRestriction
 	#snapToVertices: boolean = true;
 	#snapToVerticesRadius?: number;
 	#visualizationObject: THREE.Object3D = new THREE.Object3D();
+	/**
+	 * Number of nodes that were not converted for this viewport yet when the
+	 * wireframe was built. If some of them are converted by the next time the
+	 * wireframe is shown, it is built again.
+	 */
+	#unconvertedNodeCount: number = 0;
 	#wireframe: boolean;
 	#wireframeColor: string;
 	#wireframeDepthTest: boolean;
@@ -568,12 +574,19 @@ export class GeometryRestriction
 
 	public updateNodes(nodes: ITreeNode[]) {
 		this.#nodes = nodes;
+		this.#unconvertedNodeCount = 0;
 
 		if (this.#wireframe) {
 			this.#visualizationObject.traverse((object) => {
 				if (object instanceof THREE.LineSegments) {
 					object.geometry.dispose();
 					object.material.dispose();
+				} else if (
+					object instanceof THREE.Line ||
+					object instanceof THREE.Points
+				) {
+					// the geometry is shared with the converted object
+					(object.material as THREE.Material).dispose();
 				}
 			});
 			this._object3D.remove(this.#visualizationObject);
@@ -582,7 +595,10 @@ export class GeometryRestriction
 			this.#nodes.forEach((node) => {
 				const threeJsObject = node.convertedObject[
 					this.#viewport.id
-				] as THREE.Object3D;
+				] as THREE.Object3D | undefined;
+				// Not converted for this viewport yet (e.g. nodes handed over
+				// right after a computation, before the scene update).
+				if (!threeJsObject) this.#unconvertedNodeCount++;
 				if (threeJsObject) {
 					let parent = threeJsObject.parent;
 					while (parent) {
@@ -662,7 +678,18 @@ export class GeometryRestriction
 
 	// #region Protected Methods (1)
 
-	protected visibilityChanged(): void {}
+	protected visibilityChanged(visible: boolean): void {
+		// The wireframe was built while some nodes were not converted yet.
+		// Build it again when it is shown and more of them are converted now,
+		// so the grid is not left empty. Nodes that never get converted (e.g.
+		// not in the scene) don't cause a rebuild on every show.
+		if (!visible || this.#unconvertedNodeCount === 0) return;
+		const unconverted = this.#nodes.filter(
+			(node) => !node.convertedObject[this.#viewport.id],
+		).length;
+		if (unconverted < this.#unconvertedNodeCount)
+			this.updateNodes(this.#nodes);
+	}
 
 	// #endregion Protected Methods (1)
 
