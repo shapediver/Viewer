@@ -232,8 +232,13 @@ jobs:
               if: failure()
               run: |
                   pnpm exec playwright test --config tests/performance/budgets.playwright.config.ts || true
-                  git status --short tests/performance/budgets/baseline/swiftshader
-                  git diff --stat -- tests/performance/budgets/baseline/swiftshader | tee -a "$GITHUB_STEP_SUMMARY"
+                  # The harness writes CRLF over the LF checkout: ignore line endings
+                  # so only changed counters show.
+                  {
+                    echo '```diff'
+                    git diff --ignore-cr-at-eol -- tests/performance/budgets/baseline/swiftshader
+                    echo '```'
+                  } | tee -a "$GITHUB_STEP_SUMMARY"
               env:
                   PERF_RENDERER: swiftshader
                   UPDATE_BUDGETS: "1"
