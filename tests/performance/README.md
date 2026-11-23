@@ -95,7 +95,7 @@ The counters are the same on Windows and on the Linux runner. If a counter turns
 | -------------------------------------- | ------------------------------------------- | ------------------------------ |
 | Unit tests                             | `pnpm test:unit`                            | yes                            |
 | Performance: exact tests (SwiftShader) | `exact/` with `PERF_RENDERER=swiftshader`   | yes                            |
-| Performance: budgets (SwiftShader)     | `budgets/` with `PERF_RENDERER=swiftshader` | no, reports in the job summary |
+| Performance: budgets (SwiftShader)     | `budgets/` with `PERF_RENDERER=swiftshader` | yes (summary and artifact too) |
 
 `continue-on-error` on a job is the switch between blocking and reporting. Which checks are required is a branch-protection setting.
 

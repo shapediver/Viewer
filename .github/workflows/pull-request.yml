@@ -167,7 +167,7 @@ jobs:
         timeout-minutes: 20
         # Switch: true = report only (the result is in the job summary),
         # false = a failure turns the PR check red.
-        continue-on-error: true
+        continue-on-error: false
 
         steps:
             - name: Checkout
