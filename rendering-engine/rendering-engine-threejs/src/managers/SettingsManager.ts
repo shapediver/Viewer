@@ -439,19 +439,14 @@ export class SettingsManager implements IManager {
 			this._renderingEngine.accumulationFramesMobile;
 
 		// The engine holds the cap of this device only. The cap of the other
-		// device kind is the one last applied, else the one in the target
-		// settings, else the default.
+		// device kind is the one last applied, else the engine default. Not the
+		// value in the target settings: getViewportSettings saves into new
+		// default settings, which carry the new-look size.
 		const renderingSize =
 			settingsEngine.rendering as IRenderingSizeSettings;
 		const current = this._renderingEngine.maximumRenderingSizeToSave;
 		const isMobile = this._systemInfo.isMobile === true;
-		const other =
-			toRenderingSize(this._otherDeviceMaximumRenderingSize) ??
-			toRenderingSize(
-				isMobile
-					? renderingSize.maximumRenderingSize
-					: renderingSize.maximumRenderingSizeMobile,
-			);
+		const other = toRenderingSize(this._otherDeviceMaximumRenderingSize);
 		const desktop = isMobile ? other : toRenderingSize(current);
 		const mobile = isMobile ? toRenderingSize(current) : other;
 		renderingSize.maximumRenderingSize = desktop ?? {
