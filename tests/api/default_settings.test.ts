@@ -19,6 +19,7 @@ const readOptions = () => {
 		hdr: viewport.postProcessing.hdr,
 		environmentMapPbrMode: viewport.environmentMapPbrMode,
 		environmentMapOrientation: viewport.environmentMapOrientation,
+		environmentMapAnalyticDfg: viewport.environmentMapAnalyticDfg,
 		physicalGemDispersion: viewport.physicalGemDispersion,
 		physicalGemFresnel: viewport.physicalGemFresnel,
 		gemEnvironmentMapIntensity: viewport.gemEnvironmentMapIntensity,
@@ -46,6 +47,7 @@ const OLD_LOOK = {
 	hdr: false,
 	environmentMapPbrMode: "legacy",
 	environmentMapOrientation: "legacy",
+	environmentMapAnalyticDfg: false,
 	physicalGemDispersion: false,
 	physicalGemFresnel: false,
 	gemEnvironmentMapIntensity: 1,
@@ -58,6 +60,8 @@ const OLD_LOOK = {
 const NEW_LOOK = {
 	environmentMapPbrMode: "modern",
 	environmentMapOrientation: "threejs",
+	// only the jewelry preset uses the analytic DFG
+	environmentMapAnalyticDfg: false,
 	physicalGemDispersion: true,
 	physicalGemFresnel: true,
 	gemEnvironmentMapIntensity: 1.2,
@@ -120,6 +124,7 @@ test.describe("Default settings", () => {
 		await applyPreset(page, "jewelry");
 		expect(await page.evaluate(readOptions)).toEqual({
 			...NEW_LOOK,
+			environmentMapAnalyticDfg: true,
 			hdr: true,
 			toneMapping: "neutral",
 			accumulationFrames: 32,
@@ -127,6 +132,17 @@ test.describe("Default settings", () => {
 			aoExcludeGems: [true],
 			bloom: [{highlightsOnly: true, backgroundBloom: false}],
 		});
+		// AO only on the indirect light, so polished metal keeps its reflections
+		expect(
+			await page.evaluate(() =>
+				(<typeof ShapeDiverViewer>(<any>window).SDV).viewports[
+					"myViewport"
+				].postProcessing
+					.getPostProcessingEffectsArray()
+					.filter((e) => e.type === "hbao")
+					.map((e) => (<Record<string, unknown>>e.properties).mode),
+			),
+		).toEqual(["shading"]);
 		expect(await page.evaluate(readMaximumRenderingSize)).toEqual({
 			width: 2560,
 			height: 1440,
