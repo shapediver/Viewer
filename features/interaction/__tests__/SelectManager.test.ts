@@ -68,39 +68,53 @@ describe("SelectManager.onClaimedPress", () => {
 	const create = (deselectOnEmpty: boolean) => {
 		manager = new SelectManager("m", undefined, deselectOnEmpty);
 		manager.add({id: "viewport"} as never);
-		manager.onClaimedPress(event, ray, [hit(egg)], [hit(egg)]);
+		manager.onClaimedPress(event, ray, [hit(egg)], [hit(egg)], []);
 		expect(events).toEqual(["on:egg"]);
 		events.length = 0;
 	};
 
 	it("deselects on a press on another object with deselectOnEmpty", () => {
 		create(true);
-		manager.onClaimedPress(event, ray, [], [hit(car)]);
+		manager.onClaimedPress(event, ray, [], [hit(car)], []);
 		expect(events).toEqual(["off:egg"]);
 	});
 
 	it("keeps the selection on a press on another object without deselectOnEmpty", () => {
 		create(false);
-		manager.onClaimedPress(event, ray, [], [hit(car)]);
+		manager.onClaimedPress(event, ray, [], [hit(car)], []);
 		expect(events).toEqual([]);
 	});
 
 	it("keeps the selection when its node is under the press but left out (the node the claiming tool acts on)", () => {
 		create(true);
-		manager.onClaimedPress(event, ray, [], [hit(car), hit(egg)]);
+		manager.onClaimedPress(event, ray, [], [hit(car), hit(egg)], []);
 		expect(events).toEqual([]);
 	});
 
 	it("keeps the selection on a press on the selected node", () => {
 		create(true);
-		manager.onClaimedPress(event, ray, [hit(egg)], [hit(egg)]);
+		manager.onClaimedPress(event, ray, [hit(egg)], [hit(egg)], []);
 		expect(events).toEqual([]);
+	});
+
+	it("keeps the selection when the claiming tool acts on a node it holds (a corner of its rectangle over another object)", () => {
+		create(true);
+		const held = {name: "held", parent: egg} as never;
+		manager.onClaimedPress(event, ray, [], [hit(car)], [held]);
+		expect(events).toEqual([]);
+	});
+
+	it("deselects when the claiming tool acts on an unrelated node", () => {
+		create(true);
+		const other = {name: "other", parent: car} as never;
+		manager.onClaimedPress(event, ray, [], [hit(car)], [other]);
+		expect(events).toEqual(["off:egg"]);
 	});
 
 	it("selects a pressed node after a press on another object deselected", () => {
 		create(true);
-		manager.onClaimedPress(event, ray, [], [hit(car)]);
-		manager.onClaimedPress(event, ray, [hit(egg)], [hit(egg)]);
+		manager.onClaimedPress(event, ray, [], [hit(car)], []);
+		manager.onClaimedPress(event, ray, [hit(egg)], [hit(egg)], []);
 		expect(events).toEqual(["off:egg", "on:egg"]);
 	});
 });
