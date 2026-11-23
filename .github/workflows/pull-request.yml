@@ -200,7 +200,10 @@ jobs:
             - name: Check Chrome
               run: google-chrome --version
 
+            # An explicit `shell: bash` adds pipefail; the default `bash -e`
+            # would take the exit code of `tee` and hide a failed run.
             - name: Run budgets
+              shell: bash
               run: |
                   pnpm exec playwright test --config tests/performance/budgets.playwright.config.ts 2>&1 | tee budgets.log
               env:
