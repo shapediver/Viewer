@@ -143,6 +143,7 @@ export const renderingSettingsSchemaV7_2 = renderingSettingsSchema.extend({
 export const materialSettingsSchemaV7_2 = materialSettingsSchema.extend({
 	physicalGemDispersion: z.boolean(),
 	physicalGemFresnel: z.boolean(),
+	gemBounceLighting: z.enum(["all", "environment"]),
 	gemEnvironmentMapIntensity: z.number().min(0),
 	gemTracing: z.enum(["sphere", "facets"]),
 	gemNormalMapResolution: z.union([

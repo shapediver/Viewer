@@ -137,6 +137,7 @@ export class MaterialLoader implements ILoader {
 	private _height: number = 1020;
 	private _physicalGemDispersion: boolean = false;
 	private _physicalGemFresnel: boolean = false;
+	private _gemBounceLighting: "all" | "environment" = "all";
 	private _gemEnvironmentMapIntensity: number = 1;
 	private _lightSizeUV: number = 0.025;
 	private _materialOverrideType: MATERIAL_TYPE | undefined = undefined;
@@ -375,6 +376,7 @@ export class MaterialLoader implements ILoader {
 	private assignGemLightSettingsToMaterial(material: THREE.Material): void {
 		if (material instanceof GemMaterial) {
 			material.physicalFresnel = this._physicalGemFresnel;
+			material.bounceLighting = this._gemBounceLighting;
 			material.gemEnvMapIntensity = this._gemEnvironmentMapIntensity;
 		}
 	}
@@ -778,6 +780,15 @@ uniform vec3 sdvScreenAOColor;
 
 	public assignPhysicalGemFresnel(value: boolean) {
 		this._physicalGemFresnel = value;
+		for (const cacheKey in this._materialCache) {
+			this.assignGemLightSettingsToMaterial(
+				this._materialCache[cacheKey].material,
+			);
+		}
+	}
+
+	public assignGemBounceLighting(value: "all" | "environment") {
+		this._gemBounceLighting = value;
 		for (const cacheKey in this._materialCache) {
 			this.assignGemLightSettingsToMaterial(
 				this._materialCache[cacheKey].material,

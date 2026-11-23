@@ -55,6 +55,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
 	outputEncoding: TEXTURE_ENCODING;
 	physicalGemDispersion: boolean;
 	physicalGemFresnel: boolean;
+	gemBounceLighting: "all" | "environment";
 	physicallyCorrectLights: boolean;
 	postRenderCallback?: (
 		renderer: THREE.WebGLRenderer,

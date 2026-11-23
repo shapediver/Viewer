@@ -87,6 +87,11 @@ export interface ISettings extends IGlobalSettings {
 		 */
 		physicalGemFresnel: boolean;
 		/**
+		 * Which lights gems use for the light that bounces inside the stone: "all" lights, or "environment" for the environment and ambient light only (the direct lights are still used on the first surface).
+		 * Settings converted from before 7.2 use "all".
+		 */
+		gemBounceLighting: "all" | "environment";
+		/**
 		 * Factor on the environment light that gems receive.
 		 * Settings converted from before 7.2 use 1.
 		 */
