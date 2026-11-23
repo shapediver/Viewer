@@ -145,13 +145,17 @@ export class SelectManager extends AbstractInteractionManager {
 	}
 
 	/**
-	 * A press on a node of this manager was won by another tool: select the
-	 * node, never deselect it (the other tool acts on the press).
+	 * A press was won by another tool: select the node of this manager under
+	 * the press. A press on the selected node keeps it selected (the other
+	 * tool acts on the press). A press on another object, with no node of
+	 * this manager under the pointer, deselects with deselectOnEmpty, like a
+	 * click on that object.
 	 */
 	public onClaimedPress(
 		event: PointerEvent,
 		ray: IRay,
 		intersection: IIntersectionDefinition[],
+		pressed: IIntersectionDefinition[],
 	): void {
 		if (
 			!InteractionManagerUtils.validateViewport(
@@ -164,19 +168,24 @@ export class SelectManager extends AbstractInteractionManager {
 			this.#selectOn === "down"
 				? INTERACTION_STATE.DOWN
 				: INTERACTION_STATE.UP;
-		const first = intersection.find(
-			(i) =>
-				this.filter(state)(i.node) &&
-				i.type === "RayTracingIntersection" &&
-				InteractionManagerUtils.getInteractionData(
-					i.node,
-					true,
-					this.id,
-					"select",
-				),
-		) as IRayTracingIntersection | undefined;
-		if (!first || first.node === this.#node || this.#keyPressed.removal)
+		const own = (i: IIntersectionDefinition) =>
+			this.filter(state)(i.node) &&
+			i.type === "RayTracingIntersection" &&
+			!!InteractionManagerUtils.getInteractionData(
+				i.node,
+				true,
+				this.id,
+				"select",
+			);
+		const first = intersection.find(own) as
+			| IRayTracingIntersection
+			| undefined;
+		if (!first) {
+			if (this.#node && this.#deselectOnEmpty && !pressed.some(own))
+				this.deactivateNode(event);
 			return;
+		}
+		if (first.node === this.#node || this.#keyPressed.removal) return;
 		if (this.#node) this.deactivateNode(event);
 		this.activateNode(first, event, ray);
 	}

@@ -2,7 +2,8 @@ import {type IViewportApi, sceneTree} from "@shapediver/viewer";
 import {
 	IntersectionEngine,
 	RaycasterParameters,
-	SelectionBox} from "@shapediver/viewer.rendering-engine.intersection-engine";
+	SelectionBox,
+} from "@shapediver/viewer.rendering-engine.intersection-engine";
 import {Box} from "@shapediver/viewer.shared.math";
 import {
 	GeometryData,
@@ -12,7 +13,8 @@ import {
 	EventEngine,
 	EVENTTYPE,
 	ShapeDiverViewerInteractionError,
-	UuidGenerator} from "@shapediver/viewer.shared.services";
+	UuidGenerator,
+} from "@shapediver/viewer.shared.services";
 import {
 	FLAG_TYPE,
 	type IIntersectionDefinition,
@@ -26,7 +28,8 @@ import {
 import {
 	type IInteractionEngine,
 	INTERACTION_STATE,
-	type PointerClaim} from "../interfaces/IInteractionEngine";
+	type PointerClaim,
+} from "../interfaces/IInteractionEngine";
 import {type IInteractionManager} from "../interfaces/IInteractionManager";
 import {InteractionData} from "./InteractionData";
 import {IntersectionManager} from "./IntersectionManager";
@@ -51,6 +54,8 @@ type ClaimedPress = {
 	event: PointerEvent;
 	ray: IRay;
 	lists: {[key: string]: IIntersectionDefinition[]};
+	// all hits at the press, before the closest-object and claimer filtering
+	pressed: {[key: string]: IIntersectionDefinition[]};
 };
 
 /** The claims of one pointer event, shared by the engines of the viewport. */
@@ -490,6 +495,8 @@ export class InteractionEngine implements IInteractionEngine {
 	 * A press won by a distance claim while a node of this engine is under the
 	 * pointer: remember the nodes (the intersections at the press) to select
 	 * them when the pointer is released, see {@link releaseClaimedPress}.
+	 * While only a node of another engine is under the pointer, the press is
+	 * remembered without nodes, so a selection of this engine can deselect.
 	 */
 	private holdClaimedPress(event: PointerEvent, ray: IRay): void {
 		if (this.filtersPointer(event)) return;
@@ -504,7 +511,20 @@ export class InteractionEngine implements IInteractionEngine {
 		// press for itself
 		if (decision.unconditionalOwners.length > 0) return;
 		const candidate = decision.candidateDistances.get(this) ?? Infinity;
-		if (candidate === Infinity) return;
+		if (candidate === Infinity) {
+			// the press is on an object of another engine (which selects it on
+			// release, see below): the managers of this engine see a press
+			// beside their nodes, like a click on that object (a selection with
+			// deselectOnEmpty deselects)
+			const otherPressed = [...decision.candidateDistances].some(
+				([engine, distance]) => engine !== this && distance < Infinity,
+			);
+			if (!otherPressed) return;
+			const empty: {[key: string]: IIntersectionDefinition[]} = {};
+			for (const m in this.#managers) empty[m] = [];
+			this.#claimedPress = {event, ray, lists: empty, pressed: empty};
+			return;
+		}
 
 		// only the closest object is pressed: an object behind it must not be
 		// selected. The claimer's own nodes are left out after that, so the
@@ -515,10 +535,12 @@ export class InteractionEngine implements IInteractionEngine {
 			INTERACTION_STATE.UP,
 		]);
 		const lists: {[key: string]: IIntersectionDefinition[]} = {};
+		const pressed: {[key: string]: IIntersectionDefinition[]} = {};
 		for (const m in this.#managers) {
 			const hits = intersections[m].filter(
 				(i) => i.type === "RayTracingIntersection",
 			) as IRayTracingIntersection[];
+			pressed[m] = hits;
 			// several nodes can share one surface (an object and the node it
 			// holds): they are hit at the same distance
 			lists[m] =
@@ -530,7 +552,7 @@ export class InteractionEngine implements IInteractionEngine {
 						)
 					: [];
 		}
-		this.#claimedPress = {event, ray, lists};
+		this.#claimedPress = {event, ray, lists, pressed};
 	}
 
 	/**
@@ -547,6 +569,7 @@ export class InteractionEngine implements IInteractionEngine {
 				press.event,
 				press.ray,
 				press.lists[m].filter((i) => this.isInScene(i.node)),
+				press.pressed[m],
 			);
 	}
 

@@ -3,11 +3,13 @@ import {
 	type IIntersectionDefinition,
 	type IIntersectionFilter,
 	type IMaterialAbstractData,
-	type IRay} from "@shapediver/viewer.shared.types";
+	type IRay,
+} from "@shapediver/viewer.shared.types";
 import {INTERACTION_STATE} from "./IInteractionEngine";
 import {
 	type IInteractionEffect,
-	type IInteractionEffectUtils} from "./utils/IInteractionEffectUtils";
+	type IInteractionEffectUtils,
+} from "./utils/IInteractionEffectUtils";
 
 // #region Type aliases (1)
 
@@ -150,20 +152,26 @@ export interface IInteractionManager {
 	cancelInteraction?(): void;
 
 	/**
-	 * Optional: called when the pointer was pressed on this manager's nodes
-	 * but another tool won the press (e.g. the plane of a rectangle transform),
-	 * once the pointer is released, whether or not it moved. A selecting
-	 * manager selects the node under the press, it never deselects. The
-	 * intersections are the ones at the press; the node may have moved since.
+	 * Optional: called when another tool won a press (e.g. the plane of a
+	 * rectangle transform) on this manager's nodes or on an object of another
+	 * engine, once the pointer is released, whether or not it moved. A
+	 * selecting manager selects the node under the press. It keeps a pressed
+	 * selected node, and may deselect when the press hit none of its nodes
+	 * (e.g. with deselectOnEmpty). The intersections are the ones at the
+	 * press; the node may have moved since.
 	 *
 	 * @param event The pointerdown event of the press.
 	 * @param ray The ray of the press.
-	 * @param intersection The intersections at the press.
+	 * @param intersection The intersections of the pressed object (the closest
+	 * one, without the nodes of the tool which won the press).
+	 * @param pressed All intersections at the press, including nodes behind
+	 * the pressed object and the nodes of the tool which won the press.
 	 */
 	onClaimedPress?(
 		event: PointerEvent,
 		ray: IRay,
 		intersection: IIntersectionDefinition[],
+		pressed: IIntersectionDefinition[],
 	): void;
 
 	// #endregion Public Methods (6)
