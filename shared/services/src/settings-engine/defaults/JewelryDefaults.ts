@@ -26,6 +26,8 @@ export const JewelryDefaults: () => ISettings = () => {
 			intensity: 1,
 			blurriness: 0,
 			...NEW_LOOK_V7_2.environment,
+			// the metal reflectance of the reference renderer
+			mapAnalyticDfg: true,
 		},
 		environmentGeometry: {
 			gridColor: "#44444426",
@@ -65,6 +67,10 @@ export const JewelryDefaults: () => ISettings = () => {
 				{
 					// contact darkening in crevices, not on the stones
 					properties: {
+						// AO only on the indirect light inside the shading: the
+						// composite mode at power 2.5 darkened the mirror
+						// reflections of polished metal by up to 17 levels
+						mode: "shading",
 						excludeGems: true,
 					},
 					type: "hbao",

@@ -173,6 +173,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	private _closed: boolean = false;
 	private _enableAR: boolean = true;
 	private _environmentMap: string | string[] = "null";
+	private _environmentMapAnalyticDfg: boolean = false;
 	private _environmentMapAsBackground: boolean = false;
 	private _environmentMapBlurriness: number = 0;
 	private _environmentMapForUnlitMaterials: boolean = false;
@@ -611,6 +612,15 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 			this._environmentMap = previous;
 			this._environmentMapLoader.load(this.environmentMap);
 		});
+	}
+
+	public get environmentMapAnalyticDfg(): boolean {
+		return this._environmentMapAnalyticDfg;
+	}
+
+	public set environmentMapAnalyticDfg(value: boolean) {
+		this._environmentMapAnalyticDfg = value;
+		this._materialLoader.assignEnvironmentMapAnalyticDfg(value);
 	}
 
 	public get environmentMapAsBackground(): boolean {

@@ -85,6 +85,18 @@ import {OutlineManager} from "./postprocessing/OutlineManager";
 import {SelectiveBloomManager} from "./postprocessing/SelectiveBloomManager";
 import {SSAARenderPass} from "./postprocessing/SSAARenderPass";
 
+/**
+ * The blend function of a bloom: an explicit one wins; in a half-float (HDR)
+ * composer an unset one adds the bloom, because SCREEN removes light from
+ * pixels brighter than 1; 8-bit buffers keep the library default SCREEN (the
+ * old look).
+ */
+export const resolveBloomBlendFunction = (
+	explicit: BlendFunction | undefined,
+	halfFloat: boolean,
+): BlendFunction | undefined =>
+	explicit ?? (halfFloat ? BlendFunction.ADD : undefined);
+
 export class PostProcessingManager implements IManager {
 	// #region Properties (23)
 
@@ -459,7 +471,12 @@ export class PostProcessingManager implements IManager {
 						// with highlightsOnly, unset values default to the highlight
 						// bloom values, otherwise they are passed through unchanged
 						const bloomOptions = {
-							blendFunction: properties.blendFunction,
+							blendFunction: resolveBloomBlendFunction(
+								properties.blendFunction,
+								// the same check as createComposer, the composer may not exist yet
+								this._hdr &&
+									this.isHalfFloatRenderingSupported(),
+							),
 							luminanceThreshold: highlightsOnly
 								? (properties.luminanceThreshold ?? 1)
 								: properties.luminanceThreshold,
