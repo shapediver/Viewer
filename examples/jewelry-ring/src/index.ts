@@ -2,10 +2,10 @@ import * as SDV from "@shapediver/viewer";
 (<any>window).SDV = SDV;
 
 /**
- * Local counterpart of the iJewel3D / WebGi reference scene
- * https://appbuilder.shapediver.com/v1/ijewel3d/latest/?slug=ijewel3d-ring
+ * Jewelry ring example: a ring with gem and polished metal materials,
+ * set up to match a reference jewelry render.
  *
- * The values below were read from the reference scene:
+ * Scene setup:
  * - environment (scene and gems): one high-contrast .hdr, intensity 1
  *   (gems 1.2)
  * - metal: polished yellow gold, color #fec07a, roughness 0, metalness 1
