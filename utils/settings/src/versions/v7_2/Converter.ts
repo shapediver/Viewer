@@ -22,6 +22,10 @@ export const OLD_LOOK_V7_2 = {
 	mapOrientation: "legacy",
 	/** `material.physicalGemDispersion` */
 	physicalGemDispersion: false,
+	/** `material.physicalGemFresnel` */
+	physicalGemFresnel: false,
+	/** `material.gemEnvironmentMapIntensity` */
+	gemEnvironmentMapIntensity: 1,
 	/** `material.gemTracing` */
 	gemTracing: "sphere",
 	/** `material.gemNormalMapResolution` */
@@ -111,6 +115,12 @@ export const convertFromPrevious = (
 			physicalGemDispersion:
 				oldMaterial.physicalGemDispersion ??
 				OLD_LOOK_V7_2.physicalGemDispersion,
+			physicalGemFresnel:
+				oldMaterial.physicalGemFresnel ??
+				OLD_LOOK_V7_2.physicalGemFresnel,
+			gemEnvironmentMapIntensity:
+				oldMaterial.gemEnvironmentMapIntensity ??
+				OLD_LOOK_V7_2.gemEnvironmentMapIntensity,
 			gemTracing: oldMaterial.gemTracing ?? OLD_LOOK_V7_2.gemTracing,
 			gemNormalMapResolution:
 				oldMaterial.gemNormalMapResolution ??
@@ -135,16 +145,18 @@ export const convertToPrevious = (
 	// Drop every option that does not exist in 7.1. Add new 7.2 options here.
 	// - postprocessing.hdr
 	// - environment.mapPbrMode, environment.mapOrientation
-	// - material.physicalGemDispersion, material.gemTracing, material.gemNormalMapResolution
+	// - material.physicalGemDispersion, material.physicalGemFresnel, material.gemEnvironmentMapIntensity,
+	//   material.gemTracing, material.gemNormalMapResolution
 	// - rendering.accumulationFrames, rendering.accumulationFramesMobile
 	// - rendering.maximumRenderingSize, rendering.maximumRenderingSizeMobile
-	// - bloom properties: backgroundBloom, highlightsOnly (mipmapBlur is required in 7.1)
+	// - bloom properties: backgroundBloom, highlightsOnly, highlightLimit (mipmapBlur is required in 7.1)
 	// - HBAO/SSAO properties: mode, excludeGems
 	const oldEffects = newSettings.postprocessing.effects.map((effect) => {
 		if (effect.type === "bloom" && effect.properties) {
 			const properties: any = {...effect.properties};
 			delete properties.backgroundBloom;
 			delete properties.highlightsOnly;
+			delete properties.highlightLimit;
 			properties.mipmapBlur = properties.mipmapBlur ?? false;
 			return {...effect, properties};
 		}
@@ -166,6 +178,8 @@ export const convertToPrevious = (
 
 	const material: any = {...newSettings.material};
 	delete material.physicalGemDispersion;
+	delete material.physicalGemFresnel;
+	delete material.gemEnvironmentMapIntensity;
 	delete material.gemTracing;
 	delete material.gemNormalMapResolution;
 

@@ -317,6 +317,13 @@ export enum EVENTTYPE_VIEWPORT {
 	VIEWPORT_CREATED = "viewport.created",
 	/**
 	 * The VIEWPORT_UPDATED-event is sent when the viewport has been updated.
+	 * Its payload ({@link IViewportUpdatedEvent}) has the field `sceneChanges`
+	 * with the nodes of the scene tree that the update went through and the
+	 * ids of the nodes that were removed. The field is absent if the update went
+	 * through the whole tree (for example the first update of a viewport, or
+	 * after a change of the renderer type or of GPU instancing), or if no scene
+	 * update ran. A listener that keeps data about the scene tree reads the
+	 * whole tree then.
 	 */
 	VIEWPORT_UPDATED = "viewport.updated",
 	/**

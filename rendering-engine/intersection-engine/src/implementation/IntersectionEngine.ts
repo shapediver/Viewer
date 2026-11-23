@@ -3,6 +3,7 @@ import {
 	type ITree,
 	type ITreeNode,
 	Tree,
+	TreeNodeIndex,
 } from "@shapediver/viewer.shared.node-tree";
 import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {
@@ -10,15 +11,23 @@ import {
 	type IIntersectionFilter,
 	type IRay,
 	type IRayTracingIntersection,
+	type IViewportUpdatedEvent,
 } from "@shapediver/viewer.shared.types";
 import * as THREE from "three";
 import {type IIntersectionEngine} from "../interfaces/IIntersectionEngine";
+import {NodeBoundsHierarchy} from "./NodeBoundsHierarchy";
 import {SelectionBox} from "./SelectionBox";
 
 export class IntersectionEngine implements IIntersectionEngine {
 	// #region Properties (9)
 
+	private readonly _candidateDirection: THREE.Vector3 = new THREE.Vector3();
+	private readonly _candidateOrigin: THREE.Vector3 = new THREE.Vector3();
+	private readonly _candidateRay: THREE.Ray = new THREE.Ray();
 	private readonly _eventEngine: EventEngine = EventEngine.instance;
+	private readonly _hierarchies: Map<string, NodeBoundsHierarchy> = new Map();
+	private readonly _memberSphere: THREE.Sphere = new THREE.Sphere();
+	private readonly _unitRay: THREE.Ray = new THREE.Ray();
 	private readonly _instanceMatrix: THREE.Matrix4 = new THREE.Matrix4();
 	private readonly _instanceWorldMatrix: THREE.Matrix4 = new THREE.Matrix4();
 	private readonly _normalMatrix: THREE.Matrix3 = new THREE.Matrix3();
@@ -28,24 +37,55 @@ export class IntersectionEngine implements IIntersectionEngine {
 
 	private static _instance: IntersectionEngine;
 
-	private _intersectNodes: {
+	// The geometry data of every visible node that takes part in picking,
+	// kept up to date from the nodes of a scene update. A value holds the
+	// version of each geometry data it was made for.
+	private readonly _index = new TreeNodeIndex<
+		{data: GeometryData; key: string}[]
+	>(
+		(node) => {
+			if (node.visible === false) return;
+			if (node.intersectionTest === false) return;
+			const own: {data: GeometryData; key: string}[] = [];
+			for (let i = 0; i < node.data.length; i++) {
+				const data = node.data[i];
+				if (data instanceof GeometryData)
+					own.push({data, key: `${data.id}_${data.version}`});
+			}
+			return own.length > 0 ? own : undefined;
+		},
+		(a, b) =>
+			a.length === b.length &&
+			a.every(
+				(entry, i) =>
+					entry.data === b[i].data && entry.key === b[i].key,
+			),
+	);
+	// The index is read from the tree when it is needed for the first time.
+	private _indexBuilt = false;
+	// The nodes of the index, one entry for each geometry data, in tree
+	// order, for the version of the index in `_listVersion`.
+	private _list: {
 		node: ITreeNode;
 		geometryData: {[key: string]: GeometryData};
-		visible: boolean;
-		excludeViewports: string[];
-		restrictViewports: string[];
 	}[] = [];
+	private _listVersion = -1;
 
 	// #endregion Properties (9)
 
 	// #region Constructors (1)
 
 	private constructor() {
-		this.gatherNodes();
 		this._eventEngine.addListener(
 			EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED,
-			() => {
-				this.gatherNodes();
+			(e) => {
+				// Nothing to keep up to date before the first pick.
+				if (!this._indexBuilt) return;
+				const changes = (<IViewportUpdatedEvent>e).sceneChanges;
+				// Without the nodes a scene update went through, the
+				// whole tree is read.
+				if (changes) this._index.apply(changes, this._tree.root);
+				else this._index.rebuild(this._tree.root);
 			},
 		);
 	}
@@ -74,7 +114,7 @@ export class IntersectionEngine implements IIntersectionEngine {
 		if (options?.selectionBox) {
 			const selectionBox = options.selectionBox;
 			return selectionBox.intersectObjects(
-				this._intersectNodes.map((n) => n.node),
+				this.intersectNodes.map((n) => n.node),
 				filterCriteria || [],
 			);
 		} else {
@@ -87,7 +127,13 @@ export class IntersectionEngine implements IIntersectionEngine {
 				THREE.Intersection[]
 			>();
 			let intersections: IRayTracingIntersection[] = [];
-			this._intersectNodes.forEach((i) => {
+			// Only the nodes a ray can hit are tested, in list order.
+			const nodes = this.intersectNodes;
+			const candidates = this.hierarchyFor(viewportId).candidates(
+				this.toThreeRay(ray),
+			);
+			candidates.forEach((index) => {
+				const i = nodes[index];
 				const currentIntersections = this.intersectNode(
 					ray,
 					i.node,
@@ -207,48 +253,112 @@ export class IntersectionEngine implements IIntersectionEngine {
 
 	// #region Private Methods (5)
 
+	private hierarchyFor(viewportId: string): NodeBoundsHierarchy {
+		const key = viewportId ?? "";
+		let hierarchy = this._hierarchies.get(key);
+		if (!hierarchy) {
+			hierarchy = new NodeBoundsHierarchy(viewportId);
+			hierarchy.setNodes(this.intersectNodes);
+			this._hierarchies.set(key, hierarchy);
+		}
+		return hierarchy;
+	}
+
+	private toThreeRay(ray: IRay): THREE.Ray {
+		return this._candidateRay.set(
+			this._candidateOrigin.set(
+				ray.origin[0],
+				ray.origin[1],
+				ray.origin[2],
+			),
+			this._candidateDirection.set(
+				ray.direction[0],
+				ray.direction[1],
+				ray.direction[2],
+			),
+		);
+	}
+
 	/**
-	 * Gather all nodes that contain geometry data.
+	 * Raycast the object and its children like `intersectObject`, but leave
+	 * out the hidden source meshes of batched members: the BatchedMesh
+	 * returns those hits, and three r184 raycasts `visible === false`.
+	 * `raycast` of the other objects is still called, so a silenced one
+	 * stays silent.
 	 */
-	private gatherNodes() {
-		this._intersectNodes = [];
-		this._tree.root.traverse((node) => {
-			if (node.visible === false) return;
-			if (node.intersectionTest === false) return;
+	private intersectSkippingBatchedSources(
+		object: THREE.Object3D,
+		output: THREE.Intersection[] = [],
+	): THREE.Intersection[] {
+		if (object.userData.batchedMesh == null)
+			this._raycaster.intersectObject(object, false, output);
+		for (let i = 0; i < object.children.length; i++)
+			this.intersectSkippingBatchedSources(object.children[i], output);
+		return output;
+	}
 
-			for (let i = 0; i < node.data.length; i++) {
-				if (node.data[i] instanceof GeometryData) {
-					const geometryData: GeometryData = node.data[
-						i
-					] as GeometryData;
-					let tempNode = node;
-					let visible = true,
-						restrictViewports: string[] = [],
-						excludeViewports: string[] = [];
-					while (tempNode.parent) {
-						visible = tempNode.visible && visible;
-						restrictViewports = restrictViewports.concat(
-							tempNode.restrictViewports,
-						);
-						excludeViewports = excludeViewports.concat(
-							tempNode.excludeViewports,
-						);
-						tempNode = tempNode.parent;
-					}
+	/**
+	 * Whether the ray can hit the member of the batch that the hidden source
+	 * mesh stands for. The sphere is the one `BatchedMesh.raycast` tests for
+	 * that instance: the bounds of the batch geometry under the world matrix
+	 * of the instance. `intersectsSphere` needs a ray of unit length, and
+	 * the ray of a pick may not have one.
+	 */
+	private rayHitsMemberBounds(
+		ray: THREE.Ray,
+		member: THREE.Object3D,
+		batch: THREE.BatchedMesh,
+	): boolean {
+		const batchId = member.userData.batchId as number | undefined;
+		if (batchId === undefined) return true;
+		let sphere: THREE.Sphere | null;
+		try {
+			// These throw for an instance that is inactive or out of range.
+			// Then the batch is tested, as it was before this check.
+			sphere = batch.getBoundingSphereAt(
+				batch.getGeometryIdAt(batchId),
+				this._memberSphere,
+			);
+			if (!sphere) return true;
+			batch.getMatrixAt(batchId, this._instanceMatrix);
+		} catch {
+			return true;
+		}
+		this._instanceWorldMatrix.multiplyMatrices(
+			batch.matrixWorld,
+			this._instanceMatrix,
+		);
+		sphere.applyMatrix4(this._instanceWorldMatrix);
+		sphere.radius += Math.max(1e-6, 1e-6 * sphere.radius);
+		this._unitRay.copy(ray);
+		this._unitRay.direction.normalize();
+		return this._unitRay.intersectsSphere(sphere);
+	}
 
-					this._intersectNodes.push({
-						node,
-						geometryData: {
-							[`${geometryData.id}_${geometryData.version}`]:
-								geometryData,
-						},
-						visible,
-						restrictViewports: [...new Set(restrictViewports)],
-						excludeViewports: [...new Set(excludeViewports)],
-					});
-				}
-			}
-		});
+	/**
+	 * The nodes that contain geometry data, in tree order, one entry for each
+	 * geometry data. Made again only when a node entered or left the index or
+	 * a geometry data changed; the bounds hierarchies are made again with it.
+	 */
+	private get intersectNodes(): {
+		node: ITreeNode;
+		geometryData: {[key: string]: GeometryData};
+	}[] {
+		if (!this._indexBuilt) {
+			this._index.rebuild(this._tree.root);
+			this._indexBuilt = true;
+		}
+		if (this._listVersion !== this._index.version) {
+			this._listVersion = this._index.version;
+			this._list = this._index.entries(this._tree.root).flatMap((entry) =>
+				entry.value.map((value) => ({
+					node: entry.node,
+					geometryData: {[value.key]: value.data},
+				})),
+			);
+			this._hierarchies.clear();
+		}
+		return this._list;
 	}
 
 	/**
@@ -386,7 +496,14 @@ export class IntersectionEngine implements IIntersectionEngine {
 			const batch = child.userData.batchedMesh as
 				| THREE.BatchedMesh
 				| undefined;
-			if (batch) batchedMeshes.add(batch);
+			// A batch is only tested if the ray can hit one of its members
+			// of this node (the batch raycast visits every instance).
+			if (
+				batch &&
+				!batchedMeshes.has(batch) &&
+				this.rayHitsMemberBounds(this._raycaster.ray, child, batch)
+			)
+				batchedMeshes.add(batch);
 		});
 		batchedMeshes.forEach((mesh) => {
 			let meshIntersections = batchedIntersectionCache.get(mesh);
@@ -455,12 +572,12 @@ export class IntersectionEngine implements IIntersectionEngine {
 			viewportId!
 		] as THREE.Object3D;
 		if (threeJsObject) {
-			// three r184 raycasts visible === false. A batched member is
-			// already returned from the BatchedMesh, so the hidden source
-			// mesh would be a second hit of the same surface.
-			const intersectionThree = this._raycaster
-				.intersectObject(threeJsObject)
-				.filter((hit) => hit.object.userData.batchedMesh == null);
+			// A batched member is already returned from the BatchedMesh, so
+			// its hidden source mesh would be a second hit of the same
+			// surface. It is not raycast at all.
+			const intersectionThree = this.intersectSkippingBatchedSources(
+				threeJsObject,
+			).sort((a, b) => a.distance - b.distance);
 			intersections = intersections.concat(
 				intersectionThree.map((i) => {
 					const parent = i.object.parent as {

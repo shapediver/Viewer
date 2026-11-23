@@ -33,7 +33,15 @@ const PLAIN_GLB = syntheticGlb({
 	gridSize: 8,
 	jitter: true,
 });
+// Heavy mesh reuse (SS-10552): 5 meshes, each used by 1,000 nodes.
+const SHARED_GLB = syntheticGlb({
+	meshes: 5,
+	instancesPerMesh: 1000,
+	gridSize: 8,
+	randomJitter: true,
+});
 export const PLAIN_GLB_HREF = `${ASSET_HOST}/plain.glb`;
+export const SHARED_GLB_HREF = `${ASSET_HOST}/shared.glb`;
 export const DRACO_GLTF_HREF = `${ASSET_HOST}/Box.gltf`;
 
 export const COUNTERS = [
@@ -260,6 +268,12 @@ export async function open(browser: Browser, origin: string): Promise<Viewer> {
 				status: 200,
 				contentType: "model/gltf-binary",
 				body: PLAIN_GLB,
+			});
+		if (name === "shared.glb")
+			return route.fulfill({
+				status: 200,
+				contentType: "model/gltf-binary",
+				body: SHARED_GLB,
 			});
 		const file = path.join(ASSETS_DIR, name);
 		if (!fs.existsSync(file)) return route.fulfill({status: 404});

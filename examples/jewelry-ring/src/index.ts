@@ -2,10 +2,10 @@ import * as SDV from "@shapediver/viewer";
 (<any>window).SDV = SDV;
 
 /**
- * Local counterpart of the iJewel3D / WebGi reference scene
- * https://appbuilder.shapediver.com/v1/ijewel3d/latest/?slug=ijewel3d-ring
+ * Jewelry ring example: a ring with gem and polished metal materials,
+ * set up to match a reference jewelry render.
  *
- * The values below were read from the reference scene:
+ * Scene setup:
  * - environment (scene and gems): one high-contrast .hdr, intensity 1
  *   (gems 1.2)
  * - metal: polished yellow gold, color #fec07a, roughness 0, metalness 1
@@ -30,6 +30,12 @@ const LATE = urlParameters.get("late") === "1";
 const ACCUMULATION_FRAMES = Number(urlParameters.get("accumulation") ?? 32);
 // `?physicalDispersion=1` uses the physically based gem dispersion
 const PHYSICAL_DISPERSION = urlParameters.get("physicalDispersion") === "1";
+// `?physicalFresnel=1` lets most light leave the stone at the first facet it
+// can pass (larger, calmer facets)
+const PHYSICAL_FRESNEL = urlParameters.get("physicalFresnel") === "1";
+// `?gemIntensity=<factor>` scales the environment light of the gems only
+// (the reference uses 1.2 for its diamonds)
+const GEM_INTENSITY = Number(urlParameters.get("gemIntensity") ?? 1);
 const SCENE_ENVIRONMENT_MAP = environmentMap(
 	urlParameters.get("sceneEnv"),
 	SDV.ENVIRONMENT_MAP.DEFAULT_STUDIO,
@@ -129,6 +135,8 @@ const createGemMaterial = () =>
 	viewport.environmentMapAsBackground = false;
 	viewport.environmentMapPbrMode = SDV.ENVIRONMENT_MAP_PBR_MODE.MODERN;
 	viewport.physicalGemDispersion = PHYSICAL_DISPERSION;
+	viewport.physicalGemFresnel = PHYSICAL_FRESNEL;
+	viewport.gemEnvironmentMapIntensity = GEM_INTENSITY;
 	// the example was tuned with facet plane tracing and 512 px normal maps
 	viewport.gemTracing = "facets";
 	viewport.gemNormalMapResolution = 512;
@@ -159,6 +167,9 @@ const createGemMaterial = () =>
 		type: SDV.POST_PROCESSING_EFFECT_TYPE.BLOOM,
 		properties: {
 			highlightsOnly: true,
+			// the gems are far brighter than white: a higher limit lets their
+			// bloom wash out the bezels around them
+			highlightLimit: 1,
 			backgroundBloom: false,
 		},
 	});

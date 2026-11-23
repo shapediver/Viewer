@@ -24,12 +24,13 @@ export class BackgroundMaskedBloomEffect extends BloomEffect {
 	constructor(
 		options?: ConstructorParameters<typeof BloomEffect>[0],
 		highlightsOnly = false,
+		highlightLimit?: number,
 	) {
 		super(options);
 
 		// patch the highlight bloom first, the depth patch below reads the
 		// resulting shader
-		if (highlightsOnly) applyHighlightBloom(this);
+		if (highlightsOnly) applyHighlightBloom(this, highlightLimit);
 
 		// request a depth texture from the EffectPass / EffectComposer
 		this.setAttributes(this.getAttributes() | EffectAttribute.DEPTH);

@@ -6,7 +6,8 @@ import {
 	EVENTTYPE_SCENE,
 	EVENTTYPE_SESSION,
 	EVENTTYPE_TASK,
-	EVENTTYPE_VIEWPORT} from "./EventTypes";
+	EVENTTYPE_VIEWPORT,
+} from "./EventTypes";
 import {type ICameraEvent} from "./ICameraEvent";
 import {type IOutputEvent} from "./IOutputEvent";
 import {type IParameterEvent} from "./IParameterEvent";
@@ -14,7 +15,10 @@ import {type IRenderingEvent} from "./IRenderingEvent";
 import {type ISceneEvent} from "./ISceneEvent";
 import {type ISessionErrorEvent, type ISessionEvent} from "./ISessionEvent";
 import {type ITaskEvent} from "./ITaskEvent";
-import {type IViewportEvent} from "./IViewportEvent";
+import {
+	type IViewportEvent,
+	type IViewportUpdatedEvent,
+} from "./IViewportEvent";
 
 /**
  * Definition of the event response mapping.
@@ -33,7 +37,7 @@ export type EventResponseMapping = {
 	[EVENTTYPE_VIEWPORT.BUSY_MODE_ON]: IViewportEvent;
 	[EVENTTYPE_VIEWPORT.BUSY_MODE_OFF]: IViewportEvent;
 	[EVENTTYPE_VIEWPORT.VIEWPORT_CREATED]: IViewportEvent;
-	[EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED]: IViewportEvent;
+	[EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED]: IViewportUpdatedEvent;
 	[EVENTTYPE_VIEWPORT.VIEWPORT_CLOSED]: IViewportEvent;
 	[EVENTTYPE_VIEWPORT.VIEWPORT_VISIBLE]: IViewportEvent;
 	[EVENTTYPE_VIEWPORT.VIEWPORT_HIDDEN]: IViewportEvent;

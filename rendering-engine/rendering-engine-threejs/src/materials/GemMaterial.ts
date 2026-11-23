@@ -20,6 +20,10 @@ export interface GemMaterialParameters extends MeshPhysicalMaterialParameters {
 	dispersion?: number | undefined;
 	/** See {@link GemMaterial.physicalDispersion}. */
 	physicalDispersion?: boolean | undefined;
+	/** See {@link GemMaterial.physicalFresnel}. */
+	physicalFresnel?: boolean | undefined;
+	/** See {@link GemMaterial.gemEnvMapIntensity}. */
+	gemEnvMapIntensity?: number | undefined;
 	tracingDepth?: number | undefined;
 	tracingOpacity?: number | undefined;
 
@@ -60,6 +64,16 @@ export class GemMaterial extends MeshPhysicalMaterial {
 	 * at entry, inside the stone and at exit.
 	 */
 	public physicalDispersion: boolean = false;
+	/**
+	 * How much of the light inside the stone leaves at each facet it hits.
+	 * Legacy mode (false): the Fresnel reflectance, so most light keeps bouncing
+	 * and the facet pattern gets finer.
+	 * Physical mode (true): 1 - Fresnel reflectance, so most light leaves at the
+	 * first facet it can pass.
+	 */
+	public physicalFresnel: boolean = false;
+	/** Factor on the environment reflections the gem traces, on top of envMapIntensity. */
+	public gemEnvMapIntensity: number = 1.0;
 	public tracingOpacity: number = 0.0;
 
 	// #endregion Properties (1)
@@ -86,10 +100,12 @@ export class GemMaterial extends MeshPhysicalMaterial {
 			brightness: {value: 0.0},
 			dispersion: {value: 0.0},
 			tracingOpacity: {value: 0.0},
+			gemEnvMapIntensity: {value: 1.0},
 			hdrOutput: GemMaterial.hdrOutputUniform,
 		};
 
 		let physicalDispersion = false;
+		let physicalFresnel = false;
 
 		(<any>this)._extraUniforms = uniforms;
 
@@ -261,6 +277,31 @@ export class GemMaterial extends MeshPhysicalMaterial {
 					this.needsUpdate = true;
 				},
 			},
+			physicalFresnel: {
+				get: function () {
+					return physicalFresnel;
+				},
+				set: function (v) {
+					physicalFresnel = !!v;
+					// compare with the define, see physicalDispersion
+					const defined = "PHYSICAL_FRESNEL" in this.defines;
+					if (physicalFresnel === defined) return;
+					if (physicalFresnel) {
+						this.defines.PHYSICAL_FRESNEL = "";
+					} else {
+						delete this.defines.PHYSICAL_FRESNEL;
+					}
+					this.needsUpdate = true;
+				},
+			},
+			gemEnvMapIntensity: {
+				get: function () {
+					return uniforms.gemEnvMapIntensity.value;
+				},
+				set: function (v) {
+					uniforms.gemEnvMapIntensity.value = v;
+				},
+			},
 			tracingOpacity: {
 				get: function () {
 					return uniforms.tracingOpacity.value;
@@ -289,6 +330,8 @@ export class GemMaterial extends MeshPhysicalMaterial {
 		this.brightness = params.brightness || 0;
 		this.dispersion = params.dispersion || 0;
 		this.physicalDispersion = params.physicalDispersion || false;
+		this.physicalFresnel = params.physicalFresnel || false;
+		this.gemEnvMapIntensity = params.gemEnvMapIntensity ?? 1;
 		this.tracingOpacity = params.tracingOpacity || 0;
 
 		this.setValues(params);
@@ -317,6 +360,8 @@ export class GemMaterial extends MeshPhysicalMaterial {
 		this.brightness = source.brightness;
 		this.dispersion = source.dispersion;
 		this.physicalDispersion = source.physicalDispersion;
+		this.physicalFresnel = source.physicalFresnel;
+		this.gemEnvMapIntensity = source.gemEnvMapIntensity;
 		this.tracingOpacity = source.tracingOpacity;
 
 		return this;

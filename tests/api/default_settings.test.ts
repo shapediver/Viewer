@@ -20,9 +20,13 @@ const readOptions = () => {
 		environmentMapPbrMode: viewport.environmentMapPbrMode,
 		environmentMapOrientation: viewport.environmentMapOrientation,
 		physicalGemDispersion: viewport.physicalGemDispersion,
+		physicalGemFresnel: viewport.physicalGemFresnel,
+		gemEnvironmentMapIntensity: viewport.gemEnvironmentMapIntensity,
 		gemTracing: viewport.gemTracing,
 		gemNormalMapResolution: viewport.gemNormalMapResolution,
 		toneMapping: viewport.toneMapping,
+		accumulationFrames: viewport.accumulationFrames,
+		accumulationFramesMobile: viewport.accumulationFramesMobile,
 		aoExcludeGems: [...properties("ssao"), ...properties("hbao")].map(
 			(p) => p.excludeGems === true,
 		),
@@ -43,14 +47,20 @@ const OLD_LOOK = {
 	environmentMapPbrMode: "legacy",
 	environmentMapOrientation: "legacy",
 	physicalGemDispersion: false,
+	physicalGemFresnel: false,
+	gemEnvironmentMapIntensity: 1,
 	gemTracing: "sphere",
 	gemNormalMapResolution: 1024,
+	accumulationFrames: 0,
+	accumulationFramesMobile: 0,
 };
 
 const NEW_LOOK = {
 	environmentMapPbrMode: "modern",
 	environmentMapOrientation: "threejs",
 	physicalGemDispersion: true,
+	physicalGemFresnel: true,
+	gemEnvironmentMapIntensity: 1.2,
 	gemTracing: "facets",
 	gemNormalMapResolution: 512,
 };
@@ -94,6 +104,9 @@ test.describe("Default settings", () => {
 			...NEW_LOOK,
 			hdr: true,
 			toneMapping: "aces_filmic",
+			// only the jewelry preset accumulates frames (SS-10508)
+			accumulationFrames: 0,
+			accumulationFramesMobile: 0,
 			aoExcludeGems: [true],
 			bloom: [],
 		});
@@ -109,6 +122,8 @@ test.describe("Default settings", () => {
 			...NEW_LOOK,
 			hdr: true,
 			toneMapping: "neutral",
+			accumulationFrames: 32,
+			accumulationFramesMobile: 8,
 			aoExcludeGems: [true],
 			bloom: [{highlightsOnly: true, backgroundBloom: false}],
 		});

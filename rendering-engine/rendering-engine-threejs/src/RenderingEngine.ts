@@ -46,8 +46,8 @@ import {
 	type ISDTFAttributeVisualizationData,
 	type ISDTFItemData,
 	type ISDTFOverview,
-	type IViewportEvent,
 	type IViewportSettingsSections,
+	type IViewportUpdatedEvent,
 	MATERIAL_TYPE,
 	RENDERER_TYPE,
 	SPINNER_POSITIONING,
@@ -200,6 +200,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	};
 	private _pause: boolean = false;
 	private _physicalGemDispersion: boolean = false;
+	private _physicalGemFresnel: boolean = false;
+	private _gemEnvironmentMapIntensity: number = 1;
 	private _postRenderingCallback?:
 		| ((
 				renderer: THREE.WebGLRenderer,
@@ -720,6 +722,15 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._geometryLoader.recaptureGemNormalMaps();
 	}
 
+	public get gemEnvironmentMapIntensity(): number {
+		return this._gemEnvironmentMapIntensity;
+	}
+
+	public set gemEnvironmentMapIntensity(value: number) {
+		this._gemEnvironmentMapIntensity = value;
+		this._materialLoader.assignGemEnvironmentMapIntensity(value);
+	}
+
 	public get gemTracing(): "sphere" | "facets" {
 		return this._gemTracing;
 	}
@@ -949,6 +960,15 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	public set physicalGemDispersion(value: boolean) {
 		this._physicalGemDispersion = value;
 		this._materialLoader.assignPhysicalGemDispersion(value);
+	}
+
+	public get physicalGemFresnel(): boolean {
+		return this._physicalGemFresnel;
+	}
+
+	public set physicalGemFresnel(value: boolean) {
+		this._physicalGemFresnel = value;
+		this._materialLoader.assignPhysicalGemFresnel(value);
 	}
 
 	public get pointSize(): number {
@@ -1654,12 +1674,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		if (this.closed) return;
 		if (this.sceneTreeManager.suspendSceneUpdates === true) return;
 		this._sceneTreeManager.updateSceneTree(this._tree.root);
+		const sceneChanges = this._sceneTreeManager.takeSceneChanges();
 		this._renderingManager.updateShadowMap();
-		this._animationEngine.updateAnimationData();
+		this._animationEngine.updateAnimationData(sceneChanges);
 		this._renderingManager.render();
 		this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED, {
 			viewportId: this.id,
-		} as IViewportEvent);
+			sceneChanges,
+		} as IViewportUpdatedEvent);
 	}
 
 	public updateEnvironmentGeometry(): void {

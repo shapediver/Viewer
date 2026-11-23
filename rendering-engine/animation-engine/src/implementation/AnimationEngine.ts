@@ -4,8 +4,13 @@ import {
 	GeometryData,
 	type ITree,
 	type ITreeNode,
-	Tree} from "@shapediver/viewer.shared.node-tree";
-import {type IAnimationData} from "@shapediver/viewer.shared.types";
+	Tree,
+	TreeNodeIndex,
+} from "@shapediver/viewer.shared.node-tree";
+import {
+	type IAnimationData,
+	type ISceneChanges,
+} from "@shapediver/viewer.shared.types";
 import * as TWEEN from "@tweenjs/tween.js";
 import {mat4, quat, vec3, vec4} from "gl-matrix";
 import {type IAnimationEngine} from "../interfaces/IAnimationEngine";
@@ -22,6 +27,30 @@ export class AnimationEngine implements IManager, IAnimationEngine {
 	private _animations: {
 		[key: string]: IAnimationData;
 	} = {};
+	// The animation data of each node that has some, kept up to date from
+	// the nodes of a scene update. The name of an animation is part of the
+	// value: it decides the key.
+	private readonly _animationIndex = new TreeNodeIndex<
+		{data: AnimationData; name: string}[]
+	>(
+		(node) => {
+			const own = node.data
+				.filter((data) => data instanceof AnimationData)
+				.map((data) => ({
+					data: <AnimationData>data,
+					name: (<AnimationData>data).name,
+				}));
+			return own.length > 0 ? own : undefined;
+		},
+		(a, b) =>
+			a.length === b.length &&
+			a.every(
+				(entry, i) =>
+					entry.data === b[i].data && entry.name === b[i].name,
+			),
+	);
+	// The version of the index the dictionary of animations was made for.
+	private _animationsVersion = -1;
 
 	// #endregion Properties (3)
 
@@ -376,10 +405,18 @@ export class AnimationEngine implements IManager, IAnimationEngine {
 		return running;
 	}
 
-	public updateAnimationData(): void {
+	public updateAnimationData(changes?: ISceneChanges): void {
+		// Without the nodes of a scene update the whole tree is read.
+		if (changes) this._animationIndex.apply(changes, this._tree.root);
+		else this._animationIndex.rebuild(this._tree.root);
+		if (this._animationIndex.version === this._animationsVersion) return;
+		this._animationsVersion = this._animationIndex.version;
+
 		this._animations = {};
 
-		const animationArray = this.gatherAnimations();
+		const animationArray = this._animationIndex
+			.entries(this._tree.root)
+			.flatMap((entry) => entry.value.map((value) => value.data));
 		const names = animationArray.map((a) => a.name);
 
 		for (let i = 0; i < animationArray.length; i++) {
@@ -404,22 +441,4 @@ export class AnimationEngine implements IManager, IAnimationEngine {
 	}
 
 	// #endregion Public Methods (3)
-
-	// #region Private Methods (1)
-
-	private gatherAnimations(
-		node: ITreeNode = this._tree.root,
-	): AnimationData[] {
-		let out: AnimationData[] = [];
-		for (let i = 0, len = node.data.length; i < len; i++)
-			if (node.data[i] instanceof AnimationData)
-				out.push(<AnimationData>node.data[i]);
-
-		for (let i = 0, len = node.children.length; i < len; i++)
-			out = out.concat(this.gatherAnimations(node.children[i]));
-
-		return out;
-	}
-
-	// #endregion Private Methods (1)
 }

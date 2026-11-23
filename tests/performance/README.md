@@ -16,7 +16,7 @@ The rule that keeps parallel work apart: **a new test, counter or benchmark sect
 | `exact/harness.ts`                                             | `test` (routes the asset host to `assets/`), `installApi`, `open`, helpers that two tickets share.                |
 | `budgets/`                                                     | Exact counters of an AEC facade, compared with a committed baseline.                                              |
 | `budgets/harness.ts`                                           | Baseline read/write/compare, per-frame counters, settle and measure helpers.                                      |
-| `budgets/<scenario>.perf.ts`                                   | One scenario: `facade` (4 rendering variants), `interaction`, `attributes`, `blendedGlass`, `gltf`, `instancing`. |
+| `budgets/<scenario>.perf.ts`                                   | One scenario: `facade` (4 rendering variants), `interaction`, `attributes`, `blendedGlass`, `gltf`, `instancing`, `batchedMember`. |
 | `budgets/baseline/<id>.json`                                   | The baseline of one id. Sorted keys, tabs, CRLF.                                                                  |
 | `fixtures/probe.ts`                                            | `window.__probe`: wraps the renderer and reads `renderer.info`. Used by budgets and benchmarks.                   |
 | `fixtures/counters/`                                           | Counters that wrap three.js functions. One file each, listed in `counters/index.ts`.                              |
@@ -86,7 +86,11 @@ The viewer turns shadow maps and the soft-shadow fade off on SwiftShader, so a t
 3. A new scenario is `budgets/<id>.perf.ts` with its own `baseline/<id>.json`. Its test title keeps the form `budget: AEC facade, <id>`.
 4. Run the test once with `UPDATE_BUDGETS=1`, check the diff, commit the baseline.
 
-Counters today in `facade`: passes, draw calls, triangles, programs, material updates, tree reads and, from SS-10478, `oneNodeChange.programCacheKeyCalls`, `oneNodeChange.updateMatrixWorldCalls`, `oneNodeChange.treeDataReads` and `cameraFrame.updateMatrixWorldCalls`. The three new `oneNodeChange.*` counters cover the change and the first frame drawn after it, nothing later; the cost per frame is in `cameraFrame.*`. The clock is stepped one frame at a time and waits for shader compiles before each step, so the window does not depend on driver speed.
+Counters today in `facade`: passes, draw calls, triangles, programs, material updates, tree reads and, from SS-10478, `oneNodeChange.programCacheKeyCalls`, `oneNodeChange.updateMatrixWorldCalls`, `oneNodeChange.treeDataReads`, `oneNodeChange.sceneChangeNodes` (SS-10550: the nodes the scene update went through, from the `sceneChanges` of `VIEWPORT_UPDATED`; -1 if it went through the whole tree) and `cameraFrame.updateMatrixWorldCalls`. The three new `oneNodeChange.*` counters cover the change and the first frame drawn after it, nothing later; the cost per frame is in `cameraFrame.*`. The clock is stepped one frame at a time and waits for shader compiles before each step, so the window does not depend on driver speed.
+
+`fixtures/counters/picking.ts` (SS-10393) is not in `counters/index.ts`: `budgets/interaction.perf.ts` installs it with `page.evaluate(installPicking)` and calls `attach()` once the scene has batches. It counts picks (`pointerEventToRay` calls), `Mesh.raycast` calls on hidden batch sources, `BatchedMesh.raycast` calls and the bounds reads inside them. `interactionBlendedGlass` is the interaction scenario on a batched facade.
+
+`batchedMember` (SS-10477) changes one member of the mullion batch: hidden, given a new geometry data, and given a new version of its geometry. Each step counts the writes into batches (`fixtures/counters/batchedMesh.ts`: batches created and removed, vertices copied, members applied again), `updateMatrixWorld` and `updateWorldMatrix` calls, tree data reads and program lookups.
 
 ## Add a benchmark section
 

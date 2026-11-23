@@ -667,24 +667,6 @@ importers:
         specifier: 3.4.4
         version: 3.4.4
 
-  examples/ijewel-ring:
-    dependencies:
-      '@shapediver/viewer':
-        specifier: workspace:*
-        version: link:../../api/default
-      '@shapediver/viewer.data-engine.data-engine':
-        specifier: workspace:*
-        version: link:../../data-engine/data-engine
-      '@shapediver/viewer.shared.services':
-        specifier: workspace:*
-        version: link:../../shared/services
-      '@shapediver/viewer.shared.types':
-        specifier: workspace:*
-        version: link:../../shared/types
-      gl-matrix:
-        specifier: 3.4.4
-        version: 3.4.4
-
   examples/interaction:
     dependencies:
       '@shapediver/viewer':
@@ -708,6 +690,24 @@ importers:
       '@shapediver/viewer.features.interaction':
         specifier: workspace:*
         version: link:../../features/interaction
+
+  examples/jewelry-ring:
+    dependencies:
+      '@shapediver/viewer':
+        specifier: workspace:*
+        version: link:../../api/default
+      '@shapediver/viewer.data-engine.data-engine':
+        specifier: workspace:*
+        version: link:../../data-engine/data-engine
+      '@shapediver/viewer.shared.services':
+        specifier: workspace:*
+        version: link:../../shared/services
+      '@shapediver/viewer.shared.types':
+        specifier: workspace:*
+        version: link:../../shared/types
+      gl-matrix:
+        specifier: 3.4.4
+        version: 3.4.4
 
   examples/post-processing:
     dependencies:

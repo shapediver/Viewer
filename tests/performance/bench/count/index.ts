@@ -1,9 +1,16 @@
+import * as attributeShow from "./attributeShow";
 import * as attributeSwitch from "./attributeSwitch";
+import * as batchedMemberHidden from "./batchedMemberHidden";
+import * as batchedMemberReplaced from "./batchedMemberReplaced";
+import * as batchedMemberVersioned from "./batchedMemberVersioned";
 import * as build from "./build";
 import type {Counts, Viewer} from "./context";
 import * as gltfDraco from "./gltfDraco";
 import * as gltfPlain from "./gltfPlain";
+import * as gltfShared from "./gltfShared";
 import * as oneNodeUpdate from "./oneNodeUpdate";
+import * as pickHit from "./pickHit";
+import * as pickMiss from "./pickMiss";
 import * as renderFrame from "./renderFrame";
 import * as ssaoFrame from "./ssaoFrame";
 import * as versionUpdate from "./versionUpdate";
@@ -17,10 +24,25 @@ export const ALL_SECTIONS = [
 	["build", build.label, build.run],
 	["renderFrame", renderFrame.label, renderFrame.run],
 	["oneNodeUpdate", oneNodeUpdate.label, oneNodeUpdate.run],
+	["pickHit", pickHit.label, pickHit.run],
+	["pickMiss", pickMiss.label, pickMiss.run],
+	["batchedMemberHidden", batchedMemberHidden.label, batchedMemberHidden.run],
+	[
+		"batchedMemberReplaced",
+		batchedMemberReplaced.label,
+		batchedMemberReplaced.run,
+	],
+	[
+		"batchedMemberVersioned",
+		batchedMemberVersioned.label,
+		batchedMemberVersioned.run,
+	],
 	["ssaoFrame", ssaoFrame.label, ssaoFrame.run],
 	["gltfPlain", gltfPlain.label, gltfPlain.run],
+	["gltfShared", gltfShared.label, gltfShared.run],
 	["gltfDraco", gltfDraco.label, gltfDraco.run],
 	["versionUpdate", versionUpdate.label, versionUpdate.run],
+	["attributeShow", attributeShow.label, attributeShow.run, true],
 	["attributeSwitch", attributeSwitch.label, attributeSwitch.run, true],
 ] as const satisfies readonly (readonly [
 	string,

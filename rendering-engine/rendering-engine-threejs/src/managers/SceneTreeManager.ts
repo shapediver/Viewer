@@ -18,6 +18,7 @@ import {
 	Tree,
 } from "@shapediver/viewer.shared.node-tree";
 import {
+	type ISceneChanges,
 	type ISDTFOverview,
 	RENDERER_TYPE,
 } from "@shapediver/viewer.shared.types";
@@ -64,6 +65,15 @@ export class SceneTreeManager implements IManager {
 	private _skipUnchanged = false;
 	/** Counts the nodes a transformation-only pass updated. */
 	private _movedNodes = 0;
+	// What the scene updates since the last `takeSceneChanges` went through:
+	// the nodes they converted again, in the order they visited them (parents
+	// first), and the ids of the nodes whose converted objects they removed.
+	private readonly _changedNodes = new Set<ITreeNode>();
+	private readonly _removedNodeIds = new Set<string>();
+	// A scene update ran since the last `takeSceneChanges`.
+	private _passRan = false;
+	// One of them went through the whole tree, so the sets say nothing.
+	private _fullPass = false;
 
 	constructor(private readonly _renderingEngine: RenderingEngine) {
 		this._scene.background = new THREE.Color("#ffffff");
@@ -87,6 +97,30 @@ export class SceneTreeManager implements IManager {
 
 	public get scene() {
 		return this._scene;
+	}
+
+	/**
+	 * What the scene updates since the last call went through, to be sent
+	 * with `VIEWPORT_UPDATED`, and forgets it. `undefined` if no scene
+	 * update ran, or if one of them went through the whole tree (first
+	 * update, renderer type or instancing switch, attribute visualization):
+	 * a listener has to read the whole tree then.
+	 */
+	public takeSceneChanges(): ISceneChanges | undefined {
+		const changes =
+			this._passRan && !this._fullPass
+				? Object.freeze({
+						nodes: Object.freeze([...this._changedNodes]),
+						removedNodeIds: Object.freeze([
+							...this._removedNodeIds,
+						]),
+					})
+				: undefined;
+		this._changedNodes.clear();
+		this._removedNodeIds.clear();
+		this._passRan = false;
+		this._fullPass = false;
+		return changes;
 	}
 
 	public get suspendSceneUpdates(): boolean {
@@ -136,8 +170,11 @@ export class SceneTreeManager implements IManager {
 				);
 			}
 		} else {
-			const sdtfTransform = treeNode.getTransformation("sdtf");
-			if (sdtfTransform) treeNode.removeTransformation(sdtfTransform);
+			let sdtfTransform = treeNode.getTransformation("sdtf");
+			while (sdtfTransform) {
+				treeNode.removeTransformation(sdtfTransform);
+				sdtfTransform = treeNode.getTransformation("sdtf");
+			}
 
 			if (treeNodeData instanceof GeometryData)
 				treeNodeData.attributeMaterial = null;
@@ -211,10 +248,14 @@ export class SceneTreeManager implements IManager {
 									geometryData,
 									existingGeometry,
 								)
-							)
+							) {
 								this._renderingEngine.geometryLoader.updateGeometryMaterial(
 									geometryData,
 								);
+								this._renderingEngine.renderingManager.requestCompile(
+									existingGeometry,
+								);
+							}
 						} else {
 							// In attribute-visualization mode instancing works with
 							// per-instance flat colors, but transparency needs
@@ -285,6 +326,9 @@ export class SceneTreeManager implements IManager {
 							dataChild.userData.SDid = treeNodeData.id;
 							dataChild.userData.SDversion = treeNodeData.version;
 							convertedObject.add(dataChild);
+							this._renderingEngine.renderingManager.requestCompile(
+								dataChild,
+							);
 						}
 					} else if (existingGeometry) {
 						// A transformation-only update keeps the geometry,
@@ -303,6 +347,17 @@ export class SceneTreeManager implements IManager {
 					(<ThreejsData>treeNodeData).obj.userData.SDversion =
 						treeNodeData.version;
 					convertedObject.add(dataChild);
+					this._renderingEngine.renderingManager.requestCompile(
+						dataChild,
+					);
+					// A compile target that holds lights would count them a
+					// second time. Such an object takes the full compile.
+					let hasLight = false;
+					dataChild.traverse((object) => {
+						if ((object as THREE.Light).isLight) hasLight = true;
+					});
+					if (hasLight)
+						this._renderingEngine.renderingManager.requestFullCompile();
 
 					// set the currently used environment map
 					assignEnvironmentMapForThreeJsDataObject(
@@ -419,6 +474,14 @@ export class SceneTreeManager implements IManager {
 			const nodeMatrix = treeNode.nodeMatrix;
 			const isVisible = this.isNodeVisible(treeNode);
 			const isVisibleInHierarchy = visibleInHierarchy && isVisible;
+			// A transformation-only pass also applies the visibility of the
+			// node. The next scene update then finds it applied and leaves the
+			// node out, so it is reported here.
+			if (
+				filter.transformationOnly &&
+				convertedObject.visible !== isVisible
+			)
+				this._changedNodes.add(treeNode);
 
 			// The transformation and the visibility are inherited by the
 			// whole branch (world matrices, bounding boxes, instances and
@@ -461,12 +524,17 @@ export class SceneTreeManager implements IManager {
 				return;
 			}
 			if (filter.transformationOnly) this._movedNodes++;
+			// The batches compare the meshes of the nodes visited since their
+			// last rebuild, a moved node among them (it can leave or join a
+			// batch by being mirrored).
+			this._renderingEngine.materialBatchManager.markNode(treeNode);
 
 			// reset bounding boxes
 			this.resetBoundingBoxes(treeNode);
 
 			// cleanup obsolete data and children
 			if (filter.transformationOnly === false) {
+				this._changedNodes.add(treeNode);
 				this.cleanupObsoleteData(treeNode, convertedObject);
 				this.cleanupObsoleteChildren(treeNode, convertedObject);
 				// Children added or removed below this node from now on make
@@ -487,13 +555,19 @@ export class SceneTreeManager implements IManager {
 
 			// Lights and three.js objects are read on every scene update.
 			let alwaysUpdate = false;
+			// Lights, cameras and three.js objects move without a change of
+			// the tree: the matrix walk always goes through their branch.
+			let alwaysWalk = false;
+			let forceChildren = false;
 			for (let i = 0, len = treeNode.data.length; i < len; i++) {
 				const dataItem = treeNode.data[i];
 				if (
 					dataItem instanceof AbstractLight ||
 					dataItem instanceof ThreejsData
 				)
-					alwaysUpdate = true;
+					alwaysUpdate = alwaysWalk = forceChildren = true;
+				else if (dataItem instanceof AbstractCamera)
+					alwaysWalk = forceChildren = true;
 				const convertedObjectData = convertedChildrenMap.get(
 					dataItem.id,
 				);
@@ -567,6 +641,14 @@ export class SceneTreeManager implements IManager {
 						))?.SDalwaysUpdate
 					)
 						alwaysUpdate = true;
+					if (
+						(<SDObject | undefined>(
+							treeNodeChild.convertedObject[
+								this._renderingEngine.id
+							]
+						))?.SDalwaysWalk
+					)
+						alwaysWalk = true;
 				}
 			} finally {
 				if (dirty) this._dirtyDepth--;
@@ -575,6 +657,13 @@ export class SceneTreeManager implements IManager {
 				this.flagAncestors(treeNode, convertedObject, "SDalwaysUpdate");
 			} else {
 				convertedObject.SDalwaysUpdate = false;
+			}
+			// Only this node, its ancestors do not force their children.
+			convertedObject.SDforceChildren = forceChildren;
+			if (alwaysWalk) {
+				this.flagAncestors(treeNode, convertedObject, "SDalwaysWalk");
+			} else {
+				convertedObject.SDalwaysWalk = false;
 			}
 			this._renderingEngine.instanceGroupManager.updateNode(treeNode);
 			this._renderingEngine.instanceGroupManager.setNodeVisible(
@@ -593,6 +682,30 @@ export class SceneTreeManager implements IManager {
 				filter.transformationOnly === false &&
 				this._deferBatch === false
 			)
+				this._renderingEngine.materialBatchManager.rebuild();
+		}
+	}
+
+	/**
+	 * Update several nodes with one reconcile of the material batches at the
+	 * end. A nested call (or a scene update inside it) reconciles at the
+	 * outermost one.
+	 */
+	public updateNodes(nodes: ITreeNode[]): void {
+		if (nodes.length === 0) return;
+		const outer = this._deferBatch;
+		this._deferBatch = true;
+		try {
+			for (const node of nodes)
+				this.updateNode(
+					node,
+					node.convertedObject[
+						this._renderingEngine.id
+					] as THREE.Object3D,
+				);
+		} finally {
+			this._deferBatch = outer;
+			if (!outer && this._batchDepth === 0)
 				this._renderingEngine.materialBatchManager.rebuild();
 		}
 	}
@@ -640,7 +753,10 @@ export class SceneTreeManager implements IManager {
 		this._boundingBox = new Box();
 		this._renderingEngine.lightLoader.shadowMapCount = 0;
 
+		this._passRan = true;
 		if (!this._mainConvertedObject) {
+			// The first update of a viewport goes through the whole tree.
+			this._fullPass = true;
 			this._mainConvertedObject = new SDObject(
 				rootTreeNode.id,
 				rootTreeNode.version,
@@ -667,7 +783,13 @@ export class SceneTreeManager implements IManager {
 				this._renderingEngine.instanceGroupManager.instancedRoot,
 			);
 
-		this._currentSDTFOverview = createSDTFOverview(rootTreeNode);
+		// Only the attribute visualization reads the overview. Collecting it
+		// walks every node of the tree.
+		this._currentSDTFOverview =
+			this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES
+				? createSDTFOverview(rootTreeNode)
+				: {};
+		const outerDefer = this._deferBatch;
 		this._deferBatch = true;
 		// Branches whose version, transformation and visibility are unchanged
 		// are left out. A renderer type or instancing switch and the
@@ -676,15 +798,16 @@ export class SceneTreeManager implements IManager {
 		this._skipUnchanged =
 			!this._newRendererType &&
 			this._renderingEngine.type === RENDERER_TYPE.STANDARD;
+		if (!this._skipUnchanged) this._fullPass = true;
 		this._renderingEngine.instanceGroupManager.beginBoundsUpdate();
 		try {
 			this.updateNode(rootTreeNode, this._mainConvertedObject);
 		} finally {
 			this._renderingEngine.instanceGroupManager.endBoundsUpdate();
-			this._deferBatch = false;
+			this._deferBatch = outerDefer;
 			this._skipUnchanged = false;
 		}
-		this._renderingEngine.materialBatchManager.rebuild();
+		if (!outerDefer) this._renderingEngine.materialBatchManager.rebuild();
 		this._boundingBox =
 			rootTreeNode.boundingBoxViewport[this._renderingEngine.id].clone();
 
@@ -780,10 +903,15 @@ export class SceneTreeManager implements IManager {
 			}
 		}
 
-		// we compile the shaders, the rendering waits until they are ready
+		// we compile the shaders, the rendering waits until they are ready.
+		// Only the objects this update created or re-materialized are
+		// compiled. A renderer type or instancing switch and the attribute
+		// visualization change the programs of every object.
 		this._renderingEngine.renderingManager.compileShaders(
 			this._renderingEngine.scene,
 			this._hiddenCamera,
+			this._newRendererType ||
+				this._renderingEngine.type !== RENDERER_TYPE.STANDARD,
 		);
 
 		// Instancing (and renderer-type) toggles dispose and recreate meshes.
@@ -851,7 +979,7 @@ export class SceneTreeManager implements IManager {
 	private flagAncestors(
 		treeNode: ITreeNode,
 		convertedObject: SDObject,
-		flag: "SDalwaysUpdate" | "SDboundsStale",
+		flag: "SDalwaysUpdate" | "SDalwaysWalk" | "SDboundsStale",
 	): void {
 		if (convertedObject[flag]) return;
 		convertedObject[flag] = true;
@@ -892,6 +1020,9 @@ export class SceneTreeManager implements IManager {
 		});
 		childrenToRemove.forEach((cTR) => {
 			cTR.traverse((o) => {
+				// The node and every node below it left this viewport.
+				if (o instanceof SDObject && o.SDtype === SD_DATA_TYPE.OBJECT)
+					this._removedNodeIds.add(o.SDid);
 				if (o instanceof SDObject && o.SDtype !== SD_DATA_TYPE.OBJECT) {
 					removeData(this._renderingEngine, o);
 				} else if (

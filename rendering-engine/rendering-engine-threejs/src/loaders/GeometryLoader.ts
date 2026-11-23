@@ -341,6 +341,8 @@ export class GeometryLoader implements ILoader {
 			threeGeometryObject = cachedGeometry.obj;
 			// a mesh released on removal can be shown again
 			this._releasedMeshes.delete(threeGeometryObject);
+			// removeData flagged it. It is in use again.
+			delete threeGeometryObject.userData.removed;
 			threeGeometryObject.material = material;
 
 			// Conventional InstancedMeshes are still used for explicit InstanceData.

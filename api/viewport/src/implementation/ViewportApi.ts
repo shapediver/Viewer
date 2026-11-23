@@ -687,6 +687,24 @@ export class ViewportApi implements IViewportApi {
 		this.update("environmentMapRotation");
 	}
 
+	public get gemEnvironmentMapIntensity(): number {
+		return this.#renderingEngine.gemEnvironmentMapIntensity;
+	}
+
+	public set gemEnvironmentMapIntensity(value: number) {
+		const scope = "gemEnvironmentMapIntensity";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"positive",
+		);
+		this.#renderingEngine.gemEnvironmentMapIntensity = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("gemEnvironmentMapIntensity");
+	}
+
 	public get gemNormalMapResolution(): number {
 		return this.#renderingEngine.gemNormalMapResolution;
 	}
@@ -1015,6 +1033,24 @@ export class ViewportApi implements IViewportApi {
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
 		this.update("physicalGemDispersion");
+	}
+
+	public get physicalGemFresnel(): boolean {
+		return this.#renderingEngine.physicalGemFresnel;
+	}
+
+	public set physicalGemFresnel(value: boolean) {
+		const scope = "physicalGemFresnel";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"boolean",
+		);
+		this.#renderingEngine.physicalGemFresnel = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("physicalGemFresnel");
 	}
 
 	public get physicallyCorrectLights(): boolean {
@@ -1964,6 +2000,20 @@ export class ViewportApi implements IViewportApi {
 			node,
 			node.convertedObject[this.id] as THREE.Object3D,
 		);
+	}
+
+	public updateNodes(nodes: ITreeNode[]): void {
+		const scope = "updateNodes";
+		// Validate every entry before anything is updated.
+		for (const node of nodes)
+			if (!(node instanceof TreeNode))
+				throw new ShapeDiverViewerValidationError(
+					`${scope}: Input could not be validated. ${node} is not of type node.`,
+					node,
+					"nodes",
+				);
+
+		this.#renderingEngine.sceneTreeManager.updateNodes(nodes);
 	}
 
 	public updateNodeTransformation(node: ITreeNode): void {

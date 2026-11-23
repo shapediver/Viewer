@@ -1,3 +1,5 @@
+import {installBatchedMesh} from "./batchedMesh";
+import {installBatchRebuild} from "./batchRebuild";
 import {installMatrixWorld} from "./matrixWorld";
 import {installProgramCacheKey} from "./programCacheKey";
 
@@ -8,8 +10,13 @@ import {installProgramCacheKey} from "./programCacheKey";
  * `attach`, `reset` and `read` (see `probe.ts`), and a test reads it with
  * `__probe.readCounters()`.
  *
- * Counters that are planned but belong to other tickets (SS-10477
- * `batchMembers` and `visits`, SS-10486 `fade`, SS-10393 `picking`, SS-10383
- * `contactShadow`) get their file and their line here.
+ * Counters that are planned but belong to other tickets (SS-10486 `fade`,
+ * SS-10393 `picking`, SS-10383 `contactShadow`) get their file and their line
+ * here.
  */
-export const COUNTER_INSTALLERS = [installMatrixWorld, installProgramCacheKey];
+export const COUNTER_INSTALLERS = [
+	installMatrixWorld,
+	installProgramCacheKey,
+	installBatchedMesh,
+	installBatchRebuild,
+];

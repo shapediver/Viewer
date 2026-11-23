@@ -132,9 +132,20 @@ export class SettingsManager implements IManager {
 			// a missing or invalid value is the old look
 			const material = settingsEngine.material as {
 				physicalGemDispersion?: unknown;
+				physicalGemFresnel?: unknown;
+				gemEnvironmentMapIntensity?: unknown;
 				gemTracing?: unknown;
 				gemNormalMapResolution?: unknown;
 			};
+			const fresnel =
+				typeof material.physicalGemFresnel === "boolean"
+					? material.physicalGemFresnel
+					: false;
+			const gemIntensity =
+				typeof material.gemEnvironmentMapIntensity === "number" &&
+				material.gemEnvironmentMapIntensity >= 0
+					? material.gemEnvironmentMapIntensity
+					: 1;
 			const dispersion =
 				typeof material.physicalGemDispersion === "boolean"
 					? material.physicalGemDispersion
@@ -153,6 +164,13 @@ export class SettingsManager implements IManager {
 			// the dispersion setter updates the materials, so only call it on a change
 			if (this._renderingEngine.physicalGemDispersion !== dispersion)
 				this._renderingEngine.physicalGemDispersion = dispersion;
+			if (this._renderingEngine.physicalGemFresnel !== fresnel)
+				this._renderingEngine.physicalGemFresnel = fresnel;
+			if (
+				this._renderingEngine.gemEnvironmentMapIntensity !==
+				gemIntensity
+			)
+				this._renderingEngine.gemEnvironmentMapIntensity = gemIntensity;
 			this._renderingEngine.gemTracing = tracing;
 			this._renderingEngine.gemNormalMapResolution = resolution;
 		}
@@ -375,11 +393,17 @@ export class SettingsManager implements IManager {
 			this._renderingEngine.materialOverrideType;
 		const materialGem = settingsEngine.material as {
 			physicalGemDispersion?: boolean;
+			physicalGemFresnel?: boolean;
+			gemEnvironmentMapIntensity?: number;
 			gemTracing?: string;
 			gemNormalMapResolution?: number;
 		};
 		materialGem.physicalGemDispersion =
 			this._renderingEngine.physicalGemDispersion;
+		materialGem.physicalGemFresnel =
+			this._renderingEngine.physicalGemFresnel;
+		materialGem.gemEnvironmentMapIntensity =
+			this._renderingEngine.gemEnvironmentMapIntensity;
 		materialGem.gemTracing = this._renderingEngine.gemTracing;
 		materialGem.gemNormalMapResolution =
 			this._renderingEngine.gemNormalMapResolution;

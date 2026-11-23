@@ -58,6 +58,9 @@ export const removeData = (
 				) {
 					renderingEngine.scene.remove(o);
 					renderingEngine.pulseEffectManager.remove(o);
+					// A batch member keeps its instance until the next
+					// rebuild, when a new mesh may take it over.
+					renderingEngine.materialBatchManager.releaseMesh(o);
 
 					// a back and front pair is released with its source
 					renderingEngine.geometryLoader.releaseSideSplit(o);

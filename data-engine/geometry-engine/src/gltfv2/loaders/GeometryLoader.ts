@@ -139,6 +139,12 @@ export class GeometryLoader {
 		string | undefined
 	>();
 	private readonly _meshNodeReferences = new Map<number, IGLTF_v2_Node[]>();
+	// What `canPrimitiveBeInstanced` found for a primitive, by cache key
+	// (null: it cannot be instanced). See `getInstancing`.
+	private readonly _instancingByPrimitive = new Map<
+		string,
+		{cheapKey?: string; exactKey?: string} | null
+	>();
 	// Keyed by the full instance-content description (not its hash), so that
 	// adopting a previous primitive as an instance source is an exact match.
 	private readonly _loadedByInstanceContent = new Map<string, GeometryData>();
@@ -1312,6 +1318,47 @@ export class GeometryLoader {
 		return {cheapKey, exactKey, instance};
 	}
 
+	/**
+	 * `canPrimitiveBeInstanced` for the primitive `cacheKey` names. Nodes that
+	 * share a glTF mesh come here once per node with the same primitive, and
+	 * the answer and the keys depend only on the mesh and the primitive, so
+	 * they are worked out the first time (the other nodes walked the
+	 * references of the mesh and built both keys again each time). The
+	 * instance source is looked up again: it can have been added since.
+	 */
+	private getInstancing(
+		meshId: number,
+		primitive: IGLTF_v2_Primitive,
+		cacheKey: string,
+	):
+		| {
+				cheapKey?: string;
+				exactKey?: string;
+				instance?: GeometryData;
+		  }
+		| undefined {
+		if (!this._gpuInstancingEnabled) return;
+		const known = this._instancingByPrimitive.get(cacheKey);
+		if (known === undefined) {
+			const result = this.canPrimitiveBeInstanced(meshId, primitive);
+			this._instancingByPrimitive.set(
+				cacheKey,
+				result
+					? {cheapKey: result.cheapKey, exactKey: result.exactKey}
+					: null,
+			);
+			return result;
+		}
+		if (known === null) return;
+		return {
+			cheapKey: known.cheapKey,
+			exactKey: known.exactKey,
+			instance: known.exactKey
+				? this._loadedByInstanceContent.get(known.exactKey)
+				: undefined,
+		};
+	}
+
 	private addInstance(
 		geometryData: GeometryData,
 		cacheKey: string,
@@ -1350,16 +1397,14 @@ export class GeometryLoader {
 		weights: number[] = [],
 	): GeometryData | undefined {
 		const primitive = primitives[index];
-		const instancing = this._gpuInstancingEnabled
-			? this.canPrimitiveBeInstanced(meshId, primitive)
-			: undefined;
+		const cacheKey = "mesh_" + meshId + "_primitive_" + index;
+		const instancing = this.getInstancing(meshId, primitive, cacheKey);
 
 		let material = null;
 		if (primitive.material || primitive.material === 0)
 			material = this._materialLoader.getMaterial(primitive.material);
 
 		// Check cache first - important for scenes with many instances of same mesh
-		const cacheKey = "mesh_" + meshId + "_primitive_" + index;
 		if (this._loaded[cacheKey]) {
 			if (instancing)
 				return this.addInstance(

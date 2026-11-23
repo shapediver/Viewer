@@ -85,6 +85,8 @@ const bloomEffectSchema = z.object({
 			mipmapBlur: z.boolean().optional(),
 			backgroundBloom: z.boolean(),
 			highlightsOnly: z.boolean(),
+			// optional: an unset value means 8 at runtime (the look before the option existed)
+			highlightLimit: zNumOrInf.optional(),
 		})
 		.optional(),
 	type: z.literal("bloom"),
@@ -140,6 +142,8 @@ export const renderingSettingsSchemaV7_2 = renderingSettingsSchema.extend({
 
 export const materialSettingsSchemaV7_2 = materialSettingsSchema.extend({
 	physicalGemDispersion: z.boolean(),
+	physicalGemFresnel: z.boolean(),
+	gemEnvironmentMapIntensity: z.number().min(0),
 	gemTracing: z.enum(["sphere", "facets"]),
 	gemNormalMapResolution: z.union([
 		z.literal(256),

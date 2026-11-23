@@ -14,6 +14,7 @@ type IBloomEffect = {
 		mipmapBlur?: boolean;
 		backgroundBloom: boolean;
 		highlightsOnly: boolean;
+		highlightLimit?: number;
 	};
 };
 
@@ -40,6 +41,9 @@ export type ISettingsV7_2 = Omit<
 > & {
 	settings_version: "7.2";
 	rendering: ISettings["rendering"] & {
+		// not set = no frame accumulation
+		accumulationFrames?: number;
+		accumulationFramesMobile?: number;
 		// Without the two values a viewport keeps its maximum rendering size.
 		maximumRenderingSize?: {width: number; height: number};
 		maximumRenderingSizeMobile?: {width: number; height: number};
@@ -54,6 +58,8 @@ export type ISettingsV7_2 = Omit<
 	};
 	material: ISettings["material"] & {
 		physicalGemDispersion: boolean;
+		physicalGemFresnel: boolean;
+		gemEnvironmentMapIntensity: number;
 		gemTracing: "sphere" | "facets";
 		gemNormalMapResolution: 256 | 512 | 1024;
 	};
@@ -71,6 +77,8 @@ export const NEW_LOOK_V7_2 = {
 	},
 	material: {
 		physicalGemDispersion: true,
+		physicalGemFresnel: true,
+		gemEnvironmentMapIntensity: 1.2,
 		gemTracing: "facets",
 		gemNormalMapResolution: 512,
 	},

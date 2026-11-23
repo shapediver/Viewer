@@ -264,6 +264,11 @@ export interface IViewportApi {
 	 */
 	environmentMapRotation: quat;
 	/**
+	 * Factor on the environment reflections that gems trace, on top of `environmentMapIntensity`. Must be 0 or larger. (default: 1, the legacy look)
+	 * It applies to all gems, also to gems whose material has its own environment map. Use it to match the brightness of the stones to the rest of the scene for a given environment map.
+	 */
+	gemEnvironmentMapIntensity: number;
+	/**
 	 * The resolution per cube face of the map that captures the facets of a gem. Allowed values are 256, 512 and 1024. (default: 1024, the legacy look; 512 is the value used with `gemTracing = "facets"`)
 	 * Used for gems whose material does not set `normalMapResolution`. Changing it captures the facet maps of the gems already in the scene again.
 	 */
@@ -338,6 +343,10 @@ export interface IViewportApi {
 	 * Uses physically based dispersion for gem materials: the refraction index of a gem is its mid-spectrum (D line) value, its dispersion is n(G line) − n(B line) (diamond 0.044), and blue light bends most, at entry and exit of the stone. When false (default), the legacy dispersion is kept so existing models look unchanged.
 	 */
 	physicalGemDispersion: boolean;
+	/**
+	 * Uses the physical Fresnel weights for the light inside gems: at every facet the light hits from inside, the share 1 − reflectance leaves the stone and the rest keeps bouncing, so most light leaves at the first facet it can pass. This gives larger, calmer facet patterns. When false (default), the legacy look is kept, where only the share of the reflectance leaves and the facet patterns are finer.
+	 */
+	physicalGemFresnel: boolean;
 	/**
 	 * Option to enable / disable the physically correct lights. (default: true)
 	 */
@@ -778,6 +787,18 @@ export interface IViewportApi {
 	 * @param node The node to update.
 	 */
 	updateNode(node: ITreeNode): void;
+	/**
+	 * Update the viewport with the current changes of the given scene tree nodes and their descendants,
+	 * as {@link IViewportApi.updateNode} does for each, in order. The material batches are reconciled once
+	 * at the end instead of once per node. If one node's update throws, the remaining nodes are not updated,
+	 * the batches are still reconciled for the nodes updated so far, and the error is rethrown.
+	 * Like {@link IViewportApi.updateNode}, it ignores `suspendSceneUpdates`. A node without a converted object
+	 * updates its nearest converted ancestor. Nested calls reconcile once, at the outermost call.
+	 * Only this viewport is affected.
+	 *
+	 * @param nodes The nodes to update.
+	 */
+	updateNodes(nodes: ITreeNode[]): void;
 	/**
 	 * Update the viewport with the current changes in transformation of given scene tree node and its descendants.
 	 * This carries out preparations for rendering. Call it after doing direct changes to the scene tree transformations.
