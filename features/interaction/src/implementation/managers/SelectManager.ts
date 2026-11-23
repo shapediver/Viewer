@@ -24,8 +24,24 @@ import {
 import {AbstractInteractionManager} from "../AbstractInteractionManager";
 import {InteractionManagerUtils} from "../utils/InteractionManagerUtils";
 
+/** Whether one node is the other or one of its ancestors. */
+function isRelated(a: ITreeNode, b: ITreeNode): boolean {
+	const isAncestorOrSelf = (ancestor: ITreeNode, node: ITreeNode) => {
+		let current: ITreeNode | undefined = node;
+		while (current) {
+			if (current === ancestor) return true;
+			current = current.parent;
+		}
+		return false;
+	};
+	return isAncestorOrSelf(a, b) || isAncestorOrSelf(b, a);
+}
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export class SelectManager extends AbstractInteractionManager {
+	// distances closer than this count as a tie (as in the HoverManager)
+	private static readonly TIE_DISTANCE = 1e-4;
+
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #logger: Logger = Logger.instance;
 	readonly #tree: Tree = Tree.instance;
@@ -116,7 +132,7 @@ export class SelectManager extends AbstractInteractionManager {
 					this.filter(INTERACTION_STATE.DOWN)(i.node) &&
 					i.type === "RayTracingIntersection",
 			) as IRayTracingIntersection[];
-			this.handleIntersection(event, ray, intersections);
+			this.handleIntersection(event, ray, intersections, intersection);
 		}
 	}
 
@@ -140,18 +156,24 @@ export class SelectManager extends AbstractInteractionManager {
 					this.filter(INTERACTION_STATE.UP)(i.node) &&
 					i.type === "RayTracingIntersection",
 			) as IRayTracingIntersection[];
-			this.handleIntersection(event, ray, intersections);
+			this.handleIntersection(event, ray, intersections, intersection);
 		}
 	}
 
 	/**
-	 * A press on a node of this manager was won by another tool: select the
-	 * node, never deselect it (the other tool acts on the press).
+	 * A press was won by another tool: select the node of this manager under
+	 * the press. A press on the selected node keeps it selected (the other
+	 * tool acts on the press). A press on another object, with no node of
+	 * this manager under the pointer, deselects with deselectOnEmpty, like a
+	 * click on that object, unless the other tool acts on the selected node
+	 * (e.g. a press on a corner of its rectangle, over another object).
 	 */
 	public onClaimedPress(
 		event: PointerEvent,
 		ray: IRay,
 		intersection: IIntersectionDefinition[],
+		pressed: IIntersectionDefinition[],
+		claimerNodes: ITreeNode[],
 	): void {
 		if (
 			!InteractionManagerUtils.validateViewport(
@@ -164,19 +186,29 @@ export class SelectManager extends AbstractInteractionManager {
 			this.#selectOn === "down"
 				? INTERACTION_STATE.DOWN
 				: INTERACTION_STATE.UP;
-		const first = intersection.find(
-			(i) =>
-				this.filter(state)(i.node) &&
-				i.type === "RayTracingIntersection" &&
-				InteractionManagerUtils.getInteractionData(
-					i.node,
-					true,
-					this.id,
-					"select",
-				),
-		) as IRayTracingIntersection | undefined;
-		if (!first || first.node === this.#node || this.#keyPressed.removal)
+		const own = (i: IIntersectionDefinition) =>
+			this.filter(state)(i.node) &&
+			i.type === "RayTracingIntersection" &&
+			!!InteractionManagerUtils.getInteractionData(
+				i.node,
+				true,
+				this.id,
+				"select",
+			);
+		const first = intersection.find(own) as
+			| IRayTracingIntersection
+			| undefined;
+		if (!first) {
+			if (
+				this.#node &&
+				this.#deselectOnEmpty &&
+				!pressed.some(own) &&
+				!claimerNodes.some((n) => isRelated(n, this.#node!))
+			)
+				this.deactivateNode(event);
 			return;
+		}
+		if (first.node === this.#node || this.#keyPressed.removal) return;
 		if (this.#node) this.deactivateNode(event);
 		this.activateNode(first, event, ray);
 	}
@@ -356,6 +388,7 @@ export class SelectManager extends AbstractInteractionManager {
 		event: PointerEvent,
 		ray: IRay,
 		intersections: IRayTracingIntersection[],
+		all: IIntersectionDefinition[],
 	) {
 		// create a list that replaces all irrelevant intersections with null
 		const filteredIntersections = intersections.map((i) => {
@@ -369,8 +402,23 @@ export class SelectManager extends AbstractInteractionManager {
 				: null;
 		});
 
-		const firstIntersection =
+		let firstIntersection =
 			filteredIntersections.length > 0 ? filteredIntersections[0] : null;
+
+		// only the closest interactive object is pressed (as for the hover): a
+		// node of this manager behind a node of another manager of the engine
+		// counts as not hit, a tie (a node and the node it holds, on one
+		// surface) does not
+		const closest = all.find((i) => i.type === "RayTracingIntersection") as
+			| IRayTracingIntersection
+			| undefined;
+		if (
+			firstIntersection &&
+			closest &&
+			firstIntersection.distance >
+				closest.distance + SelectManager.TIE_DISTANCE
+		)
+			firstIntersection = null;
 
 		if (this.#node) {
 			if (firstIntersection && firstIntersection.node !== this.#node) {
