@@ -56,6 +56,8 @@ type ClaimedPress = {
 	lists: {[key: string]: IIntersectionDefinition[]};
 	// all hits at the press, before the closest-object and claimer filtering
 	pressed: {[key: string]: IIntersectionDefinition[]};
+	// the nodes the tool which won the press acts on
+	claimerNodes: ITreeNode[];
 };
 
 /** The claims of one pointer event, shared by the engines of the viewport. */
@@ -522,7 +524,13 @@ export class InteractionEngine implements IInteractionEngine {
 			if (!otherPressed) return;
 			const empty: {[key: string]: IIntersectionDefinition[]} = {};
 			for (const m in this.#managers) empty[m] = [];
-			this.#claimedPress = {event, ray, lists: empty, pressed: empty};
+			this.#claimedPress = {
+				event,
+				ray,
+				lists: empty,
+				pressed: empty,
+				claimerNodes: winner.nodes ?? [],
+			};
 			return;
 		}
 
@@ -552,7 +560,13 @@ export class InteractionEngine implements IInteractionEngine {
 						)
 					: [];
 		}
-		this.#claimedPress = {event, ray, lists, pressed};
+		this.#claimedPress = {
+			event,
+			ray,
+			lists,
+			pressed,
+			claimerNodes: excluded,
+		};
 	}
 
 	/**
@@ -570,6 +584,7 @@ export class InteractionEngine implements IInteractionEngine {
 				press.ray,
 				press.lists[m].filter((i) => this.isInScene(i.node)),
 				press.pressed[m],
+				press.claimerNodes,
 			);
 	}
 

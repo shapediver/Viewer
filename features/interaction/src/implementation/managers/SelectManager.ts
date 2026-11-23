@@ -24,6 +24,19 @@ import {
 import {AbstractInteractionManager} from "../AbstractInteractionManager";
 import {InteractionManagerUtils} from "../utils/InteractionManagerUtils";
 
+/** Whether one node is the other or one of its ancestors. */
+function isRelated(a: ITreeNode, b: ITreeNode): boolean {
+	const isAncestorOrSelf = (ancestor: ITreeNode, node: ITreeNode) => {
+		let current: ITreeNode | undefined = node;
+		while (current) {
+			if (current === ancestor) return true;
+			current = current.parent;
+		}
+		return false;
+	};
+	return isAncestorOrSelf(a, b) || isAncestorOrSelf(b, a);
+}
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export class SelectManager extends AbstractInteractionManager {
 	// distances closer than this count as a tie (as in the HoverManager)
@@ -152,13 +165,15 @@ export class SelectManager extends AbstractInteractionManager {
 	 * the press. A press on the selected node keeps it selected (the other
 	 * tool acts on the press). A press on another object, with no node of
 	 * this manager under the pointer, deselects with deselectOnEmpty, like a
-	 * click on that object.
+	 * click on that object, unless the other tool acts on the selected node
+	 * (e.g. a press on a corner of its rectangle, over another object).
 	 */
 	public onClaimedPress(
 		event: PointerEvent,
 		ray: IRay,
 		intersection: IIntersectionDefinition[],
 		pressed: IIntersectionDefinition[],
+		claimerNodes: ITreeNode[],
 	): void {
 		if (
 			!InteractionManagerUtils.validateViewport(
@@ -184,7 +199,12 @@ export class SelectManager extends AbstractInteractionManager {
 			| IRayTracingIntersection
 			| undefined;
 		if (!first) {
-			if (this.#node && this.#deselectOnEmpty && !pressed.some(own))
+			if (
+				this.#node &&
+				this.#deselectOnEmpty &&
+				!pressed.some(own) &&
+				!claimerNodes.some((n) => isRelated(n, this.#node!))
+			)
 				this.deactivateNode(event);
 			return;
 		}
