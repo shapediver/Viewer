@@ -2,7 +2,7 @@
 	"draco.decodesInWorker": 1,
 	"draco.decodesOnMainThread": 0,
 	"draco.secondLoad.decodesInWorker": 2,
-	"draco.secondLoad.workersCreated": 1,
+	"draco.secondLoad.workersCreated": 2,
 	"draco.workersCreated": 1,
 	"plain.bodyCopies": 0,
 	"plain.conversionYielded": 1,
