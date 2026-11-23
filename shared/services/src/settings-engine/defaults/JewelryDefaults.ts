@@ -83,6 +83,7 @@ export const JewelryDefaults: () => ISettings = () => {
 			],
 		},
 		rendering: {
+			...NEW_LOOK_V7_2.rendering,
 			automaticColorAdjustment: true,
 			beautyRenderDelay: 50,
 			beautyRenderBlendingDuration: 1500,

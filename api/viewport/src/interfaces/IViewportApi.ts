@@ -326,6 +326,10 @@ export interface IViewportApi {
 	 * The CSS size of the viewport may be larger; the buffer is scaled down to fit.
 	 * devicePixelRatio is applied before this cap.
 	 * Default: 1920×1080 on desktop, 1280×720 on mobile.
+	 *
+	 * The value is the one for the current device. Settings version 7.2 stores a desktop and a mobile value
+	 * (`rendering.maximumRenderingSize`, `rendering.maximumRenderingSizeMobile`) and applies the one that matches the device.
+	 * The default settings of new models use 2560×1440 on desktop.
 	 */
 	maximumRenderingSize: {width: number; height: number};
 	/**

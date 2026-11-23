@@ -8,6 +8,7 @@ import {
 	SESSION_SETTINGS_MODE,
 	SettingsEngine,
 	StateEngine,
+	SystemInfo,
 } from "@shapediver/viewer.shared.services";
 import {
 	ENVIRONMENT_MAP_ORIENTATION,
@@ -22,13 +23,52 @@ import {
 import {RenderingEngine} from "..";
 import {PostProcessingManager} from "./PostProcessingManager";
 
+type IRenderingSize = {width: number; height: number};
+
+/**
+ * The largest drawing buffer of a viewport that no settings changed, in physical pixels.
+ * Settings 7.2 store these values for models from before 7.2.
+ */
+export const DEFAULT_MAXIMUM_RENDERING_SIZE: {
+	readonly desktop: Readonly<IRenderingSize>;
+	readonly mobile: Readonly<IRenderingSize>;
+} = {
+	desktop: {width: 1920, height: 1080},
+	mobile: {width: 1280, height: 720},
+};
+
+// TODO: drop the type once the @shapediver/viewer.settings pin includes settings 7.2
+type IRenderingSizeSettings = {
+	maximumRenderingSize?: unknown;
+	maximumRenderingSizeMobile?: unknown;
+};
+
+/** Returns a copy of the size, or undefined if it is not a size of at least 1x1 pixels. */
+const toRenderingSize = (value: unknown): IRenderingSize | undefined => {
+	const size = value as Partial<IRenderingSize> | null | undefined;
+	if (
+		typeof size !== "object" ||
+		size === null ||
+		typeof size.width !== "number" ||
+		typeof size.height !== "number" ||
+		!(size.width >= 1) ||
+		!(size.height >= 1) ||
+		!Number.isFinite(size.width) ||
+		!Number.isFinite(size.height)
+	)
+		return undefined;
+	return {width: Math.floor(size.width), height: Math.floor(size.height)};
+};
+
 export class SettingsManager implements IManager {
 	private readonly _converter = Converter.instance;
+	private readonly _systemInfo = SystemInfo.instance;
 	private readonly _eventEngine = EventEngine.instance;
 	private readonly _stateEngine = StateEngine.instance;
 	private readonly _renderingEngine: RenderingEngine;
 
 	private _sessionSettingsId?: string;
+	private _otherDeviceMaximumRenderingSize?: IRenderingSize;
 	private _sessionSettingsMode: SESSION_SETTINGS_MODE;
 	private _settingsEngine?: SettingsEngine;
 
@@ -397,6 +437,24 @@ export class SettingsManager implements IManager {
 			this._renderingEngine.accumulationFrames;
 		renderingAccumulation.accumulationFramesMobile =
 			this._renderingEngine.accumulationFramesMobile;
+
+		// The engine holds the cap of this device only. The cap of the other
+		// device kind is the one last applied, else the engine default. Not the
+		// value in the target settings: getViewportSettings saves into new
+		// default settings, which carry the new-look size.
+		const renderingSize =
+			settingsEngine.rendering as IRenderingSizeSettings;
+		const current = this._renderingEngine.maximumRenderingSizeToSave;
+		const isMobile = this._systemInfo.isMobile === true;
+		const other = toRenderingSize(this._otherDeviceMaximumRenderingSize);
+		const desktop = isMobile ? other : toRenderingSize(current);
+		const mobile = isMobile ? toRenderingSize(current) : other;
+		renderingSize.maximumRenderingSize = desktop ?? {
+			...DEFAULT_MAXIMUM_RENDERING_SIZE.desktop,
+		};
+		renderingSize.maximumRenderingSizeMobile = mobile ?? {
+			...DEFAULT_MAXIMUM_RENDERING_SIZE.mobile,
+		};
 	}
 
 	private applySyncSettings(
@@ -493,6 +551,28 @@ export class SettingsManager implements IManager {
 				typeof rendering.accumulationFramesMobile === "number"
 					? rendering.accumulationFramesMobile
 					: 0;
+
+			// Settings without a maximum rendering size (saved before 7.2 and not
+			// converted) leave the value of the engine alone.
+			const renderingSize =
+				settingsEngine.rendering as IRenderingSizeSettings;
+			const isMobile = this._systemInfo.isMobile === true;
+			const maximumRenderingSize = toRenderingSize(
+				isMobile
+					? renderingSize.maximumRenderingSizeMobile
+					: renderingSize.maximumRenderingSize,
+			);
+			// kept for saving: the engine only holds the value of this device
+			const otherDevice = toRenderingSize(
+				isMobile
+					? renderingSize.maximumRenderingSize
+					: renderingSize.maximumRenderingSizeMobile,
+			);
+			if (otherDevice)
+				this._otherDeviceMaximumRenderingSize = otherDevice;
+			if (maximumRenderingSize)
+				this._renderingEngine.maximumRenderingSize =
+					maximumRenderingSize;
 		}
 
 		if (sections.general) {

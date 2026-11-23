@@ -126,9 +126,18 @@ export const environmentSettingsSchemaV7_2 = environmentSettingsSchema.extend({
 	mapOrientation: z.enum(["legacy", "threejs"]),
 });
 
+const renderingSizeSchema = z
+	.object({
+		width: z.number().int().min(1),
+		height: z.number().int().min(1),
+	})
+	.strict();
+
 export const renderingSettingsSchemaV7_2 = renderingSettingsSchema.extend({
 	accumulationFrames: z.number().int().min(0),
 	accumulationFramesMobile: z.number().int().min(0),
+	maximumRenderingSize: renderingSizeSchema,
+	maximumRenderingSizeMobile: renderingSizeSchema,
 });
 
 export const materialSettingsSchemaV7_2 = materialSettingsSchema.extend({

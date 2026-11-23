@@ -79,7 +79,10 @@ import {SceneTracingManager} from "./managers/SceneTracingManager";
 import {createSDTFOverview} from "./managers/sceneTree/SDTFUtils";
 import {assignEnvironmentMapForThreeJsData} from "./managers/sceneTree/ThreeJsDataUtils";
 import {SceneTreeManager} from "./managers/SceneTreeManager";
-import {SettingsManager} from "./managers/SettingsManager";
+import {
+	DEFAULT_MAXIMUM_RENDERING_SIZE,
+	SettingsManager,
+} from "./managers/SettingsManager";
 import {SDColor} from "./objects/SDColor";
 import {css} from "./styling/viewport-css";
 
@@ -189,8 +192,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	private _logoDivElement: HTMLDivElement;
 	private _maximumRenderingSize: {width: number; height: number} = this
 		._systemInfo.isMobile
-		? {width: 1280, height: 720}
-		: {width: 1920, height: 1080};
+		? {...DEFAULT_MAXIMUM_RENDERING_SIZE.mobile}
+		: {...DEFAULT_MAXIMUM_RENDERING_SIZE.desktop};
+	private _maximumRenderingSizeBeforeScreenshot?: {
+		width: number;
+		height: number;
+	};
 	private _pause: boolean = false;
 	private _physicalGemDispersion: boolean = false;
 	private _physicalGemFresnel: boolean = false;
@@ -892,6 +899,18 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._maximumRenderingSize = value;
 	}
 
+	/**
+	 * The maximum rendering size to store in the settings. A screenshot with an
+	 * explicit resolution changes {@link maximumRenderingSize} until it is done;
+	 * this is the value from before.
+	 */
+	public get maximumRenderingSizeToSave(): {width: number; height: number} {
+		return (
+			this._maximumRenderingSizeBeforeScreenshot ??
+			this._maximumRenderingSize
+		);
+	}
+
 	public get minimalRendering(): boolean {
 		return this.renderingManager.minimalRendering;
 	}
@@ -1341,6 +1360,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 			// An explicitly requested screenshot resolution describes output
 			// pixels, not CSS pixels. Ignore the device pixel ratio temporarily.
 			this._renderingManager.pixelRatioOverride = 1;
+			this._maximumRenderingSizeBeforeScreenshot = JSON.parse(
+				originalMaximumRenderingSize,
+			);
 			this.maximumRenderingSize = {
 				width: resolution.width,
 				height: resolution.height,
@@ -1517,6 +1539,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 			this.maximumRenderingSize = JSON.parse(
 				originalMaximumRenderingSize,
 			);
+			this._maximumRenderingSizeBeforeScreenshot = undefined;
 		}
 
 		if (screenshotCameraPose) {

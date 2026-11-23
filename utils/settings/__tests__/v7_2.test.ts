@@ -67,6 +67,8 @@ describe("settings V7.2", () => {
 			gemNormalMapResolution: 1024,
 			accumulationFrames: 0,
 			accumulationFramesMobile: 0,
+			maximumRenderingSize: {width: 1920, height: 1080},
+			maximumRenderingSizeMobile: {width: 1280, height: 720},
 		});
 	});
 
@@ -161,6 +163,8 @@ describe("settings V7.2", () => {
 			(s) => delete (s.material as any).gemNormalMapResolution,
 			(s) => delete (s.rendering as any).accumulationFrames,
 			(s) => delete (s.rendering as any).accumulationFramesMobile,
+			(s) => delete (s.rendering as any).maximumRenderingSize,
+			(s) => delete (s.rendering as any).maximumRenderingSizeMobile,
 			(s) =>
 				delete (s.postprocessing.effects[0].properties as any)
 					.excludeGems,
@@ -197,6 +201,15 @@ describe("settings V7.2", () => {
 			(s) => ((s.rendering as any).accumulationFrames = "16"),
 			(s) => ((s.rendering as any).accumulationFrames = -1),
 			(s) => ((s.rendering as any).accumulationFramesMobile = 2.5),
+			(s) => ((s.rendering as any).maximumRenderingSize = 1920),
+			(s) => ((s.rendering as any).maximumRenderingSize = {width: 1920}),
+			(s) =>
+				(s.rendering.maximumRenderingSize = {width: 0, height: 1080}),
+			(s) =>
+				(s.rendering.maximumRenderingSizeMobile = {
+					width: 1280.5,
+					height: 720,
+				}),
 			(s) =>
 				((s.postprocessing.effects[0].properties as any).excludeGems =
 					"yes"),
@@ -239,6 +252,18 @@ describe("settings V7.2", () => {
 		expect(converted.material.gemNormalMapResolution).toBe(1024);
 		expect(converted.rendering.accumulationFrames).toBe(0);
 		expect(converted.rendering.accumulationFramesMobile).toBe(0);
+		expect(converted.rendering.maximumRenderingSize).toStrictEqual({
+			width: 1920,
+			height: 1080,
+		});
+		expect(converted.rendering.maximumRenderingSizeMobile).toStrictEqual({
+			width: 1280,
+			height: 720,
+		});
+		// the converted object does not share the constant
+		expect(converted.rendering.maximumRenderingSize).not.toBe(
+			OLD_LOOK_V7_2.maximumRenderingSize,
+		);
 		expect(converted.postprocessing.effects).toStrictEqual([
 			{
 				type: "hbao",
@@ -270,6 +295,10 @@ describe("settings V7.2", () => {
 		settingsV7_1.material.gemTracing = "facets";
 		settingsV7_1.material.gemNormalMapResolution = 512;
 		settingsV7_1.rendering.accumulationFrames = 16;
+		settingsV7_1.rendering.maximumRenderingSize = {
+			width: 3840,
+			height: 2160,
+		};
 		settingsV7_1.postprocessing.effects = [
 			{type: "hbao", properties: {intensity: 2, excludeGems: true}},
 			{
@@ -296,6 +325,14 @@ describe("settings V7.2", () => {
 		expect(converted.material.gemNormalMapResolution).toBe(512);
 		expect(converted.rendering.accumulationFrames).toBe(16);
 		expect(converted.rendering.accumulationFramesMobile).toBe(0);
+		expect(converted.rendering.maximumRenderingSize).toStrictEqual({
+			width: 3840,
+			height: 2160,
+		});
+		expect(converted.rendering.maximumRenderingSizeMobile).toStrictEqual({
+			width: 1280,
+			height: 720,
+		});
 		expect(converted.postprocessing.effects).toStrictEqual([
 			{type: "hbao", properties: {intensity: 2, excludeGems: true}},
 			{
@@ -357,6 +394,10 @@ describe("settings V7.2", () => {
 		expect(converted.rendering).not.toHaveProperty(
 			"accumulationFramesMobile",
 		);
+		expect(converted.rendering).not.toHaveProperty("maximumRenderingSize");
+		expect(converted.rendering).not.toHaveProperty(
+			"maximumRenderingSizeMobile",
+		);
 		expect(() => validate(converted, "7.1")).not.toThrow();
 		// the input must not be changed
 		expect(JSON.stringify(settingsV7_2)).toBe(before);
@@ -409,6 +450,11 @@ describe("settings V7.2", () => {
 		settings.environment.mapOrientation = "threejs";
 		settings.rendering.accumulationFrames = 16;
 		settings.rendering.accumulationFramesMobile = 8;
+		settings.rendering.maximumRenderingSize = {width: 2560, height: 1440};
+		settings.rendering.maximumRenderingSizeMobile = {
+			width: 960,
+			height: 540,
+		};
 		const roundTripped = <ISettingsV7_2>(
 			JSON.parse(JSON.stringify(settings))
 		);
@@ -423,6 +469,14 @@ describe("settings V7.2", () => {
 		expect(converted.environment.mapOrientation).toBe("threejs");
 		expect(converted.rendering.accumulationFrames).toBe(16);
 		expect(converted.rendering.accumulationFramesMobile).toBe(8);
+		expect(converted.rendering.maximumRenderingSize).toStrictEqual({
+			width: 2560,
+			height: 1440,
+		});
+		expect(converted.rendering.maximumRenderingSizeMobile).toStrictEqual({
+			width: 960,
+			height: 540,
+		});
 		expect(converted.postprocessing.effects[0].properties).toMatchObject({
 			mode: "shading",
 			excludeGems: true,
