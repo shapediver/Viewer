@@ -127,6 +127,10 @@ test.describe("Default settings", () => {
 			aoExcludeGems: [true],
 			bloom: [{highlightsOnly: true, backgroundBloom: false}],
 		});
+		expect(await page.evaluate(readMaximumRenderingSize)).toEqual({
+			width: 2560,
+			height: 1440,
+		});
 	});
 
 	test("a viewport without a session keeps the old look", async ({page}) => {
