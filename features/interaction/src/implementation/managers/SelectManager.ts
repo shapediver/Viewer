@@ -26,6 +26,9 @@ import {InteractionManagerUtils} from "../utils/InteractionManagerUtils";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export class SelectManager extends AbstractInteractionManager {
+	// distances closer than this count as a tie (as in the HoverManager)
+	private static readonly TIE_DISTANCE = 1e-4;
+
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #logger: Logger = Logger.instance;
 	readonly #tree: Tree = Tree.instance;
@@ -116,7 +119,7 @@ export class SelectManager extends AbstractInteractionManager {
 					this.filter(INTERACTION_STATE.DOWN)(i.node) &&
 					i.type === "RayTracingIntersection",
 			) as IRayTracingIntersection[];
-			this.handleIntersection(event, ray, intersections);
+			this.handleIntersection(event, ray, intersections, intersection);
 		}
 	}
 
@@ -140,7 +143,7 @@ export class SelectManager extends AbstractInteractionManager {
 					this.filter(INTERACTION_STATE.UP)(i.node) &&
 					i.type === "RayTracingIntersection",
 			) as IRayTracingIntersection[];
-			this.handleIntersection(event, ray, intersections);
+			this.handleIntersection(event, ray, intersections, intersection);
 		}
 	}
 
@@ -365,6 +368,7 @@ export class SelectManager extends AbstractInteractionManager {
 		event: PointerEvent,
 		ray: IRay,
 		intersections: IRayTracingIntersection[],
+		all: IIntersectionDefinition[],
 	) {
 		// create a list that replaces all irrelevant intersections with null
 		const filteredIntersections = intersections.map((i) => {
@@ -378,8 +382,23 @@ export class SelectManager extends AbstractInteractionManager {
 				: null;
 		});
 
-		const firstIntersection =
+		let firstIntersection =
 			filteredIntersections.length > 0 ? filteredIntersections[0] : null;
+
+		// only the closest interactive object is pressed (as for the hover): a
+		// node of this manager behind a node of another manager of the engine
+		// counts as not hit, a tie (a node and the node it holds, on one
+		// surface) does not
+		const closest = all.find((i) => i.type === "RayTracingIntersection") as
+			| IRayTracingIntersection
+			| undefined;
+		if (
+			firstIntersection &&
+			closest &&
+			firstIntersection.distance >
+				closest.distance + SelectManager.TIE_DISTANCE
+		)
+			firstIntersection = null;
 
 		if (this.#node) {
 			if (firstIntersection && firstIntersection.node !== this.#node) {
