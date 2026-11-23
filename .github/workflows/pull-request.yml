@@ -57,16 +57,18 @@ jobs:
               run: npm run build
               working-directory: examples/test-cdn
 
-            # package.json is in the list so the artifact keeps paths from the
-            # repository root (the action strips the common parent folder).
+            # One tarball of every dist/ outside node_modules. A glob in the
+            # upload action would walk node_modules and take very long.
+            - name: Pack build output
+              run: |
+                  find . -name node_modules -prune -o -type d -name dist -print0 \
+                    | tar --null -czf build-output.tgz -T -
+
             - name: Upload build output
               uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
               with:
                   name: build-output
-                  path: |
-                      package.json
-                      **/dist
-                      !**/node_modules/**
+                  path: build-output.tgz
                   retention-days: 1
                   if-no-files-found: error
 
@@ -108,6 +110,9 @@ jobs:
               with:
                   name: build-output
 
+            - name: Unpack build output
+              run: tar -xzf build-output.tgz
+
             - name: Run unit tests
               run: pnpm test:unit
 
@@ -143,6 +148,9 @@ jobs:
               uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
               with:
                   name: build-output
+
+            - name: Unpack build output
+              run: tar -xzf build-output.tgz
 
             - name: Check Chrome
               run: google-chrome --version
@@ -185,6 +193,9 @@ jobs:
               uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
               with:
                   name: build-output
+
+            - name: Unpack build output
+              run: tar -xzf build-output.tgz
 
             - name: Check Chrome
               run: google-chrome --version
