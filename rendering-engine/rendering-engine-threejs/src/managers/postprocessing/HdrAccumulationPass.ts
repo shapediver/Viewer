@@ -98,6 +98,17 @@ export class HdrAccumulationPass extends Pass {
 		super.dispose();
 	}
 
+	/**
+	 * Takes the last added frame out of the mean again, for a frame that is
+	 * drawn a second time (the reflections had no previous frame).
+	 */
+	public discardLastFrame(): void {
+		if (!this._active || !this._targets || this._count === 0) return;
+		// the other target still holds the mean without that frame
+		this._targets = [this._targets[1], this._targets[0]];
+		this._count--;
+	}
+
 	/** Stops adding frames; the following frames pass through unchanged. */
 	public end(): void {
 		this._active = false;

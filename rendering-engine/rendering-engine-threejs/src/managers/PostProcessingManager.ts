@@ -2069,6 +2069,8 @@ export class PostProcessingManager implements IManager {
 		// screenshot, whose previous frame may show the scene before a change.
 		const ssrState = this._ssrEffect?.effect.takeFrameState() ?? "none";
 		if (ssrState === "invalid" || (single && ssrState === "valid")) {
+			// the HDR mean takes the second drawing of this frame only
+			this._hdrAccumulationPass?.discardLastFrame();
 			this._composer.render();
 			this._ssrEffect!.effect.takeFrameState();
 		}
