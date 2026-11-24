@@ -1136,4 +1136,170 @@ test.describe("GPU instancing", () => {
 				expect(pageErrors).toEqual([]);
 			});
 		});
+
+	test.describe("one gem material shared by two stone shapes", () => {
+		const stoneAsset = `${ASSET_HOST}/pave-stones.glb`;
+		// stone_node_0 sits at the origin; other_stone_node is stretched 1.5x
+		// along y and sits at [0, -0.3, 0.0173]: a different shape at a
+		// different position
+		const sharedStoneNames = ["stone_node_0", "other_stone_node"];
+
+		/** Assigns one shared gem material data to both stones. */
+		const shareOneGem = `(node) => {
+			const SDV = window.SDV;
+			const names = ${JSON.stringify(sharedStoneNames)};
+			const shared = new SDV.MaterialGemData({refractionIndex: 2.42});
+			const visit = (n) => {
+				if (names.includes(n.name))
+					for (const d of n.data)
+						if (d.primitive !== undefined) d.material = shared;
+				n.children.forEach(visit);
+			};
+			visit(node);
+		}`;
+
+		/**
+		 * For each shared stone: the gem uniforms its mesh renders with and
+		 * the tight bounding sphere of its own vertices (what the gem setup
+		 * computes for that shape).
+		 */
+		const describeSharedStones = `(() => {
+			const viewer = window.viewer;
+			const names = ${JSON.stringify(sharedStoneNames)};
+			const result = {};
+			const visit = (n) => {
+				if (names.includes(n.name))
+					for (const d of n.data) {
+						if (d.primitive === undefined) continue;
+						const mesh = d.convertedObject[viewer.id];
+						const position = mesh.geometry.attributes.position;
+						const min = [Infinity, Infinity, Infinity];
+						const max = [-Infinity, -Infinity, -Infinity];
+						for (let i = 0; i < position.count; i++) {
+							const p = [position.getX(i), position.getY(i), position.getZ(i)];
+							for (let k = 0; k < 3; k++) {
+								min[k] = Math.min(min[k], p[k]);
+								max[k] = Math.max(max[k], p[k]);
+							}
+						}
+						const center = [0, 1, 2].map((k) => (min[k] + max[k]) / 2);
+						let radius = 0;
+						for (let i = 0; i < position.count; i++) {
+							const dx = position.getX(i) - center[0];
+							const dy = position.getY(i) - center[1];
+							const dz = position.getZ(i) - center[2];
+							radius = Math.max(radius, Math.sqrt(dx * dx + dy * dy + dz * dz));
+						}
+						const material = mesh.material;
+						result[n.name] = {
+							material,
+							isGem: material.isGemMaterial === true,
+							center: material.center ? material.center.toArray() : null,
+							radius: material.radius,
+							map: material.sphericalNormalMap,
+							expectedCenter: center,
+							expectedRadius: radius,
+						};
+					}
+				n.children.forEach(visit);
+			};
+			visit(window.SDV.sceneTree.root);
+			const [a, b] = names.map((name) => result[name]);
+			const strip = (s) => ({
+				isGem: s.isGem,
+				hasMap: !!s.map,
+				center: s.center,
+				radius: s.radius,
+				expectedCenter: s.expectedCenter,
+				expectedRadius: s.expectedRadius,
+			});
+			return {
+				a: strip(a),
+				b: strip(b),
+				sameMaterial: a.material === b.material,
+				sameMap: a.map === b.map,
+			};
+		})()`;
+
+		const expectOwnGemData = (state: any) => {
+			for (const stone of [state.a, state.b]) {
+				expect(stone.isGem).toBe(true);
+				expect(stone.hasMap).toBe(true);
+				// the mesh renders with the sphere of its own shape
+				for (let k = 0; k < 3; k++)
+					expect(stone.center[k]).toBeCloseTo(
+						stone.expectedCenter[k],
+						4,
+					);
+				expect(stone.radius).toBeCloseTo(stone.expectedRadius, 4);
+			}
+			// sanity: the two shapes really differ in center and radius
+			expect(
+				Math.abs(state.a.expectedRadius - state.b.expectedRadius),
+			).toBeGreaterThan(0.001);
+			expect(
+				Math.abs(state.a.expectedCenter[1] - state.b.expectedCenter[1]),
+			).toBeGreaterThan(0.1);
+			// different shapes need different facet maps
+			expect(state.sameMap).toBe(false);
+		};
+
+		test("on first load each stone renders with its own facet map, center and radius", async ({
+			workerPage,
+		}) => {
+			const pageErrors: string[] = [];
+			workerPage.on("pageerror", (error) =>
+				pageErrors.push(error.message),
+			);
+			const state = await workerPage.evaluate(
+				async ({uri, beforeAdd, describe}) => {
+					await (<any>window).addGLTF(uri, beforeAdd);
+					return (0, eval)(describe);
+				},
+				{
+					uri: stoneAsset,
+					beforeAdd: shareOneGem,
+					describe: describeSharedStones,
+				},
+			);
+
+			expectOwnGemData(state);
+			expect(pageErrors).toEqual([]);
+		});
+
+		test("assigned after the first render each stone renders with its own facet map, center and radius", async ({
+			workerPage,
+		}) => {
+			const pageErrors: string[] = [];
+			workerPage.on("pageerror", (error) =>
+				pageErrors.push(error.message),
+			);
+			const state = await workerPage.evaluate(
+				async ({uri, names, describe}) => {
+					await (<any>window).addGLTF(uri);
+					const SDV = (<any>window).SDV;
+					const viewer = (<any>window).viewer;
+					const shared = new SDV.MaterialGemData({
+						refractionIndex: 2.42,
+					});
+					for (const name of names) {
+						const node = (<any>window).findNode(name);
+						for (const d of node.data)
+							if (d.primitive !== undefined) d.material = shared;
+						viewer.updateNode(node);
+					}
+					await (<any>window).rerender();
+					return (0, eval)(describe);
+				},
+				{
+					uri: stoneAsset,
+					names: sharedStoneNames,
+					describe: describeSharedStones,
+				},
+			);
+
+			expectOwnGemData(state);
+			expect(pageErrors).toEqual([]);
+		});
+	});
 });
