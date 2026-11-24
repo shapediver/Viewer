@@ -126,7 +126,7 @@ test.describe("Default settings", () => {
 			...NEW_LOOK,
 			environmentMapAnalyticDfg: true,
 			hdr: true,
-			toneMapping: "neutral",
+			toneMapping: "aces_filmic",
 			accumulationFrames: 32,
 			accumulationFramesMobile: 8,
 			aoExcludeGems: [true],
