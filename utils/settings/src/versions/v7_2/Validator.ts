@@ -87,6 +87,8 @@ const bloomEffectSchema = z.object({
 			highlightsOnly: z.boolean(),
 			// optional: an unset value means 8 at runtime (the look before the option existed)
 			highlightLimit: zNumOrInf.optional(),
+			// optional: an unset value means false at runtime (the look before the option existed)
+			additiveBlur: z.boolean().optional(),
 		})
 		.optional(),
 	type: z.literal("bloom"),
