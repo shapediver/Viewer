@@ -43,6 +43,12 @@ export interface IBloomEffectDefinition extends Omit<
 		 * Default: 8
 		 */
 		highlightLimit?: number;
+		/**
+		 * Only with mipmap blur: whether the blur levels are added instead of
+		 * blended, which gives about 2.4 times the glow at the same intensity.
+		 * Default: false
+		 */
+		additiveBlur?: boolean;
 	};
 }
 
