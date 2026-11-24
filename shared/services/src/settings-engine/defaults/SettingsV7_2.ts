@@ -23,6 +23,7 @@ type IAmbientOcclusionEffect = {
 	properties: {
 		[key: string]: number | string | boolean | undefined;
 		mode?: "composite" | "shading";
+		specularOcclusion?: "physical" | "uniform";
 		excludeGems: boolean;
 	};
 };
