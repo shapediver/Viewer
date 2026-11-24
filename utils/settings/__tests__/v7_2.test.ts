@@ -421,6 +421,62 @@ describe("settings V7.2", () => {
 		);
 	});
 
+	it("validate - SSR effect", () => {
+		const settings = createSettingsV7_2();
+		settings.postprocessing.effects.push(
+			{type: "ssr"},
+			{
+				type: "ssr",
+				properties: {
+					intensity: 1,
+					maxRoughness: 0.3,
+					steps: 16,
+					distance: 2,
+					thickness: 0.1,
+					enableOnMobile: false,
+				},
+			},
+		);
+		expect(() => validate(settings, "7.2")).not.toThrow();
+	});
+
+	it("validate - invalid SSR properties fail", () => {
+		const invalid: unknown[] = [
+			{steps: 0},
+			{steps: 65},
+			{steps: 1.5},
+			{intensity: -1},
+			{enableOnMobile: "yes"},
+			{unknownProperty: 1},
+		];
+		for (const properties of invalid) {
+			const settings = createSettingsV7_2();
+			settings.postprocessing.effects.push({
+				type: "ssr",
+				properties: properties as {steps?: number},
+			});
+			expect(() => validate(settings, "7.2")).toThrow();
+		}
+	});
+
+	it("convert 7.2 -> 7.1 drops the SSR effect", () => {
+		const settingsV7_2 = createSettingsV7_2();
+		settingsV7_2.postprocessing.effects.splice(1, 0, {
+			type: "ssr",
+			properties: {intensity: 0.5},
+		});
+
+		const converted = <ISettingsV7_1>convert(settingsV7_2, "7.1");
+
+		expect(converted.postprocessing.effects.map((e) => e.type)).toEqual([
+			"hbao",
+			"ssao",
+			"bloom",
+		]);
+		expect(() => validate(converted, "7.1")).not.toThrow();
+		expect(settingsV7_2.postprocessing.effects[1].type).toBe("ssr");
+	});
+
 	it("convert 7.2 -> 7.1 fills mipmapBlur of bloom", () => {
 		const settingsV7_2 = createSettingsV7_2();
 		settingsV7_2.postprocessing.effects = [
