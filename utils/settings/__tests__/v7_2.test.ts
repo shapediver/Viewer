@@ -27,6 +27,7 @@ const createSettingsV7_2 = (): ISettingsV7_2 => {
 				intensity: 2,
 				radius: 0.5,
 				mode: "shading",
+				specularOcclusion: "uniform",
 				excludeGems: true,
 			},
 		},
@@ -144,6 +145,18 @@ describe("settings V7.2", () => {
 	it("validate - invalid HBAO mode fails", () => {
 		const settings = createSettingsV7_2();
 		(settings.postprocessing.effects[0].properties as any).mode = "invalid";
+		expect(() => validate(settings, "7.2")).toThrow();
+	});
+
+	it("validate - AO specularOcclusion", () => {
+		const settings = createSettingsV7_2();
+		(
+			settings.postprocessing.effects[1].properties as any
+		).specularOcclusion = "physical";
+		expect(() => validate(settings, "7.2")).not.toThrow();
+		(
+			settings.postprocessing.effects[0].properties as any
+		).specularOcclusion = "invalid";
 		expect(() => validate(settings, "7.2")).toThrow();
 	});
 
