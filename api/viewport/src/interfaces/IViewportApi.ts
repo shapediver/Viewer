@@ -280,6 +280,11 @@ export interface IViewportApi {
 	 */
 	gemEnvironmentMapIntensity: number;
 	/**
+	 * Whether gems clamp their traced colors at 1 when no post-processing effect renders the scene into an HDR buffer. (default: true, the legacy look)
+	 * With the clamp, stones never reach white after tone mapping in viewports without effects. Set it to false to let the highlights of the stones reach white there as well. With `hdr` and at least one effect the colors are never clamped.
+	 */
+	gemClampColor: boolean;
+	/**
 	 * The resolution per cube face of the map that captures the facets of a gem. Allowed values are 256, 512 and 1024. (default: 1024, the legacy look; 512 is the value used with `gemTracing = "facets"`)
 	 * Used for gems whose material does not set `normalMapResolution`. Changing it captures the facet maps of the gems already in the scene again.
 	 */
