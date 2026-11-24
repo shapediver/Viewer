@@ -202,7 +202,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	private _pause: boolean = false;
 	private _physicalGemDispersion: boolean = false;
 	private _physicalGemFresnel: boolean = false;
-	private _gemBounceLighting: "all" | "environment" = "all";
+	private _gemLighting: "all" | "firstSurface" | "environment" = "all";
 	private _gemEnvironmentMapIntensity: number = 1;
 	private _postRenderingCallback?:
 		| ((
@@ -982,13 +982,13 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._materialLoader.assignPhysicalGemFresnel(value);
 	}
 
-	public get gemBounceLighting(): "all" | "environment" {
-		return this._gemBounceLighting;
+	public get gemLighting(): "all" | "firstSurface" | "environment" {
+		return this._gemLighting;
 	}
 
-	public set gemBounceLighting(value: "all" | "environment") {
-		this._gemBounceLighting = value;
-		this._materialLoader.assignGemBounceLighting(value);
+	public set gemLighting(value: "all" | "firstSurface" | "environment") {
+		this._gemLighting = value;
+		this._materialLoader.assignGemLighting(value);
 	}
 
 	public get pointSize(): number {
