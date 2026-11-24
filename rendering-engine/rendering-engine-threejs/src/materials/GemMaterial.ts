@@ -22,6 +22,8 @@ export interface GemMaterialParameters extends MeshPhysicalMaterialParameters {
 	physicalDispersion?: boolean | undefined;
 	/** See {@link GemMaterial.physicalFresnel}. */
 	physicalFresnel?: boolean | undefined;
+	/** See {@link GemMaterial.bounceLighting}. */
+	bounceLighting?: "all" | "environment" | undefined;
 	/** See {@link GemMaterial.gemEnvMapIntensity}. */
 	gemEnvMapIntensity?: number | undefined;
 	tracingDepth?: number | undefined;
@@ -72,6 +74,14 @@ export class GemMaterial extends MeshPhysicalMaterial {
 	 * first facet it can pass.
 	 */
 	public physicalFresnel: boolean = false;
+	/**
+	 * Which lights the internal bounces use.
+	 * "all": point, spot, directional and rect-area lights, plus environment and
+	 * ambient light, on every surface the ray hits.
+	 * "environment": the direct lights only on the first surface, environment and
+	 * ambient light on the internal bounces. This makes the shader smaller.
+	 */
+	public bounceLighting: "all" | "environment" = "all";
 	/** Factor on the environment reflections the gem traces, on top of envMapIntensity. */
 	public gemEnvMapIntensity: number = 1.0;
 	public tracingOpacity: number = 0.0;
@@ -106,6 +116,7 @@ export class GemMaterial extends MeshPhysicalMaterial {
 
 		let physicalDispersion = false;
 		let physicalFresnel = false;
+		let bounceLighting: "all" | "environment" = "all";
 
 		(<any>this)._extraUniforms = uniforms;
 
@@ -294,6 +305,25 @@ export class GemMaterial extends MeshPhysicalMaterial {
 					this.needsUpdate = true;
 				},
 			},
+			bounceLighting: {
+				get: function () {
+					return bounceLighting;
+				},
+				set: function (v) {
+					bounceLighting = v === "environment" ? v : "all";
+					// compare with the define, see physicalDispersion
+					const defined =
+						"GEM_BOUNCE_ENVIRONMENT_ONLY" in this.defines;
+					const environment = bounceLighting === "environment";
+					if (environment === defined) return;
+					if (environment) {
+						this.defines.GEM_BOUNCE_ENVIRONMENT_ONLY = "";
+					} else {
+						delete this.defines.GEM_BOUNCE_ENVIRONMENT_ONLY;
+					}
+					this.needsUpdate = true;
+				},
+			},
 			gemEnvMapIntensity: {
 				get: function () {
 					return uniforms.gemEnvMapIntensity.value;
@@ -331,6 +361,7 @@ export class GemMaterial extends MeshPhysicalMaterial {
 		this.dispersion = params.dispersion || 0;
 		this.physicalDispersion = params.physicalDispersion || false;
 		this.physicalFresnel = params.physicalFresnel || false;
+		this.bounceLighting = params.bounceLighting || "all";
 		this.gemEnvMapIntensity = params.gemEnvMapIntensity ?? 1;
 		this.tracingOpacity = params.tracingOpacity || 0;
 
@@ -361,6 +392,7 @@ export class GemMaterial extends MeshPhysicalMaterial {
 		this.dispersion = source.dispersion;
 		this.physicalDispersion = source.physicalDispersion;
 		this.physicalFresnel = source.physicalFresnel;
+		this.bounceLighting = source.bounceLighting;
 		this.gemEnvMapIntensity = source.gemEnvMapIntensity;
 		this.tracingOpacity = source.tracingOpacity;
 

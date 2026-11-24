@@ -63,6 +63,7 @@ describe("settings V7.2", () => {
 			mapAnalyticDfg: false,
 			physicalGemDispersion: false,
 			physicalGemFresnel: false,
+			gemBounceLighting: "all",
 			gemEnvironmentMapIntensity: 1,
 			gemTracing: "sphere",
 			gemNormalMapResolution: 1024,
@@ -160,6 +161,7 @@ describe("settings V7.2", () => {
 			(s) => delete (s.environment as any).mapAnalyticDfg,
 			(s) => delete (s.material as any).physicalGemDispersion,
 			(s) => delete (s.material as any).physicalGemFresnel,
+			(s) => delete (s.material as any).gemBounceLighting,
 			(s) => delete (s.material as any).gemEnvironmentMapIntensity,
 			(s) => delete (s.material as any).gemTracing,
 			(s) => delete (s.material as any).gemNormalMapResolution,
@@ -196,6 +198,8 @@ describe("settings V7.2", () => {
 			(s) => ((s.environment as any).mapAnalyticDfg = "true"),
 			(s) => ((s.material as any).physicalGemDispersion = "yes"),
 			(s) => ((s.material as any).physicalGemFresnel = "yes"),
+			(s) => ((s.material as any).gemBounceLighting = 5),
+			(s) => ((s.material as any).gemBounceLighting = "yes"),
 			(s) => ((s.material as any).gemEnvironmentMapIntensity = "1"),
 			(s) => ((s.material as any).gemEnvironmentMapIntensity = -1),
 			(s) => ((s.material as any).gemTracing = "foo"),
@@ -251,6 +255,7 @@ describe("settings V7.2", () => {
 		expect(converted.environment.mapAnalyticDfg).toBe(false);
 		expect(converted.material.physicalGemDispersion).toBe(false);
 		expect(converted.material.physicalGemFresnel).toBe(false);
+		expect(converted.material.gemBounceLighting).toBe("all");
 		expect(converted.material.gemEnvironmentMapIntensity).toBe(1);
 		expect(converted.material.gemTracing).toBe("sphere");
 		expect(converted.material.gemNormalMapResolution).toBe(1024);
@@ -296,6 +301,7 @@ describe("settings V7.2", () => {
 		settingsV7_1.environment.mapAnalyticDfg = true;
 		settingsV7_1.material.physicalGemDispersion = true;
 		settingsV7_1.material.physicalGemFresnel = true;
+		settingsV7_1.material.gemBounceLighting = "environment";
 		settingsV7_1.material.gemEnvironmentMapIntensity = 1.5;
 		settingsV7_1.material.gemTracing = "facets";
 		settingsV7_1.material.gemNormalMapResolution = 512;
@@ -326,6 +332,7 @@ describe("settings V7.2", () => {
 		expect(converted.environment.mapAnalyticDfg).toBe(true);
 		expect(converted.material.physicalGemDispersion).toBe(true);
 		expect(converted.material.physicalGemFresnel).toBe(true);
+		expect(converted.material.gemBounceLighting).toBe("environment");
 		expect(converted.material.gemEnvironmentMapIntensity).toBe(1.5);
 		expect(converted.material.gemTracing).toBe("facets");
 		expect(converted.material.gemNormalMapResolution).toBe(512);
@@ -392,6 +399,7 @@ describe("settings V7.2", () => {
 		expect(converted.environment).not.toHaveProperty("mapAnalyticDfg");
 		expect(converted.material).not.toHaveProperty("physicalGemDispersion");
 		expect(converted.material).not.toHaveProperty("physicalGemFresnel");
+		expect(converted.material).not.toHaveProperty("gemBounceLighting");
 		expect(converted.material).not.toHaveProperty(
 			"gemEnvironmentMapIntensity",
 		);
