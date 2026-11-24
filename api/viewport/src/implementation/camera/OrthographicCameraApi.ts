@@ -49,7 +49,7 @@ export class OrthographicCameraApi
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	// #endregion Public Getters And Setters (2)
