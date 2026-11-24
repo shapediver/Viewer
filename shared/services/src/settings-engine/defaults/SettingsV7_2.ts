@@ -44,6 +44,8 @@ export type ISettingsV7_2 = Omit<
 		// not set = no frame accumulation
 		accumulationFrames?: number;
 		accumulationFramesMobile?: number;
+		// not set = "display", the frames are averaged on the canvas
+		accumulationMode?: "display" | "hdr";
 		// Without the two values a viewport keeps its maximum rendering size.
 		maximumRenderingSize?: {width: number; height: number};
 		maximumRenderingSizeMobile?: {width: number; height: number};

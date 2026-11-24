@@ -18,6 +18,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
 
 	accumulationFrames: number;
 	accumulationFramesMobile: number;
+	accumulationMode: "display" | "hdr";
 	automaticColorAdjustment: boolean;
 	beautyRenderBlendingDuration: number;
 	beautyRenderDelay: number;

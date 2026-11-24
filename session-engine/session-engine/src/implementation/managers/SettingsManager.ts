@@ -269,6 +269,7 @@ export class SettingsManager {
 			const rendering = settings.rendering as {
 				accumulationFrames?: number;
 				accumulationFramesMobile?: number;
+				accumulationMode?: "display" | "hdr";
 				maximumRenderingSize?: {width: number; height: number};
 				maximumRenderingSizeMobile?: {width: number; height: number};
 			};
@@ -277,6 +278,7 @@ export class SettingsManager {
 			currentRendering.accumulationFrames = rendering.accumulationFrames;
 			currentRendering.accumulationFramesMobile =
 				rendering.accumulationFramesMobile;
+			currentRendering.accumulationMode = rendering.accumulationMode;
 			currentRendering.maximumRenderingSize =
 				rendering.maximumRenderingSize;
 			currentRendering.maximumRenderingSizeMobile =

@@ -167,6 +167,16 @@ export interface IViewportApi {
 	 */
 	accumulationFramesMobile: number;
 	/**
+	 * Where the frames of {@link accumulationFrames} are averaged. (default: "display", the legacy look)
+	 * "display" averages the finished frames on the canvas, after post-processing and tone mapping.
+	 * "hdr" averages the scene in the high dynamic range buffer of the post-processing, before bloom
+	 * and tone mapping, which then run once on the average. Small bright highlights keep their
+	 * brightness instead of being clipped in every frame before they are averaged.
+	 * "hdr" needs post-processing with HDR buffers (`postprocessing.hdr`, a device with half-float
+	 * render targets); otherwise "display" is used.
+	 */
+	accumulationMode: "display" | "hdr";
+	/**
 	 * Option to enable / disable the automatic color space adaption. This converts all color inputs to the chosen {@link outputEncoding}. (default: true)
 	 */
 	automaticColorAdjustment: boolean;

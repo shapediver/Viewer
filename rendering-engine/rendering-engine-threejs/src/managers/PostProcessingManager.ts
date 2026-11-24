@@ -83,6 +83,7 @@ import {
 } from "./postprocessing/effects/bloom/HighlightBloomEffect";
 import {ToneMappingEffect} from "./postprocessing/effects/tone-mapping/ToneMappingEffect";
 import {GodRaysManager} from "./postprocessing/GodRaysManager";
+import {HdrAccumulationPass} from "./postprocessing/HdrAccumulationPass";
 import {OutlineManager} from "./postprocessing/OutlineManager";
 import {SelectiveBloomManager} from "./postprocessing/SelectiveBloomManager";
 import {SSAARenderPass} from "./postprocessing/SSAARenderPass";
@@ -138,6 +139,9 @@ export class PostProcessingManager implements IManager {
 		[key: string]: GodRaysManager;
 	} = {};
 	private _hdr: boolean = false;
+	private _hdrAccumulation: boolean = false;
+	private _hdrAccumulationActive: boolean = false;
+	private _hdrAccumulationPass?: HdrAccumulationPass;
 	private _initialized: boolean = false;
 	private _lastSize?: {width: number; height: number};
 	private readonly _logger: Logger = Logger.instance;
@@ -255,6 +259,52 @@ export class PostProcessingManager implements IManager {
 		this.changeEffectPass();
 	}
 
+	/**
+	 * Whether still frames are averaged in the HDR buffer, before the
+	 * effects and the tone mapping (accumulationMode "hdr").
+	 */
+	public get hdrAccumulation(): boolean {
+		return this._hdrAccumulation;
+	}
+
+	public set hdrAccumulation(value: boolean) {
+		if (this._hdrAccumulation === value) return;
+		this._hdrAccumulation = value;
+		this.changeEffectPass();
+	}
+
+	/**
+	 * Whether the frames rendered with post-processing can be averaged in
+	 * the HDR buffer, see {@link beginHdrAccumulation}.
+	 */
+	public get hdrAccumulationAvailable(): boolean {
+		return this._hdrAccumulationPass !== undefined;
+	}
+
+	/**
+	 * The number of frames in the HDR mean. A rebuild of the passes starts a
+	 * new mean, so it can be lower than the number of frames drawn.
+	 */
+	public get hdrAccumulationCount(): number {
+		return this._hdrAccumulationPass?.count ?? 0;
+	}
+
+	/**
+	 * Adds the frames rendered from now on to the HDR mean, until
+	 * {@link endHdrAccumulation}. The effects and the tone mapping then run
+	 * on the mean. With `restart`, the next frame starts a new mean.
+	 */
+	public beginHdrAccumulation(restart: boolean): void {
+		this._hdrAccumulationActive = true;
+		this._hdrAccumulationPass?.begin(restart);
+	}
+
+	/** Renders the following frames on their own again. */
+	public endHdrAccumulation(): void {
+		this._hdrAccumulationActive = false;
+		this._hdrAccumulationPass?.end();
+	}
+
 	public get initialized(): boolean {
 		return this._initialized;
 	}
@@ -267,6 +317,8 @@ export class PostProcessingManager implements IManager {
 		this._manualPostProcessing = value;
 		if (this._composer && this._manualPostProcessing === true) {
 			this._composer.removeAllPasses();
+			this._hdrAccumulationPass?.dispose();
+			this._hdrAccumulationPass = undefined;
 			this._renderingEngine.materialLoader.setScreenSpaceAmbientOcclusion(
 				false,
 			);
@@ -446,6 +498,8 @@ export class PostProcessingManager implements IManager {
 				this._enablePostProcessingOnMobile === false) ||
 			this._manualPostProcessing
 		) {
+			// the passes are not built here, the frames are averaged on the canvas
+			this._hdrAccumulationPass = undefined;
 			this._renderingEngine.materialLoader.setScreenSpaceAmbientOcclusion(
 				false,
 			);
@@ -1282,6 +1336,32 @@ export class PostProcessingManager implements IManager {
 			);
 		} else {
 			materialLoader.setScreenSpaceAmbientOcclusion(false);
+		}
+
+		// accumulationMode "hdr": average the still frames right after the
+		// scene (and after the reflections kept the single frame), before the
+		// effects and the tone mapping. Only with HDR buffers, otherwise the
+		// frames are averaged on the canvas.
+		this._hdrAccumulationPass = undefined;
+		if (
+			this._hdrAccumulation &&
+			this._composer.inputBuffer.texture.type === THREE.HalfFloatType
+		) {
+			const scenePass =
+				antiAliasingTechnique === ANTI_ALIASING_TECHNIQUE.SSAA
+					? this._ssaaRenderPass!
+					: this._renderPass!;
+			const sceneIndex = this._composer.passes.indexOf(scenePass);
+			if (sceneIndex !== -1) {
+				const pass = new HdrAccumulationPass();
+				// rebuilt while a frame is drawn (camera change): a new mean
+				if (this._hdrAccumulationActive) pass.begin(true);
+				this.addPassToEffectComposer(
+					pass,
+					sceneIndex + (ssrEffect ? 2 : 1),
+				);
+				this._hdrAccumulationPass = pass;
+			}
 		}
 
 		// for the AO effects we need to add a separate AA pass at the end that anti-aliases the AO effect

@@ -256,6 +256,26 @@ export class ViewportApi implements IViewportApi {
 		this.update("accumulationFramesMobile");
 	}
 
+	public get accumulationMode(): "display" | "hdr" {
+		return this.#renderingEngine.accumulationMode;
+	}
+
+	public set accumulationMode(value: "display" | "hdr") {
+		const scope = "accumulationMode";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"enum",
+			true,
+			["display", "hdr"],
+		);
+		this.#renderingEngine.accumulationMode = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("accumulationMode");
+	}
+
 	public get automaticColorAdjustment(): boolean {
 		return this.#renderingEngine.automaticColorAdjustment;
 	}

@@ -465,11 +465,14 @@ export class SettingsManager implements IManager {
 		const renderingAccumulation = settingsEngine.rendering as {
 			accumulationFrames?: number;
 			accumulationFramesMobile?: number;
+			accumulationMode?: "display" | "hdr";
 		};
 		renderingAccumulation.accumulationFrames =
 			this._renderingEngine.accumulationFrames;
 		renderingAccumulation.accumulationFramesMobile =
 			this._renderingEngine.accumulationFramesMobile;
+		renderingAccumulation.accumulationMode =
+			this._renderingEngine.accumulationMode;
 
 		// The engine holds the cap of this device only. The cap of the other
 		// device kind is the one last applied, else the engine default. Not the
@@ -575,6 +578,7 @@ export class SettingsManager implements IManager {
 			const rendering = settingsEngine.rendering as {
 				accumulationFrames?: unknown;
 				accumulationFramesMobile?: unknown;
+				accumulationMode?: unknown;
 			};
 			this._renderingEngine.accumulationFrames =
 				typeof rendering.accumulationFrames === "number"
@@ -584,6 +588,9 @@ export class SettingsManager implements IManager {
 				typeof rendering.accumulationFramesMobile === "number"
 					? rendering.accumulationFramesMobile
 					: 0;
+			// a missing or invalid value is the old look (on the canvas)
+			this._renderingEngine.accumulationMode =
+				rendering.accumulationMode === "hdr" ? "hdr" : "display";
 
 			// Settings without a maximum rendering size (saved before 7.2 and not
 			// converted) leave the value of the engine alone.
