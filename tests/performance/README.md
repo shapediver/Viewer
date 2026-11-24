@@ -10,19 +10,19 @@ The rule that keeps parallel work apart: **a new test, counter or benchmark sect
 
 ## Layout
 
-| Path                                                           | What it is                                                                                                                                           |
-| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `exact/`                                                       | Pass/fail tests of one mechanism on a toy scene. One `SS-<key>.perf.ts` per ticket.                                                                  |
-| `exact/harness.ts`                                             | `test` (routes the asset host to `assets/`), `installApi`, `open`, helpers that two tickets share.                                                   |
-| `budgets/`                                                     | Exact counters of an AEC facade, compared with a committed baseline.                                                                                 |
-| `budgets/harness.ts`                                           | Baseline read/write/compare, per-frame counters, settle and measure helpers.                                                                         |
-| `budgets/<scenario>.perf.ts`                                   | One scenario: `facade` (4 rendering variants), `interaction`, `attributes`, `blendedGlass`, `gltf`, `instancing`, `batchedMember`, `outputReplaced`. |
-| `budgets/baseline/<id>.json`                                   | The baseline of one id. Sorted keys, tabs, CRLF.                                                                                                     |
-| `fixtures/probe.ts`                                            | `window.__probe`: wraps the renderer and reads `renderer.info`. Used by budgets and benchmarks.                                                      |
-| `fixtures/counters/`                                           | Counters that wrap three.js functions. One file each, listed in `counters/index.ts`.                                                                 |
-| `fixtures/aecScene.ts`, `instancingGlbs.ts`, `syntheticGlb.ts` | Generated scenes and files.                                                                                                                          |
-| `bench/`                                                       | Work counts and timing for two builds. See [bench/README.md](bench/README.md).                                                                       |
-| `bench/timing/`, `bench/count/`                                | One file per timing metric and per work-count section, listed in `timing/index.ts` and `count/index.ts`.                                             |
+| Path                                                           | What it is                                                                                                                                                                   |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `exact/`                                                       | Pass/fail tests of one mechanism on a toy scene. One `SS-<key>.perf.ts` per ticket.                                                                                          |
+| `exact/harness.ts`                                             | `test` (routes the asset host to `assets/`), `installApi`, `open`, helpers that two tickets share.                                                                           |
+| `budgets/`                                                     | Exact counters of an AEC facade, compared with a committed baseline.                                                                                                         |
+| `budgets/harness.ts`                                           | Baseline read/write/compare, per-frame counters, settle and measure helpers.                                                                                                 |
+| `budgets/<scenario>.perf.ts`                                   | One scenario: `facade` (4 rendering variants), `interaction`, `attributes`, `blendedGlass`, `gltf`, `instancing`, `batchedMember`, `outputReplaced`, `memory`, `memoryLeak`. |
+| `budgets/baseline/<id>.json`                                   | The baseline of one id. Sorted keys, tabs, CRLF.                                                                                                                             |
+| `fixtures/probe.ts`                                            | `window.__probe`: wraps the renderer and reads `renderer.info`. Used by budgets and benchmarks.                                                                              |
+| `fixtures/counters/`                                           | Counters that wrap three.js functions. One file each, listed in `counters/index.ts`.                                                                                         |
+| `fixtures/aecScene.ts`, `instancingGlbs.ts`, `syntheticGlb.ts` | Generated scenes and files.                                                                                                                                                  |
+| `bench/`                                                       | Work counts and timing for two builds. See [bench/README.md](bench/README.md).                                                                                               |
+| `bench/timing/`, `bench/count/`                                | One file per timing metric and per work-count section, listed in `timing/index.ts` and `count/index.ts`.                                                                     |
 
 Configs: `playwright.config.ts` (`pnpm test:performance`) runs everything that matches `**/*.perf.ts`, so exact tests and budgets, on port 8099. `budgets.playwright.config.ts` runs only `budgets/**/*.perf.ts` on port 8191. The benchmarks use 8195 to 8198 (see `bench/`). Before a run, check that the ports are free: a second run on a port reads the other run's build.
 
@@ -112,7 +112,18 @@ Counters today in `facade`: passes, draw calls, triangles, programs, material up
 
 `fixtures/counters/picking.ts` (SS-10393) is not in `counters/index.ts`: `budgets/interaction.perf.ts` installs it with `page.evaluate(installPicking)` and calls `attach()` once the scene has batches. It counts picks (`pointerEventToRay` calls), `Mesh.raycast` calls on hidden batch sources, `BatchedMesh.raycast` calls and the bounds reads inside them. `interactionBlendedGlass` is the interaction scenario on a batched facade.
 
-`outputReplaced` (SS-10581) is the update after a computation: the tower is split into the outputs of one session (one of 10 floors, five of 2), and one output is replaced the way the session engine does it after a customization. `tenth.*` replaces a 2-floor output, `half.*` the 10-floor one. Each counts the update call (`inUpdate.*`), the first frame after it (`firstFrame.*`) and everything until the picture settled: nodes re-versioned and visited, batches rebuilt, materials and programs created, bounds computed, shadow map renders (`fixtures/counters/shadowMap.ts`) and full-screen passes. `outputReplacedShadowsSsao` is the same with shadows and ambient occlusion, GPU only. The times (in the call, until the first frame, until settled) are printed and annotated, never compared.
+`outputReplaced` (SS-10581) is the update after a computation: the tower is split into the outputs of one session (one of 10 floors, five of 2), and one output is replaced the way the session engine does it after a customization. `tenth.*` replaces a 2-floor output, `half.*` the 10-floor one. Each counts the update call (`inUpdate.*`), the first frame after it (`firstFrame.*`) and everything until the picture settled: nodes re-versioned and visited, batches rebuilt, materials and programs created, bounds computed, shadow map renders (`fixtures/counters/shadowMap.ts`) and full-screen passes. `outputReplacedShadowsSsao` is the same with shadows and ambient occlusion, GPU only. The times (in the call, until the first frame, until settled) are printed and annotated, never compared. The session tree and the swap are in `fixtures/sessionOutputs.ts`.
+
+## Memory
+
+`budgets/memory.perf.ts` (SS-10582) gives the memory of the settled AEC facade in four variants: `memory` and `memorySsao` (software-safe), `memoryShadows` and `memoryShadowsSsao` (GPU only).
+
+- GPU side, in the baseline: `fixtures/counters/gpuMemory.ts` wraps the WebGL calls that create, size and delete buffers, textures, renderbuffers and framebuffers, and counts what is alive with its bytes (textures attached to a framebuffer count as render targets), plus three.js' own `renderer.info` counts and the canvas' drawing-buffer pixels. It is what the viewer asks for, not what the driver uses (alignment, padding and the canvas' own buffer are not in it). An unknown texture format counts 4 bytes per texel and shows up in `gpu.unknownFormats`.
+- JavaScript heap: read after a forced garbage collection through the debugging protocol (`fixtures/memory.ts`), printed and annotated, never compared. It depends on the browser version and on V8.
+
+`budgets/memoryLeak.perf.ts` is a pass/fail leak test, no baseline: a smaller session (outputs of 2, 1 and 1 floors, 640 x 360) gets 100 computations that each replace one output, and the GPU counters after computation 10 and after the last must be equal; the heap may grow by at most 1 MB or 1%, whichever is larger. `LEAK_COMPUTATIONS` sets the number; `UPDATE_BUDGETS=1` skips the test.
+
+A pull request that adds a cache or a buffer states its memory cost per million triangles and per megapixel, from these figures.
 
 `batchedMember` (SS-10477) changes one member of the mullion batch: hidden, given a new geometry data, and given a new version of its geometry. Each step counts the writes into batches (`fixtures/counters/batchedMesh.ts`: batches created and removed, vertices copied, members applied again), `updateMatrixWorld` and `updateWorldMatrix` calls, tree data reads and program lookups.
 
