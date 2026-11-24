@@ -53,6 +53,8 @@ export class GemMaterial extends MeshPhysicalMaterial {
 
 	/** Shared by all gem materials. Set to 1 by the post-processing manager while it renders into half-float (HDR) buffers, so traced colors may exceed 1. */
 	public static readonly hdrOutputUniform: {value: number} = {value: 0};
+	/** Shared by all gem materials. 1 (the legacy look) clamps traced colors at 1 outside the HDR composer, 0 lets them exceed 1 so that tone mapping can bring highlights to white. Set by `RenderingEngine.gemClampColor`. */
+	public static readonly clampColorUniform: {value: number} = {value: 1};
 
 	public isGemMaterial: boolean;
 
@@ -122,6 +124,7 @@ export class GemMaterial extends MeshPhysicalMaterial {
 			tracingOpacity: {value: 0.0},
 			gemEnvMapIntensity: {value: 1.0},
 			hdrOutput: GemMaterial.hdrOutputUniform,
+			clampColor: GemMaterial.clampColorUniform,
 		};
 
 		let physicalDispersion = false;
