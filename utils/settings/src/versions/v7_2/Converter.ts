@@ -38,6 +38,8 @@ export const OLD_LOOK_V7_2 = {
 	accumulationFrames: 0,
 	/** `rendering.accumulationFramesMobile` */
 	accumulationFramesMobile: 0,
+	/** `rendering.accumulationMode` */
+	accumulationMode: "display",
 	/** `rendering.maximumRenderingSize` */
 	maximumRenderingSize: {width: 1920, height: 1080},
 	/** `rendering.maximumRenderingSizeMobile` */
@@ -100,6 +102,8 @@ export const convertFromPrevious = (
 			accumulationFramesMobile:
 				oldRendering.accumulationFramesMobile ??
 				OLD_LOOK_V7_2.accumulationFramesMobile,
+			accumulationMode:
+				oldRendering.accumulationMode ?? OLD_LOOK_V7_2.accumulationMode,
 			maximumRenderingSize: oldRendering.maximumRenderingSize ?? {
 				...OLD_LOOK_V7_2.maximumRenderingSize,
 			},
@@ -155,7 +159,7 @@ export const convertToPrevious = (
 	// - material.physicalGemDispersion, material.physicalGemFresnel, material.gemLighting,
 	//   material.gemEnvironmentMapIntensity,
 	//   material.gemTracing, material.gemNormalMapResolution
-	// - rendering.accumulationFrames, rendering.accumulationFramesMobile
+	// - rendering.accumulationFrames, rendering.accumulationFramesMobile, rendering.accumulationMode
 	// - rendering.maximumRenderingSize, rendering.maximumRenderingSizeMobile
 	// - bloom properties: backgroundBloom, highlightsOnly, highlightLimit (mipmapBlur is required in 7.1)
 	// - HBAO/SSAO properties: mode, specularOcclusion, excludeGems
@@ -200,6 +204,7 @@ export const convertToPrevious = (
 	const rendering: any = {...newSettings.rendering};
 	delete rendering.accumulationFrames;
 	delete rendering.accumulationFramesMobile;
+	delete rendering.accumulationMode;
 	delete rendering.maximumRenderingSize;
 	delete rendering.maximumRenderingSizeMobile;
 
