@@ -28,6 +28,9 @@ const LATE = urlParameters.get("late") === "1";
 // `?accumulation=<frames>` averages that many jittered frames of the still
 // view (default 32, 0 turns it off)
 const ACCUMULATION_FRAMES = Number(urlParameters.get("accumulation") ?? 32);
+// `?accumulationMode=hdr` averages those frames before bloom and tone mapping
+const ACCUMULATION_MODE =
+	urlParameters.get("accumulationMode") === "hdr" ? "hdr" : "display";
 // `?physicalDispersion=1` uses the physically based gem dispersion
 const PHYSICAL_DISPERSION = urlParameters.get("physicalDispersion") === "1";
 // `?physicalFresnel=1` lets most light leave the stone at the first facet it
@@ -175,6 +178,7 @@ const createGemMaterial = () =>
 	// edges, facets and highlights
 	viewport.accumulationFrames = ACCUMULATION_FRAMES;
 	viewport.accumulationFramesMobile = Math.min(ACCUMULATION_FRAMES, 8);
+	viewport.accumulationMode = ACCUMULATION_MODE;
 
 	if (viewport.camera?.type === SDV.CAMERA_TYPE.PERSPECTIVE)
 		(<SDV.IPerspectiveCameraApi>viewport.camera).fov = 25;
