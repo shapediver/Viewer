@@ -22,6 +22,14 @@ import {
  */
 export type IAmbientOcclusionMode = "composite" | "shading";
 
+/**
+ * How an ambient occlusion effect in the "shading" mode darkens the environment reflections.
+ * "physical" uses the specular occlusion of three.js (polished metal seen head-on is barely darkened),
+ * "uniform" darkens the reflections by the ambient occlusion itself.
+ * The default is "physical".
+ */
+export type IAmbientOcclusionSpecularOcclusion = "physical" | "uniform";
+
 export interface IBloomEffectDefinition extends Omit<
 	IBloomEffectDefinitionV4,
 	"properties"
@@ -63,6 +71,11 @@ export interface IHBAOEffectDefinition extends Omit<
 		 */
 		mode?: IAmbientOcclusionMode;
 		/**
+		 * Only in the "shading" mode: how the ambient occlusion darkens the environment reflections.
+		 * Default: "physical"
+		 */
+		specularOcclusion?: IAmbientOcclusionSpecularOcclusion;
+		/**
 		 * Whether gems are left out of the ambient occlusion in the composite mode.
 		 * Settings converted from before 7.2 use false.
 		 */
@@ -80,6 +93,11 @@ export interface ISSAOEffectDefinition extends Omit<
 		 * Default: "composite"
 		 */
 		mode?: IAmbientOcclusionMode;
+		/**
+		 * Only in the "shading" mode: how the ambient occlusion darkens the environment reflections.
+		 * Default: "physical"
+		 */
+		specularOcclusion?: IAmbientOcclusionSpecularOcclusion;
 		/**
 		 * Whether gems are left out of the ambient occlusion in the composite mode.
 		 * Settings converted from before 7.2 use false.

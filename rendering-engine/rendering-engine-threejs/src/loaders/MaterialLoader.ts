@@ -176,6 +176,9 @@ export class MaterialLoader implements ILoader {
 	};
 	private readonly _screenAOHooked = new WeakSet<THREE.Material>();
 	private _screenAOEnabled = false;
+	// the AO darkens the environment reflections directly instead of
+	// through three's specular occlusion (see setScreenSpaceAmbientOcclusion)
+	private _screenAOUniformSpecular = false;
 	// per instance, set by the screen space reflection passes
 	private readonly _screenSSRUniforms: IScreenSSRUniforms = {
 		sdvSSRColorMap: {value: null},
@@ -431,9 +434,17 @@ export class MaterialLoader implements ILoader {
 	 * or off for all cached materials. Gems, transparent materials and
 	 * unlit materials are never affected.
 	 */
-	public setScreenSpaceAmbientOcclusion(enabled: boolean) {
-		if (enabled === this._screenAOEnabled) return;
+	public setScreenSpaceAmbientOcclusion(
+		enabled: boolean,
+		uniformSpecular = false,
+	) {
+		if (
+			enabled === this._screenAOEnabled &&
+			uniformSpecular === this._screenAOUniformSpecular
+		)
+			return;
 		this._screenAOEnabled = enabled;
+		this._screenAOUniformSpecular = uniformSpecular;
 		if (!enabled)
 			this._screenAOUniforms.sdvScreenAOMap.value = this._screenAONone;
 		for (const cacheKey in this._materialCache) {
@@ -603,15 +614,27 @@ if ( sdvSSRValid > 0.5 && metalnessFactor > 0.5 && material.roughness < sdvSSRPa
 		const materialWithDefines = material as THREE.Material & {
 			defines?: {[key: string]: string};
 		};
+		const uniformSpecular = eligible && this._screenAOUniformSpecular;
 		const present =
 			materialWithDefines.defines !== undefined &&
 			"SDV_SCREEN_AO" in materialWithDefines.defines;
-		if (eligible === present) return;
+		const uniformSpecularPresent =
+			materialWithDefines.defines !== undefined &&
+			"SDV_SCREEN_AO_UNIFORM_SPECULAR" in materialWithDefines.defines;
+		if (eligible === present && uniformSpecular === uniformSpecularPresent)
+			return;
+		materialWithDefines.defines ??= {};
 		if (eligible) {
-			materialWithDefines.defines ??= {};
 			materialWithDefines.defines["SDV_SCREEN_AO"] = "";
 		} else {
-			delete materialWithDefines.defines!["SDV_SCREEN_AO"];
+			delete materialWithDefines.defines["SDV_SCREEN_AO"];
+		}
+		if (uniformSpecular) {
+			materialWithDefines.defines["SDV_SCREEN_AO_UNIFORM_SPECULAR"] = "";
+		} else {
+			delete materialWithDefines.defines[
+				"SDV_SCREEN_AO_UNIFORM_SPECULAR"
+			];
 		}
 		material.needsUpdate = true;
 	}
@@ -670,8 +693,12 @@ uniform vec3 sdvScreenAOColor;
 		sheenSpecularIndirect *= sdvAO;
 	#endif
 	#if defined( USE_ENVMAP ) && defined( STANDARD )
-		float sdvDotNV = saturate( dot( geometryNormal, geometryViewDir ) );
-		reflectedLight.indirectSpecular *= computeSpecularOcclusion( sdvDotNV, sdvAO, material.roughness );
+		#ifdef SDV_SCREEN_AO_UNIFORM_SPECULAR
+			reflectedLight.indirectSpecular *= sdvAO;
+		#else
+			float sdvDotNV = saturate( dot( geometryNormal, geometryViewDir ) );
+			reflectedLight.indirectSpecular *= computeSpecularOcclusion( sdvDotNV, sdvAO, material.roughness );
+		#endif
 	#endif
 }
 #endif`,
