@@ -2,6 +2,7 @@ import {installBatchedMesh} from "./batchedMesh";
 import {installBatchRebuild} from "./batchRebuild";
 import {installMatrixWorld} from "./matrixWorld";
 import {installProgramCacheKey} from "./programCacheKey";
+import {installShadowMap} from "./shadowMap";
 
 /**
  * Counters that wrap three.js functions, in the order `openViewer` evaluates
@@ -19,4 +20,5 @@ export const COUNTER_INSTALLERS = [
 	installProgramCacheKey,
 	installBatchedMesh,
 	installBatchRebuild,
+	installShadowMap,
 ];

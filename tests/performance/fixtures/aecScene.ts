@@ -28,6 +28,11 @@ export interface AecSceneOptions {
 	 * their opacity and still write depth.
 	 */
 	glassBlend?: boolean;
+	/**
+	 * Leaves the tree out of the scene tree, so the caller can place it,
+	 * for example as one output of a session (`budgets/outputReplaced`).
+	 */
+	detached?: boolean;
 }
 
 export const AEC_DEFAULT: AecSceneOptions = {
@@ -274,8 +279,10 @@ export function installAecScene() {
 			}
 		}
 
-		SDV.sceneTree.root.addChild(root);
-		SDV.sceneTree.root.updateVersion();
+		if (!options.detached) {
+			SDV.sceneTree.root.addChild(root);
+			SDV.sceneTree.root.updateVersion();
+		}
 
 		const height = floors * floorHeight;
 		return {
