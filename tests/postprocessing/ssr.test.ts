@@ -112,4 +112,66 @@ test.describe("Screen space reflections", () => {
 		expect(offAgain.equals(off)).toBe(true);
 		expect(glErrors).toEqual([]);
 	});
+
+	test("a screenshot right after adding ssr or a resize has reflections", async ({
+		page,
+	}) => {
+		await page.goto("test-cdn/index.html");
+		await changeAndSettle(
+			page,
+			`const viewport = await SDV.createViewport({
+				id: "myViewport",
+				canvas: document.getElementById("canvas"),
+			});
+			await SDV.createSession({
+				id: "mySession",
+				ticket: arg,
+				modelViewUrl: "https://sdr7euc1.eu-central-1.shapediver.com",
+			});
+			viewport.beautyRenderDelay = 100;
+			viewport.beautyRenderBlendingDuration = 1;
+			// a screenshot then draws a new frame instead of the accumulated one
+			viewport.accumulationFrames = 0;
+			viewport.postProcessing.addEffect({
+				type: SDV.POST_PROCESSING_EFFECT_TYPE.VIGNETTE,
+				properties: {darkness: 0},
+			});`,
+			shelfTicket,
+		);
+
+		// The reflections read the previous frame. A single frame drawn for a
+		// screenshot has to have one, even when the effect has none yet.
+		const result = await page.evaluate(async () => {
+			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+			const viewport = SDV.viewports["myViewport"];
+			const token = viewport.postProcessing.addEffect({
+				type: SDV.POST_PROCESSING_EFFECT_TYPE.SSR,
+			});
+			const effect = viewport.postProcessing.getEffect(
+				token,
+			) as unknown as {
+				lastFrameValid: boolean;
+			};
+			viewport.getScreenshot();
+			const afterAdd = effect.lastFrameValid;
+
+			const size = async (dataUrl: string) => {
+				const img = new Image();
+				img.src = dataUrl;
+				await img.decode();
+				return [img.width, img.height];
+			};
+			const before = await size(viewport.getScreenshot());
+			// the viewport takes its size from the parent of the canvas
+			const parent = document.getElementById("canvas")!.parentElement!;
+			parent.style.width = `${Math.round(parent.clientWidth / 2)}px`;
+			const resized = viewport.getScreenshot();
+			const afterResize = effect.lastFrameValid;
+			return {afterAdd, afterResize, before, after: await size(resized)};
+		});
+		expect(result.afterAdd).toBe(true);
+		// the resize changed the drawing buffer, so the effect had to start over
+		expect(result.after).not.toEqual(result.before);
+		expect(result.afterResize).toBe(true);
+	});
 });

@@ -1009,9 +1009,11 @@ export class RenderingManager implements IManager {
 
 		const draw = () => {
 			if (renderPostProcessing) {
+				// a frame outside the render loop (screenshot) is drawn on its own
 				this._renderingEngine.postProcessingManager.render(
 					deltaTime,
 					camera,
+					!options.trackBeauty,
 				);
 			} else {
 				this._renderingEngine.renderer.render(scene, camera);

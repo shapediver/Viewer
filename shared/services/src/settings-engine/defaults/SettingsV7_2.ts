@@ -23,7 +23,20 @@ type IAmbientOcclusionEffect = {
 	properties: {
 		[key: string]: number | string | boolean | undefined;
 		mode?: "composite" | "shading";
+		specularOcclusion?: "physical" | "uniform";
 		excludeGems: boolean;
+	};
+};
+
+type IScreenSpaceReflectionEffect = {
+	type: "ssr";
+	properties: {
+		intensity?: number;
+		maxRoughness?: number;
+		steps?: number;
+		distance?: number;
+		thickness?: number;
+		enableOnMobile?: boolean;
 	};
 };
 
@@ -56,7 +69,11 @@ export type ISettingsV7_2 = Omit<
 		mapAnalyticDfg: boolean;
 	};
 	postprocessing: Omit<ISettings["postprocessing"], "effects"> & {
-		effects: (IBloomEffect | IAmbientOcclusionEffect)[];
+		effects: (
+			| IBloomEffect
+			| IAmbientOcclusionEffect
+			| IScreenSpaceReflectionEffect
+		)[];
 		hdr: boolean;
 	};
 	material: ISettings["material"] & {

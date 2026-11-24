@@ -37,6 +37,10 @@ const readOptions = () => {
 			highlightsOnly: p.highlightsOnly,
 			backgroundBloom: p.backgroundBloom,
 		})),
+		// screen-space reflections, only in the jewelry preset (SS-10509)
+		ssr: properties("ssr").map((p) => ({
+			enableOnMobile: p.enableOnMobile === true,
+		})),
 	};
 };
 
@@ -58,6 +62,7 @@ const OLD_LOOK = {
 	gemNormalMapResolution: 1024,
 	accumulationFrames: 0,
 	accumulationFramesMobile: 0,
+	ssr: [],
 	accumulationMode: "display",
 };
 
@@ -120,6 +125,7 @@ test.describe("Default settings", () => {
 			accumulationMode: "display",
 			aoExcludeGems: [true],
 			bloom: [],
+			ssr: [],
 		});
 		expect(await page.evaluate(readMaximumRenderingSize)).toEqual({
 			width: 2560,
@@ -139,18 +145,24 @@ test.describe("Default settings", () => {
 			accumulationMode: "display",
 			aoExcludeGems: [true],
 			bloom: [{highlightsOnly: true, backgroundBloom: false}],
+			// on desktop only
+			ssr: [{enableOnMobile: false}],
 		});
-		// AO only on the indirect light, so polished metal keeps its reflections
+		// SSAO inside the shading, darkening the reflections by the AO itself
+		// (SS-10601), so polished metal keeps its highlights
 		expect(
 			await page.evaluate(() =>
 				(<typeof ShapeDiverViewer>(<any>window).SDV).viewports[
 					"myViewport"
 				].postProcessing
 					.getPostProcessingEffectsArray()
-					.filter((e) => e.type === "hbao")
-					.map((e) => (<Record<string, unknown>>e.properties).mode),
+					.filter((e) => e.type === "ssao" || e.type === "hbao")
+					.map((e) => {
+						const p = <Record<string, unknown>>e.properties;
+						return [e.type, p.mode, p.specularOcclusion];
+					}),
 			),
-		).toEqual(["shading"]);
+		).toEqual([["ssao", "shading", "uniform"]]);
 		expect(await page.evaluate(readMaximumRenderingSize)).toEqual({
 			width: 2560,
 			height: 1440,

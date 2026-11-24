@@ -60,6 +60,8 @@ export class SSREffect extends Effect {
 	private _copyPass?: CopyPass;
 	private _depthTexture: THREE.Texture | null = null;
 	private _hasPrevious = false;
+	private _lastFrameValid = false;
+	private _prepared: "none" | "valid" | "invalid" = "none";
 	private _prevCamera = new THREE.Vector3(0.1, 1000, 0);
 
 	// #endregion Properties (5)
@@ -90,6 +92,21 @@ export class SSREffect extends Effect {
 			before: new SSRPreparePass(this, uniforms),
 			after: new SSRCapturePass(this, uniforms),
 		};
+	}
+
+	/** Whether the last rendered frame had a previous frame to reflect. */
+	public get lastFrameValid(): boolean {
+		return this._lastFrameValid;
+	}
+
+	/**
+	 * Whether a frame was prepared since the last call, and whether it had a
+	 * previous frame to reflect. Resets the state.
+	 */
+	public takeFrameState(): "none" | "valid" | "invalid" {
+		const state = this._prepared;
+		this._prepared = "none";
+		return state;
 	}
 
 	public dispose(): void {
@@ -136,6 +153,8 @@ export class SSREffect extends Effect {
 			: null;
 		uniforms.sdvSSRDepthMap.value = valid ? this._depthTexture : null;
 		uniforms.sdvSSRValid.value = valid ? 1 : 0;
+		this._lastFrameValid = valid;
+		this._prepared = valid ? "valid" : "invalid";
 		// a golden ratio sequence, so accumulated frames sample other steps
 		uniforms.sdvSSRNoise.value =
 			(uniforms.sdvSSRNoise.value + 0.618034) % 1;

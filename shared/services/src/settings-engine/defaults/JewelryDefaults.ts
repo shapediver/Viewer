@@ -67,13 +67,27 @@ export const JewelryDefaults: () => ISettings = () => {
 				{
 					// contact darkening in crevices, not on the stones
 					properties: {
-						// AO only on the indirect light inside the shading: the
-						// composite mode at power 2.5 darkened the mirror
-						// reflections of polished metal by up to 17 levels
+						// AO inside the shading: the composite mode at power 2.5
+						// darkened the highlights of polished metal by up to 17
+						// levels. "uniform" darkens the environment reflections
+						// by the AO itself; three's specular occlusion left
+						// mirror metal seen head-on untouched and blackened it
+						// at grazing angles. With the SSAO this darkens the gold
+						// of a ring like the reference renderer (SS-10601).
 						mode: "shading",
+						specularOcclusion: "uniform",
 						excludeGems: true,
 					},
-					type: "hbao",
+					type: "ssao",
+				},
+				{
+					// polished metal reflects the neighbouring geometry, e.g. the
+					// gallery under a ring's head reflects the prongs (SS-10509);
+					// desktop only, it costs too much on mobile devices
+					properties: {
+						enableOnMobile: false,
+					},
+					type: "ssr",
 				},
 				{
 					// a glow on the brightest highlights only; the mipmap blur
