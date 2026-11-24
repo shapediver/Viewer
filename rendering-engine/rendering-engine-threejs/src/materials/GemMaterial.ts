@@ -123,6 +123,10 @@ export class GemMaterial extends MeshPhysicalMaterial {
 			dispersion: {value: 0.0},
 			tracingOpacity: {value: 0.0},
 			gemEnvMapIntensity: {value: 1.0},
+			// not "attenuationColor" / "attenuationDistance": those are the
+			// uniforms of three.js transmission, which gems do not use
+			gemAttenuationColor: {value: new THREE.Color(0xffffff)},
+			gemAttenuationDistance: {value: Infinity},
 			hdrOutput: GemMaterial.hdrOutputUniform,
 			clampColor: GemMaterial.clampColorUniform,
 		};
@@ -358,6 +362,38 @@ export class GemMaterial extends MeshPhysicalMaterial {
 					uniforms.tracingOpacity.value = v;
 				},
 			},
+			// These two replace the properties of MeshPhysicalMaterial with
+			// the same names and meaning: light inside the stone takes on
+			// attenuationColor after attenuationDistance (world units), per
+			// channel (Beer-Lambert). Infinity (the default) turns it off.
+			attenuationColor: {
+				get: function () {
+					return uniforms.gemAttenuationColor.value;
+				},
+				set: function (v) {
+					uniforms.gemAttenuationColor.value = v;
+				},
+			},
+			attenuationDistance: {
+				get: function () {
+					return uniforms.gemAttenuationDistance.value;
+				},
+				set: function (v) {
+					uniforms.gemAttenuationDistance.value = v;
+					// absorption is off (and its shader code left out) unless
+					// the distance is finite and positive
+					const wanted = Number.isFinite(v) && v > 0;
+					// compare with the define, see physicalDispersion
+					const defined = "GEM_ATTENUATION" in this.defines;
+					if (wanted === defined) return;
+					if (wanted) {
+						this.defines.GEM_ATTENUATION = "";
+					} else {
+						delete this.defines.GEM_ATTENUATION;
+					}
+					this.needsUpdate = true;
+				},
+			},
 		});
 
 		this.refractionIndex = params.refractionIndex || 2.4;
@@ -382,6 +418,12 @@ export class GemMaterial extends MeshPhysicalMaterial {
 		this.lighting = params.lighting || "all";
 		this.gemEnvMapIntensity = params.gemEnvMapIntensity ?? 1;
 		this.tracingOpacity = params.tracingOpacity || 0;
+		this.attenuationColor.copy(
+			params.attenuationColor instanceof THREE.Color
+				? params.attenuationColor
+				: new THREE.Color(0xffffff),
+		);
+		this.attenuationDistance = params.attenuationDistance ?? Infinity;
 
 		this.setValues(params);
 	}
@@ -413,6 +455,11 @@ export class GemMaterial extends MeshPhysicalMaterial {
 		this.lighting = source.lighting;
 		this.gemEnvMapIntensity = source.gemEnvMapIntensity;
 		this.tracingOpacity = source.tracingOpacity;
+		// MeshPhysicalMaterial.copy already sets both after it replaces the
+		// defines; set them here too so GEM_ATTENUATION does not depend on
+		// that order
+		this.attenuationColor.copy(source.attenuationColor);
+		this.attenuationDistance = source.attenuationDistance;
 
 		return this;
 	}

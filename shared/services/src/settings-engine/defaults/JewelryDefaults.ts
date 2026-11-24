@@ -93,16 +93,17 @@ export const JewelryDefaults: () => ISettings = () => {
 					// a glow on the brightest highlights only; the mipmap blur
 					// uses the highlight default
 					properties: {
-						// The bloom numbers of the reference renderer: with them
-						// the bloom adds as much light to polished gold as the
-						// reference's does. A lower threshold or a stronger bloom
-						// makes overview shots too bright and puts halos around
-						// every pavé stone.
+						// The bloom numbers of the reference renderer. A lower
+						// threshold or a stronger bloom makes overview shots too
+						// bright and puts halos around every pavé stone.
 						intensity: 0.2,
 						luminanceThreshold: 2,
 						luminanceSmoothing: 0.5,
 						highlightsOnly: true,
 						backgroundBloom: false,
+						// add the blur levels like the reference's bloom: at the
+						// same intensity, gem glints get the same glow (SS-10603)
+						additiveBlur: true,
 					},
 					type: "bloom",
 				},
