@@ -29,6 +29,7 @@ const readOptions = () => {
 		toneMapping: viewport.toneMapping,
 		accumulationFrames: viewport.accumulationFrames,
 		accumulationFramesMobile: viewport.accumulationFramesMobile,
+		accumulationMode: viewport.accumulationMode,
 		aoExcludeGems: [...properties("ssao"), ...properties("hbao")].map(
 			(p) => p.excludeGems === true,
 		),
@@ -57,6 +58,7 @@ const OLD_LOOK = {
 	gemNormalMapResolution: 1024,
 	accumulationFrames: 0,
 	accumulationFramesMobile: 0,
+	accumulationMode: "display",
 };
 
 const NEW_LOOK = {
@@ -114,6 +116,8 @@ test.describe("Default settings", () => {
 			// only the jewelry preset accumulates frames (SS-10508)
 			accumulationFrames: 0,
 			accumulationFramesMobile: 0,
+			// no preset averages in HDR yet (SS-10607)
+			accumulationMode: "display",
 			aoExcludeGems: [true],
 			bloom: [],
 		});
@@ -132,6 +136,7 @@ test.describe("Default settings", () => {
 			toneMapping: "aces_filmic",
 			accumulationFrames: 32,
 			accumulationFramesMobile: 8,
+			accumulationMode: "display",
 			aoExcludeGems: [true],
 			bloom: [{highlightsOnly: true, backgroundBloom: false}],
 		});
