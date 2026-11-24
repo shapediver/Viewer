@@ -75,6 +75,18 @@ const MAX_INDICES = 3_000_000;
 const GROWTH = 1.5;
 
 /**
+ * Meta for the non-root `Material.toJSON` call of the batch key. Every texture
+ * is answered with a stub that holds its uuid, so `Texture.toJSON` returns
+ * early and no image is encoded to a data URL. The key needs only the uuid.
+ */
+const TEXTURE_META = {
+	textures: new Proxy({} as Record<string, {uuid: string}>, {
+		get: (_target, uuid) => (typeof uuid === "string" ? {uuid} : undefined),
+	}),
+	images: {},
+} as unknown as THREE.JSONMeta;
+
+/**
  * Draws static triangle meshes that share a material as one BatchedMesh.
  *
  * Color-only variants keep distinct material ids. The batch key ignores that
@@ -584,7 +596,7 @@ export class MaterialBatchManager {
 		material.userData = {};
 		let key: string;
 		try {
-			const json = material.toJSON() as unknown as Record<
+			const json = material.toJSON(TEXTURE_META) as unknown as Record<
 				string,
 				unknown
 			>;

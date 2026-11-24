@@ -1,0 +1,253 @@
+name: Pull Request Checks
+
+# Unit tests and performance tests on every pull request. GitHub runners have
+# no GPU, so the performance tests run on the SwiftShader software renderer
+# with their own baseline set (tests/performance/budgets/baseline/swiftshader).
+# No secrets, no environment, no deploy.
+
+on:
+    pull_request:
+        branches:
+            - development
+            - staging
+        types:
+            - opened
+            - synchronize
+            - reopened
+            - ready_for_review
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: pull-request-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    build:
+        name: Build
+        runs-on: ubuntu-latest
+        timeout-minutes: 25
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+              with:
+                  persist-credentials: false
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+              with:
+                  version: 11.3.0
+
+            - name: Setup Node.js
+              uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+              with:
+                  node-version: 24.12.0
+                  cache: pnpm
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build packages
+              run: pnpm build
+
+            - name: Build test-cdn
+              run: npm run build
+              working-directory: examples/test-cdn
+
+            # One tarball of every dist/ outside node_modules. A glob in the
+            # upload action would walk node_modules and take very long.
+            - name: Pack build output
+              run: |
+                  find . -name node_modules -prune -o -type d -name dist -print0 \
+                    | tar --null -czf build-output.tgz -T -
+
+            - name: Upload build output
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+              with:
+                  name: build-output
+                  path: build-output.tgz
+                  retention-days: 1
+                  if-no-files-found: error
+
+    unit:
+        name: Unit tests
+        needs: build
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        # Switch: true = report only, false = a failure turns the PR check red.
+        continue-on-error: false
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+              with:
+                  persist-credentials: false
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+              with:
+                  version: 11.3.0
+
+            - name: Setup Node.js
+              uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+              with:
+                  node-version: 24.12.0
+                  cache: pnpm
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            # utils/settings is not part of the pnpm workspace.
+            - name: Install utils/settings dependencies
+              run: pnpm install --frozen-lockfile
+              working-directory: utils/settings
+
+            - name: Download build output
+              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+              with:
+                  name: build-output
+
+            - name: Unpack build output
+              run: tar -xzf build-output.tgz
+
+            - name: Run unit tests
+              run: pnpm test:unit
+
+    perf-exact:
+        name: "Performance: exact tests (SwiftShader)"
+        needs: build
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        # Switch: true = report only, false = a failure turns the PR check red.
+        continue-on-error: false
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+              with:
+                  persist-credentials: false
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+              with:
+                  version: 11.3.0
+
+            - name: Setup Node.js
+              uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+              with:
+                  node-version: 24.12.0
+                  cache: pnpm
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Download build output
+              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+              with:
+                  name: build-output
+
+            - name: Unpack build output
+              run: tar -xzf build-output.tgz
+
+            - name: Check Chrome
+              run: google-chrome --version
+
+            - name: Run exact tests
+              run: pnpm exec playwright test --config tests/performance/playwright.config.ts exact/
+              env:
+                  PERF_RENDERER: swiftshader
+
+    perf-budgets:
+        name: "Performance: budgets (SwiftShader)"
+        needs: build
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        # Switch: true = report only (the result is in the job summary),
+        # false = a failure turns the PR check red.
+        continue-on-error: false
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+              with:
+                  persist-credentials: false
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+              with:
+                  version: 11.3.0
+
+            - name: Setup Node.js
+              uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+              with:
+                  node-version: 24.12.0
+                  cache: pnpm
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Download build output
+              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+              with:
+                  name: build-output
+
+            - name: Unpack build output
+              run: tar -xzf build-output.tgz
+
+            - name: Check Chrome
+              run: google-chrome --version
+
+            # An explicit `shell: bash` adds pipefail; the default `bash -e`
+            # would take the exit code of `tee` and hide a failed run.
+            - name: Run budgets
+              shell: bash
+              run: |
+                  pnpm exec playwright test --config tests/performance/budgets.playwright.config.ts 2>&1 | tee budgets.log
+              env:
+                  PERF_RENDERER: swiftshader
+
+            - name: Report budget result
+              if: always()
+              run: |
+                  {
+                    echo "## Performance budgets (SwiftShader)"
+                    echo
+                    if [ "${{ job.status }}" = "success" ]; then
+                      echo "All counters match the software baselines."
+                    else
+                      echo "Some counters differ from \`tests/performance/budgets/baseline/swiftshader/\`. Tail of the log:"
+                      echo
+                      echo '```'
+                      tail -n 60 budgets.log
+                      echo '```'
+                    fi
+                  } >> "$GITHUB_STEP_SUMMARY"
+
+            # On a failure, derive the baseline on the runner so it can be taken
+            # from the artifact instead of a local machine.
+            - name: Derive baseline on the runner
+              if: failure()
+              run: |
+                  pnpm exec playwright test --config tests/performance/budgets.playwright.config.ts || true
+                  # The harness writes CRLF over the LF checkout: ignore line endings
+                  # so only changed counters show.
+                  {
+                    echo '```diff'
+                    git diff --ignore-cr-at-eol -- tests/performance/budgets/baseline/swiftshader
+                    echo '```'
+                  } | tee -a "$GITHUB_STEP_SUMMARY"
+              env:
+                  PERF_RENDERER: swiftshader
+                  UPDATE_BUDGETS: "1"
+
+            - name: Upload derived baseline
+              if: failure()
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+              with:
+                  name: swiftshader-baseline
+                  path: tests/performance/budgets/baseline/swiftshader/
+                  retention-days: 14
+                  if-no-files-found: warn

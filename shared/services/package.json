@@ -1,6 +1,6 @@
 {
 	"name": "@shapediver/viewer.shared.services",
-	"version": "3.23.0-dev.170",
+	"version": "3.23.0-dev.174",
 	"description": "",
 	"keywords": [],
 	"author": "Michael Oppitz <michael@shapediver.com>",
@@ -34,7 +34,15 @@
 	"typings": "dist/index.d.ts",
 	"jest": {
 		"preset": "ts-jest",
-		"testEnvironment": "node"
+		"testEnvironment": "node",
+		"transform": {
+			"^.+\\.tsx?$": [
+				"ts-jest",
+				{
+					"tsconfig": "<rootDir>/../../tsconfig.test.json"
+				}
+			]
+		}
 	},
 	"dependencies": {
 		"@ctrl/tinycolor": "4.2.0",

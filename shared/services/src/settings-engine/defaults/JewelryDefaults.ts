@@ -76,11 +76,17 @@ export const JewelryDefaults: () => ISettings = () => {
 					type: "hbao",
 				},
 				{
-					// a glow on the brightest highlights only; the threshold,
-					// smoothing and mipmap blur use the highlight defaults
+					// a glow on the brightest highlights only; the mipmap blur
+					// uses the highlight default
 					properties: {
-						// stronger bloom puts halos around every pavé stone
-						intensity: 0.25,
+						// The bloom numbers of the reference renderer: with them
+						// the bloom adds as much light to polished gold as the
+						// reference's does. A lower threshold or a stronger bloom
+						// makes overview shots too bright and puts halos around
+						// every pavé stone.
+						intensity: 0.2,
+						luminanceThreshold: 2,
+						luminanceSmoothing: 0.5,
 						highlightsOnly: true,
 						backgroundBloom: false,
 					},
@@ -99,9 +105,10 @@ export const JewelryDefaults: () => ISettings = () => {
 			shadows: true,
 			softShadows: true,
 			textureEncoding: "srgb",
-			toneMapping: "neutral",
-			// brings the gold under jewelry_studio closer to the WebGi reference (SS-10494)
-			toneMappingExposure: 1.4,
+			// the tone mapping of the reference renderer: with the same
+			// environment map the gold is closest to it on every view
+			toneMapping: "aces_filmic",
+			toneMappingExposure: 1,
 			// averages jittered frames while the view is still (SS-10508);
 			// fewer frames on mobile, where each one costs more
 			accumulationFrames: 32,

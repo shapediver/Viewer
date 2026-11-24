@@ -13,6 +13,9 @@ import {vec2, vec3} from "gl-matrix";
 import {type ICameraApi} from "../../interfaces/camera/ICameraApi";
 import {type IViewportApi} from "../../interfaces/IViewportApi";
 
+/**
+ * The setters only request a frame: camera state is read every frame, so no scene update is needed.
+ */
 export abstract class AbstractCameraApi implements ICameraApi {
 	readonly #camera: ICamera;
 	readonly #inputValidator: InputValidator = InputValidator.instance;
@@ -41,7 +44,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get autoRotationSpeed(): number {
@@ -59,7 +62,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get cameraMovementDuration(): number {
@@ -77,7 +80,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get cubePositionRestriction(): {min: vec3; max: vec3} {
@@ -105,7 +108,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get cubeTargetRestriction(): {min: vec3; max: vec3} {
@@ -133,7 +136,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get damping(): number {
@@ -151,7 +154,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get defaultPosition(): vec3 {
@@ -169,7 +172,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get defaultTarget(): vec3 {
@@ -187,7 +190,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get enableAutoRotation(): boolean {
@@ -205,7 +208,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get enableAzimuthRotation(): boolean {
@@ -223,7 +226,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get enableKeyPan(): boolean {
@@ -241,7 +244,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get enableObjectControls(): boolean {
@@ -259,7 +262,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get enablePan(): boolean {
@@ -277,7 +280,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get enablePolarRotation(): boolean {
@@ -295,7 +298,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get enableRotation(): boolean {
@@ -313,7 +316,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get enableTurntableControls(): boolean {
@@ -331,7 +334,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get enableZoom(): boolean {
@@ -349,7 +352,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get enabled(): boolean {
@@ -367,7 +370,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get id(): string {
@@ -389,7 +392,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get isDefault(): boolean {
@@ -411,7 +414,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get movementSmoothness(): number {
@@ -429,7 +432,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get name(): string | undefined {
@@ -448,7 +451,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get objectControlsCenter(): vec3 {
@@ -466,7 +469,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get order(): number | undefined {
@@ -485,7 +488,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get panSpeed(): number {
@@ -503,7 +506,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get position(): vec3 {
@@ -540,7 +543,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get revertAtMouseUpDuration(): number {
@@ -558,7 +561,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get rotationRestriction(): {
@@ -606,7 +609,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get rotationSpeed(): number {
@@ -624,7 +627,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get spherePositionRestriction(): {center: vec3; radius: number} {
@@ -655,7 +658,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get sphereTargetRestriction(): {center: vec3; radius: number} {
@@ -683,7 +686,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get target(): vec3 {
@@ -720,7 +723,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get type(): CAMERA_TYPE {
@@ -755,7 +758,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get zoomSpeed(): number {
@@ -773,7 +776,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public get zoomToFactor(): number {
@@ -791,7 +794,7 @@ export abstract class AbstractCameraApi implements ICameraApi {
 		this.#logger.debug(
 			`${this.scope}.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#viewportApi.render();
 	}
 
 	public animate(
