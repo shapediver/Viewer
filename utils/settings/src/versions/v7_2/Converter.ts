@@ -26,8 +26,8 @@ export const OLD_LOOK_V7_2 = {
 	physicalGemDispersion: false,
 	/** `material.physicalGemFresnel` */
 	physicalGemFresnel: false,
-	/** `material.gemBounceLighting` */
-	gemBounceLighting: "all",
+	/** `material.gemLighting` */
+	gemLighting: "all",
 	/** `material.gemEnvironmentMapIntensity` */
 	gemEnvironmentMapIntensity: 1,
 	/** `material.gemTracing` */
@@ -124,9 +124,7 @@ export const convertFromPrevious = (
 			physicalGemFresnel:
 				oldMaterial.physicalGemFresnel ??
 				OLD_LOOK_V7_2.physicalGemFresnel,
-			gemBounceLighting:
-				oldMaterial.gemBounceLighting ??
-				OLD_LOOK_V7_2.gemBounceLighting,
+			gemLighting: oldMaterial.gemLighting ?? OLD_LOOK_V7_2.gemLighting,
 			gemEnvironmentMapIntensity:
 				oldMaterial.gemEnvironmentMapIntensity ??
 				OLD_LOOK_V7_2.gemEnvironmentMapIntensity,
@@ -154,7 +152,7 @@ export const convertToPrevious = (
 	// Drop every option that does not exist in 7.1. Add new 7.2 options here.
 	// - postprocessing.hdr
 	// - environment.mapPbrMode, environment.mapOrientation, environment.mapAnalyticDfg
-	// - material.physicalGemDispersion, material.physicalGemFresnel, material.gemBounceLighting,
+	// - material.physicalGemDispersion, material.physicalGemFresnel, material.gemLighting,
 	//   material.gemEnvironmentMapIntensity,
 	//   material.gemTracing, material.gemNormalMapResolution
 	// - rendering.accumulationFrames, rendering.accumulationFramesMobile
@@ -190,7 +188,7 @@ export const convertToPrevious = (
 	const material: any = {...newSettings.material};
 	delete material.physicalGemDispersion;
 	delete material.physicalGemFresnel;
-	delete material.gemBounceLighting;
+	delete material.gemLighting;
 	delete material.gemEnvironmentMapIntensity;
 	delete material.gemTracing;
 	delete material.gemNormalMapResolution;

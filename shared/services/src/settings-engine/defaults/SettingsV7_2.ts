@@ -60,7 +60,7 @@ export type ISettingsV7_2 = Omit<
 	material: ISettings["material"] & {
 		physicalGemDispersion: boolean;
 		physicalGemFresnel: boolean;
-		gemBounceLighting: "all" | "environment";
+		gemLighting: "all" | "firstSurface" | "environment";
 		gemEnvironmentMapIntensity: number;
 		gemTracing: "sphere" | "facets";
 		gemNormalMapResolution: 256 | 512 | 1024;
@@ -81,7 +81,7 @@ export const NEW_LOOK_V7_2 = {
 	material: {
 		physicalGemDispersion: true,
 		physicalGemFresnel: true,
-		gemBounceLighting: "environment",
+		gemLighting: "firstSurface",
 		gemEnvironmentMapIntensity: 1.2,
 		gemTracing: "facets",
 		gemNormalMapResolution: 512,

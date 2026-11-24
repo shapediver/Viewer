@@ -92,10 +92,12 @@ export interface ISettings extends IGlobalSettings {
 		 */
 		physicalGemFresnel: boolean;
 		/**
-		 * Which lights gems use for the light that bounces inside the stone: "all" lights, or "environment" for the environment and ambient light only (the direct lights are still used on the first surface).
+		 * Which lights shade gems: "all" scene lights and the environment map on every surface the ray hits;
+		 * "firstSurface" for the point, spot, directional and rect-area lights on the first surface only (the light that bounces inside the stone uses the environment and ambient light);
+		 * "environment" for the environment map only, no scene lights at all.
 		 * Settings converted from before 7.2 use "all".
 		 */
-		gemBounceLighting: "all" | "environment";
+		gemLighting: "all" | "firstSurface" | "environment";
 		/**
 		 * Factor on the environment light that gems receive.
 		 * Settings converted from before 7.2 use 1.
