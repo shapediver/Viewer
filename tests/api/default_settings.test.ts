@@ -121,7 +121,7 @@ test.describe("Default settings", () => {
 			// only the jewelry preset accumulates frames (SS-10508)
 			accumulationFrames: 0,
 			accumulationFramesMobile: 0,
-			// no preset averages in HDR yet (SS-10607)
+			// only the jewelry preset averages in HDR (SS-10607)
 			accumulationMode: "display",
 			aoExcludeGems: [true],
 			bloom: [],
@@ -142,7 +142,7 @@ test.describe("Default settings", () => {
 			toneMapping: "aces_filmic",
 			accumulationFrames: 32,
 			accumulationFramesMobile: 8,
-			accumulationMode: "display",
+			accumulationMode: "hdr",
 			aoExcludeGems: [true],
 			bloom: [{highlightsOnly: true, backgroundBloom: false}],
 			// on desktop only
