@@ -431,6 +431,21 @@ function generatePaveStones() {
 		otherMaterial,
 	);
 	builder.addNode("other_stone_node", otherMesh);
+
+	// the stone 0.05 % larger: same normals, so it lands in the same bucket,
+	// but it must not share the map (its pixels would differ)
+	const nearMaterial = builder.addMaterial("near_stone", [0.9, 1, 0.9, 1]);
+	const nearBase = {
+		positions: stone.positions.map((v) => v * 1.0005),
+		normals: stone.normals.slice(),
+		indices: stone.indices.slice(),
+	};
+	const nearMesh = builder.addMesh(
+		"near_stone_mesh",
+		bakeTranslation(nearBase, [0, -0.6, 0.0173]),
+		nearMaterial,
+	);
+	builder.addNode("near_stone_node", nearMesh);
 	return builder.build();
 }
 

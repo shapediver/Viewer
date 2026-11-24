@@ -60,6 +60,10 @@ export class GeometryLoader implements ILoader {
 	// change moves exactly one reference.
 	private _gemMapOfObject = new WeakMap<THREE.Object3D, string>();
 	private _gemMapKeyOfTexture = new Map<THREE.Texture, string>();
+	// maps whose last user switched to another material (hover or selection
+	// effect): kept until a node removal finds them still unused, so the
+	// effect ending does not capture them again
+	private _pendingGemMaps = new Set<string>();
 	// primitive key -> map key: one primitive always shows the same map
 	private _gemMapAliases = new Map<string, string>();
 	// coarse shape key -> map keys of the shapes behind it
@@ -552,11 +556,26 @@ export class GeometryLoader implements ILoader {
 		if (key === previous) return;
 		if (key !== undefined) {
 			this._gemSphericalMapsCache[key].counter++;
+			this._pendingGemMaps.delete(key);
 			this._gemMapOfObject.set(object, key);
 		} else {
 			this._gemMapOfObject.delete(object);
 		}
-		if (previous !== undefined) this.releaseGemNormalMapKey(previous);
+		if (previous !== undefined) {
+			// a material change is no removal: the map may be needed again
+			const entry = this._gemSphericalMapsCache[previous];
+			if (entry && --entry.counter <= 0)
+				this._pendingGemMaps.add(previous);
+		}
+	}
+
+	/** Free the pending maps that still have no user, after a node removal. */
+	public sweepPendingGemNormalMaps(): void {
+		for (const key of [...this._pendingGemMaps]) {
+			this._pendingGemMaps.delete(key);
+			if (this._gemSphericalMapsCache[key]?.counter === 0)
+				this.freeGemNormalMap(key);
+		}
 	}
 
 	private releaseGemNormalMapKey(key: string): void {
@@ -567,11 +586,16 @@ export class GeometryLoader implements ILoader {
 	}
 
 	private freeGemNormalMapIfUnused(key: string): void {
-		if (this._gemSphericalMapsCache[key]?.counter === 0)
+		// a pending map waits for the next removal sweep
+		if (
+			this._gemSphericalMapsCache[key]?.counter === 0 &&
+			!this._pendingGemMaps.has(key)
+		)
 			this.freeGemNormalMap(key);
 	}
 
 	private freeGemNormalMap(key: string): void {
+		this._pendingGemMaps.delete(key);
 		const entry = this._gemSphericalMapsCache[key];
 		// the render target frees the GPU texture, the texture tells its users
 		entry.renderTarget.dispose();
@@ -1296,8 +1320,27 @@ export class GeometryLoader implements ILoader {
 		const a = geometry.attributes.position;
 		const b = entry.geometry.attributes.position;
 		if (!a || !b || a.count !== b.count) return false;
-		const tolerance = Math.max(extent, entry.shapeExtent) * 1e-3;
-		if (Math.abs(extent - entry.shapeExtent) > tolerance) return false;
+		// Only float32 noise: translated copies differ by about one step of
+		// the largest original coordinate (rounding of the translation, and of
+		// the centring). 2^-20 is 8 or more steps. Anything larger is a
+		// different shape, which must keep its own map to render the same.
+		let maxAbs = 0;
+		for (let i = 0; i < a.count; i++)
+			maxAbs = Math.max(
+				maxAbs,
+				Math.abs(a.getX(i)),
+				Math.abs(a.getY(i)),
+				Math.abs(a.getZ(i)),
+			);
+		for (let i = 0; i < b.count; i++)
+			maxAbs = Math.max(
+				maxAbs,
+				Math.abs(b.getX(i)),
+				Math.abs(b.getY(i)),
+				Math.abs(b.getZ(i)),
+			);
+		const tolerance = Math.max(maxAbs * 2 ** -20, 1e-9);
+		if (Math.abs(extent - entry.shapeExtent) > 2 * tolerance) return false;
 		const c = entry.shapeCenter;
 		for (let i = 0; i < a.count; i++) {
 			if (

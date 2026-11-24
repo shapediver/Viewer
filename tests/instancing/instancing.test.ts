@@ -797,8 +797,8 @@ test.describe("GPU instancing", () => {
 		}
 	});
 
-	for (const instancing of [false, true])
-		test.describe(`shared gem normal maps (gpu instancing ${instancing})`, () => {
+	for (const parseTimeDetection of [false, true])
+		test.describe(`shared gem normal maps (parse-time instancing ${parseTimeDetection})`, () => {
 			const stoneAsset = `${ASSET_HOST}/pave-stones.glb`;
 			// every stone geometry gets its own gem material data before the
 			// first conversion, like a model that assigns one gem per mesh
@@ -820,19 +820,21 @@ test.describe("GPU instancing", () => {
 			const viewer = window.viewer;
 			const stones = [];
 			let other;
+			let near;
 			const visit = (n) => {
 				for (const d of n.data) {
 					if (d.primitive === undefined) continue;
 					const mesh = d.convertedObject[viewer.id];
 					if (!mesh) continue;
 					if (n.name === "other_stone_node") other = {data: d, mesh, node: n};
+					else if (n.name === "near_stone_node") near = {data: d, mesh, node: n};
 					else if (n.name.startsWith("stone_node_"))
 						stones.push({data: d, mesh, node: n});
 				}
 				n.children.forEach(visit);
 			};
 			visit(window.SDV.sceneTree.root);
-			return {stones, other};
+			return {stones, other, near};
 		})()`;
 
 			test("identical stones share one normal map", async ({
@@ -843,10 +845,19 @@ test.describe("GPU instancing", () => {
 					pageErrors.push(error.message),
 				);
 				const state = await workerPage.evaluate(
-					async ({uri, beforeAdd, collect, instancing}) => {
-						(<any>window).viewer.gpuInstancing.enabled = instancing;
-						await (<any>window).addGLTF(uri, beforeAdd);
-						const {stones, other} = (0, eval)(collect);
+					async ({uri, beforeAdd, collect, parseTimeDetection}) => {
+						(<any>(
+							window
+						)).SDV.GeometryEngine.instance.gpuInstancing =
+							parseTimeDetection;
+						try {
+							await (<any>window).addGLTF(uri, beforeAdd);
+						} finally {
+							(<any>(
+								window
+							)).SDV.GeometryEngine.instance.gpuInstancing = true;
+						}
+						const {stones, other, near} = (0, eval)(collect);
 						const maps = new Set(
 							stones.map(
 								(s: any) => s.mesh.material.sphericalNormalMap,
@@ -874,14 +885,25 @@ test.describe("GPU instancing", () => {
 								!maps.has(
 									other.mesh.material.sphericalNormalMap,
 								),
+							// 0.05 % larger: its own map, not the shared one
+							nearHasOwnMap:
+								!!near.mesh.material.sphericalNormalMap &&
+								!maps.has(
+									near.mesh.material.sphericalNormalMap,
+								) &&
+								near.mesh.material.sphericalNormalMap !==
+									other.mesh.material.sphericalNormalMap,
 							distinctCenters: centers.size,
+							distinctGeometries: new Set(
+								stones.map((s: any) => s.mesh.geometry),
+							).size,
 						};
 					},
 					{
 						uri: stoneAsset,
 						beforeAdd: giveEveryStoneItsOwnGem,
 						collect: collectMeshes,
-						instancing,
+						parseTimeDetection,
 					},
 				);
 
@@ -890,8 +912,15 @@ test.describe("GPU instancing", () => {
 				expect(state.hasMap).toBe(true);
 				expect(state.distinctMaps).toBe(1);
 				expect(state.otherHasOwnMap).toBe(true);
-				// without instancing every stone has its own geometry and centre
-				if (!instancing) expect(state.distinctCenters).toBe(120);
+				expect(state.nearHasOwnMap).toBe(true);
+				if (parseTimeDetection) {
+					// baked translations are recovered: one primitive alias
+					expect(state.distinctGeometries).toBe(1);
+				} else {
+					// separate primitives: the shape-hash path shares the map
+					expect(state.distinctGeometries).toBe(120);
+					expect(state.distinctCenters).toBe(120);
+				}
 				expect(pageErrors).toEqual([]);
 			});
 
@@ -903,9 +932,18 @@ test.describe("GPU instancing", () => {
 					pageErrors.push(error.message),
 				);
 				const state = await workerPage.evaluate(
-					async ({uri, beforeAdd, collect, instancing}) => {
-						(<any>window).viewer.gpuInstancing.enabled = instancing;
-						await (<any>window).addGLTF(uri, beforeAdd);
+					async ({uri, beforeAdd, collect, parseTimeDetection}) => {
+						(<any>(
+							window
+						)).SDV.GeometryEngine.instance.gpuInstancing =
+							parseTimeDetection;
+						try {
+							await (<any>window).addGLTF(uri, beforeAdd);
+						} finally {
+							(<any>(
+								window
+							)).SDV.GeometryEngine.instance.gpuInstancing = true;
+						}
 						const SDV = (<any>window).SDV;
 						let {stones} = (0, eval)(collect);
 						const texture =
@@ -935,7 +973,7 @@ test.describe("GPU instancing", () => {
 						uri: stoneAsset,
 						beforeAdd: giveEveryStoneItsOwnGem,
 						collect: collectMeshes,
-						instancing,
+						parseTimeDetection,
 					},
 				);
 
@@ -946,7 +984,7 @@ test.describe("GPU instancing", () => {
 				expect(pageErrors).toEqual([]);
 			});
 
-			test("a map freed by a material change is captured again for the same gem data", async ({
+			test("an effect material on the stones and back keeps the same normal map", async ({
 				workerPage,
 			}) => {
 				const pageErrors: string[] = [];
@@ -954,9 +992,18 @@ test.describe("GPU instancing", () => {
 					pageErrors.push(error.message),
 				);
 				const state = await workerPage.evaluate(
-					async ({uri, beforeAdd, collect, instancing}) => {
-						(<any>window).viewer.gpuInstancing.enabled = instancing;
-						await (<any>window).addGLTF(uri, beforeAdd);
+					async ({uri, beforeAdd, collect, parseTimeDetection}) => {
+						(<any>(
+							window
+						)).SDV.GeometryEngine.instance.gpuInstancing =
+							parseTimeDetection;
+						try {
+							await (<any>window).addGLTF(uri, beforeAdd);
+						} finally {
+							(<any>(
+								window
+							)).SDV.GeometryEngine.instance.gpuInstancing = true;
+						}
 						const SDV = (<any>window).SDV;
 						const viewer = (<any>window).viewer;
 						const {stones} = (0, eval)(collect);
@@ -968,12 +1015,14 @@ test.describe("GPU instancing", () => {
 							() => oldDisposed++,
 						);
 
-						const gems = stones.map((s: any) => s.data.material);
 						for (const stone of stones) {
-							stone.data.material = new SDV.MaterialStandardData({
-								color: "#00ff00",
+							stone.data.effectMaterials.push({
+								material: new SDV.MaterialStandardData({
+									color: "#00ff00",
+								}),
+								token: "test-gem-effect",
 							});
-							viewer.updateNode(stone.node);
+							viewer.updateGeometryData(stone.data);
 						}
 						await (<any>window).rerender();
 						const afterStandard = {
@@ -985,10 +1034,10 @@ test.describe("GPU instancing", () => {
 							),
 						};
 
-						stones.forEach((stone: any, i: number) => {
-							stone.data.material = gems[i];
-							viewer.updateNode(stone.node);
-						});
+						for (const stone of stones) {
+							stone.data.effectMaterials.pop();
+							viewer.updateGeometryData(stone.data);
+						}
 						await (<any>window).rerender();
 						const meshes = stones.map(
 							(s: any) => s.data.convertedObject[viewer.id],
@@ -1000,37 +1049,90 @@ test.describe("GPU instancing", () => {
 						);
 						const newTexture =
 							meshes[0].material.sphericalNormalMap;
-						let newDisposed = 0;
-						newTexture?.addEventListener(
-							"dispose",
-							() => newDisposed++,
-						);
 						await (<any>window).rerender();
 						return {
+							oldDisposedAtEnd: oldDisposed,
 							afterStandard,
 							allGems: meshes.every(
 								(m: any) => m.material.isGemMaterial === true,
 							),
 							distinctMaps: maps.size,
-							isNewTexture:
-								!!newTexture && newTexture !== oldTexture,
-							newDisposed,
+							sameTexture: newTexture === oldTexture,
 						};
 					},
 					{
 						uri: stoneAsset,
 						beforeAdd: giveEveryStoneItsOwnGem,
 						collect: collectMeshes,
-						instancing,
+						parseTimeDetection,
 					},
 				);
 
-				expect(state.afterStandard.oldDisposed).toBe(1);
+				// a hover or selection effect material replaces the gem and is
+				// removed again: the map is not freed and captured again
+				expect(state.afterStandard.oldDisposed).toBe(0);
 				expect(state.afterStandard.noGems).toBe(true);
 				expect(state.allGems).toBe(true);
 				expect(state.distinctMaps).toBe(1);
-				expect(state.isNewTexture).toBe(true);
-				expect(state.newDisposed).toBe(0);
+				expect(state.sameTexture).toBe(true);
+				expect(state.oldDisposedAtEnd).toBe(0);
+				expect(pageErrors).toEqual([]);
+			});
+
+			test("a map left unused by an effect material is freed when a node is removed", async ({
+				workerPage,
+			}) => {
+				const pageErrors: string[] = [];
+				workerPage.on("pageerror", (error) =>
+					pageErrors.push(error.message),
+				);
+				const state = await workerPage.evaluate(
+					async ({uri, beforeAdd, collect, parseTimeDetection}) => {
+						(<any>(
+							window
+						)).SDV.GeometryEngine.instance.gpuInstancing =
+							parseTimeDetection;
+						try {
+							await (<any>window).addGLTF(uri, beforeAdd);
+						} finally {
+							(<any>(
+								window
+							)).SDV.GeometryEngine.instance.gpuInstancing = true;
+						}
+						const SDV = (<any>window).SDV;
+						const viewer = (<any>window).viewer;
+						const {stones} = (0, eval)(collect);
+						const texture =
+							stones[0].mesh.material.sphericalNormalMap;
+						let disposed = 0;
+						texture.addEventListener("dispose", () => disposed++);
+
+						for (const stone of stones) {
+							stone.data.effectMaterials.push({
+								material: new SDV.MaterialStandardData({
+									color: "#00ff00",
+								}),
+								token: "test-gem-effect",
+							});
+							viewer.updateGeometryData(stone.data);
+						}
+						await (<any>window).rerender();
+						const afterChange = disposed;
+
+						SDV.sceneTree.removeNode(stones[0].node);
+						await (<any>window).rerender();
+						return {afterChange, disposed};
+					},
+					{
+						uri: stoneAsset,
+						beforeAdd: giveEveryStoneItsOwnGem,
+						collect: collectMeshes,
+						parseTimeDetection,
+					},
+				);
+
+				expect(state.afterChange).toBe(0);
+				expect(state.disposed).toBe(1);
 				expect(pageErrors).toEqual([]);
 			});
 		});

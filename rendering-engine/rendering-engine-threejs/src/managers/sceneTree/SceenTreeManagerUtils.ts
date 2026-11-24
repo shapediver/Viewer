@@ -114,6 +114,8 @@ export const removeData = (
 					}
 				}
 			});
+			// maps left unused by a material change are freed with a removal
+			renderingEngine.geometryLoader.sweepPendingGemNormalMaps();
 			break;
 		case dataObject.userData.SDtype === SD_DATA_TYPE.THREEJS:
 			break;
