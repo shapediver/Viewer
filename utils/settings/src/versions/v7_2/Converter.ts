@@ -20,6 +20,8 @@ export const OLD_LOOK_V7_2 = {
 	mapPbrMode: "legacy",
 	/** `environment.mapOrientation` */
 	mapOrientation: "legacy",
+	/** `environment.mapAnalyticDfg` */
+	mapAnalyticDfg: false,
 	/** `material.physicalGemDispersion` */
 	physicalGemDispersion: false,
 	/** `material.physicalGemFresnel` */
@@ -109,6 +111,8 @@ export const convertFromPrevious = (
 			mapPbrMode: oldEnvironment.mapPbrMode ?? OLD_LOOK_V7_2.mapPbrMode,
 			mapOrientation:
 				oldEnvironment.mapOrientation ?? OLD_LOOK_V7_2.mapOrientation,
+			mapAnalyticDfg:
+				oldEnvironment.mapAnalyticDfg ?? OLD_LOOK_V7_2.mapAnalyticDfg,
 		},
 		material: {
 			...oldSettings.material,
@@ -144,7 +148,7 @@ export const convertToPrevious = (
 
 	// Drop every option that does not exist in 7.1. Add new 7.2 options here.
 	// - postprocessing.hdr
-	// - environment.mapPbrMode, environment.mapOrientation
+	// - environment.mapPbrMode, environment.mapOrientation, environment.mapAnalyticDfg
 	// - material.physicalGemDispersion, material.physicalGemFresnel, material.gemEnvironmentMapIntensity,
 	//   material.gemTracing, material.gemNormalMapResolution
 	// - rendering.accumulationFrames, rendering.accumulationFramesMobile
@@ -175,6 +179,7 @@ export const convertToPrevious = (
 	const environment: any = {...newSettings.environment};
 	delete environment.mapPbrMode;
 	delete environment.mapOrientation;
+	delete environment.mapAnalyticDfg;
 
 	const material: any = {...newSettings.material};
 	delete material.physicalGemDispersion;

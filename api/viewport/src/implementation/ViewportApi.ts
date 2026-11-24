@@ -533,6 +533,24 @@ export class ViewportApi implements IViewportApi {
 		this.update("environmentMap");
 	}
 
+	public get environmentMapAnalyticDfg(): boolean {
+		return this.#renderingEngine.environmentMapAnalyticDfg;
+	}
+
+	public set environmentMapAnalyticDfg(value: boolean) {
+		const scope = "environmentMapAnalyticDfg";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"boolean",
+		);
+		this.#renderingEngine.environmentMapAnalyticDfg = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("environmentMapAnalyticDfg");
+	}
+
 	public get environmentMapAsBackground(): boolean {
 		return this.#renderingEngine.environmentMapAsBackground;
 	}

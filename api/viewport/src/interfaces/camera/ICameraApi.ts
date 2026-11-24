@@ -9,6 +9,7 @@ import {vec2, vec3} from "gl-matrix";
  * The api for a camera, please see the definitions for the [perspective camera api]{@link IPerspectiveCameraApi} and the [orthographic camera api]{@link IOrthographicCameraApi} as this is just a shared interface for both.
  * A camera can be created by calling the corresponding method in the {@link IViewportApi}.
  * A camera has a multitude of properties and methods that can be used to adjust the behavior.
+ * Setting any property requests a frame; it does not update the scene tree and does not fire `VIEWPORT_UPDATED`.
  */
 export interface ICameraApi {
 	// #region Properties (38)
@@ -135,7 +136,6 @@ export interface ICameraApi {
 	panSpeed: number;
 	/**
 	 * The current position of the camera.
-	 * Setting it requests a frame; it does not update the scene tree.
 	 */
 	position: vec3;
 	/**
@@ -169,7 +169,6 @@ export interface ICameraApi {
 	sphereTargetRestriction: {center: vec3; radius: number};
 	/**
 	 * The current target of the camera.
-	 * Setting it requests a frame; it does not update the scene tree.
 	 */
 	target: vec3;
 	/**

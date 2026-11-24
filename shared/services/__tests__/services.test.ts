@@ -1,5 +1,4 @@
-import {IEvent} from "../src/event-engine/interfaces/IEvent";
-import {EventEngine, EVENTTYPE} from "../src/index";
+import {EventEngine, EVENTTYPE, IEvent} from "../src/index";
 
 describe("test", () => {
 	let instance: EventEngine;
