@@ -14,6 +14,7 @@ export enum POST_PROCESSING_EFFECT_TYPE {
 	OUTLINE = "outline",
 	PIXELATION = "pixelation",
 	SSAO = "ssao",
+	SSR = "ssr",
 	SCANLINE = "scanline",
 	SELECTIVE_BLOOM = "selective_bloom",
 	SEPIA = "sepia",
@@ -329,6 +330,29 @@ export interface ISSAOEffectDefinition extends IPostProcessingEffectDefinition {
 	// #endregion Properties (15)
 }
 
+export interface ISSREffectDefinition extends IPostProcessingEffectDefinition {
+	// #region Properties (6)
+
+	properties?: {
+		/** How much the reflected geometry replaces the environment reflection, from 0 to 1. (default: 1) */
+		intensity?: number;
+		/** Materials with a roughness up to this value receive reflections; they fade out from half of it. Only opaque metallic materials receive reflections, gems never do. (default: 0.3) */
+		maxRoughness?: number;
+		/** The number of ray march steps per pixel, at most 64. (default: 16) */
+		steps?: number;
+		/** The longest reflected ray, relative to the scene size like the distance of the ambient occlusion. (default: 2) */
+		distance?: number;
+		/** How thick a surface is assumed behind its depth, relative to the scene size like the distance. (default: 0.2) */
+		thickness?: number;
+		/** Whether the reflections are rendered on mobile devices. (default: false) */
+		enableOnMobile?: boolean;
+	};
+
+	type: POST_PROCESSING_EFFECT_TYPE.SSR;
+
+	// #endregion Properties (6)
+}
+
 export interface IScanlineEffectDefinition extends IPostProcessingEffectDefinition {
 	// #region Properties (3)
 
@@ -430,6 +454,7 @@ export type IPostProcessingEffectsArray = (
 	| INoiseEffectDefinition
 	| IPixelationEffectDefinition
 	| ISSAOEffectDefinition
+	| ISSREffectDefinition
 	| IScanlineEffectDefinition
 	| ISepiaEffectDefinition
 	| ITiltShiftEffectDefinition
