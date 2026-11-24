@@ -124,6 +124,7 @@ export const postProcessingSettingsSchema = z.object({
 export const environmentSettingsSchemaV7_2 = environmentSettingsSchema.extend({
 	mapPbrMode: z.enum(["legacy", "modern"]),
 	mapOrientation: z.enum(["legacy", "threejs"]),
+	mapAnalyticDfg: z.boolean(),
 });
 
 const renderingSizeSchema = z

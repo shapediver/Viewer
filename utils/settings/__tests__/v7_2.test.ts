@@ -60,6 +60,7 @@ describe("settings V7.2", () => {
 			excludeGems: false,
 			mapPbrMode: "legacy",
 			mapOrientation: "legacy",
+			mapAnalyticDfg: false,
 			physicalGemDispersion: false,
 			physicalGemFresnel: false,
 			gemEnvironmentMapIntensity: 1,
@@ -156,6 +157,7 @@ describe("settings V7.2", () => {
 			(s) => delete (s.postprocessing as any).hdr,
 			(s) => delete (s.environment as any).mapPbrMode,
 			(s) => delete (s.environment as any).mapOrientation,
+			(s) => delete (s.environment as any).mapAnalyticDfg,
 			(s) => delete (s.material as any).physicalGemDispersion,
 			(s) => delete (s.material as any).physicalGemFresnel,
 			(s) => delete (s.material as any).gemEnvironmentMapIntensity,
@@ -191,6 +193,7 @@ describe("settings V7.2", () => {
 			(s) => ((s.environment as any).mapPbrMode = "other"),
 			(s) => ((s.environment as any).mapPbrMode = true),
 			(s) => ((s.environment as any).mapOrientation = "other"),
+			(s) => ((s.environment as any).mapAnalyticDfg = "true"),
 			(s) => ((s.material as any).physicalGemDispersion = "yes"),
 			(s) => ((s.material as any).physicalGemFresnel = "yes"),
 			(s) => ((s.material as any).gemEnvironmentMapIntensity = "1"),
@@ -245,6 +248,7 @@ describe("settings V7.2", () => {
 		expect(converted.postprocessing.hdr).toBe(false);
 		expect(converted.environment.mapPbrMode).toBe("legacy");
 		expect(converted.environment.mapOrientation).toBe("legacy");
+		expect(converted.environment.mapAnalyticDfg).toBe(false);
 		expect(converted.material.physicalGemDispersion).toBe(false);
 		expect(converted.material.physicalGemFresnel).toBe(false);
 		expect(converted.material.gemEnvironmentMapIntensity).toBe(1);
@@ -289,6 +293,7 @@ describe("settings V7.2", () => {
 		const settingsV7_1: any = createSettingsV7_1();
 		settingsV7_1.postprocessing.hdr = true;
 		settingsV7_1.environment.mapPbrMode = "modern";
+		settingsV7_1.environment.mapAnalyticDfg = true;
 		settingsV7_1.material.physicalGemDispersion = true;
 		settingsV7_1.material.physicalGemFresnel = true;
 		settingsV7_1.material.gemEnvironmentMapIntensity = 1.5;
@@ -318,6 +323,7 @@ describe("settings V7.2", () => {
 		expect(converted.postprocessing.hdr).toBe(true);
 		expect(converted.environment.mapPbrMode).toBe("modern");
 		expect(converted.environment.mapOrientation).toBe("legacy");
+		expect(converted.environment.mapAnalyticDfg).toBe(true);
 		expect(converted.material.physicalGemDispersion).toBe(true);
 		expect(converted.material.physicalGemFresnel).toBe(true);
 		expect(converted.material.gemEnvironmentMapIntensity).toBe(1.5);
@@ -383,6 +389,7 @@ describe("settings V7.2", () => {
 		expect(converted.postprocessing).not.toHaveProperty("hdr");
 		expect(converted.environment).not.toHaveProperty("mapPbrMode");
 		expect(converted.environment).not.toHaveProperty("mapOrientation");
+		expect(converted.environment).not.toHaveProperty("mapAnalyticDfg");
 		expect(converted.material).not.toHaveProperty("physicalGemDispersion");
 		expect(converted.material).not.toHaveProperty("physicalGemFresnel");
 		expect(converted.material).not.toHaveProperty(
@@ -448,6 +455,7 @@ describe("settings V7.2", () => {
 		settings.rendering.toneMapping = "AgX";
 		settings.environment.mapPbrMode = "modern";
 		settings.environment.mapOrientation = "threejs";
+		settings.environment.mapAnalyticDfg = true;
 		settings.rendering.accumulationFrames = 16;
 		settings.rendering.accumulationFramesMobile = 8;
 		settings.rendering.maximumRenderingSize = {width: 2560, height: 1440};
@@ -467,6 +475,7 @@ describe("settings V7.2", () => {
 		expect(converted.rendering.toneMapping).toBe("AgX");
 		expect(converted.environment.mapPbrMode).toBe("modern");
 		expect(converted.environment.mapOrientation).toBe("threejs");
+		expect(converted.environment.mapAnalyticDfg).toBe(true);
 		expect(converted.rendering.accumulationFrames).toBe(16);
 		expect(converted.rendering.accumulationFramesMobile).toBe(8);
 		expect(converted.rendering.maximumRenderingSize).toStrictEqual({
