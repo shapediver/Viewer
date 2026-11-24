@@ -49,6 +49,11 @@ for (const variant of VARIANTS) {
 		if (software) test.setTimeout(900_000);
 
 		await createScene(page, variant, AEC_DEFAULT);
+		// The standard lights a session gets: without a light that casts a
+		// shadow, the shadow variants allocate no shadow map.
+		await page.evaluate(() =>
+			(window as any).__probe.viewport.createLightScene({standard: true}),
+		);
 		await settle(page);
 		// Some programs, geometries and textures are created lazily on the
 		// first camera move (see `final.*` in `facade.perf.ts`). Move once and
@@ -62,8 +67,14 @@ for (const variant of VARIANTS) {
 		}
 
 		const counters = await gpuMemory(page, "settled");
+		// With ambient occlusion the number of live programs differs between
+		// runs (by 4 on this machine) while every byte figure is the same.
+		// Programs are budgeted in `facade`; here they are only printed.
+		const programs = counters["settled.three.programs"];
+		delete counters["settled.three.programs"];
 		const heap = await jsHeap(page);
 		const figures = {
+			programs,
 			gpuMB: megabytes(counters["settled.gpu.totalBytes"]),
 			heapMB: megabytes(heap.usedBytes),
 			backingStorageMB: megabytes(heap.backingStorageBytes),
