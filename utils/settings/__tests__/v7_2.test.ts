@@ -141,6 +141,36 @@ describe("settings V7.2", () => {
 		expect(() => validate(newer, "7.2")).not.toThrow();
 	});
 
+	it("validate - bloom additiveBlur is an optional boolean", () => {
+		const settings = createSettingsV7_2();
+		expect(() => validate(settings, "7.2")).not.toThrow();
+		(settings.postprocessing.effects[2].properties as any).additiveBlur =
+			true;
+		expect(() => validate(settings, "7.2")).not.toThrow();
+		(settings.postprocessing.effects[2].properties as any).additiveBlur =
+			"true";
+		expect(() => validate(settings, "7.2")).toThrow();
+	});
+
+	it("convert 7.2 -> 7.1 -> 7.2 handles the bloom additiveBlur", () => {
+		const settings = createSettingsV7_2();
+		(settings.postprocessing.effects[2].properties as any).additiveBlur =
+			true;
+
+		const older = <ISettingsV7_1>convert(settings, "7.1");
+		expect(older.postprocessing.effects[2].properties).not.toHaveProperty(
+			"additiveBlur",
+		);
+
+		// settings saved by the Viewer with a 7.1 label keep the value
+		(older.postprocessing.effects[2].properties as any).additiveBlur = true;
+		const newer = <ISettingsV7_2>convert(older, "7.2");
+		expect(newer.postprocessing.effects[2].properties).toMatchObject({
+			additiveBlur: true,
+		});
+		expect(() => validate(newer, "7.2")).not.toThrow();
+	});
+
 	it("validate - invalid HBAO mode fails", () => {
 		const settings = createSettingsV7_2();
 		(settings.postprocessing.effects[0].properties as any).mode = "invalid";
