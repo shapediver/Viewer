@@ -326,17 +326,20 @@ export class GeometryLoader implements ILoader {
 		};
 
 		let preparedGemMapKey: string | undefined;
+		let gemShapeKey: string | undefined;
 		if (incomingMaterialData instanceof MaterialGemData) {
-			preparedGemMapKey = this.prepareGemMaterialData(
-				geometry,
-				threeGeometry,
-				incomingMaterialData,
-			);
+			({mapKey: preparedGemMapKey, shapeKey: gemShapeKey} =
+				this.prepareGemMaterialData(
+					geometry,
+					threeGeometry,
+					incomingMaterialData,
+				));
 		}
 
 		const material = this._renderingEngine.materialLoader.load(
 			incomingMaterialData || geometry,
 			materialSettings,
+			gemShapeKey,
 		);
 
 		// Performance: Disable unnecessary material features for static materials
@@ -597,6 +600,11 @@ export class GeometryLoader implements ILoader {
 	private freeGemNormalMap(key: string): void {
 		this._pendingGemMaps.delete(key);
 		const entry = this._gemSphericalMapsCache[key];
+		// nothing shows the cached gem materials of this map, and a later
+		// capture of the shape gets a new key, so they are never used again
+		this._renderingEngine.materialLoader.removeGemMaterialsWithMap(
+			entry.texture,
+		);
 		// the render target frees the GPU texture, the texture tells its users
 		entry.renderTarget.dispose();
 		entry.texture.dispose();
@@ -616,13 +624,16 @@ export class GeometryLoader implements ILoader {
 	/**
 	 * Fill in the geometry dependent parts of a gem material: tight bounding
 	 * sphere (center, radius), the spherical normal cube map and the side.
-	 * Returns the key of the normal map, which nothing holds yet.
+	 * Returns the key of the normal map, which nothing holds yet, and the
+	 * shape key the material loader caches the gem material under: one gem
+	 * material data shared by stones of different shapes or positions must
+	 * give each of them its own map, center and radius.
 	 */
 	private prepareGemMaterialData(
 		geometry: GeometryData,
 		threeGeometry: THREE.BufferGeometry,
 		gemMaterialData: MaterialGemData,
-	): string {
+	): {mapKey: string; shapeKey: string} {
 		// Gem shading wants the tight sphere around the vertices. The
 		// shared geometry keeps the AABB sphere createMesh stores for
 		// culling. Leaving the tight sphere on the geometry makes the
@@ -664,7 +675,10 @@ export class GeometryLoader implements ILoader {
 				sphericalNormalMap,
 			);
 		(<unknown>gemMaterialData.sphericalNormalMap) = sphericalNormalMap;
-		return key;
+		return {
+			mapKey: key,
+			shapeKey: `${key}_${center.x}_${center.y}_${center.z}_${radius}`,
+		};
 	}
 
 	/**
@@ -948,28 +962,23 @@ export class GeometryLoader implements ILoader {
 				hasMorphTargets && morphAttributes.normal !== undefined,
 		};
 
-		// Only a gem material that was not set up yet, or whose map was freed
-		// when its last user left.
+		// Always for this geometry: the gem material data may already be set
+		// up for another stone shape. A map captured before is reused.
 		let preparedGemMapKey: string | undefined;
-		if (
-			incomingMaterialData instanceof MaterialGemData &&
-			(!incomingMaterialData.sphericalNormalMap ||
-				!this.isGemNormalMap(
-					<THREE.Texture>(
-						(<unknown>incomingMaterialData.sphericalNormalMap)
-					),
-				))
-		) {
-			preparedGemMapKey = this.prepareGemMaterialData(
-				geometry,
-				threeGeometry,
-				incomingMaterialData,
-			);
+		let gemShapeKey: string | undefined;
+		if (incomingMaterialData instanceof MaterialGemData) {
+			({mapKey: preparedGemMapKey, shapeKey: gemShapeKey} =
+				this.prepareGemMaterialData(
+					geometry,
+					threeGeometry,
+					incomingMaterialData,
+				));
 		}
 
 		const material = this._renderingEngine.materialLoader.load(
 			incomingMaterialData || geometry,
 			materialSettings,
+			gemShapeKey,
 		);
 
 		const geometryObjects = this._geometryObjects.get(geometry) ?? [
