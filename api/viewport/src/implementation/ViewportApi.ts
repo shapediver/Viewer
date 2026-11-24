@@ -747,6 +747,26 @@ export class ViewportApi implements IViewportApi {
 		this.update("gemNormalMapResolution");
 	}
 
+	public get gemBounceLighting(): "all" | "environment" {
+		return this.#renderingEngine.gemBounceLighting;
+	}
+
+	public set gemBounceLighting(value: "all" | "environment") {
+		const scope = "gemBounceLighting";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"enum",
+			true,
+			["all", "environment"],
+		);
+		this.#renderingEngine.gemBounceLighting = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("gemBounceLighting");
+	}
+
 	public get gemTracing(): "sphere" | "facets" {
 		return this.#renderingEngine.gemTracing;
 	}

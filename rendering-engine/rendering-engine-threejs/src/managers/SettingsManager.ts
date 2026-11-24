@@ -133,6 +133,7 @@ export class SettingsManager implements IManager {
 			const material = settingsEngine.material as {
 				physicalGemDispersion?: unknown;
 				physicalGemFresnel?: unknown;
+				gemBounceLighting?: unknown;
 				gemEnvironmentMapIntensity?: unknown;
 				gemTracing?: unknown;
 				gemNormalMapResolution?: unknown;
@@ -141,6 +142,10 @@ export class SettingsManager implements IManager {
 				typeof material.physicalGemFresnel === "boolean"
 					? material.physicalGemFresnel
 					: false;
+			const bounceLighting =
+				material.gemBounceLighting === "environment"
+					? "environment"
+					: "all";
 			const gemIntensity =
 				typeof material.gemEnvironmentMapIntensity === "number" &&
 				material.gemEnvironmentMapIntensity >= 0
@@ -166,6 +171,8 @@ export class SettingsManager implements IManager {
 				this._renderingEngine.physicalGemDispersion = dispersion;
 			if (this._renderingEngine.physicalGemFresnel !== fresnel)
 				this._renderingEngine.physicalGemFresnel = fresnel;
+			if (this._renderingEngine.gemBounceLighting !== bounceLighting)
+				this._renderingEngine.gemBounceLighting = bounceLighting;
 			if (
 				this._renderingEngine.gemEnvironmentMapIntensity !==
 				gemIntensity
@@ -417,6 +424,7 @@ export class SettingsManager implements IManager {
 		const materialGem = settingsEngine.material as {
 			physicalGemDispersion?: boolean;
 			physicalGemFresnel?: boolean;
+			gemBounceLighting?: string;
 			gemEnvironmentMapIntensity?: number;
 			gemTracing?: string;
 			gemNormalMapResolution?: number;
@@ -425,6 +433,7 @@ export class SettingsManager implements IManager {
 			this._renderingEngine.physicalGemDispersion;
 		materialGem.physicalGemFresnel =
 			this._renderingEngine.physicalGemFresnel;
+		materialGem.gemBounceLighting = this._renderingEngine.gemBounceLighting;
 		materialGem.gemEnvironmentMapIntensity =
 			this._renderingEngine.gemEnvironmentMapIntensity;
 		materialGem.gemTracing = this._renderingEngine.gemTracing;

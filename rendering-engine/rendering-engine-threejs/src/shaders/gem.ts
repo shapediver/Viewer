@@ -56,6 +56,179 @@ void main() {
 }
 `;
 
+/** The point, spot, directional and rect-area lights of {@link gemReflectedLight}. */
+const directLightsBlock = `	float temp = material.roughness;
+	material.roughness = 0.5;
+
+	#if ( NUM_POINT_LIGHTS > 0 ) && defined( RE_Direct )
+
+		PointLight pointLight;
+        #if defined( USE_SHADOWMAP ) && NUM_POINT_LIGHT_SHADOWS > 0
+            PointLightShadow pointLightShadow;
+        #endif
+
+	    #pragma unroll_loop_start
+		for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
+			pointLight = pointLights[ i ];
+            getPointLightInfo( pointLight, currentGeometryPosition, dLight );
+            #if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_POINT_LIGHT_SHADOWS )
+                pointLightShadow = pointLightShadows[ i ];
+                dLight.color *= ( dLight.visible && receiveShadow ) ? getPointShadow( pointShadowMap[ i ], pointLightShadow.shadowMapSize, pointLightShadow.shadowIntensity, pointLightShadow.shadowBias, pointLightShadow.shadowRadius, vPointShadowCoord[ i ], pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar ) : 1.0;
+            #endif
+		    RE_Direct( dLight, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
+		}
+        #pragma unroll_loop_end
+	#endif
+	#if ( NUM_SPOT_LIGHTS > 0 ) && defined( RE_Direct )
+        SpotLight spotLight;
+        #if defined( USE_SHADOWMAP ) && NUM_SPOT_LIGHT_SHADOWS > 0
+            SpotLightShadow spotLightShadow;
+        #endif
+        #pragma unroll_loop_start
+        for ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {
+            spotLight = spotLights[ i ];
+            getSpotLightInfo( spotLight, currentGeometryPosition, dLight );
+            #if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_SPOT_LIGHT_SHADOWS )
+                spotLightShadow = spotLightShadows[ i ];
+                dLight.color *= ( dLight.visible && receiveShadow ) ? getShadow( spotShadowMap[ i ], spotLightShadow.shadowMapSize, spotLightShadow.shadowIntensity, spotLightShadow.shadowBias, spotLightShadow.shadowRadius, vSpotLightCoord[ i ] ) : 1.0;
+            #endif
+            RE_Direct( dLight, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
+        }
+        #pragma unroll_loop_end
+	#endif
+
+    #if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )
+        DirectionalLight directionalLight;
+        #if defined( USE_SHADOWMAP ) && NUM_DIR_LIGHT_SHADOWS > 0
+            DirectionalLightShadow directionalLightShadow;
+        #endif
+        #pragma unroll_loop_start
+        for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
+            directionalLight = directionalLights[ i ];
+            getDirectionalLightInfo( directionalLight, dLight );
+            #if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_DIR_LIGHT_SHADOWS )
+                directionalLightShadow = directionalLightShadows[ i ];
+                dLight.color *= ( dLight.visible && receiveShadow ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowIntensity, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;
+            #endif
+            RE_Direct( dLight, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
+        }
+        #pragma unroll_loop_end
+    #endif
+	material.roughness = temp;
+
+    #if ( NUM_RECT_AREA_LIGHTS > 0 ) && defined( RE_Direct_RectArea )
+        RectAreaLight rectAreaLight;
+        #pragma unroll_loop_start
+        for ( int i = 0; i < NUM_RECT_AREA_LIGHTS; i ++ ) {
+            rectAreaLight = rectAreaLights[ i ];
+            RE_Direct_RectArea( rectAreaLight, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
+        }
+        #pragma unroll_loop_end
+    #endif`;
+
+/**
+ * The shading of one gem surface point as a GLSL function called `name`.
+ * `directLights` is the GLSL that adds the direct lights to `rLight`: the full
+ * function uses {@link directLightsBlock}, the bounce variant passes an empty
+ * string and uses the environment and ambient light only.
+ */
+const gemReflectedLight = (
+	name: string,
+	directLights: string,
+) => `vec3 ${name}(vec3 position, vec3 normal, vec3 viewDir, PhysicalMaterial material, int depth) {
+
+	vec3 currentGeometryPosition = (modelMatrix * vec4(position, 1.0)).xyz;
+
+	mat3 normalMatrix;
+	normalMatrix[0] = normalize(modelMatrix[0].xyz);
+	normalMatrix[1] = normalize(modelMatrix[1].xyz);
+	normalMatrix[2] = normalize(modelMatrix[2].xyz);
+
+	// Calculate the normal vector in world space
+	vec3 currentGeometryNormal = normalize(normalMatrix * normal);
+
+	// Calculate the view direction vector in world space
+	vec3 currentGeometryViewDir = normalize(normalMatrix * -viewDir);
+
+    vec3 currentGeometryClearcoatNormal = vec3( 0.0 );
+
+	#ifdef USE_CLEARCOAT
+        currentGeometryClearcoatNormal = clearcoatNormal;
+    #endif
+
+	ReflectedLight rLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
+	IncidentLight dLight;
+
+${directLights}
+    #if defined( RE_IndirectDiffuse )
+        vec3 iblIrradiance = vec3( 0.0 );
+        vec3 irradiance = getAmbientLightIrradiance( ambientLightColor );
+
+		#if defined( USE_LIGHT_PROBES )
+        	irradiance += getLightProbeIrradiance( lightProbe, currentGeometryNormal );
+		#endif
+        #if ( NUM_HEMI_LIGHTS > 0 )
+            #pragma unroll_loop_start
+            for ( int i = 0; i < NUM_HEMI_LIGHTS; i ++ ) {
+                irradiance += getHemisphereLightIrradiance( hemisphereLights[ i ], currentGeometryNormal );
+            }
+            #pragma unroll_loop_end
+        #endif
+    #endif
+    #if defined( RE_IndirectSpecular )
+        vec3 radiance = vec3( 0.0 );
+        vec3 clearcoatRadiance = vec3( 0.0 );
+    #endif
+
+
+    #if defined( RE_IndirectDiffuse )
+        #ifdef USE_LIGHTMAP
+            vec4 lightMapTexel = texture2D( lightMap, vLightMapUv );
+            vec3 lightMapIrradiance = lightMapTexel.rgb * lightMapIntensity;
+            irradiance += lightMapIrradiance;
+        #endif
+        #if defined( USE_ENVMAP ) && defined( STANDARD ) && defined( ENVMAP_TYPE_CUBE_UV )
+            iblIrradiance += getIBLIrradiance( currentGeometryNormal );
+        #endif
+    #endif
+    #if defined( USE_ENVMAP ) && defined( RE_IndirectSpecular )
+        radiance += getIBLRadianceVariation( currentGeometryViewDir, currentGeometryNormal, material.roughness );
+        #ifdef USE_CLEARCOAT
+            clearcoatRadiance += getIBLRadianceVariation( currentGeometryViewDir, currentGeometryClearcoatNormal, material.clearcoatRoughness );
+        #endif
+    #endif
+
+    #if defined( RE_IndirectDiffuse )
+        RE_IndirectDiffuse( irradiance, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
+    #endif
+    #if defined( RE_IndirectSpecular )
+        RE_IndirectSpecular( radiance, iblIrradiance, clearcoatRadiance, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
+    #endif
+
+	if(depth >= 0) {
+		float frac = float(depth) / float(TRACING_DEPTH);
+		vec3 colorTransfer = (1.0-frac) * colorTransferBegin + frac * colorTransferEnd;
+		rLight.indirectSpecular *= colorTransfer;
+		rLight.directSpecular *= colorTransfer;
+	}
+
+	vec3 color = rLight.indirectSpecular + rLight.directSpecular + rLight.indirectDiffuse + rLight.directDiffuse;
+
+	// gamma
+	color = pow(color, vec3(1.0/gamma));
+
+	// contrast
+	color.rgb = ((color.rgb - 0.5) * max(contrast, 0.0)) + 0.5;
+
+	// brightness
+	float colorMax = hdrOutput > 0.5 ? 65504.0 : 1.0;
+	color.r = min(max(color.r + brightness, 0.0), colorMax);
+	color.g = min(max(color.g + brightness, 0.0), colorMax);
+	color.b = min(max(color.b + brightness, 0.0), colorMax);
+
+	return color;
+}`;
+
 export const frag = `
 #define STANDARD
 #ifdef PHYSICAL
@@ -191,166 +364,13 @@ vec3 getIBLRadianceVariation( const in vec3 viewDir, const in vec3 normal, const
 	#endif
 }
 
-vec3 calculateReflectedLight(vec3 position, vec3 normal, vec3 viewDir, PhysicalMaterial material, int depth) {
-	
-	vec3 currentGeometryPosition = (modelMatrix * vec4(position, 1.0)).xyz;
-
-	mat3 normalMatrix;
-	normalMatrix[0] = normalize(modelMatrix[0].xyz);
-	normalMatrix[1] = normalize(modelMatrix[1].xyz);
-	normalMatrix[2] = normalize(modelMatrix[2].xyz);
-	
-	// Calculate the normal vector in world space
-	vec3 currentGeometryNormal = normalize(normalMatrix * normal);
-	
-	// Calculate the view direction vector in world space
-	vec3 currentGeometryViewDir = normalize(normalMatrix * -viewDir);
-
-    vec3 currentGeometryClearcoatNormal = vec3( 0.0 );
-	
-	#ifdef USE_CLEARCOAT
-        currentGeometryClearcoatNormal = clearcoatNormal;
-    #endif
-
-	ReflectedLight rLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
-	IncidentLight dLight;
-
-	float temp = material.roughness;
-	material.roughness = 0.5;
-
-	#if ( NUM_POINT_LIGHTS > 0 ) && defined( RE_Direct )
-
-		PointLight pointLight;
-        #if defined( USE_SHADOWMAP ) && NUM_POINT_LIGHT_SHADOWS > 0
-            PointLightShadow pointLightShadow;
-        #endif
-
-	    #pragma unroll_loop_start
-		for ( int i = 0; i < NUM_POINT_LIGHTS; i ++ ) {
-			pointLight = pointLights[ i ];
-            getPointLightInfo( pointLight, currentGeometryPosition, dLight );
-            #if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_POINT_LIGHT_SHADOWS )
-                pointLightShadow = pointLightShadows[ i ];
-                dLight.color *= ( dLight.visible && receiveShadow ) ? getPointShadow( pointShadowMap[ i ], pointLightShadow.shadowMapSize, pointLightShadow.shadowIntensity, pointLightShadow.shadowBias, pointLightShadow.shadowRadius, vPointShadowCoord[ i ], pointLightShadow.shadowCameraNear, pointLightShadow.shadowCameraFar ) : 1.0;
-            #endif
-		    RE_Direct( dLight, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
-		}
-        #pragma unroll_loop_end
-	#endif
-	#if ( NUM_SPOT_LIGHTS > 0 ) && defined( RE_Direct )
-        SpotLight spotLight;
-        #if defined( USE_SHADOWMAP ) && NUM_SPOT_LIGHT_SHADOWS > 0
-            SpotLightShadow spotLightShadow;
-        #endif
-        #pragma unroll_loop_start
-        for ( int i = 0; i < NUM_SPOT_LIGHTS; i ++ ) {
-            spotLight = spotLights[ i ];
-            getSpotLightInfo( spotLight, currentGeometryPosition, dLight );
-            #if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_SPOT_LIGHT_SHADOWS )
-                spotLightShadow = spotLightShadows[ i ];
-                dLight.color *= ( dLight.visible && receiveShadow ) ? getShadow( spotShadowMap[ i ], spotLightShadow.shadowMapSize, spotLightShadow.shadowIntensity, spotLightShadow.shadowBias, spotLightShadow.shadowRadius, vSpotLightCoord[ i ] ) : 1.0;
-            #endif
-            RE_Direct( dLight, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
-        }
-        #pragma unroll_loop_end
-	#endif
-
-    #if ( NUM_DIR_LIGHTS > 0 ) && defined( RE_Direct )
-        DirectionalLight directionalLight;
-        #if defined( USE_SHADOWMAP ) && NUM_DIR_LIGHT_SHADOWS > 0
-            DirectionalLightShadow directionalLightShadow;
-        #endif
-        #pragma unroll_loop_start
-        for ( int i = 0; i < NUM_DIR_LIGHTS; i ++ ) {
-            directionalLight = directionalLights[ i ];
-            getDirectionalLightInfo( directionalLight, dLight );
-            #if defined( USE_SHADOWMAP ) && ( UNROLLED_LOOP_INDEX < NUM_DIR_LIGHT_SHADOWS )
-                directionalLightShadow = directionalLightShadows[ i ];
-                dLight.color *= ( dLight.visible && receiveShadow ) ? getShadow( directionalShadowMap[ i ], directionalLightShadow.shadowMapSize, directionalLightShadow.shadowIntensity, directionalLightShadow.shadowBias, directionalLightShadow.shadowRadius, vDirectionalShadowCoord[ i ] ) : 1.0;
-            #endif
-            RE_Direct( dLight, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
-        }
-        #pragma unroll_loop_end
-    #endif
-	material.roughness = temp;
-	
-    #if ( NUM_RECT_AREA_LIGHTS > 0 ) && defined( RE_Direct_RectArea )
-        RectAreaLight rectAreaLight;
-        #pragma unroll_loop_start
-        for ( int i = 0; i < NUM_RECT_AREA_LIGHTS; i ++ ) {
-            rectAreaLight = rectAreaLights[ i ];
-            RE_Direct_RectArea( rectAreaLight, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
-        }
-        #pragma unroll_loop_end
-    #endif
-    #if defined( RE_IndirectDiffuse )
-        vec3 iblIrradiance = vec3( 0.0 );
-        vec3 irradiance = getAmbientLightIrradiance( ambientLightColor );
-		
-		#if defined( USE_LIGHT_PROBES )
-        	irradiance += getLightProbeIrradiance( lightProbe, currentGeometryNormal );
-		#endif
-        #if ( NUM_HEMI_LIGHTS > 0 )
-            #pragma unroll_loop_start
-            for ( int i = 0; i < NUM_HEMI_LIGHTS; i ++ ) {
-                irradiance += getHemisphereLightIrradiance( hemisphereLights[ i ], currentGeometryNormal );
-            }
-            #pragma unroll_loop_end
-        #endif
-    #endif
-    #if defined( RE_IndirectSpecular )
-        vec3 radiance = vec3( 0.0 );
-        vec3 clearcoatRadiance = vec3( 0.0 );
-    #endif
-
-
-    #if defined( RE_IndirectDiffuse )
-        #ifdef USE_LIGHTMAP
-            vec4 lightMapTexel = texture2D( lightMap, vLightMapUv );
-            vec3 lightMapIrradiance = lightMapTexel.rgb * lightMapIntensity;
-            irradiance += lightMapIrradiance;
-        #endif
-        #if defined( USE_ENVMAP ) && defined( STANDARD ) && defined( ENVMAP_TYPE_CUBE_UV )
-            iblIrradiance += getIBLIrradiance( currentGeometryNormal );
-        #endif
-    #endif
-    #if defined( USE_ENVMAP ) && defined( RE_IndirectSpecular )
-        radiance += getIBLRadianceVariation( currentGeometryViewDir, currentGeometryNormal, material.roughness );
-        #ifdef USE_CLEARCOAT
-            clearcoatRadiance += getIBLRadianceVariation( currentGeometryViewDir, currentGeometryClearcoatNormal, material.clearcoatRoughness );
-        #endif
-    #endif
-
-    #if defined( RE_IndirectDiffuse )
-        RE_IndirectDiffuse( irradiance, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
-    #endif
-    #if defined( RE_IndirectSpecular )
-        RE_IndirectSpecular( radiance, iblIrradiance, clearcoatRadiance, currentGeometryPosition, currentGeometryNormal, currentGeometryViewDir, currentGeometryClearcoatNormal, material, rLight );
-    #endif
-
-	if(depth >= 0) {
-		float frac = float(depth) / float(TRACING_DEPTH);
-		vec3 colorTransfer = (1.0-frac) * colorTransferBegin + frac * colorTransferEnd;
-		rLight.indirectSpecular *= colorTransfer;
-		rLight.directSpecular *= colorTransfer;
-	}
-
-	vec3 color = rLight.indirectSpecular + rLight.directSpecular + rLight.indirectDiffuse + rLight.directDiffuse;
-
-	// gamma
-	color = pow(color, vec3(1.0/gamma)); 
-
-	// contrast
-	color.rgb = ((color.rgb - 0.5) * max(contrast, 0.0)) + 0.5; 
-
-	// brightness
-	float colorMax = hdrOutput > 0.5 ? 65504.0 : 1.0;
-	color.r = min(max(color.r + brightness, 0.0), colorMax);
-	color.g = min(max(color.g + brightness, 0.0), colorMax);
-	color.b = min(max(color.b + brightness, 0.0), colorMax);
-
-	return color;
-}
+${gemReflectedLight("calculateReflectedLight", directLightsBlock)}
+#ifdef GEM_BOUNCE_ENVIRONMENT_ONLY
+// Internal bounces use the environment and ambient light only: the direct lights are evaluated on the first surface, which keeps the shader small.
+${gemReflectedLight("calculateBounceLight", "")}
+#else
+#define calculateBounceLight calculateReflectedLight
+#endif
 
 vec3 normalLookUp(vec3 dir) {
 	vec4 s = textureCube(sphericalNormalMap, dir);
@@ -620,9 +640,9 @@ void main() {
 				#endif
 
 				vec3 refracted = refract(newDirection, newNormal*-1.0, exitRatio);
-				tempColor += probability * currentProbability * calculateReflectedLight(newPosition, newNormal*-1.0, reflect(refracted, newNormal), material, i);
+				tempColor += probability * currentProbability * calculateBounceLight(newPosition, newNormal*-1.0, reflect(refracted, newNormal), material, i);
 				if(i+1 == TRACING_DEPTH)
-					tempColor += (1.0 - probability) * currentProbability * calculateReflectedLight(newPosition, newNormal, newDirection, material, i);
+					tempColor += (1.0 - probability) * currentProbability * calculateBounceLight(newPosition, newNormal, newDirection, material, i);
 
 				newDirection = reflect(newDirection, newNormal);
 
