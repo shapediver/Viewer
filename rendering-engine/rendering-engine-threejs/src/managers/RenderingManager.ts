@@ -1520,6 +1520,8 @@ export class RenderingManager implements IManager {
 		this._activeRendering = true;
 		// something changed, the accumulated frames are outdated
 		this._accumulator?.restart();
+		// and so is the previous frame the reflections read
+		this._renderingEngine.postProcessingManager.invalidateHistory();
 		this.stopBeautyRenderCountdown();
 		this.startBeautyRenderCountdown();
 	}
