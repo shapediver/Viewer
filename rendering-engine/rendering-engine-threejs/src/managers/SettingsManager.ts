@@ -261,6 +261,26 @@ export class SettingsManager implements IManager {
 										this._renderingEngine.environmentMapPbrMode =
 											pbrMode;
 								}
+								{
+									// only a boolean is accepted, a missing value is the old look
+									const mapAnalyticDfg = (
+										settingsEngine.environment as {
+											mapAnalyticDfg?: unknown;
+										}
+									).mapAnalyticDfg;
+									const analyticDfg =
+										typeof mapAnalyticDfg === "boolean"
+											? mapAnalyticDfg
+											: false;
+									// the setter recompiles the materials, so only call it on a change
+									if (
+										this._renderingEngine
+											.environmentMapAnalyticDfg !==
+										analyticDfg
+									)
+										this._renderingEngine.environmentMapAnalyticDfg =
+											analyticDfg;
+								}
 								this.applySyncSettings(
 									sections,
 									settingsEngine,
@@ -349,6 +369,9 @@ export class SettingsManager implements IManager {
 		(
 			settingsEngine.environment as {mapOrientation?: string}
 		).mapOrientation = this._renderingEngine.environmentMapOrientation;
+		(
+			settingsEngine.environment as {mapAnalyticDfg?: boolean}
+		).mapAnalyticDfg = this._renderingEngine.environmentMapAnalyticDfg;
 
 		settingsEngine.environmentGeometry.gridVisibility =
 			this._renderingEngine.gridVisibility;

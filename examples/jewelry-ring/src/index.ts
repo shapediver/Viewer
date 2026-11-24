@@ -153,26 +153,21 @@ const createGemMaterial = () =>
 	viewport.contactShadowBlur = 3.5;
 	viewport.contactShadowDarkness = 1.5;
 	viewport.contactShadowOpacity = 0.6;
-	// contact darkening in crevices and a glow on the brightest highlights
+	// the same reflection term as the reference renderer for polished metal
+	viewport.environmentMapAnalyticDfg = true;
+	// The model stores effects of its own (an SSAO): remove them, so that two
+	// ambient occlusions do not stack, and use the effects of the jewelry
+	// preset instead: contact darkening in crevices and a glow on the
+	// brightest highlights.
 	viewport.postProcessing.hdr = true;
-	viewport.postProcessing.addEffect({
-		type: SDV.POST_PROCESSING_EFFECT_TYPE.HBAO,
-		// ?aoMode=shading darkens only the indirect light inside the materials
-		properties:
-			urlParameters.get("aoMode") === "shading"
-				? {mode: "shading", excludeGems: true}
-				: {excludeGems: true},
-	});
-	viewport.postProcessing.addEffect({
-		type: SDV.POST_PROCESSING_EFFECT_TYPE.BLOOM,
-		properties: {
-			highlightsOnly: true,
-			// the gems are far brighter than white: a higher limit lets their
-			// bloom wash out the bezels around them
-			highlightLimit: 1,
-			backgroundBloom: false,
-		},
-	});
+	const effectTokens = viewport.postProcessing.getEffectTokens();
+	for (const token in effectTokens)
+		viewport.postProcessing.removeEffect(token);
+	for (const effect of SDV.defaultSettings.jewelry().postprocessing.effects)
+		viewport.postProcessing.addEffect({
+			type: effect.type,
+			properties: effect.properties,
+		} as SDV.IPostProcessingEffectDefinition);
 	viewport.maximumRenderingSize = {width: 3840, height: 2160};
 	// the reference refines the still image over many frames: smoother
 	// edges, facets and highlights

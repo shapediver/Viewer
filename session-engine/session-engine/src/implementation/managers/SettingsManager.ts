@@ -338,6 +338,11 @@ export class SettingsManager {
 			).mapOrientation = (
 				settings.environment as {mapOrientation?: string}
 			).mapOrientation;
+			(
+				currentSettings.environment as {mapAnalyticDfg?: boolean}
+			).mapAnalyticDfg = (
+				settings.environment as {mapAnalyticDfg?: boolean}
+			).mapAnalyticDfg;
 		}
 	}
 

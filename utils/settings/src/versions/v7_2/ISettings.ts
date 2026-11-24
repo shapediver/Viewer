@@ -37,6 +37,11 @@ export interface ISettings extends IGlobalSettings {
 	environment: ISettingsV7_1["environment"] & {
 		mapPbrMode: IEnvironmentMapPbrMode;
 		mapOrientation: IEnvironmentMapOrientation;
+		/**
+		 * Uses the analytic approximation of the environment reflection term (DFG) from older three.js versions instead of the lookup table.
+		 * Settings converted from before 7.2 use false.
+		 */
+		mapAnalyticDfg: boolean;
 	};
 	environmentGeometry: ISettingsV7_1["environmentGeometry"];
 	general: ISettingsV7_1["general"];

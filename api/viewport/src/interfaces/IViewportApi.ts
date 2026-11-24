@@ -229,6 +229,10 @@ export interface IViewportApi {
 	 */
 	environmentMap: string | string[];
 	/**
+	 * Uses the analytic approximation of the environment reflection term (DFG) from older three.js versions instead of the lookup table. Polished metal gets slightly brighter, matching renderers on older three.js. Independent of `environmentMapPbrMode`. In the `LEGACY` PBR mode it has no effect, because that mode already uses it. (default: false)
+	 */
+	environmentMapAnalyticDfg: boolean;
+	/**
 	 * Option to set the environment map as the background of the viewport. (default: false)
 	 */
 	environmentMapAsBackground: boolean;

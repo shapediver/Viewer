@@ -131,6 +131,7 @@ export class MaterialLoader implements ILoader {
 	private _envMap: THREE.CubeTexture | THREE.Texture | null = null;
 	private _envMapIntensity: number = 1;
 	private _envMapType: ENVIRONMENT_MAP_TYPE = ENVIRONMENT_MAP_TYPE.NULL;
+	private _environmentMapAnalyticDfg: boolean = false;
 	private _environmentMapPbrMode: ENVIRONMENT_MAP_PBR_MODE =
 		ENVIRONMENT_MAP_PBR_MODE.LEGACY;
 	private _environmentMapRotationEuler: THREE.Euler = new THREE.Euler();
@@ -398,6 +399,13 @@ export class MaterialLoader implements ILoader {
 		} else {
 			delete materialWithDefines.defines[ENVIRONMENT_MAP_PBR_MODE.LEGACY];
 			delete materialWithDefines.defines["SDV_LEGACY_DFG_APPROX"];
+		}
+
+		// the analytic DFG term alone, independent of the PBR mode
+		if (this._environmentMapAnalyticDfg) {
+			materialWithDefines.defines["SDV_ANALYTIC_DFG"] = "";
+		} else {
+			delete materialWithDefines.defines["SDV_ANALYTIC_DFG"];
 		}
 
 		material.needsUpdate = true;
@@ -733,6 +741,16 @@ uniform vec3 sdvScreenAOColor;
 					material.needsUpdate = true;
 				}
 			}
+		}
+	}
+
+	public assignEnvironmentMapAnalyticDfg(value: boolean) {
+		this._environmentMapAnalyticDfg = value;
+		for (const cacheKey in this._materialCache) {
+			this.assignEnvironmentMapPbrModeToMaterial(
+				this._materialCache[cacheKey].material,
+				this._environmentMapPbrMode,
+			);
 		}
 	}
 
@@ -2822,7 +2840,7 @@ export const adaptShaders = () => {
 	) {
 		// Restore the DFGApprox function that was removed in r181
 		const dfgApproxFunction = `
-			#ifdef SDV_LEGACY_DFG_APPROX
+			#if defined( SDV_LEGACY_DFG_APPROX ) || defined( SDV_ANALYTIC_DFG )
 			vec2 DFGApprox( const in vec3 normal, const in vec3 viewDir, const in float roughness ) {
 				float dotNV = saturate( dot( normal, viewDir ) );
 				const vec4 c0 = vec4( - 1, - 0.0275, - 0.572, 0.022 );
@@ -2846,7 +2864,7 @@ export const adaptShaders = () => {
 		THREE.ShaderChunk.lights_physical_pars_fragment =
 			THREE.ShaderChunk.lights_physical_pars_fragment.replace(
 				"\tvec2 fab = texture2D( dfgLUT, vec2( roughness, dotNV ) ).rg;\n\treturn specularColor * fab.x + specularF90 * fab.y;",
-				`\t#ifdef SDV_LEGACY_DFG_APPROX
+				`\t#if defined( SDV_LEGACY_DFG_APPROX ) || defined( SDV_ANALYTIC_DFG )
 				vec2 fab = DFGApprox( normal, viewDir, roughness );
 			#else
 				vec2 fab = texture2D( dfgLUT, vec2( roughness, dotNV ) ).rg;
@@ -2859,7 +2877,7 @@ export const adaptShaders = () => {
 			THREE.ShaderChunk.lights_physical_pars_fragment.replace(
 				"\tfloat dotNV = saturate( dot( normal, viewDir ) );\n\tvec2 fab = texture2D( dfgLUT, vec2( roughness, dotNV ) ).rg;\n\t#ifdef USE_IRIDESCENCE",
 				`\tfloat dotNV = saturate( dot( normal, viewDir ) );
-			#ifdef SDV_LEGACY_DFG_APPROX
+			#if defined( SDV_LEGACY_DFG_APPROX ) || defined( SDV_ANALYTIC_DFG )
 				vec2 fab = DFGApprox( normal, viewDir, roughness );
 			#else
 				vec2 fab = texture2D( dfgLUT, vec2( roughness, dotNV ) ).rg;

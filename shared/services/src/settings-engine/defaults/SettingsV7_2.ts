@@ -51,6 +51,7 @@ export type ISettingsV7_2 = Omit<
 	environment: ISettings["environment"] & {
 		mapPbrMode: "legacy" | "modern";
 		mapOrientation: "legacy" | "threejs";
+		mapAnalyticDfg: boolean;
 	};
 	postprocessing: Omit<ISettings["postprocessing"], "effects"> & {
 		effects: (IBloomEffect | IAmbientOcclusionEffect)[];
@@ -75,6 +76,7 @@ export const NEW_LOOK_V7_2 = {
 	environment: {
 		mapPbrMode: "modern",
 		mapOrientation: "threejs",
+		mapAnalyticDfg: false,
 	},
 	material: {
 		physicalGemDispersion: true,
