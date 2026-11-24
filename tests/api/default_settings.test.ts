@@ -24,6 +24,7 @@ const readOptions = () => {
 		physicalGemFresnel: viewport.physicalGemFresnel,
 		gemLighting: viewport.gemLighting,
 		gemEnvironmentMapIntensity: viewport.gemEnvironmentMapIntensity,
+		gemClampColor: viewport.gemClampColor,
 		gemTracing: viewport.gemTracing,
 		gemNormalMapResolution: viewport.gemNormalMapResolution,
 		toneMapping: viewport.toneMapping,
@@ -53,6 +54,7 @@ const OLD_LOOK = {
 	physicalGemFresnel: false,
 	gemLighting: "all",
 	gemEnvironmentMapIntensity: 1,
+	gemClampColor: true,
 	gemTracing: "sphere",
 	gemNormalMapResolution: 1024,
 	accumulationFrames: 0,
@@ -68,6 +70,7 @@ const NEW_LOOK = {
 	physicalGemFresnel: true,
 	gemLighting: "environment",
 	gemEnvironmentMapIntensity: 1.2,
+	gemClampColor: false,
 	gemTracing: "facets",
 	gemNormalMapResolution: 512,
 };
