@@ -159,26 +159,29 @@ export const convertToPrevious = (
 	// - rendering.maximumRenderingSize, rendering.maximumRenderingSizeMobile
 	// - bloom properties: backgroundBloom, highlightsOnly, highlightLimit (mipmapBlur is required in 7.1)
 	// - HBAO/SSAO properties: mode, excludeGems
-	const oldEffects = newSettings.postprocessing.effects.map((effect) => {
-		if (effect.type === "bloom" && effect.properties) {
-			const properties: any = {...effect.properties};
-			delete properties.backgroundBloom;
-			delete properties.highlightsOnly;
-			delete properties.highlightLimit;
-			properties.mipmapBlur = properties.mipmapBlur ?? false;
-			return {...effect, properties};
-		}
-		if (
-			(effect.type === "hbao" || effect.type === "ssao") &&
-			effect.properties
-		) {
-			const properties: any = {...effect.properties};
-			delete properties.mode;
-			delete properties.excludeGems;
-			return {...effect, properties};
-		}
-		return effect;
-	});
+	// - the SSR effect
+	const oldEffects = newSettings.postprocessing.effects
+		.filter((effect) => effect.type !== "ssr")
+		.map((effect) => {
+			if (effect.type === "bloom" && effect.properties) {
+				const properties: any = {...effect.properties};
+				delete properties.backgroundBloom;
+				delete properties.highlightsOnly;
+				delete properties.highlightLimit;
+				properties.mipmapBlur = properties.mipmapBlur ?? false;
+				return {...effect, properties};
+			}
+			if (
+				(effect.type === "hbao" || effect.type === "ssao") &&
+				effect.properties
+			) {
+				const properties: any = {...effect.properties};
+				delete properties.mode;
+				delete properties.excludeGems;
+				return {...effect, properties};
+			}
+			return effect;
+		});
 
 	const environment: any = {...newSettings.environment};
 	delete environment.mapPbrMode;

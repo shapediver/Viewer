@@ -1007,9 +1007,11 @@ export class RenderingManager implements IManager {
 
 		const draw = () => {
 			if (renderPostProcessing) {
+				// a frame outside the render loop (screenshot) is drawn on its own
 				this._renderingEngine.postProcessingManager.render(
 					deltaTime,
 					camera,
+					!options.trackBeauty,
 				);
 			} else {
 				this._renderingEngine.renderer.render(scene, camera);
@@ -1518,6 +1520,8 @@ export class RenderingManager implements IManager {
 		this._activeRendering = true;
 		// something changed, the accumulated frames are outdated
 		this._accumulator?.restart();
+		// and so is the previous frame the reflections read
+		this._renderingEngine.postProcessingManager.invalidateHistory();
 		this.stopBeautyRenderCountdown();
 		this.startBeautyRenderCountdown();
 	}

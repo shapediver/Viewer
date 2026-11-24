@@ -27,6 +27,18 @@ type IAmbientOcclusionEffect = {
 	};
 };
 
+type IScreenSpaceReflectionEffect = {
+	type: "ssr";
+	properties: {
+		intensity?: number;
+		maxRoughness?: number;
+		steps?: number;
+		distance?: number;
+		thickness?: number;
+		enableOnMobile?: boolean;
+	};
+};
+
 /**
  * The default settings in settings version 7.2.
  * The pinned settings package ends at 7.1, so the 7.2 fields are added here.
@@ -54,7 +66,11 @@ export type ISettingsV7_2 = Omit<
 		mapAnalyticDfg: boolean;
 	};
 	postprocessing: Omit<ISettings["postprocessing"], "effects"> & {
-		effects: (IBloomEffect | IAmbientOcclusionEffect)[];
+		effects: (
+			| IBloomEffect
+			| IAmbientOcclusionEffect
+			| IScreenSpaceReflectionEffect
+		)[];
 		hdr: boolean;
 	};
 	material: ISettings["material"] & {

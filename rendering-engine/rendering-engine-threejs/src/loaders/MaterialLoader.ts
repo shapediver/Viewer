@@ -28,6 +28,7 @@ import {
 import {mat4, quat} from "gl-matrix";
 import * as THREE from "three";
 import {type ILoader} from "../interfaces/ILoader";
+import {type IScreenSSRUniforms} from "../managers/postprocessing/ssr/SSREffect";
 import {
 	type GemLighting,
 	GemMaterial,
@@ -175,6 +176,19 @@ export class MaterialLoader implements ILoader {
 	};
 	private readonly _screenAOHooked = new WeakSet<THREE.Material>();
 	private _screenAOEnabled = false;
+	// per instance, set by the screen space reflection passes
+	private readonly _screenSSRUniforms: IScreenSSRUniforms = {
+		sdvSSRColorMap: {value: null},
+		sdvSSRDepthMap: {value: null},
+		sdvSSRViewToPrevClip: {value: new THREE.Matrix4()},
+		sdvSSRViewToPrevView: {value: new THREE.Matrix4()},
+		sdvSSRPrevCamera: {value: new THREE.Vector3(0.1, 1000, 0)},
+		sdvSSRParams: {value: new THREE.Vector4()},
+		sdvSSRSteps: {value: 16},
+		sdvSSRValid: {value: 0},
+		sdvSSRNoise: {value: 0},
+	};
+	private _screenSSREnabled = false;
 	private _shaderProgramCache: Map<string, ThreeJsMaterialTypes> = new Map();
 	private _compiledShaderSignatures: Set<string> = new Set();
 	private _maxMapCount: number = 0;
@@ -433,7 +447,152 @@ export class MaterialLoader implements ILoader {
 		return this._screenAOUniforms;
 	}
 
+	/**
+	 * Turns the screen space reflections in the material shading on or off
+	 * for all cached materials. Only opaque metal / roughness materials
+	 * receive them; gems, transparent and unlit materials never do.
+	 */
+	public setScreenSpaceReflections(enabled: boolean) {
+		if (enabled === this._screenSSREnabled) return;
+		this._screenSSREnabled = enabled;
+		if (!enabled) this._screenSSRUniforms.sdvSSRValid.value = 0;
+		for (const cacheKey in this._materialCache) {
+			this.assignScreenSSRToMaterial(
+				this._materialCache[cacheKey].material,
+			);
+		}
+	}
+
+	public get screenSSRUniforms(): IScreenSSRUniforms {
+		return this._screenSSRUniforms;
+	}
+
+	private assignScreenSSRToMaterial(material: THREE.Material): void {
+		const eligible =
+			this._screenSSREnabled &&
+			material instanceof THREE.MeshStandardMaterial &&
+			!(material instanceof GemMaterial) &&
+			!(material instanceof SpecularGlossinessMaterial) &&
+			!material.transparent;
+		const materialWithDefines = material as THREE.Material & {
+			defines?: {[key: string]: string};
+		};
+		const present =
+			materialWithDefines.defines !== undefined &&
+			"SDV_SCREEN_SSR" in materialWithDefines.defines;
+		if (eligible === present) return;
+		if (eligible) {
+			materialWithDefines.defines ??= {};
+			materialWithDefines.defines["SDV_SCREEN_SSR"] = "";
+		} else {
+			delete materialWithDefines.defines!["SDV_SCREEN_SSR"];
+		}
+		material.needsUpdate = true;
+	}
+
+	/**
+	 * Replaces the environment reflection by the reflection of the previous
+	 * frame where the reflected ray hits the depth of that frame. Everything
+	 * is guarded by SDV_SCREEN_SSR.
+	 */
+	private patchScreenSpaceReflections(
+		shader: THREE.WebGLProgramParametersWithUniforms,
+	): void {
+		if (shader.fragmentShader.includes("sdvSSRColorMap")) return;
+		for (const [name, uniform] of Object.entries(this._screenSSRUniforms))
+			shader.uniforms[name] ??= uniform;
+		shader.fragmentShader = shader.fragmentShader
+			.replace(
+				"#include <common>",
+				`#include <common>
+#ifdef SDV_SCREEN_SSR
+uniform sampler2D sdvSSRColorMap;
+uniform sampler2D sdvSSRDepthMap;
+uniform mat4 sdvSSRViewToPrevClip;
+uniform mat4 sdvSSRViewToPrevView;
+uniform vec3 sdvSSRPrevCamera;
+uniform vec4 sdvSSRParams;
+uniform float sdvSSRSteps;
+uniform float sdvSSRValid;
+uniform float sdvSSRNoise;
+
+// distance along the view axis of the previous frame, -1 for the background
+float sdvSSRSceneDistance( const in vec2 uv ) {
+	float depth = textureLod( sdvSSRDepthMap, uv, 0.0 ).r;
+	if ( depth >= 1.0 ) return -1.0;
+	float near = sdvSSRPrevCamera.x;
+	float far = sdvSSRPrevCamera.y;
+	if ( sdvSSRPrevCamera.z > 0.5 ) return near + depth * ( far - near );
+	return ( near * far ) / ( far - depth * ( far - near ) );
+}
+
+// how far the point lies behind the depth of the previous frame, and where
+vec3 sdvSSRProbe( const in vec3 position ) {
+	vec4 clip = sdvSSRViewToPrevClip * vec4( position, 1.0 );
+	if ( clip.w <= 0.0 ) return vec3( -1.0, -1.0, -1e10 );
+	vec2 uv = clip.xy / clip.w * 0.5 + 0.5;
+	if ( uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 ) return vec3( uv, -1e10 );
+	float sceneDistance = sdvSSRSceneDistance( uv );
+	if ( sceneDistance < 0.0 ) return vec3( uv, -1e9 );
+	float rayDistance = - ( sdvSSRViewToPrevView * vec4( position, 1.0 ) ).z;
+	return vec3( uv, rayDistance - sceneDistance );
+}
+
+// rgb: the color of the previous frame at the hit, a: the weight of the hit
+vec4 sdvSSRTrace( const in vec3 origin, const in vec3 direction ) {
+	float stepLength = sdvSSRParams.z / sdvSSRSteps;
+	float thickness = sdvSSRParams.w;
+	// interleaved gradient noise, shifted every frame
+	float jitter = fract( 52.9829189 * fract( dot( gl_FragCoord.xy, vec2( 0.06711056, 0.00583715 ) ) ) + sdvSSRNoise );
+	float previousT = 0.0;
+	for ( int i = 0; i < 64; i ++ ) {
+		if ( float( i ) >= sdvSSRSteps ) break;
+		float t = ( float( i ) + jitter ) * stepLength;
+		vec3 probe = sdvSSRProbe( origin + direction * t );
+		if ( probe.z < -1e9 ) break;
+		if ( probe.z > 0.0 && probe.z < thickness ) {
+			// refine between the last step in front and this step
+			float a = previousT;
+			float b = t;
+			for ( int j = 0; j < 5; j ++ ) {
+				float m = 0.5 * ( a + b );
+				vec3 mid = sdvSSRProbe( origin + direction * m );
+				if ( mid.z > 0.0 && mid.z < thickness ) {
+					b = m;
+					probe = mid;
+				} else {
+					a = m;
+				}
+			}
+			vec2 uv = probe.xy;
+			vec2 edge = smoothstep( vec2( 0.0 ), vec2( 0.05 ), uv ) * smoothstep( vec2( 0.0 ), vec2( 0.05 ), 1.0 - uv );
+			float weight = edge.x * edge.y * ( 1.0 - smoothstep( 0.75, 1.0, b / sdvSSRParams.z ) );
+			return vec4( textureLod( sdvSSRColorMap, uv, 0.0 ).rgb, weight );
+		}
+		previousT = t;
+	}
+	return vec4( 0.0 );
+}
+#endif`,
+			)
+			.replace(
+				"#include <lights_fragment_maps>",
+				`#include <lights_fragment_maps>
+#if defined( SDV_SCREEN_SSR ) && defined( STANDARD ) && defined( RE_IndirectSpecular )
+if ( sdvSSRValid > 0.5 && metalnessFactor > 0.5 && material.roughness < sdvSSRParams.y ) {
+	vec3 sdvSSRDirection = normalize( reflect( - geometryViewDir, geometryNormal ) );
+	// start a little above the surface, so the ray does not hit it
+	vec3 sdvSSROrigin = geometryPosition + geometryNormal * ( 0.1 * sdvSSRParams.w );
+	vec4 sdvSSRHit = sdvSSRTrace( sdvSSROrigin, sdvSSRDirection );
+	float sdvSSRWeight = clamp( sdvSSRHit.a * sdvSSRParams.x, 0.0, 1.0 ) * ( 1.0 - smoothstep( 0.5 * sdvSSRParams.y, sdvSSRParams.y, material.roughness ) );
+	radiance = mix( radiance, sdvSSRHit.rgb, sdvSSRWeight );
+}
+#endif`,
+			);
+	}
+
 	private assignScreenAOToMaterial(material: THREE.Material): void {
+		this.assignScreenSSRToMaterial(material);
 		const eligible =
 			this._screenAOEnabled &&
 			(material instanceof THREE.MeshStandardMaterial ||
@@ -465,6 +624,8 @@ export class MaterialLoader implements ILoader {
 	private patchScreenSpaceAmbientOcclusion(
 		shader: THREE.WebGLProgramParametersWithUniforms,
 	): void {
+		// the reflections are patched by the same hooks
+		this.patchScreenSpaceReflections(shader);
 		// a tracked clone can reach this through the loader hook of its source
 		// and through its own hook
 		if (shader.fragmentShader.includes("sdvScreenAOMap")) return;

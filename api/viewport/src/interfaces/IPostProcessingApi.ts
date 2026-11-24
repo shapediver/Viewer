@@ -24,6 +24,7 @@ import {
 	type ISelectiveBloomEffectDefinition,
 	type ISepiaEffectDefinition,
 	type ISSAOEffectDefinition,
+	type ISSREffectDefinition,
 	type ITiltShiftEffectDefinition,
 	type IVignetteEffectDefinition,
 	POST_PROCESSING_EFFECT_TYPE,
@@ -161,6 +162,7 @@ export interface IPostProcessingApi {
 	addEffect(definition: IOutlineEffectDefinition): string;
 	addEffect(definition: IPixelationEffectDefinition): string;
 	addEffect(definition: ISSAOEffectDefinition): string;
+	addEffect(definition: ISSREffectDefinition): string;
 	addEffect(definition: IScanlineEffectDefinition): string;
 	addEffect(definition: ISelectiveBloomEffectDefinition): string;
 	addEffect(definition: ISepiaEffectDefinition): string;

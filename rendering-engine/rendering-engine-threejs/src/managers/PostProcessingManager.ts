@@ -31,6 +31,7 @@ import {
 	type ISelectiveBloomEffectDefinition,
 	type ISepiaEffectDefinition,
 	type ISSAOEffectDefinition,
+	type ISSREffectDefinition,
 	type ITiltShiftEffectDefinition,
 	type IVignetteEffectDefinition,
 	POST_PROCESSING_EFFECT_TYPE,
@@ -54,6 +55,7 @@ import {
 	NoiseEffect,
 	OutlineEffect,
 	OverrideMaterialManager,
+	Pass,
 	PixelationEffect,
 	RenderPass,
 	ScanlineEffect,
@@ -84,6 +86,7 @@ import {GodRaysManager} from "./postprocessing/GodRaysManager";
 import {OutlineManager} from "./postprocessing/OutlineManager";
 import {SelectiveBloomManager} from "./postprocessing/SelectiveBloomManager";
 import {SSAARenderPass} from "./postprocessing/SSAARenderPass";
+import {SSREffect} from "./postprocessing/ssr/SSREffect";
 
 /**
  * The blend function of a bloom: an explicit one wins; in a half-float (HDR)
@@ -124,6 +127,8 @@ export class PostProcessingManager implements IManager {
 	// an AO effect in "shading" mode: it is not composited by an effect pass,
 	// the materials apply it to their indirect light instead
 	private _shadingAOEffect?: {token: string; effect: AOEffect};
+	// the screen space reflections, also applied by the materials
+	private _ssrEffect?: {token: string; effect: SSREffect};
 	private _fxaaEffect?: FXAAEffect;
 	private _godRaysManagers: {
 		[key: string]: GodRaysManager;
@@ -200,8 +205,11 @@ export class PostProcessingManager implements IManager {
 	}
 
 	public get effects(): {token: string; effect: Effect}[] {
-		return this._shadingAOEffect
-			? [...this._effects, this._shadingAOEffect]
+		const shading: {token: string; effect: Effect}[] = [];
+		if (this._shadingAOEffect) shading.push(this._shadingAOEffect);
+		if (this._ssrEffect) shading.push(this._ssrEffect);
+		return shading.length > 0
+			? [...this._effects, ...shading]
 			: this._effects;
 	}
 
@@ -252,6 +260,9 @@ export class PostProcessingManager implements IManager {
 		if (this._composer && this._manualPostProcessing === true) {
 			this._composer.removeAllPasses();
 			this._renderingEngine.materialLoader.setScreenSpaceAmbientOcclusion(
+				false,
+			);
+			this._renderingEngine.materialLoader.setScreenSpaceReflections(
 				false,
 			);
 		}
@@ -367,6 +378,7 @@ export class PostProcessingManager implements IManager {
 			case POST_PROCESSING_EFFECT_TYPE.NOISE:
 			case POST_PROCESSING_EFFECT_TYPE.PIXELATION:
 			case POST_PROCESSING_EFFECT_TYPE.SSAO:
+			case POST_PROCESSING_EFFECT_TYPE.SSR:
 			case POST_PROCESSING_EFFECT_TYPE.SCANLINE:
 			case POST_PROCESSING_EFFECT_TYPE.SEPIA:
 			case POST_PROCESSING_EFFECT_TYPE.TILT_SHIFT:
@@ -429,6 +441,9 @@ export class PostProcessingManager implements IManager {
 			this._renderingEngine.materialLoader.setScreenSpaceAmbientOcclusion(
 				false,
 			);
+			this._renderingEngine.materialLoader.setScreenSpaceReflections(
+				false,
+			);
 			return;
 		}
 
@@ -457,6 +472,8 @@ export class PostProcessingManager implements IManager {
 		this._effects = [];
 		this._shadingAOEffect?.effect.dispose();
 		this._shadingAOEffect = undefined;
+		this._ssrEffect?.effect.dispose();
+		this._ssrEffect = undefined;
 
 		for (let i = 0; i < this._effectDefinitions.length; i++) {
 			switch (this._effectDefinitions[i].definition.type) {
@@ -925,6 +942,53 @@ export class PostProcessingManager implements IManager {
 					}
 					break;
 
+				case POST_PROCESSING_EFFECT_TYPE.SSR:
+					{
+						// only one reflection effect, WebGL 2 only, and only on
+						// mobile devices when asked for
+						if (
+							this._ssrEffect ||
+							this._renderingEngine.renderer.capabilities
+								.isWebGL2 === false
+						)
+							break;
+						const definition: ISSREffectDefinition = this
+							._effectDefinitions[i]
+							.definition as ISSREffectDefinition;
+						const properties = definition.properties || {};
+						if (
+							this._systemInfo.isMobile === true &&
+							properties.enableOnMobile !== true
+						)
+							break;
+						// the same scene scale as the AO distance
+						const sceneSizeFactor = this._sceneExtents / 10.0;
+						// no ray to march: an empty scene or a distance of 0
+						if (!((properties.distance ?? 2) * sceneSizeFactor > 0))
+							break;
+						this._ssrEffect = {
+							token: this._effectDefinitions[i].token,
+							effect: new SSREffect({
+								intensity: properties.intensity ?? 1,
+								maxRoughness: properties.maxRoughness ?? 0.3,
+								steps: Math.max(
+									1,
+									Math.min(
+										64,
+										Math.round(properties.steps ?? 16),
+									),
+								),
+								maxDistance:
+									(properties.distance ?? 2) *
+									sceneSizeFactor,
+								thickness:
+									(properties.thickness ?? 0.2) *
+									sceneSizeFactor,
+							}),
+						};
+					}
+					break;
+
 				case POST_PROCESSING_EFFECT_TYPE.SSAO:
 					{
 						// we currently do not support devices with WebGL 1: https://shapediver.atlassian.net/browse/SS-7069
@@ -1141,9 +1205,11 @@ export class PostProcessingManager implements IManager {
 		// needsDepthBlit. The SSAA pass doesn't set it, so enable it only when the
 		// background-masked bloom needs depth (enabling it always would change
 		// existing SSAA renders of other depth-based effects).
-		this._ssaaRenderPass!.needsDepthBlit = this._effects.some(
-			(e) => e.effect instanceof BackgroundMaskedBloomEffect,
-		);
+		this._ssaaRenderPass!.needsDepthBlit =
+			this._ssrEffect !== undefined ||
+			this._effects.some(
+				(e) => e.effect instanceof BackgroundMaskedBloomEffect,
+			);
 
 		const effectArray = this._effects.map((v) => v.effect);
 		if (antiAliasingTechnique === ANTI_ALIASING_TECHNIQUE.FXAA) {
@@ -1171,8 +1237,26 @@ export class PostProcessingManager implements IManager {
 			this.addPassToEffectComposer(effectPass);
 		}
 
-		// the AO of the "shading" mode is rendered before the scene, the materials read it
 		const materialLoader = this._renderingEngine.materialLoader;
+
+		// the reflections read the color and depth of the previous frame: one
+		// pass right after the scene keeps them, one before the scene sets the
+		// uniforms. The scene's render pass is the first pass at this point.
+		const ssrEffect = this._ssrEffect as
+			| {token: string; effect: SSREffect}
+			| undefined;
+		if (ssrEffect) {
+			const passes = ssrEffect.effect.createPasses(
+				materialLoader.screenSSRUniforms,
+			);
+			this.addPassToEffectComposer(passes.after, 1);
+			this.addPassToEffectComposer(passes.before, 0);
+			materialLoader.setScreenSpaceReflections(true);
+		} else {
+			materialLoader.setScreenSpaceReflections(false);
+		}
+
+		// the AO of the "shading" mode is rendered before the scene, the materials read it
 		// the effect is set while the definitions are processed above
 		const shadingAOEffect = this._shadingAOEffect as
 			| {token: string; effect: AOEffect}
@@ -1371,6 +1455,15 @@ export class PostProcessingManager implements IManager {
 					depthPhi: 2,
 					normalPhi: 3.25,
 					samples: 16,
+				};
+			case POST_PROCESSING_EFFECT_TYPE.SSR:
+				return {
+					intensity: 1,
+					maxRoughness: 0.3,
+					steps: 16,
+					distance: 2,
+					thickness: 0.2,
+					enableOnMobile: false,
 				};
 			case POST_PROCESSING_EFFECT_TYPE.SCANLINE:
 				return {
@@ -1669,6 +1762,27 @@ export class PostProcessingManager implements IManager {
 					}
 					break;
 
+				case POST_PROCESSING_EFFECT_TYPE.SSR:
+					{
+						const definition: ISSREffectDefinition = this
+							._effectDefinitions[i]
+							.definition as ISSREffectDefinition;
+						const properties = definition.properties || {};
+						effects.push({
+							type: POST_PROCESSING_EFFECT_TYPE.SSR,
+							token: this._effectDefinitions[i].token,
+							properties: {
+								intensity: properties.intensity,
+								maxRoughness: properties.maxRoughness,
+								steps: properties.steps,
+								distance: properties.distance,
+								thickness: properties.thickness,
+								enableOnMobile: properties.enableOnMobile,
+							},
+						});
+					}
+					break;
+
 				case POST_PROCESSING_EFFECT_TYPE.SCANLINE:
 					{
 						const definition: IScanlineEffectDefinition = this
@@ -1825,7 +1939,19 @@ export class PostProcessingManager implements IManager {
 		return true;
 	}
 
-	public render(deltaTime: number, camera: THREE.Camera) {
+	/**
+	 * Something in the scene changed: the screen-space reflections must not
+	 * reflect the frame before the change.
+	 */
+	public invalidateHistory(): void {
+		this._ssrEffect?.effect.invalidate();
+	}
+
+	/**
+	 * @param single true when this frame is drawn on its own (a screenshot),
+	 * not as one frame of the render loop
+	 */
+	public render(deltaTime: number, camera: THREE.Camera, single = false) {
 		if (!this._composer) return;
 
 		const cameraId = `${camera.id}_${camera.type}${camera.type === "PerspectiveCamera" ? "" : "_" + camera.up.toArray().toString()}`;
@@ -1854,6 +1980,14 @@ export class PostProcessingManager implements IManager {
 				? 1
 				: 0;
 		this._composer.render();
+		// The reflections read the previous frame. Draw the frame again when
+		// it had none (new effect, resize), and for a single frame such as a
+		// screenshot, whose previous frame may show the scene before a change.
+		const ssrState = this._ssrEffect?.effect.takeFrameState() ?? "none";
+		if (ssrState === "invalid" || (single && ssrState === "valid")) {
+			this._composer.render();
+			this._ssrEffect!.effect.takeFrameState();
+		}
 		GemMaterial.hdrOutputUniform.value = 0;
 
 		this._renderingEngine.renderer.toneMapping = currentToneMapping;
@@ -1987,10 +2121,7 @@ export class PostProcessingManager implements IManager {
 		}
 	}
 
-	private addPassToEffectComposer(
-		pass: EffectPass | RenderPass | SSAARenderPass | AOShadingPass,
-		index?: number,
-	) {
+	private addPassToEffectComposer(pass: Pass, index?: number) {
 		if (this._composer) {
 			try {
 				this._composer.addPass(pass, index);
