@@ -66,7 +66,7 @@ const NEW_LOOK = {
 	environmentMapAnalyticDfg: false,
 	physicalGemDispersion: true,
 	physicalGemFresnel: true,
-	gemLighting: "firstSurface",
+	gemLighting: "environment",
 	gemEnvironmentMapIntensity: 1.2,
 	gemTracing: "facets",
 	gemNormalMapResolution: 512,

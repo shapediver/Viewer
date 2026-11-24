@@ -81,7 +81,7 @@ export const NEW_LOOK_V7_2 = {
 	material: {
 		physicalGemDispersion: true,
 		physicalGemFresnel: true,
-		gemLighting: "firstSurface",
+		gemLighting: "environment",
 		gemEnvironmentMapIntensity: 1.2,
 		gemTracing: "facets",
 		gemNormalMapResolution: 512,
