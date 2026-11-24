@@ -1936,7 +1936,11 @@ export class PostProcessingManager implements IManager {
 		return true;
 	}
 
-	public render(deltaTime: number, camera: THREE.Camera) {
+	/**
+	 * @param single true when this frame is drawn on its own (a screenshot),
+	 * not as one frame of the render loop
+	 */
+	public render(deltaTime: number, camera: THREE.Camera, single = false) {
 		if (!this._composer) return;
 
 		const cameraId = `${camera.id}_${camera.type}${camera.type === "PerspectiveCamera" ? "" : "_" + camera.up.toArray().toString()}`;
@@ -1965,6 +1969,14 @@ export class PostProcessingManager implements IManager {
 				? 1
 				: 0;
 		this._composer.render();
+		// The reflections read the previous frame. Draw the frame again when
+		// it had none (new effect, resize), and for a single frame such as a
+		// screenshot, whose previous frame may show the scene before a change.
+		const ssrState = this._ssrEffect?.effect.takeFrameState() ?? "none";
+		if (ssrState === "invalid" || (single && ssrState === "valid")) {
+			this._composer.render();
+			this._ssrEffect!.effect.takeFrameState();
+		}
 		GemMaterial.hdrOutputUniform.value = 0;
 
 		this._renderingEngine.renderer.toneMapping = currentToneMapping;
