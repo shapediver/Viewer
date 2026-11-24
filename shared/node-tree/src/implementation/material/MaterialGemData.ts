@@ -21,6 +21,8 @@ export class MaterialGemData
 	#impurityScale: number = 1.0;
 	#colorTransferBegin: Color = "#ffffff";
 	#colorTransferEnd: Color = "#ffffff";
+	#attenuationColor: Color = "#ffffff";
+	#attenuationDistance: number = Infinity;
 	#center: vec3 = vec3.create();
 	#radius: number = 1;
 	#sphericalNormalMap?: IMapData;
@@ -61,6 +63,10 @@ export class MaterialGemData
 			this.colorTransferBegin = properties.colorTransferBegin;
 		if (properties.colorTransferEnd !== undefined)
 			this.colorTransferEnd = properties.colorTransferEnd;
+		if (properties.attenuationColor !== undefined)
+			this.attenuationColor = properties.attenuationColor;
+		if (properties.attenuationDistance !== undefined)
+			this.attenuationDistance = properties.attenuationDistance;
 		if (properties.center !== undefined) this.center = properties.center;
 		if (properties.tracingDepth !== undefined)
 			this.tracingDepth = properties.tracingDepth;
@@ -123,6 +129,30 @@ export class MaterialGemData
 
 	public set colorTransferEnd(value: Color) {
 		this.#colorTransferEnd = value;
+	}
+
+	/**
+	 * The color that white light takes on after it has traveled
+	 * {@link attenuationDistance} through the stone. Default white.
+	 */
+	public get attenuationColor(): Color {
+		return this.#attenuationColor;
+	}
+
+	public set attenuationColor(value: Color) {
+		this.#attenuationColor = value;
+	}
+
+	/**
+	 * The distance, in model units, after which light inside the stone has the
+	 * {@link attenuationColor}. Default `Infinity`: no absorption.
+	 */
+	public get attenuationDistance(): number {
+		return this.#attenuationDistance;
+	}
+
+	public set attenuationDistance(value: number) {
+		this.#attenuationDistance = value;
 	}
 
 	public get center(): vec3 {
@@ -250,6 +280,8 @@ export class MaterialGemData
 				impurityScale: this.impurityScale,
 				colorTransferBegin: this.colorTransferBegin,
 				colorTransferEnd: this.colorTransferEnd,
+				attenuationColor: this.attenuationColor,
+				attenuationDistance: this.attenuationDistance,
 				center: this.center,
 				tracingDepth: this.tracingDepth,
 				radius: this.radius,
@@ -294,6 +326,8 @@ export class MaterialGemData
 		this.impurityScale = source.impurityScale;
 		this.colorTransferBegin = source.colorTransferBegin;
 		this.colorTransferEnd = source.colorTransferEnd;
+		this.attenuationColor = source.attenuationColor;
+		this.attenuationDistance = source.attenuationDistance;
 		this.center = source.center;
 		this.tracingDepth = source.tracingDepth;
 		this.radius = source.radius;
@@ -334,6 +368,8 @@ export class MaterialGemData
 		this.impurityScale = 1.0;
 		this.colorTransferBegin = "#ffffff";
 		this.colorTransferEnd = "#ffffff";
+		this.attenuationColor = "#ffffff";
+		this.attenuationDistance = Infinity;
 		this.center = vec3.create();
 		this.radius = 1;
 		this.sphericalNormalMap = undefined;
