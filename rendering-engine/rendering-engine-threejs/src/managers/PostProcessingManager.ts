@@ -76,6 +76,7 @@ import {AOShadingPass} from "./postprocessing/ao/ao/AOShadingPass";
 import {HBAOEffect} from "./postprocessing/ao/hbao/HBAOEffect";
 import {PoissionDenoisePass} from "./postprocessing/ao/poissionDenoise/PoissionDenoisePass";
 import {SSAOEffect} from "./postprocessing/ao/ssao/SSAOEffect";
+import {applyAdditiveMipmapBlur} from "./postprocessing/effects/bloom/AdditiveMipmapBlur";
 import {BackgroundMaskedBloomEffect} from "./postprocessing/effects/bloom/BackgroundMaskedBloomEffect";
 import {
 	DEFAULT_HIGHLIGHT_LIMIT,
@@ -514,21 +515,24 @@ export class PostProcessingManager implements IManager {
 							intensity: properties.intensity,
 							kernelSize: properties.kernelSize,
 						};
-						this._effects.push({
-							token: this._effectDefinitions[i].token,
-							effect:
-								properties.backgroundBloom === false
-									? new BackgroundMaskedBloomEffect(
+						const bloomEffect =
+							properties.backgroundBloom === false
+								? new BackgroundMaskedBloomEffect(
+										bloomOptions,
+										highlightsOnly,
+										properties.highlightLimit,
+									)
+								: highlightsOnly
+									? new HighlightBloomEffect(
 											bloomOptions,
-											highlightsOnly,
 											properties.highlightLimit,
 										)
-									: highlightsOnly
-										? new HighlightBloomEffect(
-												bloomOptions,
-												properties.highlightLimit,
-											)
-										: new BloomEffect(bloomOptions),
+									: new BloomEffect(bloomOptions);
+						if (properties.additiveBlur === true)
+							applyAdditiveMipmapBlur(bloomEffect);
+						this._effects.push({
+							token: this._effectDefinitions[i].token,
+							effect: bloomEffect,
 						});
 					}
 					break;
@@ -1355,6 +1359,7 @@ export class PostProcessingManager implements IManager {
 		switch (type) {
 			case POST_PROCESSING_EFFECT_TYPE.BLOOM:
 				return {
+					additiveBlur: false,
 					backgroundBloom: true,
 					blendFunction: BlendFunction.ADD,
 					intensity: 1.0,
@@ -1556,6 +1561,7 @@ export class PostProcessingManager implements IManager {
 							type: POST_PROCESSING_EFFECT_TYPE.BLOOM,
 							token: this._effectDefinitions[i].token,
 							properties: {
+								additiveBlur: properties.additiveBlur,
 								backgroundBloom: properties.backgroundBloom,
 								blendFunction: properties.blendFunction,
 								highlightLimit: properties.highlightLimit,
