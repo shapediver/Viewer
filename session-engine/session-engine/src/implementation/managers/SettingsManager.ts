@@ -296,6 +296,7 @@ export class SettingsManager {
 				physicalGemFresnel?: boolean;
 				gemLighting?: string;
 				gemEnvironmentMapIntensity?: number;
+				gemClampColor?: boolean;
 				gemTracing?: string;
 				gemNormalMapResolution?: number;
 			};
@@ -306,6 +307,7 @@ export class SettingsManager {
 			currentMaterial.gemLighting = material.gemLighting;
 			currentMaterial.gemEnvironmentMapIntensity =
 				material.gemEnvironmentMapIntensity;
+			currentMaterial.gemClampColor = material.gemClampColor;
 			currentMaterial.gemTracing = material.gemTracing;
 			currentMaterial.gemNormalMapResolution =
 				material.gemNormalMapResolution;

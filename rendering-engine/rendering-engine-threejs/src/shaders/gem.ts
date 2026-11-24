@@ -228,7 +228,8 @@ ${sceneAmbient}
 	color.rgb = ((color.rgb - 0.5) * max(contrast, 0.0)) + 0.5;
 
 	// brightness
-	float colorMax = hdrOutput > 0.5 ? 65504.0 : 1.0;
+	// clampColor 1 keeps the legacy clamp at 1 outside the HDR composer, so highlights never reach white after tone mapping
+	float colorMax = hdrOutput > 0.5 || clampColor < 0.5 ? 65504.0 : 1.0;
 	color.r = min(max(color.r + brightness, 0.0), colorMax);
 	color.g = min(max(color.g + brightness, 0.0), colorMax);
 	color.b = min(max(color.b + brightness, 0.0), colorMax);
@@ -344,6 +345,7 @@ uniform float gamma;
 uniform float contrast;
 uniform float brightness;
 uniform float hdrOutput;
+uniform float clampColor;
 uniform float dispersion;
 uniform float tracingOpacity;
 uniform float gemEnvMapIntensity;

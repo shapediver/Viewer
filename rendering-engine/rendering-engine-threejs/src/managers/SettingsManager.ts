@@ -135,6 +135,7 @@ export class SettingsManager implements IManager {
 				physicalGemFresnel?: unknown;
 				gemLighting?: unknown;
 				gemEnvironmentMapIntensity?: unknown;
+				gemClampColor?: unknown;
 				gemTracing?: unknown;
 				gemNormalMapResolution?: unknown;
 			};
@@ -152,6 +153,10 @@ export class SettingsManager implements IManager {
 				material.gemEnvironmentMapIntensity >= 0
 					? material.gemEnvironmentMapIntensity
 					: 1;
+			const clampColor =
+				typeof material.gemClampColor === "boolean"
+					? material.gemClampColor
+					: true;
 			const dispersion =
 				typeof material.physicalGemDispersion === "boolean"
 					? material.physicalGemDispersion
@@ -179,6 +184,7 @@ export class SettingsManager implements IManager {
 				gemIntensity
 			)
 				this._renderingEngine.gemEnvironmentMapIntensity = gemIntensity;
+			this._renderingEngine.gemClampColor = clampColor;
 			this._renderingEngine.gemTracing = tracing;
 			this._renderingEngine.gemNormalMapResolution = resolution;
 		}
@@ -427,6 +433,7 @@ export class SettingsManager implements IManager {
 			physicalGemFresnel?: boolean;
 			gemLighting?: string;
 			gemEnvironmentMapIntensity?: number;
+			gemClampColor?: boolean;
 			gemTracing?: string;
 			gemNormalMapResolution?: number;
 		};
@@ -437,6 +444,7 @@ export class SettingsManager implements IManager {
 		materialGem.gemLighting = this._renderingEngine.gemLighting;
 		materialGem.gemEnvironmentMapIntensity =
 			this._renderingEngine.gemEnvironmentMapIntensity;
+		materialGem.gemClampColor = this._renderingEngine.gemClampColor;
 		materialGem.gemTracing = this._renderingEngine.gemTracing;
 		materialGem.gemNormalMapResolution =
 			this._renderingEngine.gemNormalMapResolution;

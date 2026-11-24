@@ -30,6 +30,8 @@ export const OLD_LOOK_V7_2 = {
 	gemLighting: "all",
 	/** `material.gemEnvironmentMapIntensity` */
 	gemEnvironmentMapIntensity: 1,
+	/** `material.gemClampColor` */
+	gemClampColor: true,
 	/** `material.gemTracing` */
 	gemTracing: "sphere",
 	/** `material.gemNormalMapResolution` */
@@ -128,6 +130,8 @@ export const convertFromPrevious = (
 			gemEnvironmentMapIntensity:
 				oldMaterial.gemEnvironmentMapIntensity ??
 				OLD_LOOK_V7_2.gemEnvironmentMapIntensity,
+			gemClampColor:
+				oldMaterial.gemClampColor ?? OLD_LOOK_V7_2.gemClampColor,
 			gemTracing: oldMaterial.gemTracing ?? OLD_LOOK_V7_2.gemTracing,
 			gemNormalMapResolution:
 				oldMaterial.gemNormalMapResolution ??
@@ -153,7 +157,7 @@ export const convertToPrevious = (
 	// - postprocessing.hdr
 	// - environment.mapPbrMode, environment.mapOrientation, environment.mapAnalyticDfg
 	// - material.physicalGemDispersion, material.physicalGemFresnel, material.gemLighting,
-	//   material.gemEnvironmentMapIntensity,
+	//   material.gemEnvironmentMapIntensity, material.gemClampColor,
 	//   material.gemTracing, material.gemNormalMapResolution
 	// - rendering.accumulationFrames, rendering.accumulationFramesMobile
 	// - rendering.maximumRenderingSize, rendering.maximumRenderingSizeMobile
@@ -194,6 +198,7 @@ export const convertToPrevious = (
 	delete material.physicalGemFresnel;
 	delete material.gemLighting;
 	delete material.gemEnvironmentMapIntensity;
+	delete material.gemClampColor;
 	delete material.gemTracing;
 	delete material.gemNormalMapResolution;
 

@@ -169,6 +169,7 @@ export const materialSettingsSchemaV7_2 = materialSettingsSchema.extend({
 	physicalGemFresnel: z.boolean(),
 	gemLighting: z.enum(["all", "firstSurface", "environment"]),
 	gemEnvironmentMapIntensity: z.number().min(0),
+	gemClampColor: z.boolean(),
 	gemTracing: z.enum(["sphere", "facets"]),
 	gemNormalMapResolution: z.union([
 		z.literal(256),
