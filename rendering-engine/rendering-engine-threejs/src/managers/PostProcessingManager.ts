@@ -972,6 +972,9 @@ export class PostProcessingManager implements IManager {
 							break;
 						// the same scene scale as the AO distance
 						const sceneSizeFactor = this._sceneExtents / 10.0;
+						// no ray to march: an empty scene or a distance of 0
+						if (!((properties.distance ?? 2) * sceneSizeFactor > 0))
+							break;
 						this._ssrEffect = {
 							token: this._effectDefinitions[i].token,
 							effect: new SSREffect({
@@ -1949,6 +1952,14 @@ export class PostProcessingManager implements IManager {
 
 		this.changeEffectPass();
 		return true;
+	}
+
+	/**
+	 * Something in the scene changed: the screen-space reflections must not
+	 * reflect the frame before the change.
+	 */
+	public invalidateHistory(): void {
+		this._ssrEffect?.effect.invalidate();
 	}
 
 	/**

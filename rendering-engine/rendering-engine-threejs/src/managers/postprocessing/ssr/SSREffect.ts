@@ -60,6 +60,7 @@ export class SSREffect extends Effect {
 	private _copyPass?: CopyPass;
 	private _depthTexture: THREE.Texture | null = null;
 	private _hasPrevious = false;
+	private _sourceColorSpace?: string;
 	private _lastFrameValid = false;
 	private _prepared: "none" | "valid" | "invalid" = "none";
 	private _prevCamera = new THREE.Vector3(0.1, 1000, 0);
@@ -173,7 +174,9 @@ export class SSREffect extends Effect {
 		if (
 			!this._colorTarget ||
 			this._colorTarget.texture.type !== type ||
-			this._colorTarget.texture.colorSpace !== colorSpace ||
+			// CopyPass.initialize may change the target's colour space, so
+			// compare with the colour space of the buffer it was made for
+			this._sourceColorSpace !== colorSpace ||
 			this._colorTarget.width !== width ||
 			this._colorTarget.height !== height
 		) {
@@ -187,6 +190,7 @@ export class SSREffect extends Effect {
 			});
 			// an 8-bit composer buffer stores sRGB, keep the same precision
 			this._colorTarget.texture.colorSpace = colorSpace;
+			this._sourceColorSpace = colorSpace;
 			this._colorTarget.texture.name = "SSREffect.Color";
 			this._copyPass?.dispose();
 			this._copyPass = new CopyPass(this._colorTarget, false);
@@ -218,6 +222,14 @@ export class SSREffect extends Effect {
 
 	public setSize(): void {
 		// the targets follow the composer buffers in capture
+		this._hasPrevious = false;
+	}
+
+	/**
+	 * Forgets the previous frame, for example after a change of the scene:
+	 * the next frame is then drawn twice instead of reflecting the old scene.
+	 */
+	public invalidate(): void {
 		this._hasPrevious = false;
 	}
 
