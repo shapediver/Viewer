@@ -65,6 +65,7 @@ describe("settings V7.2", () => {
 			physicalGemFresnel: false,
 			gemLighting: "all",
 			gemEnvironmentMapIntensity: 1,
+			gemClampColor: true,
 			gemTracing: "sphere",
 			gemNormalMapResolution: 1024,
 			accumulationFrames: 0,
@@ -193,6 +194,7 @@ describe("settings V7.2", () => {
 			(s) => delete (s.material as any).physicalGemFresnel,
 			(s) => delete (s.material as any).gemLighting,
 			(s) => delete (s.material as any).gemEnvironmentMapIntensity,
+			(s) => delete (s.material as any).gemClampColor,
 			(s) => delete (s.material as any).gemTracing,
 			(s) => delete (s.material as any).gemNormalMapResolution,
 			(s) => delete (s.rendering as any).accumulationFrames,
@@ -232,6 +234,7 @@ describe("settings V7.2", () => {
 			(s) => ((s.material as any).gemLighting = "yes"),
 			(s) => ((s.material as any).gemEnvironmentMapIntensity = "1"),
 			(s) => ((s.material as any).gemEnvironmentMapIntensity = -1),
+			(s) => ((s.material as any).gemClampColor = "false"),
 			(s) => ((s.material as any).gemTracing = "foo"),
 			(s) => ((s.material as any).gemNormalMapResolution = 300),
 			(s) => ((s.material as any).gemNormalMapResolution = "512"),
@@ -287,6 +290,7 @@ describe("settings V7.2", () => {
 		expect(converted.material.physicalGemFresnel).toBe(false);
 		expect(converted.material.gemLighting).toBe("all");
 		expect(converted.material.gemEnvironmentMapIntensity).toBe(1);
+		expect(converted.material.gemClampColor).toBe(true);
 		expect(converted.material.gemTracing).toBe("sphere");
 		expect(converted.material.gemNormalMapResolution).toBe(1024);
 		expect(converted.rendering.accumulationFrames).toBe(0);
@@ -333,6 +337,7 @@ describe("settings V7.2", () => {
 		settingsV7_1.material.physicalGemFresnel = true;
 		settingsV7_1.material.gemLighting = "environment";
 		settingsV7_1.material.gemEnvironmentMapIntensity = 1.5;
+		settingsV7_1.material.gemClampColor = false;
 		settingsV7_1.material.gemTracing = "facets";
 		settingsV7_1.material.gemNormalMapResolution = 512;
 		settingsV7_1.rendering.accumulationFrames = 16;
@@ -364,6 +369,7 @@ describe("settings V7.2", () => {
 		expect(converted.material.physicalGemFresnel).toBe(true);
 		expect(converted.material.gemLighting).toBe("environment");
 		expect(converted.material.gemEnvironmentMapIntensity).toBe(1.5);
+		expect(converted.material.gemClampColor).toBe(false);
 		expect(converted.material.gemTracing).toBe("facets");
 		expect(converted.material.gemNormalMapResolution).toBe(512);
 		expect(converted.rendering.accumulationFrames).toBe(16);
@@ -433,6 +439,7 @@ describe("settings V7.2", () => {
 		expect(converted.material).not.toHaveProperty(
 			"gemEnvironmentMapIntensity",
 		);
+		expect(converted.material).not.toHaveProperty("gemClampColor");
 		expect(converted.material).not.toHaveProperty("gemTracing");
 		expect(converted.material).not.toHaveProperty("gemNormalMapResolution");
 		expect(converted.rendering).not.toHaveProperty("accumulationFrames");
@@ -449,6 +456,62 @@ describe("settings V7.2", () => {
 		expect(settingsV7_2.postprocessing.effects[0].properties).toMatchObject(
 			{mode: "shading", excludeGems: true},
 		);
+	});
+
+	it("validate - SSR effect", () => {
+		const settings = createSettingsV7_2();
+		settings.postprocessing.effects.push(
+			{type: "ssr"},
+			{
+				type: "ssr",
+				properties: {
+					intensity: 1,
+					maxRoughness: 0.3,
+					steps: 16,
+					distance: 2,
+					thickness: 0.1,
+					enableOnMobile: false,
+				},
+			},
+		);
+		expect(() => validate(settings, "7.2")).not.toThrow();
+	});
+
+	it("validate - invalid SSR properties fail", () => {
+		const invalid: unknown[] = [
+			{steps: 0},
+			{steps: 65},
+			{steps: 1.5},
+			{intensity: -1},
+			{enableOnMobile: "yes"},
+			{unknownProperty: 1},
+		];
+		for (const properties of invalid) {
+			const settings = createSettingsV7_2();
+			settings.postprocessing.effects.push({
+				type: "ssr",
+				properties: properties as {steps?: number},
+			});
+			expect(() => validate(settings, "7.2")).toThrow();
+		}
+	});
+
+	it("convert 7.2 -> 7.1 drops the SSR effect", () => {
+		const settingsV7_2 = createSettingsV7_2();
+		settingsV7_2.postprocessing.effects.splice(1, 0, {
+			type: "ssr",
+			properties: {intensity: 0.5},
+		});
+
+		const converted = <ISettingsV7_1>convert(settingsV7_2, "7.1");
+
+		expect(converted.postprocessing.effects.map((e) => e.type)).toEqual([
+			"hbao",
+			"ssao",
+			"bloom",
+		]);
+		expect(() => validate(converted, "7.1")).not.toThrow();
+		expect(settingsV7_2.postprocessing.effects[1].type).toBe("ssr");
 	});
 
 	it("convert 7.2 -> 7.1 fills mipmapBlur of bloom", () => {

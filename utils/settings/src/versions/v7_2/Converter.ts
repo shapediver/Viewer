@@ -30,6 +30,8 @@ export const OLD_LOOK_V7_2 = {
 	gemLighting: "all",
 	/** `material.gemEnvironmentMapIntensity` */
 	gemEnvironmentMapIntensity: 1,
+	/** `material.gemClampColor` */
+	gemClampColor: true,
 	/** `material.gemTracing` */
 	gemTracing: "sphere",
 	/** `material.gemNormalMapResolution` */
@@ -128,6 +130,8 @@ export const convertFromPrevious = (
 			gemEnvironmentMapIntensity:
 				oldMaterial.gemEnvironmentMapIntensity ??
 				OLD_LOOK_V7_2.gemEnvironmentMapIntensity,
+			gemClampColor:
+				oldMaterial.gemClampColor ?? OLD_LOOK_V7_2.gemClampColor,
 			gemTracing: oldMaterial.gemTracing ?? OLD_LOOK_V7_2.gemTracing,
 			gemNormalMapResolution:
 				oldMaterial.gemNormalMapResolution ??
@@ -153,33 +157,36 @@ export const convertToPrevious = (
 	// - postprocessing.hdr
 	// - environment.mapPbrMode, environment.mapOrientation, environment.mapAnalyticDfg
 	// - material.physicalGemDispersion, material.physicalGemFresnel, material.gemLighting,
-	//   material.gemEnvironmentMapIntensity,
+	//   material.gemEnvironmentMapIntensity, material.gemClampColor,
 	//   material.gemTracing, material.gemNormalMapResolution
 	// - rendering.accumulationFrames, rendering.accumulationFramesMobile
 	// - rendering.maximumRenderingSize, rendering.maximumRenderingSizeMobile
 	// - bloom properties: backgroundBloom, highlightsOnly, highlightLimit, additiveBlur (mipmapBlur is required in 7.1)
 	// - HBAO/SSAO properties: mode, excludeGems
-	const oldEffects = newSettings.postprocessing.effects.map((effect) => {
-		if (effect.type === "bloom" && effect.properties) {
-			const properties: any = {...effect.properties};
-			delete properties.backgroundBloom;
-			delete properties.highlightsOnly;
-			delete properties.highlightLimit;
-			delete properties.additiveBlur;
-			properties.mipmapBlur = properties.mipmapBlur ?? false;
-			return {...effect, properties};
-		}
-		if (
-			(effect.type === "hbao" || effect.type === "ssao") &&
-			effect.properties
-		) {
-			const properties: any = {...effect.properties};
-			delete properties.mode;
-			delete properties.excludeGems;
-			return {...effect, properties};
-		}
-		return effect;
-	});
+	// - the SSR effect
+	const oldEffects = newSettings.postprocessing.effects
+		.filter((effect) => effect.type !== "ssr")
+		.map((effect) => {
+			if (effect.type === "bloom" && effect.properties) {
+				const properties: any = {...effect.properties};
+				delete properties.backgroundBloom;
+				delete properties.highlightsOnly;
+				delete properties.highlightLimit;
+				delete properties.additiveBlur;
+				properties.mipmapBlur = properties.mipmapBlur ?? false;
+				return {...effect, properties};
+			}
+			if (
+				(effect.type === "hbao" || effect.type === "ssao") &&
+				effect.properties
+			) {
+				const properties: any = {...effect.properties};
+				delete properties.mode;
+				delete properties.excludeGems;
+				return {...effect, properties};
+			}
+			return effect;
+		});
 
 	const environment: any = {...newSettings.environment};
 	delete environment.mapPbrMode;
@@ -191,6 +198,7 @@ export const convertToPrevious = (
 	delete material.physicalGemFresnel;
 	delete material.gemLighting;
 	delete material.gemEnvironmentMapIntensity;
+	delete material.gemClampColor;
 	delete material.gemTracing;
 	delete material.gemNormalMapResolution;
 

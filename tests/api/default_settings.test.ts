@@ -24,6 +24,7 @@ const readOptions = () => {
 		physicalGemFresnel: viewport.physicalGemFresnel,
 		gemLighting: viewport.gemLighting,
 		gemEnvironmentMapIntensity: viewport.gemEnvironmentMapIntensity,
+		gemClampColor: viewport.gemClampColor,
 		gemTracing: viewport.gemTracing,
 		gemNormalMapResolution: viewport.gemNormalMapResolution,
 		toneMapping: viewport.toneMapping,
@@ -36,6 +37,10 @@ const readOptions = () => {
 			highlightsOnly: p.highlightsOnly,
 			backgroundBloom: p.backgroundBloom,
 			additiveBlur: p.additiveBlur,
+		})),
+		// screen-space reflections, only in the jewelry preset (SS-10509)
+		ssr: properties("ssr").map((p) => ({
+			enableOnMobile: p.enableOnMobile === true,
 		})),
 	};
 };
@@ -54,10 +59,12 @@ const OLD_LOOK = {
 	physicalGemFresnel: false,
 	gemLighting: "all",
 	gemEnvironmentMapIntensity: 1,
+	gemClampColor: true,
 	gemTracing: "sphere",
 	gemNormalMapResolution: 1024,
 	accumulationFrames: 0,
 	accumulationFramesMobile: 0,
+	ssr: [],
 };
 
 const NEW_LOOK = {
@@ -69,6 +76,7 @@ const NEW_LOOK = {
 	physicalGemFresnel: true,
 	gemLighting: "environment",
 	gemEnvironmentMapIntensity: 1.2,
+	gemClampColor: false,
 	gemTracing: "facets",
 	gemNormalMapResolution: 512,
 };
@@ -117,6 +125,7 @@ test.describe("Default settings", () => {
 			accumulationFramesMobile: 0,
 			aoExcludeGems: [true],
 			bloom: [],
+			ssr: [],
 		});
 		expect(await page.evaluate(readMaximumRenderingSize)).toEqual({
 			width: 2560,
@@ -142,6 +151,8 @@ test.describe("Default settings", () => {
 					additiveBlur: true,
 				},
 			],
+			// on desktop only
+			ssr: [{enableOnMobile: false}],
 		});
 		// AO only on the indirect light, so polished metal keeps its reflections
 		expect(

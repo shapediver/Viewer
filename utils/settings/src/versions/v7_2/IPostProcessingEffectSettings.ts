@@ -88,6 +88,28 @@ export interface ISSAOEffectDefinition extends Omit<
 	};
 }
 
+/**
+ * Screen space reflections on opaque metallic materials, new in 7.2.
+ * Every property is optional, an unset one uses its default.
+ */
+export interface ISSREffectDefinition {
+	properties?: {
+		/** How much the reflected geometry replaces the environment reflection, from 0 to 1. Default: 1 */
+		intensity?: number;
+		/** Materials up to this roughness receive reflections. Default: 0.3 */
+		maxRoughness?: number;
+		/** Ray march steps per pixel, at most 64. Default: 16 */
+		steps?: number;
+		/** The longest reflected ray, relative to the scene size. Default: 2 */
+		distance?: number;
+		/** How thick a surface is assumed behind its depth, relative to the scene size. Default: 0.2 */
+		thickness?: number;
+		/** Whether the reflections are rendered on mobile devices. Default: false */
+		enableOnMobile?: boolean;
+	};
+	type: "ssr";
+}
+
 export type IPostProcessingEffectsArray = (
 	| IBloomEffectDefinition
 	| IChromaticAberrationEffectDefinition
@@ -99,6 +121,7 @@ export type IPostProcessingEffectsArray = (
 	| INoiseEffectDefinition
 	| IPixelationEffectDefinition
 	| ISSAOEffectDefinition
+	| ISSREffectDefinition
 	| IScanlineEffectDefinition
 	| ISepiaEffectDefinition
 	| ITiltShiftEffectDefinition

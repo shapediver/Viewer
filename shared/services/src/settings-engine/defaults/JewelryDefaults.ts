@@ -76,6 +76,15 @@ export const JewelryDefaults: () => ISettings = () => {
 					type: "hbao",
 				},
 				{
+					// polished metal reflects the neighbouring geometry, e.g. the
+					// gallery under a ring's head reflects the prongs (SS-10509);
+					// desktop only, it costs too much on mobile devices
+					properties: {
+						enableOnMobile: false,
+					},
+					type: "ssr",
+				},
+				{
 					// a glow on the brightest highlights only; the mipmap blur
 					// uses the highlight default
 					properties: {
