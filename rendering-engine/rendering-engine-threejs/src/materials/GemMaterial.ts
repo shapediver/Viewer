@@ -2,6 +2,22 @@ import * as THREE from "three";
 import {MeshPhysicalMaterial, MeshPhysicalMaterialParameters} from "three";
 import {frag, vert} from "../shaders/gem";
 
+/**
+ * Which lights shade a gem.
+ * "all": point, spot, directional, rect-area, ambient and hemisphere lights
+ * and the environment map, on every surface the traced ray hits.
+ * "firstSurface": the direct lights only on the first surface; the internal
+ * bounces use the environment and ambient light. This makes the shader smaller.
+ * "environment": no scene lights at all; the environment map lights the first
+ * surface and the bounces.
+ */
+export type GemLighting = "all" | "firstSurface" | "environment";
+
+const GEM_LIGHTING_DEFINES: {[key in GemLighting]?: string} = {
+	firstSurface: "GEM_LIGHTING_FIRST_SURFACE",
+	environment: "GEM_LIGHTING_ENVIRONMENT",
+};
+
 export interface GemMaterialParameters extends MeshPhysicalMaterialParameters {
 	// #region Properties (4)
 
@@ -22,8 +38,8 @@ export interface GemMaterialParameters extends MeshPhysicalMaterialParameters {
 	physicalDispersion?: boolean | undefined;
 	/** See {@link GemMaterial.physicalFresnel}. */
 	physicalFresnel?: boolean | undefined;
-	/** See {@link GemMaterial.bounceLighting}. */
-	bounceLighting?: "all" | "environment" | undefined;
+	/** See {@link GemMaterial.lighting}. */
+	lighting?: GemLighting | undefined;
 	/** See {@link GemMaterial.gemEnvMapIntensity}. */
 	gemEnvMapIntensity?: number | undefined;
 	tracingDepth?: number | undefined;
@@ -37,6 +53,8 @@ export class GemMaterial extends MeshPhysicalMaterial {
 
 	/** Shared by all gem materials. Set to 1 by the post-processing manager while it renders into half-float (HDR) buffers, so traced colors may exceed 1. */
 	public static readonly hdrOutputUniform: {value: number} = {value: 0};
+	/** Shared by all gem materials. 1 (the legacy look) clamps traced colors at 1 outside the HDR composer, 0 lets them exceed 1 so that tone mapping can bring highlights to white. Set by `RenderingEngine.gemClampColor`. */
+	public static readonly clampColorUniform: {value: number} = {value: 1};
 
 	public isGemMaterial: boolean;
 
@@ -74,14 +92,8 @@ export class GemMaterial extends MeshPhysicalMaterial {
 	 * first facet it can pass.
 	 */
 	public physicalFresnel: boolean = false;
-	/**
-	 * Which lights the internal bounces use.
-	 * "all": point, spot, directional and rect-area lights, plus environment and
-	 * ambient light, on every surface the ray hits.
-	 * "environment": the direct lights only on the first surface, environment and
-	 * ambient light on the internal bounces. This makes the shader smaller.
-	 */
-	public bounceLighting: "all" | "environment" = "all";
+	/** Which lights shade the gem, see {@link GemLighting}. */
+	public lighting: GemLighting = "all";
 	/** Factor on the environment reflections the gem traces, on top of envMapIntensity. */
 	public gemEnvMapIntensity: number = 1.0;
 	public tracingOpacity: number = 0.0;
@@ -111,12 +123,17 @@ export class GemMaterial extends MeshPhysicalMaterial {
 			dispersion: {value: 0.0},
 			tracingOpacity: {value: 0.0},
 			gemEnvMapIntensity: {value: 1.0},
+			// not "attenuationColor" / "attenuationDistance": those are the
+			// uniforms of three.js transmission, which gems do not use
+			gemAttenuationColor: {value: new THREE.Color(0xffffff)},
+			gemAttenuationDistance: {value: Infinity},
 			hdrOutput: GemMaterial.hdrOutputUniform,
+			clampColor: GemMaterial.clampColorUniform,
 		};
 
 		let physicalDispersion = false;
 		let physicalFresnel = false;
-		let bounceLighting: "all" | "environment" = "all";
+		let lighting: GemLighting = "all";
 
 		(<any>this)._extraUniforms = uniforms;
 
@@ -305,23 +322,28 @@ export class GemMaterial extends MeshPhysicalMaterial {
 					this.needsUpdate = true;
 				},
 			},
-			bounceLighting: {
+			lighting: {
 				get: function () {
-					return bounceLighting;
+					return lighting;
 				},
 				set: function (v) {
-					bounceLighting = v === "environment" ? v : "all";
-					// compare with the define, see physicalDispersion
-					const defined =
-						"GEM_BOUNCE_ENVIRONMENT_ONLY" in this.defines;
-					const environment = bounceLighting === "environment";
-					if (environment === defined) return;
-					if (environment) {
-						this.defines.GEM_BOUNCE_ENVIRONMENT_ONLY = "";
-					} else {
-						delete this.defines.GEM_BOUNCE_ENVIRONMENT_ONLY;
+					lighting =
+						v === "firstSurface" || v === "environment" ? v : "all";
+					// compare with the defines, see physicalDispersion
+					let changed = false;
+					for (const key in GEM_LIGHTING_DEFINES) {
+						const define =
+							GEM_LIGHTING_DEFINES[key as GemLighting]!;
+						const wanted = key === lighting;
+						if (wanted === define in this.defines) continue;
+						if (wanted) {
+							this.defines[define] = "";
+						} else {
+							delete this.defines[define];
+						}
+						changed = true;
 					}
-					this.needsUpdate = true;
+					if (changed) this.needsUpdate = true;
 				},
 			},
 			gemEnvMapIntensity: {
@@ -338,6 +360,38 @@ export class GemMaterial extends MeshPhysicalMaterial {
 				},
 				set: function (v) {
 					uniforms.tracingOpacity.value = v;
+				},
+			},
+			// These two replace the properties of MeshPhysicalMaterial with
+			// the same names and meaning: light inside the stone takes on
+			// attenuationColor after attenuationDistance (world units), per
+			// channel (Beer-Lambert). Infinity (the default) turns it off.
+			attenuationColor: {
+				get: function () {
+					return uniforms.gemAttenuationColor.value;
+				},
+				set: function (v) {
+					uniforms.gemAttenuationColor.value = v;
+				},
+			},
+			attenuationDistance: {
+				get: function () {
+					return uniforms.gemAttenuationDistance.value;
+				},
+				set: function (v) {
+					uniforms.gemAttenuationDistance.value = v;
+					// absorption is off (and its shader code left out) unless
+					// the distance is finite and positive
+					const wanted = Number.isFinite(v) && v > 0;
+					// compare with the define, see physicalDispersion
+					const defined = "GEM_ATTENUATION" in this.defines;
+					if (wanted === defined) return;
+					if (wanted) {
+						this.defines.GEM_ATTENUATION = "";
+					} else {
+						delete this.defines.GEM_ATTENUATION;
+					}
+					this.needsUpdate = true;
 				},
 			},
 		});
@@ -361,9 +415,15 @@ export class GemMaterial extends MeshPhysicalMaterial {
 		this.dispersion = params.dispersion || 0;
 		this.physicalDispersion = params.physicalDispersion || false;
 		this.physicalFresnel = params.physicalFresnel || false;
-		this.bounceLighting = params.bounceLighting || "all";
+		this.lighting = params.lighting || "all";
 		this.gemEnvMapIntensity = params.gemEnvMapIntensity ?? 1;
 		this.tracingOpacity = params.tracingOpacity || 0;
+		this.attenuationColor.copy(
+			params.attenuationColor instanceof THREE.Color
+				? params.attenuationColor
+				: new THREE.Color(0xffffff),
+		);
+		this.attenuationDistance = params.attenuationDistance ?? Infinity;
 
 		this.setValues(params);
 	}
@@ -392,9 +452,14 @@ export class GemMaterial extends MeshPhysicalMaterial {
 		this.dispersion = source.dispersion;
 		this.physicalDispersion = source.physicalDispersion;
 		this.physicalFresnel = source.physicalFresnel;
-		this.bounceLighting = source.bounceLighting;
+		this.lighting = source.lighting;
 		this.gemEnvMapIntensity = source.gemEnvMapIntensity;
 		this.tracingOpacity = source.tracingOpacity;
+		// MeshPhysicalMaterial.copy already sets both after it replaces the
+		// defines; set them here too so GEM_ATTENUATION does not depend on
+		// that order
+		this.attenuationColor.copy(source.attenuationColor);
+		this.attenuationDistance = source.attenuationDistance;
 
 		return this;
 	}

@@ -59,6 +59,10 @@ void main() {
  *
  * The mean is kept in linear colour when the device can render to half
  * floats, otherwise in the display colour of the canvas.
+ *
+ * With accumulationMode "hdr" the post-processing averages the frames before
+ * bloom and tone mapping; this class then only jitters the camera, counts the
+ * frames and keeps the last canvas image for {@link present}.
  */
 export class StillFrameAccumulator {
 	// #region Properties (11)
@@ -217,8 +221,12 @@ export class StillFrameAccumulator {
 	/**
 	 * Adds the frame that is now on the canvas to the mean and, from the
 	 * second frame on, draws the mean to the canvas.
+	 *
+	 * With `meanOnCanvas`, the frames were averaged before they reached the
+	 * canvas (in the HDR buffer of the post-processing). The canvas then
+	 * already shows the mean: it is only kept for {@link present} and counted.
 	 */
-	public endFrame(camera: THREE.Camera): void {
+	public endFrame(camera: THREE.Camera, meanOnCanvas = false): void {
 		this.endJitter(camera);
 
 		const size = this.drawingBufferSize();
@@ -238,17 +246,26 @@ export class StillFrameAccumulator {
 		const uniforms = this._accumulateMaterial.uniforms;
 		uniforms.tFrame.value = this._frameTexture;
 		uniforms.tAccumulation.value = read.texture;
-		uniforms.weight.value = 1 / this._count;
+		uniforms.weight.value = meanOnCanvas ? 1 : 1 / this._count;
 		this._mesh.material = this._accumulateMaterial;
 		renderer.setRenderTarget(write);
 		renderer.render(this._mesh, this._camera);
 		this._targets = [write, read];
 
-		// The first frame is already on the canvas as drawn.
-		if (this._count > 1) this.drawToCanvas();
+		// The first frame, or a mean drawn by the post-processing, is
+		// already on the canvas as drawn.
+		if (this._count > 1 && !meanOnCanvas) this.drawToCanvas();
 
 		renderer.setRenderTarget(previousTarget);
 		renderer.autoClear = autoClear;
+	}
+
+	/**
+	 * Sets the number of frames in the mean, for a mean that is averaged
+	 * before the canvas (`meanOnCanvas`) and was restarted there.
+	 */
+	public setCount(count: number): void {
+		this._count = Math.max(0, Math.floor(count));
 	}
 
 	/**

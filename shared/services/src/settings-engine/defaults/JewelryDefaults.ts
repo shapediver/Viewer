@@ -67,28 +67,43 @@ export const JewelryDefaults: () => ISettings = () => {
 				{
 					// contact darkening in crevices, not on the stones
 					properties: {
-						// AO only on the indirect light inside the shading: the
-						// composite mode at power 2.5 darkened the mirror
-						// reflections of polished metal by up to 17 levels
+						// AO inside the shading: the composite mode at power 2.5
+						// darkened the highlights of polished metal by up to 17
+						// levels. "uniform" darkens the environment reflections
+						// by the AO itself; three's specular occlusion left
+						// mirror metal seen head-on untouched and blackened it
+						// at grazing angles. With the SSAO this darkens the gold
+						// of a ring like the reference renderer (SS-10601).
 						mode: "shading",
+						specularOcclusion: "uniform",
 						excludeGems: true,
 					},
-					type: "hbao",
+					type: "ssao",
+				},
+				{
+					// polished metal reflects the neighbouring geometry, e.g. the
+					// gallery under a ring's head reflects the prongs (SS-10509);
+					// desktop only, it costs too much on mobile devices
+					properties: {
+						enableOnMobile: false,
+					},
+					type: "ssr",
 				},
 				{
 					// a glow on the brightest highlights only; the mipmap blur
 					// uses the highlight default
 					properties: {
-						// The bloom numbers of the reference renderer: with them
-						// the bloom adds as much light to polished gold as the
-						// reference's does. A lower threshold or a stronger bloom
-						// makes overview shots too bright and puts halos around
-						// every pavé stone.
+						// The bloom numbers of the reference renderer. A lower
+						// threshold or a stronger bloom makes overview shots too
+						// bright and puts halos around every pavé stone.
 						intensity: 0.2,
 						luminanceThreshold: 2,
 						luminanceSmoothing: 0.5,
 						highlightsOnly: true,
 						backgroundBloom: false,
+						// add the blur levels like the reference's bloom: at the
+						// same intensity, gem glints get the same glow (SS-10603)
+						additiveBlur: true,
 					},
 					type: "bloom",
 				},
@@ -113,6 +128,10 @@ export const JewelryDefaults: () => ISettings = () => {
 			// fewer frames on mobile, where each one costs more
 			accumulationFrames: 32,
 			accumulationFramesMobile: 8,
+			// averages the frames before bloom and tone mapping, so small
+			// mirror highlights keep their brightness, as in the reference
+			// renderer (SS-10607)
+			accumulationMode: "hdr",
 		},
 		session: {},
 		material: {

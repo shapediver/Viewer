@@ -22,6 +22,14 @@ import {
  */
 export type IAmbientOcclusionMode = "composite" | "shading";
 
+/**
+ * How an ambient occlusion effect in the "shading" mode darkens the environment reflections.
+ * "physical" uses the specular occlusion of three.js (polished metal seen head-on is barely darkened),
+ * "uniform" darkens the reflections by the ambient occlusion itself.
+ * The default is "physical".
+ */
+export type IAmbientOcclusionSpecularOcclusion = "physical" | "uniform";
+
 export interface IBloomEffectDefinition extends Omit<
 	IBloomEffectDefinitionV4,
 	"properties"
@@ -43,6 +51,12 @@ export interface IBloomEffectDefinition extends Omit<
 		 * Default: 8
 		 */
 		highlightLimit?: number;
+		/**
+		 * Only with mipmap blur: whether the blur levels are added instead of
+		 * blended, which gives about 2.4 times the glow at the same intensity.
+		 * Default: false
+		 */
+		additiveBlur?: boolean;
 	};
 }
 
@@ -56,6 +70,11 @@ export interface IHBAOEffectDefinition extends Omit<
 		 * Default: "composite"
 		 */
 		mode?: IAmbientOcclusionMode;
+		/**
+		 * Only in the "shading" mode: how the ambient occlusion darkens the environment reflections.
+		 * Default: "physical"
+		 */
+		specularOcclusion?: IAmbientOcclusionSpecularOcclusion;
 		/**
 		 * Whether gems are left out of the ambient occlusion in the composite mode.
 		 * Settings converted from before 7.2 use false.
@@ -75,11 +94,38 @@ export interface ISSAOEffectDefinition extends Omit<
 		 */
 		mode?: IAmbientOcclusionMode;
 		/**
+		 * Only in the "shading" mode: how the ambient occlusion darkens the environment reflections.
+		 * Default: "physical"
+		 */
+		specularOcclusion?: IAmbientOcclusionSpecularOcclusion;
+		/**
 		 * Whether gems are left out of the ambient occlusion in the composite mode.
 		 * Settings converted from before 7.2 use false.
 		 */
 		excludeGems: boolean;
 	};
+}
+
+/**
+ * Screen space reflections on opaque metallic materials, new in 7.2.
+ * Every property is optional, an unset one uses its default.
+ */
+export interface ISSREffectDefinition {
+	properties?: {
+		/** How much the reflected geometry replaces the environment reflection, from 0 to 1. Default: 1 */
+		intensity?: number;
+		/** Materials up to this roughness receive reflections. Default: 0.3 */
+		maxRoughness?: number;
+		/** Ray march steps per pixel, at most 64. Default: 16 */
+		steps?: number;
+		/** The longest reflected ray, relative to the scene size. Default: 2 */
+		distance?: number;
+		/** How thick a surface is assumed behind its depth, relative to the scene size. Default: 0.2 */
+		thickness?: number;
+		/** Whether the reflections are rendered on mobile devices. Default: false */
+		enableOnMobile?: boolean;
+	};
+	type: "ssr";
 }
 
 export type IPostProcessingEffectsArray = (
@@ -93,6 +139,7 @@ export type IPostProcessingEffectsArray = (
 	| INoiseEffectDefinition
 	| IPixelationEffectDefinition
 	| ISSAOEffectDefinition
+	| ISSREffectDefinition
 	| IScanlineEffectDefinition
 	| ISepiaEffectDefinition
 	| ITiltShiftEffectDefinition

@@ -31,6 +31,16 @@ export type IGemNormalMapResolution = 256 | 512 | 1024;
  */
 export type IRenderingSize = {width: number; height: number};
 
+/**
+ * Where the jittered frames of a still view are averaged:
+ * "display" averages the finished frames on the canvas, after post-processing and tone mapping;
+ * "hdr" averages the scene in the high dynamic range buffer of the post-processing,
+ * before bloom and tone mapping, which then run once on the average.
+ * "hdr" needs post-processing with `postprocessing.hdr`; otherwise "display" is used.
+ * Settings converted from before 7.2 use "display".
+ */
+export type IAccumulationMode = "display" | "hdr";
+
 export interface ISettings extends IGlobalSettings {
 	ar: ISettingsV7_1["ar"];
 	camera: ISettingsV7_1["camera"];
@@ -68,6 +78,11 @@ export interface ISettings extends IGlobalSettings {
 		 */
 		accumulationFramesMobile: number;
 		/**
+		 * Where the jittered frames are averaged, see {@link IAccumulationMode}.
+		 * Settings converted from before 7.2 use "display".
+		 */
+		accumulationMode: IAccumulationMode;
+		/**
 		 * The largest drawing buffer on desktop devices, in physical pixels
 		 * (after the device pixel ratio). A larger viewport is rendered at this size and scaled up.
 		 * Settings converted from before 7.2 use 1920x1080.
@@ -92,15 +107,23 @@ export interface ISettings extends IGlobalSettings {
 		 */
 		physicalGemFresnel: boolean;
 		/**
-		 * Which lights gems use for the light that bounces inside the stone: "all" lights, or "environment" for the environment and ambient light only (the direct lights are still used on the first surface).
+		 * Which lights shade gems: "all" scene lights and the environment map on every surface the ray hits;
+		 * "firstSurface" for the point, spot, directional and rect-area lights on the first surface only (the light that bounces inside the stone uses the environment and ambient light);
+		 * "environment" for the environment map only, no scene lights at all.
 		 * Settings converted from before 7.2 use "all".
 		 */
-		gemBounceLighting: "all" | "environment";
+		gemLighting: "all" | "firstSurface" | "environment";
 		/**
 		 * Factor on the environment light that gems receive.
 		 * Settings converted from before 7.2 use 1.
 		 */
 		gemEnvironmentMapIntensity: number;
+		/**
+		 * Whether gems clamp their traced colors at 1 when the scene is not rendered into an HDR buffer (no post-processing effect, or `hdr` off).
+		 * With the clamp, stones never reach white after tone mapping in viewports without effects.
+		 * Settings converted from before 7.2 use true.
+		 */
+		gemClampColor: boolean;
 		/**
 		 * How gems are traced.
 		 * Settings converted from before 7.2 use "sphere".

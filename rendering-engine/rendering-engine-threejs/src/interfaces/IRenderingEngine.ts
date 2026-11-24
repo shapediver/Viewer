@@ -18,6 +18,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
 
 	accumulationFrames: number;
 	accumulationFramesMobile: number;
+	accumulationMode: "display" | "hdr";
 	automaticColorAdjustment: boolean;
 	beautyRenderBlendingDuration: number;
 	beautyRenderDelay: number;
@@ -37,6 +38,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
 	readonly effectiveEnvironmentMapRotation: quat;
 	gemNormalMapResolution: number;
 	gemEnvironmentMapIntensity: number;
+	gemClampColor: boolean;
 	gemTracing: "sphere" | "facets";
 	gridColor: Color;
 	gridVisibility: boolean;
@@ -56,7 +58,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
 	outputEncoding: TEXTURE_ENCODING;
 	physicalGemDispersion: boolean;
 	physicalGemFresnel: boolean;
-	gemBounceLighting: "all" | "environment";
+	gemLighting: "all" | "firstSurface" | "environment";
 	physicallyCorrectLights: boolean;
 	postRenderCallback?: (
 		renderer: THREE.WebGLRenderer,

@@ -26,10 +26,12 @@ export const OLD_LOOK_V7_2 = {
 	physicalGemDispersion: false,
 	/** `material.physicalGemFresnel` */
 	physicalGemFresnel: false,
-	/** `material.gemBounceLighting` */
-	gemBounceLighting: "all",
+	/** `material.gemLighting` */
+	gemLighting: "all",
 	/** `material.gemEnvironmentMapIntensity` */
 	gemEnvironmentMapIntensity: 1,
+	/** `material.gemClampColor` */
+	gemClampColor: true,
 	/** `material.gemTracing` */
 	gemTracing: "sphere",
 	/** `material.gemNormalMapResolution` */
@@ -38,6 +40,8 @@ export const OLD_LOOK_V7_2 = {
 	accumulationFrames: 0,
 	/** `rendering.accumulationFramesMobile` */
 	accumulationFramesMobile: 0,
+	/** `rendering.accumulationMode` */
+	accumulationMode: "display",
 	/** `rendering.maximumRenderingSize` */
 	maximumRenderingSize: {width: 1920, height: 1080},
 	/** `rendering.maximumRenderingSizeMobile` */
@@ -100,6 +104,8 @@ export const convertFromPrevious = (
 			accumulationFramesMobile:
 				oldRendering.accumulationFramesMobile ??
 				OLD_LOOK_V7_2.accumulationFramesMobile,
+			accumulationMode:
+				oldRendering.accumulationMode ?? OLD_LOOK_V7_2.accumulationMode,
 			maximumRenderingSize: oldRendering.maximumRenderingSize ?? {
 				...OLD_LOOK_V7_2.maximumRenderingSize,
 			},
@@ -124,12 +130,12 @@ export const convertFromPrevious = (
 			physicalGemFresnel:
 				oldMaterial.physicalGemFresnel ??
 				OLD_LOOK_V7_2.physicalGemFresnel,
-			gemBounceLighting:
-				oldMaterial.gemBounceLighting ??
-				OLD_LOOK_V7_2.gemBounceLighting,
+			gemLighting: oldMaterial.gemLighting ?? OLD_LOOK_V7_2.gemLighting,
 			gemEnvironmentMapIntensity:
 				oldMaterial.gemEnvironmentMapIntensity ??
 				OLD_LOOK_V7_2.gemEnvironmentMapIntensity,
+			gemClampColor:
+				oldMaterial.gemClampColor ?? OLD_LOOK_V7_2.gemClampColor,
 			gemTracing: oldMaterial.gemTracing ?? OLD_LOOK_V7_2.gemTracing,
 			gemNormalMapResolution:
 				oldMaterial.gemNormalMapResolution ??
@@ -154,33 +160,38 @@ export const convertToPrevious = (
 	// Drop every option that does not exist in 7.1. Add new 7.2 options here.
 	// - postprocessing.hdr
 	// - environment.mapPbrMode, environment.mapOrientation, environment.mapAnalyticDfg
-	// - material.physicalGemDispersion, material.physicalGemFresnel, material.gemBounceLighting,
-	//   material.gemEnvironmentMapIntensity,
+	// - material.physicalGemDispersion, material.physicalGemFresnel, material.gemLighting,
+	//   material.gemEnvironmentMapIntensity, material.gemClampColor,
 	//   material.gemTracing, material.gemNormalMapResolution
-	// - rendering.accumulationFrames, rendering.accumulationFramesMobile
+	// - rendering.accumulationFrames, rendering.accumulationFramesMobile, rendering.accumulationMode
 	// - rendering.maximumRenderingSize, rendering.maximumRenderingSizeMobile
-	// - bloom properties: backgroundBloom, highlightsOnly, highlightLimit (mipmapBlur is required in 7.1)
-	// - HBAO/SSAO properties: mode, excludeGems
-	const oldEffects = newSettings.postprocessing.effects.map((effect) => {
-		if (effect.type === "bloom" && effect.properties) {
-			const properties: any = {...effect.properties};
-			delete properties.backgroundBloom;
-			delete properties.highlightsOnly;
-			delete properties.highlightLimit;
-			properties.mipmapBlur = properties.mipmapBlur ?? false;
-			return {...effect, properties};
-		}
-		if (
-			(effect.type === "hbao" || effect.type === "ssao") &&
-			effect.properties
-		) {
-			const properties: any = {...effect.properties};
-			delete properties.mode;
-			delete properties.excludeGems;
-			return {...effect, properties};
-		}
-		return effect;
-	});
+	// - bloom properties: backgroundBloom, highlightsOnly, highlightLimit, additiveBlur (mipmapBlur is required in 7.1)
+	// - HBAO/SSAO properties: mode, specularOcclusion, excludeGems
+	// - the SSR effect
+	const oldEffects = newSettings.postprocessing.effects
+		.filter((effect) => effect.type !== "ssr")
+		.map((effect) => {
+			if (effect.type === "bloom" && effect.properties) {
+				const properties: any = {...effect.properties};
+				delete properties.backgroundBloom;
+				delete properties.highlightsOnly;
+				delete properties.highlightLimit;
+				delete properties.additiveBlur;
+				properties.mipmapBlur = properties.mipmapBlur ?? false;
+				return {...effect, properties};
+			}
+			if (
+				(effect.type === "hbao" || effect.type === "ssao") &&
+				effect.properties
+			) {
+				const properties: any = {...effect.properties};
+				delete properties.mode;
+				delete properties.specularOcclusion;
+				delete properties.excludeGems;
+				return {...effect, properties};
+			}
+			return effect;
+		});
 
 	const environment: any = {...newSettings.environment};
 	delete environment.mapPbrMode;
@@ -190,14 +201,16 @@ export const convertToPrevious = (
 	const material: any = {...newSettings.material};
 	delete material.physicalGemDispersion;
 	delete material.physicalGemFresnel;
-	delete material.gemBounceLighting;
+	delete material.gemLighting;
 	delete material.gemEnvironmentMapIntensity;
+	delete material.gemClampColor;
 	delete material.gemTracing;
 	delete material.gemNormalMapResolution;
 
 	const rendering: any = {...newSettings.rendering};
 	delete rendering.accumulationFrames;
 	delete rendering.accumulationFramesMobile;
+	delete rendering.accumulationMode;
 	delete rendering.maximumRenderingSize;
 	delete rendering.maximumRenderingSizeMobile;
 

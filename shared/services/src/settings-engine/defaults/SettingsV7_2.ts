@@ -15,6 +15,7 @@ type IBloomEffect = {
 		backgroundBloom: boolean;
 		highlightsOnly: boolean;
 		highlightLimit?: number;
+		additiveBlur?: boolean;
 	};
 };
 
@@ -23,7 +24,20 @@ type IAmbientOcclusionEffect = {
 	properties: {
 		[key: string]: number | string | boolean | undefined;
 		mode?: "composite" | "shading";
+		specularOcclusion?: "physical" | "uniform";
 		excludeGems: boolean;
+	};
+};
+
+type IScreenSpaceReflectionEffect = {
+	type: "ssr";
+	properties: {
+		intensity?: number;
+		maxRoughness?: number;
+		steps?: number;
+		distance?: number;
+		thickness?: number;
+		enableOnMobile?: boolean;
 	};
 };
 
@@ -44,6 +58,8 @@ export type ISettingsV7_2 = Omit<
 		// not set = no frame accumulation
 		accumulationFrames?: number;
 		accumulationFramesMobile?: number;
+		// not set = "display", the frames are averaged on the canvas
+		accumulationMode?: "display" | "hdr";
 		// Without the two values a viewport keeps its maximum rendering size.
 		maximumRenderingSize?: {width: number; height: number};
 		maximumRenderingSizeMobile?: {width: number; height: number};
@@ -54,14 +70,19 @@ export type ISettingsV7_2 = Omit<
 		mapAnalyticDfg: boolean;
 	};
 	postprocessing: Omit<ISettings["postprocessing"], "effects"> & {
-		effects: (IBloomEffect | IAmbientOcclusionEffect)[];
+		effects: (
+			| IBloomEffect
+			| IAmbientOcclusionEffect
+			| IScreenSpaceReflectionEffect
+		)[];
 		hdr: boolean;
 	};
 	material: ISettings["material"] & {
 		physicalGemDispersion: boolean;
 		physicalGemFresnel: boolean;
-		gemBounceLighting: "all" | "environment";
+		gemLighting: "all" | "firstSurface" | "environment";
 		gemEnvironmentMapIntensity: number;
+		gemClampColor: boolean;
 		gemTracing: "sphere" | "facets";
 		gemNormalMapResolution: 256 | 512 | 1024;
 	};
@@ -81,8 +102,9 @@ export const NEW_LOOK_V7_2 = {
 	material: {
 		physicalGemDispersion: true,
 		physicalGemFresnel: true,
-		gemBounceLighting: "environment",
+		gemLighting: "environment",
 		gemEnvironmentMapIntensity: 1.2,
+		gemClampColor: false,
 		gemTracing: "facets",
 		gemNormalMapResolution: 512,
 	},

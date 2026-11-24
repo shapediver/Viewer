@@ -157,6 +157,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	// settings
 	private _accumulationFrames: number = 0;
 	private _accumulationFramesMobile: number = 0;
+	private _accumulationMode: "display" | "hdr" = "display";
 	private _arRotation: vec3 = vec3.create();
 	private _arScale: vec3 = vec3.fromValues(1, 1, 1);
 	private _arTranslation: vec3 = vec3.create();
@@ -202,8 +203,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	private _pause: boolean = false;
 	private _physicalGemDispersion: boolean = false;
 	private _physicalGemFresnel: boolean = false;
-	private _gemBounceLighting: "all" | "environment" = "all";
+	private _gemLighting: "all" | "firstSurface" | "environment" = "all";
 	private _gemEnvironmentMapIntensity: number = 1;
+	private _gemClampColor: boolean = true;
 	private _postRenderingCallback?:
 		| ((
 				renderer: THREE.WebGLRenderer,
@@ -356,6 +358,22 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
 	public set accumulationFramesMobile(value: number) {
 		this._accumulationFramesMobile = toFrameCount(value);
+	}
+
+	/**
+	 * Where the accumulated frames are averaged: "display" on the canvas,
+	 * after tone mapping, "hdr" in the HDR buffer of the post-processing,
+	 * before bloom and tone mapping. "hdr" falls back to "display" without
+	 * HDR post-processing.
+	 */
+	public get accumulationMode(): "display" | "hdr" {
+		return this._accumulationMode;
+	}
+
+	public set accumulationMode(value: "display" | "hdr") {
+		this._accumulationMode = value === "hdr" ? "hdr" : "display";
+		this._postProcessingManager.hdrAccumulation =
+			this._accumulationMode === "hdr";
 	}
 
 	public get arRotation(): vec3 {
@@ -742,6 +760,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._materialLoader.assignGemEnvironmentMapIntensity(value);
 	}
 
+	public get gemClampColor(): boolean {
+		return this._gemClampColor;
+	}
+
+	public set gemClampColor(value: boolean) {
+		this._gemClampColor = value;
+	}
+
 	public get gemTracing(): "sphere" | "facets" {
 		return this._gemTracing;
 	}
@@ -982,13 +1008,13 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._materialLoader.assignPhysicalGemFresnel(value);
 	}
 
-	public get gemBounceLighting(): "all" | "environment" {
-		return this._gemBounceLighting;
+	public get gemLighting(): "all" | "firstSurface" | "environment" {
+		return this._gemLighting;
 	}
 
-	public set gemBounceLighting(value: "all" | "environment") {
-		this._gemBounceLighting = value;
-		this._materialLoader.assignGemBounceLighting(value);
+	public set gemLighting(value: "all" | "firstSurface" | "environment") {
+		this._gemLighting = value;
+		this._materialLoader.assignGemLighting(value);
 	}
 
 	public get pointSize(): number {

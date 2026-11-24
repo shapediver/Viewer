@@ -329,12 +329,14 @@ import {
 } from "./versions/v7_2/Converter";
 import {
 	type IAmbientOcclusionMode as IAmbientOcclusionModeV7_2,
+	type IAmbientOcclusionSpecularOcclusion as IAmbientOcclusionSpecularOcclusionV7_2,
 	type IBloomEffectDefinition as IBloomEffectDefinitionV7_2,
 	type IHBAOEffectDefinition as IHBAOEffectDefinitionV7_2,
 	type IPostProcessingEffectsArray as IPostProcessingEffectsArrayV7_2,
 	type ISSAOEffectDefinition as ISSAOEffectDefinitionV7_2,
 } from "./versions/v7_2/IPostProcessingEffectSettings";
 import {
+	type IAccumulationMode as IAccumulationModeV7_2,
 	type IEnvironmentMapOrientation as IEnvironmentMapOrientationV7_2,
 	type IEnvironmentMapPbrMode as IEnvironmentMapPbrModeV7_2,
 	type IGemNormalMapResolution as IGemNormalMapResolutionV7_2,
@@ -532,8 +534,10 @@ export type {
 };
 // this changes every version
 export type {
+	IAccumulationModeV7_2 as IAccumulationMode,
 	IAmbientLightPropertiesV7_2 as IAmbientLightProperties,
 	IAmbientOcclusionModeV7_2 as IAmbientOcclusionMode,
+	IAmbientOcclusionSpecularOcclusionV7_2 as IAmbientOcclusionSpecularOcclusion,
 	IBloomEffectDefinitionV7_2 as IBloomEffectDefinition,
 	ICameraControlsSettingsV7_2 as ICameraControlsSettings,
 	ICameraSettingsV7_2 as ICameraSettings,

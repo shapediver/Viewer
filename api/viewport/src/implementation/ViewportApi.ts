@@ -256,6 +256,26 @@ export class ViewportApi implements IViewportApi {
 		this.update("accumulationFramesMobile");
 	}
 
+	public get accumulationMode(): "display" | "hdr" {
+		return this.#renderingEngine.accumulationMode;
+	}
+
+	public set accumulationMode(value: "display" | "hdr") {
+		const scope = "accumulationMode";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"enum",
+			true,
+			["display", "hdr"],
+		);
+		this.#renderingEngine.accumulationMode = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("accumulationMode");
+	}
+
 	public get automaticColorAdjustment(): boolean {
 		return this.#renderingEngine.automaticColorAdjustment;
 	}
@@ -723,6 +743,24 @@ export class ViewportApi implements IViewportApi {
 		this.update("gemEnvironmentMapIntensity");
 	}
 
+	public get gemClampColor(): boolean {
+		return this.#renderingEngine.gemClampColor;
+	}
+
+	public set gemClampColor(value: boolean) {
+		const scope = "gemClampColor";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"boolean",
+		);
+		this.#renderingEngine.gemClampColor = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("gemClampColor");
+	}
+
 	public get gemNormalMapResolution(): number {
 		return this.#renderingEngine.gemNormalMapResolution;
 	}
@@ -747,24 +785,24 @@ export class ViewportApi implements IViewportApi {
 		this.update("gemNormalMapResolution");
 	}
 
-	public get gemBounceLighting(): "all" | "environment" {
-		return this.#renderingEngine.gemBounceLighting;
+	public get gemLighting(): "all" | "firstSurface" | "environment" {
+		return this.#renderingEngine.gemLighting;
 	}
 
-	public set gemBounceLighting(value: "all" | "environment") {
-		const scope = "gemBounceLighting";
+	public set gemLighting(value: "all" | "firstSurface" | "environment") {
+		const scope = "gemLighting";
 		this.#inputValidator.validateAndError(
 			`ViewportApi.${scope}`,
 			value,
 			"enum",
 			true,
-			["all", "environment"],
+			["all", "firstSurface", "environment"],
 		);
-		this.#renderingEngine.gemBounceLighting = value;
+		this.#renderingEngine.gemLighting = value;
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("gemBounceLighting");
+		this.update("gemLighting");
 	}
 
 	public get gemTracing(): "sphere" | "facets" {

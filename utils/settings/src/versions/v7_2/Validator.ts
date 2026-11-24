@@ -24,6 +24,8 @@ const zNumOrInf = z.union([
 ]);
 
 const ambientOcclusionModeSchema = z.enum(["composite", "shading"]);
+// optional: an unset value means "physical" at runtime (the look before the option existed)
+const ambientOcclusionSpecularOcclusionSchema = z.enum(["physical", "uniform"]);
 
 const hbaoEffectSchema = z.object({
 	properties: z
@@ -44,6 +46,8 @@ const hbaoEffectSchema = z.object({
 			normalPhi: zNumOrInf.optional(),
 			samples: zNumOrInf.optional(),
 			mode: ambientOcclusionModeSchema.optional(),
+			specularOcclusion:
+				ambientOcclusionSpecularOcclusionSchema.optional(),
 			excludeGems: z.boolean(),
 		})
 		.optional(),
@@ -67,6 +71,8 @@ const ssaoEffectSchema = z.object({
 			normalPhi: zNumOrInf.optional(),
 			samples: zNumOrInf.optional(),
 			mode: ambientOcclusionModeSchema.optional(),
+			specularOcclusion:
+				ambientOcclusionSpecularOcclusionSchema.optional(),
 			excludeGems: z.boolean(),
 		})
 		.optional(),
@@ -87,20 +93,38 @@ const bloomEffectSchema = z.object({
 			highlightsOnly: z.boolean(),
 			// optional: an unset value means 8 at runtime (the look before the option existed)
 			highlightLimit: zNumOrInf.optional(),
+			// optional: an unset value means false at runtime (the look before the option existed)
+			additiveBlur: z.boolean().optional(),
 		})
 		.optional(),
 	type: z.literal("bloom"),
 });
 
+const ssrEffectSchema = z.object({
+	properties: z
+		.object({
+			intensity: z.number().min(0).optional(),
+			maxRoughness: z.number().min(0).optional(),
+			steps: z.number().int().min(1).max(64).optional(),
+			distance: z.number().min(0).optional(),
+			thickness: z.number().min(0).optional(),
+			enableOnMobile: z.boolean().optional(),
+		})
+		.strict()
+		.optional(),
+	type: z.literal("ssr"),
+});
+
 // The effect schemas of v5 are loose (zod strips unknown keys and most properties are optional),
-// so an HBAO/SSAO/bloom effect with an invalid property would still match another effect schema.
-// Therefore, the v5 effect schemas only apply to effects that are not HBAO, SSAO or bloom.
+// so an HBAO/SSAO/bloom/SSR effect with an invalid property would still match another effect schema.
+// Therefore, the v5 effect schemas only apply to effects that are not HBAO, SSAO, bloom or SSR.
 const otherEffectSchema = postProcessingSchemaV5.element.refine(
 	(effect) =>
 		effect.type !== "hbao" &&
 		effect.type !== "ssao" &&
-		effect.type !== "bloom",
-	{message: "Invalid HBAO, SSAO or bloom effect"},
+		effect.type !== "bloom" &&
+		effect.type !== "ssr",
+	{message: "Invalid HBAO, SSAO, bloom or SSR effect"},
 );
 
 export const postProcessingSchema = z.array(
@@ -108,6 +132,7 @@ export const postProcessingSchema = z.array(
 		hbaoEffectSchema,
 		ssaoEffectSchema,
 		bloomEffectSchema,
+		ssrEffectSchema,
 		otherEffectSchema,
 	]),
 );
@@ -137,6 +162,7 @@ const renderingSizeSchema = z
 export const renderingSettingsSchemaV7_2 = renderingSettingsSchema.extend({
 	accumulationFrames: z.number().int().min(0),
 	accumulationFramesMobile: z.number().int().min(0),
+	accumulationMode: z.enum(["display", "hdr"]),
 	maximumRenderingSize: renderingSizeSchema,
 	maximumRenderingSizeMobile: renderingSizeSchema,
 });
@@ -144,8 +170,9 @@ export const renderingSettingsSchemaV7_2 = renderingSettingsSchema.extend({
 export const materialSettingsSchemaV7_2 = materialSettingsSchema.extend({
 	physicalGemDispersion: z.boolean(),
 	physicalGemFresnel: z.boolean(),
-	gemBounceLighting: z.enum(["all", "environment"]),
+	gemLighting: z.enum(["all", "firstSurface", "environment"]),
 	gemEnvironmentMapIntensity: z.number().min(0),
+	gemClampColor: z.boolean(),
 	gemTracing: z.enum(["sphere", "facets"]),
 	gemNormalMapResolution: z.union([
 		z.literal(256),
