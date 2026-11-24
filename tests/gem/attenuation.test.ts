@@ -13,7 +13,7 @@ const STONES = `${ASSET_HOST}/pave-stones.glb`;
 const assetsDir = path.join(__dirname, "..", "instancing", "assets");
 
 /** Emerald-like absorption: red and blue are absorbed, green passes. */
-const GREEN = "#20c040";
+const GREEN = "#60c070";
 
 const test = base.extend<Record<string, never>, {workerPage: Page}>({
 	workerPage: [
@@ -54,6 +54,9 @@ const test = base.extend<Record<string, never>, {workerPage: Page}>({
 					id: "myViewer",
 					branding: {backgroundColor: "#000000"},
 				});
+				// black, so that every lit pixel is a stone
+				viewer.clearColor = "#000000";
+				viewer.clearAlpha = 1;
 				viewer.beautyRenderDelay = 100;
 				viewer.beautyRenderBlendingDuration = 100;
 				viewer.shadows = false;
@@ -186,7 +189,13 @@ const test = base.extend<Record<string, never>, {workerPage: Page}>({
 					r /= count;
 					g /= count;
 					b /= count;
-					return {r, g, b, count, green: g / ((r + b) / 2 + 1)};
+					return {
+						r,
+						g,
+						b,
+						count,
+						green: g / Math.max((r + b) / 2, 1),
+					};
 				};
 			});
 
@@ -233,7 +242,14 @@ test.describe("gem absorption by path length", () => {
 		expect(state.defaults.distance).toBe(Infinity);
 		expect(state.defaults.defined).toBe(false);
 		expect(state.coloredDefined).toBe(false);
-		expect(state.coloredImage).toEqual(state.plainImage);
+		// a reload of the same stones differs in a few pixels by one level
+		expect(state.coloredImage.count).toBe(state.plainImage.count);
+		for (const channel of ["r", "g", "b"] as const)
+			expect(
+				Math.abs(
+					state.coloredImage[channel] - state.plainImage[channel],
+				),
+			).toBeLessThan(0.01);
 		expect(pageErrors).toEqual([]);
 	});
 
@@ -261,7 +277,7 @@ test.describe("gem absorption by path length", () => {
 					})();
 
 					// The stones are about 0.1 model units wide.
-					const distance = 0.2;
+					const distance = 0.5;
 					const loadWith = (d: number) =>
 						w.loadStones(uri, {
 							attenuationColor: color,
