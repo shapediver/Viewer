@@ -14,6 +14,7 @@ export enum POST_PROCESSING_EFFECT_TYPE {
 	OUTLINE = "outline",
 	PIXELATION = "pixelation",
 	SSAO = "ssao",
+	SSR = "ssr",
 	SCANLINE = "scanline",
 	SELECTIVE_BLOOM = "selective_bloom",
 	SEPIA = "sepia",
@@ -41,9 +42,11 @@ export interface IPostProcessingEffectDefinition {
 }
 
 export interface IBloomEffectDefinition extends IPostProcessingEffectDefinition {
-	// #region Properties (10)
+	// #region Properties (11)
 
 	properties?: {
+		/** Only with `mipmapBlur`: add the blur levels instead of blending them. The glow then reaches over three octaves only and, at the same `intensity`, adds about 2.4 times the light above `luminanceThreshold`, as additive bloom implementations of other renderers do. Small, very bright highlights such as gem glints get a visible glow. The blur radius has no effect then, and `highlightLimit` caps the light before the blur, so a pixel can add up to about 2.4 times the limit. Meant for `IPostProcessingApi.hdr`: with 8-bit buffers each level is clipped at white. (default: false) */
+		additiveBlur?: boolean;
 		/** Whether the background (pixels where no geometry was drawn) contributes to the bloom. Set to false to keep a bright clear color or background from blooming. (default: true) */
 		backgroundBloom?: boolean;
 		/** Bloom only the light above `luminanceThreshold` (soft knee of width `luminanceSmoothing`, per-pixel cap, tighter mipmap blur), so only highlights glow and bright surfaces keep their colour. Recommended together with `IPostProcessingApi.hdr`. When enabled, unset `luminanceThreshold`, `luminanceSmoothing` and `mipmapBlur` default to 1, 0.25 and true. With 8-bit buffers the threshold is capped at 0.8. (default: false) */
@@ -191,6 +194,8 @@ export interface IHBAOEffectDefinition extends IPostProcessingEffectDefinition {
 		lumaPhi?: number;
 		/** How the ambient occlusion is applied. "composite" darkens the final image, "shading" darkens only indirect (ambient and environment) light inside material shading, so highlights keep their brightness. Gems are never darkened in the "shading" mode. (default: "composite") */
 		mode?: "composite" | "shading";
+		/** How the ambient occlusion darkens the environment reflections in the "shading" mode. "physical" uses the specular occlusion of three.js, which leaves polished metal seen head-on almost untouched and darkens it strongly at grazing angles. "uniform" darkens the reflections by the ambient occlusion itself, like the ambient light. (default: "physical") */
+		specularOcclusion?: "physical" | "uniform";
 		/** Whether gems are left out of the ambient occlusion in the composite mode. (default: false) */
 		excludeGems?: boolean;
 		/** Allows to adjust the influence of the depth difference in the denoising pass. (default: 2) */
@@ -314,6 +319,8 @@ export interface ISSAOEffectDefinition extends IPostProcessingEffectDefinition {
 		lumaPhi?: number;
 		/** How the ambient occlusion is applied. "composite" darkens the final image, "shading" darkens only indirect (ambient and environment) light inside material shading, so highlights keep their brightness. Gems are never darkened in the "shading" mode. (default: "composite") */
 		mode?: "composite" | "shading";
+		/** How the ambient occlusion darkens the environment reflections in the "shading" mode. "physical" uses the specular occlusion of three.js, which leaves polished metal seen head-on almost untouched and darkens it strongly at grazing angles. "uniform" darkens the reflections by the ambient occlusion itself, like the ambient light. (default: "physical") */
+		specularOcclusion?: "physical" | "uniform";
 		/** Whether gems are left out of the ambient occlusion in the composite mode. (default: false) */
 		excludeGems?: boolean;
 		/** Allows to adjust the influence of the depth difference in the denoising pass. (default: 2) */
@@ -327,6 +334,29 @@ export interface ISSAOEffectDefinition extends IPostProcessingEffectDefinition {
 	type: POST_PROCESSING_EFFECT_TYPE.SSAO;
 
 	// #endregion Properties (15)
+}
+
+export interface ISSREffectDefinition extends IPostProcessingEffectDefinition {
+	// #region Properties (6)
+
+	properties?: {
+		/** How much the reflected geometry replaces the environment reflection, from 0 to 1. (default: 1) */
+		intensity?: number;
+		/** Materials with a roughness up to this value receive reflections; they fade out from half of it. Only opaque metallic materials receive reflections, gems never do. (default: 0.3) */
+		maxRoughness?: number;
+		/** The number of ray march steps per pixel, at most 64. (default: 16) */
+		steps?: number;
+		/** The longest reflected ray, relative to the scene size like the distance of the ambient occlusion. (default: 2) */
+		distance?: number;
+		/** How thick a surface is assumed behind its depth, relative to the scene size like the distance. (default: 0.2) */
+		thickness?: number;
+		/** Whether the reflections are rendered on mobile devices. (default: false) */
+		enableOnMobile?: boolean;
+	};
+
+	type: POST_PROCESSING_EFFECT_TYPE.SSR;
+
+	// #endregion Properties (6)
 }
 
 export interface IScanlineEffectDefinition extends IPostProcessingEffectDefinition {
@@ -430,6 +460,7 @@ export type IPostProcessingEffectsArray = (
 	| INoiseEffectDefinition
 	| IPixelationEffectDefinition
 	| ISSAOEffectDefinition
+	| ISSREffectDefinition
 	| IScanlineEffectDefinition
 	| ISepiaEffectDefinition
 	| ITiltShiftEffectDefinition

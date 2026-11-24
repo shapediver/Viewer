@@ -11,8 +11,7 @@ export const OUTPUT_FLOORS = [10, 2, 2, 2, 2, 2];
 /**
  * Runs in the page. Replaces `__aec.build` with a builder of the session
  * tree described above and adds `window.__outputs`. Also adds
- * `window.__update`: a clock that the page clock does not fake, the busy
- * time of animation frames, the bounds computations and the nodes of the
+ * `window.__update`: the bounds computations and the nodes of the
  * last scene change.
  * It must not reference anything outside its own body.
  */
@@ -20,9 +19,6 @@ export function installOutputs(floors: number[]) {
 	const SDV = (window as any).SDV;
 	const aec = (window as any).__aec;
 	const buildTower = aec.build;
-
-	// `Event.timeStamp` is real time; Playwright fakes `performance.now`.
-	const now = () => new Event("t").timeStamp;
 
 	function output(index: number, options: any) {
 		const content = buildTower({
@@ -55,6 +51,11 @@ export function installOutputs(floors: number[]) {
 		});
 		const node = new SDV.TreeNode(`output${index}`);
 		node.addChild(content.root);
+		// Hover on every output, as an app that highlights outputs has; the
+		// app gives a new output the same interaction data.
+		node.addData(
+			new (window as any).SDVInteractions.InteractionData({hover: true}),
+		);
 		return node;
 	}
 
@@ -83,26 +84,43 @@ export function installOutputs(floors: number[]) {
 	};
 
 	const state = {
-		busyMs: 0,
 		sceneChangeNodes: null as number | null,
 		boundsComputed: 0,
+		hovers: 0,
+		programsCreated: 0,
 		next: null as any,
 	};
-
-	const requestFrame = window.requestAnimationFrame.bind(window);
-	window.requestAnimationFrame = (callback: FrameRequestCallback) =>
-		requestFrame((timestamp) => {
-			const start = now();
-			try {
-				callback(timestamp);
-			} finally {
-				state.busyMs += now() - start;
-			}
-		});
 
 	SDV.addListener(SDV.EVENTTYPE.VIEWPORT.VIEWPORT_UPDATED, (event: any) => {
 		state.sceneChangeNodes = event.sceneChanges?.nodes.length ?? -1;
 	});
+	SDV.addListener(SDV.EVENTTYPE.INTERACTION.HOVER_ON, () => state.hovers++);
+
+	/**
+	 * Hover on the outputs. The pick indexes (`IntersectionEngine`,
+	 * `IntersectionManager`, the group index of the hover manager) are read
+	 * from the tree at the first pick and only then follow scene updates.
+	 * Also starts counting the programs three.js creates.
+	 */
+	function setupHover() {
+		const probe = (window as any).__probe;
+		// Programs created anywhere, also ahead of the draw
+		// (`renderer.compile`). `info.programs` is the list three.js pushes a
+		// new program onto (`WebGLPrograms.acquireProgram`); its length also
+		// drops when programs are released.
+		const programs = probe.renderer.info.programs;
+		const push = programs.push;
+		programs.push = function (...items: any[]) {
+			state.programsCreated += items.length;
+			return push.apply(this, items);
+		};
+		const {InteractionEngine, HoverManager} = (window as any)
+			.SDVInteractions;
+		const engine = new InteractionEngine(probe.viewport);
+		const hover = new HoverManager();
+		hover.effectMaterial = new SDV.MaterialStandardData({color: "#dddddd"});
+		engine.addInteractionManager(hover);
+	}
 
 	let boundsTracked = false;
 	/**
@@ -158,7 +176,6 @@ export function installOutputs(floors: number[]) {
 			(globalThis as any)[Symbol.for("shapediver.viewer.treeVersion")]
 				?.n ?? 0;
 		const versionsBefore = versions();
-		const start = now();
 		const session = new SDV.TreeNode("session");
 		probe.aec.outputs.forEach((node: any, i: number) =>
 			session.addChild(i === index ? state.next : node),
@@ -170,26 +187,24 @@ export function installOutputs(floors: number[]) {
 		// UtilsManager.addToSceneTree
 		SDV.sceneTree.addNode(session);
 		session.updateVersion();
-		const swapped = now();
 		const ids = versions() - versionsBefore;
 		probe.aec.outputs[index] = state.next;
 		probe.aec.root = session;
 		state.next = null;
 		probe.viewport.update();
-		const end = now();
-		return {ids, swapMs: swapped - start, updateMs: end - swapped};
+		return {ids};
 	}
 
 	(window as any).__update = {
 		state,
-		now,
 		trackBounds,
+		setupHover,
 		prepare,
 		replace,
 		reset() {
-			state.busyMs = 0;
 			state.sceneChangeNodes = null;
 			state.boundsComputed = 0;
+			state.programsCreated = 0;
 		},
 	};
 }

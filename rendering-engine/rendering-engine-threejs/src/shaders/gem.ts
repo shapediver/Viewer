@@ -126,15 +126,33 @@ const directLightsBlock = `	float temp = material.roughness;
         #pragma unroll_loop_end
     #endif`;
 
+/** The ambient, hemisphere and light probe irradiance of {@link gemReflectedLight}. */
+const sceneAmbientBlock = `        vec3 irradiance = getAmbientLightIrradiance( ambientLightColor );
+
+		#if defined( USE_LIGHT_PROBES )
+        	irradiance += getLightProbeIrradiance( lightProbe, currentGeometryNormal );
+		#endif
+        #if ( NUM_HEMI_LIGHTS > 0 )
+            #pragma unroll_loop_start
+            for ( int i = 0; i < NUM_HEMI_LIGHTS; i ++ ) {
+                irradiance += getHemisphereLightIrradiance( hemisphereLights[ i ], currentGeometryNormal );
+            }
+            #pragma unroll_loop_end
+        #endif`;
+
 /**
  * The shading of one gem surface point as a GLSL function called `name`.
- * `directLights` is the GLSL that adds the direct lights to `rLight`: the full
- * function uses {@link directLightsBlock}, the bounce variant passes an empty
- * string and uses the environment and ambient light only.
+ * `directLights` is the GLSL that adds the direct lights to `rLight`, and
+ * `sceneAmbient` the GLSL that declares `irradiance` from the ambient,
+ * hemisphere and light probe lights. The full function uses
+ * {@link directLightsBlock} and {@link sceneAmbientBlock}; the bounce variant
+ * of "firstSurface" passes no direct lights; the "environment" variant passes
+ * neither, so the environment map is the only light.
  */
 const gemReflectedLight = (
 	name: string,
 	directLights: string,
+	sceneAmbient: string,
 ) => `vec3 ${name}(vec3 position, vec3 normal, vec3 viewDir, PhysicalMaterial material, int depth) {
 
 	vec3 currentGeometryPosition = (modelMatrix * vec4(position, 1.0)).xyz;
@@ -162,18 +180,7 @@ const gemReflectedLight = (
 ${directLights}
     #if defined( RE_IndirectDiffuse )
         vec3 iblIrradiance = vec3( 0.0 );
-        vec3 irradiance = getAmbientLightIrradiance( ambientLightColor );
-
-		#if defined( USE_LIGHT_PROBES )
-        	irradiance += getLightProbeIrradiance( lightProbe, currentGeometryNormal );
-		#endif
-        #if ( NUM_HEMI_LIGHTS > 0 )
-            #pragma unroll_loop_start
-            for ( int i = 0; i < NUM_HEMI_LIGHTS; i ++ ) {
-                irradiance += getHemisphereLightIrradiance( hemisphereLights[ i ], currentGeometryNormal );
-            }
-            #pragma unroll_loop_end
-        #endif
+${sceneAmbient}
     #endif
     #if defined( RE_IndirectSpecular )
         vec3 radiance = vec3( 0.0 );
@@ -221,7 +228,8 @@ ${directLights}
 	color.rgb = ((color.rgb - 0.5) * max(contrast, 0.0)) + 0.5;
 
 	// brightness
-	float colorMax = hdrOutput > 0.5 ? 65504.0 : 1.0;
+	// clampColor 1 keeps the legacy clamp at 1 outside the HDR composer, so highlights never reach white after tone mapping
+	float colorMax = hdrOutput > 0.5 || clampColor < 0.5 ? 65504.0 : 1.0;
 	color.r = min(max(color.r + brightness, 0.0), colorMax);
 	color.g = min(max(color.g + brightness, 0.0), colorMax);
 	color.b = min(max(color.b + brightness, 0.0), colorMax);
@@ -337,9 +345,32 @@ uniform float gamma;
 uniform float contrast;
 uniform float brightness;
 uniform float hdrOutput;
+uniform float clampColor;
 uniform float dispersion;
 uniform float tracingOpacity;
 uniform float gemEnvMapIntensity;
+
+#ifdef GEM_ATTENUATION
+	// Absorption by path length (Beer-Lambert, per channel): light takes on
+	// gemAttenuationColor after gemAttenuationDistance in world units, like
+	// MeshPhysicalMaterial.attenuationColor / attenuationDistance in three.js.
+	uniform vec3 gemAttenuationColor;
+	uniform float gemAttenuationDistance;
+
+	// The share of the light that is left after the segment from a to b
+	// (model space). The length is measured in world space, so scaled and
+	// mirrored stones absorb like unscaled ones.
+	vec3 attenuationTransmittance(vec3 a, vec3 b) {
+		vec3 segment = b - a;
+		// The sphere fallback returns the origin when it misses; no segment
+		// inside the stone is longer than its bounding sphere.
+		float modelLength = length(segment);
+		if(modelLength > 2.0 * radius) segment *= 2.0 * radius / modelLength;
+		float worldLength = length(mat3(modelMatrix) * segment);
+		vec3 absorption = -log(max(gemAttenuationColor, vec3(1e-4))) / gemAttenuationDistance;
+		return exp(-absorption * worldLength);
+	}
+#endif
 
 #ifdef PHYSICAL_DISPERSION
 	// Per-channel IOR offsets for physical dispersion. refractionIndex is the
@@ -364,11 +395,16 @@ vec3 getIBLRadianceVariation( const in vec3 viewDir, const in vec3 normal, const
 	#endif
 }
 
-${gemReflectedLight("calculateReflectedLight", directLightsBlock)}
-#ifdef GEM_BOUNCE_ENVIRONMENT_ONLY
-// Internal bounces use the environment and ambient light only: the direct lights are evaluated on the first surface, which keeps the shader small.
-${gemReflectedLight("calculateBounceLight", "")}
+#if defined( GEM_LIGHTING_ENVIRONMENT )
+// gemLighting "environment": no scene lights at all, the environment map lights the first surface and the bounces.
+${gemReflectedLight("calculateReflectedLight", "", "        vec3 irradiance = vec3( 0.0 );")}
+#define calculateBounceLight calculateReflectedLight
+#elif defined( GEM_LIGHTING_FIRST_SURFACE )
+${gemReflectedLight("calculateReflectedLight", directLightsBlock, sceneAmbientBlock)}
+// gemLighting "firstSurface": internal bounces use the environment and ambient light only: the direct lights are evaluated on the first surface, which keeps the shader small.
+${gemReflectedLight("calculateBounceLight", "", sceneAmbientBlock)}
 #else
+${gemReflectedLight("calculateReflectedLight", directLightsBlock, sceneAmbientBlock)}
 #define calculateBounceLight calculateReflectedLight
 #endif
 
@@ -597,6 +633,11 @@ void main() {
 
 			float currentProbability = 1.0;
 
+			#ifdef GEM_ATTENUATION
+				// absorption from the entry point to the first internal hit
+				vec3 transmittance = attenuationTransmittance(frag_position, newPosition);
+			#endif
+
 			#ifdef USE_IMPURITYMAP
 				float impurityProbability = impurityLookUp(lookUpVector);
 				currentProbability -= impurityProbability * impurityScale;
@@ -613,8 +654,14 @@ void main() {
 			#pragma unroll_loop_start
 			for(int i = 0; i < TRACING_DEPTH; i++) {
 				// small position correction to avoid artefacts
+				#ifdef GEM_ATTENUATION
+					vec3 previousPosition = newPosition;
+				#endif
 				newPosition = newPosition - lookUpVector * 1e-6;
 				newPosition = traceGem(newPosition, newDirection, newNormal);
+				#ifdef GEM_ATTENUATION
+					transmittance *= attenuationTransmittance(previousPosition, newPosition);
+				#endif
 				lookUpVector = normalize(newPosition - center);
 			
 				float cos_theta = dot(newDirection, newNormal);
@@ -640,9 +687,15 @@ void main() {
 				#endif
 
 				vec3 refracted = refract(newDirection, newNormal*-1.0, exitRatio);
-				tempColor += probability * currentProbability * calculateBounceLight(newPosition, newNormal*-1.0, reflect(refracted, newNormal), material, i);
-				if(i+1 == TRACING_DEPTH)
-					tempColor += (1.0 - probability) * currentProbability * calculateBounceLight(newPosition, newNormal, newDirection, material, i);
+				#ifdef GEM_ATTENUATION
+					tempColor += probability * currentProbability * transmittance * calculateBounceLight(newPosition, newNormal*-1.0, reflect(refracted, newNormal), material, i);
+					if(i+1 == TRACING_DEPTH)
+						tempColor += (1.0 - probability) * currentProbability * transmittance * calculateBounceLight(newPosition, newNormal, newDirection, material, i);
+				#else
+					tempColor += probability * currentProbability * calculateBounceLight(newPosition, newNormal*-1.0, reflect(refracted, newNormal), material, i);
+					if(i+1 == TRACING_DEPTH)
+						tempColor += (1.0 - probability) * currentProbability * calculateBounceLight(newPosition, newNormal, newDirection, material, i);
+				#endif
 
 				newDirection = reflect(newDirection, newNormal);
 

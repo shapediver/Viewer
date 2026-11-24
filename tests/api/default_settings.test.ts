@@ -22,19 +22,26 @@ const readOptions = () => {
 		environmentMapAnalyticDfg: viewport.environmentMapAnalyticDfg,
 		physicalGemDispersion: viewport.physicalGemDispersion,
 		physicalGemFresnel: viewport.physicalGemFresnel,
-		gemBounceLighting: viewport.gemBounceLighting,
+		gemLighting: viewport.gemLighting,
 		gemEnvironmentMapIntensity: viewport.gemEnvironmentMapIntensity,
+		gemClampColor: viewport.gemClampColor,
 		gemTracing: viewport.gemTracing,
 		gemNormalMapResolution: viewport.gemNormalMapResolution,
 		toneMapping: viewport.toneMapping,
 		accumulationFrames: viewport.accumulationFrames,
 		accumulationFramesMobile: viewport.accumulationFramesMobile,
+		accumulationMode: viewport.accumulationMode,
 		aoExcludeGems: [...properties("ssao"), ...properties("hbao")].map(
 			(p) => p.excludeGems === true,
 		),
 		bloom: properties("bloom").map((p) => ({
 			highlightsOnly: p.highlightsOnly,
 			backgroundBloom: p.backgroundBloom,
+			additiveBlur: p.additiveBlur,
+		})),
+		// screen-space reflections, only in the jewelry preset (SS-10509)
+		ssr: properties("ssr").map((p) => ({
+			enableOnMobile: p.enableOnMobile === true,
 		})),
 	};
 };
@@ -51,12 +58,15 @@ const OLD_LOOK = {
 	environmentMapAnalyticDfg: false,
 	physicalGemDispersion: false,
 	physicalGemFresnel: false,
-	gemBounceLighting: "all",
+	gemLighting: "all",
 	gemEnvironmentMapIntensity: 1,
+	gemClampColor: true,
 	gemTracing: "sphere",
 	gemNormalMapResolution: 1024,
 	accumulationFrames: 0,
 	accumulationFramesMobile: 0,
+	ssr: [],
+	accumulationMode: "display",
 };
 
 const NEW_LOOK = {
@@ -66,8 +76,9 @@ const NEW_LOOK = {
 	environmentMapAnalyticDfg: false,
 	physicalGemDispersion: true,
 	physicalGemFresnel: true,
-	gemBounceLighting: "environment",
+	gemLighting: "environment",
 	gemEnvironmentMapIntensity: 1.2,
+	gemClampColor: false,
 	gemTracing: "facets",
 	gemNormalMapResolution: 512,
 };
@@ -114,8 +125,11 @@ test.describe("Default settings", () => {
 			// only the jewelry preset accumulates frames (SS-10508)
 			accumulationFrames: 0,
 			accumulationFramesMobile: 0,
+			// only the jewelry preset averages in HDR (SS-10607)
+			accumulationMode: "display",
 			aoExcludeGems: [true],
 			bloom: [],
+			ssr: [],
 		});
 		expect(await page.evaluate(readMaximumRenderingSize)).toEqual({
 			width: 2560,
@@ -132,20 +146,34 @@ test.describe("Default settings", () => {
 			toneMapping: "aces_filmic",
 			accumulationFrames: 32,
 			accumulationFramesMobile: 8,
+			accumulationMode: "hdr",
 			aoExcludeGems: [true],
-			bloom: [{highlightsOnly: true, backgroundBloom: false}],
+			// additive blur like the reference's bloom (SS-10603)
+			bloom: [
+				{
+					highlightsOnly: true,
+					backgroundBloom: false,
+					additiveBlur: true,
+				},
+			],
+			// on desktop only
+			ssr: [{enableOnMobile: false}],
 		});
-		// AO only on the indirect light, so polished metal keeps its reflections
+		// SSAO inside the shading, darkening the reflections by the AO itself
+		// (SS-10601), so polished metal keeps its highlights
 		expect(
 			await page.evaluate(() =>
 				(<typeof ShapeDiverViewer>(<any>window).SDV).viewports[
 					"myViewport"
 				].postProcessing
 					.getPostProcessingEffectsArray()
-					.filter((e) => e.type === "hbao")
-					.map((e) => (<Record<string, unknown>>e.properties).mode),
+					.filter((e) => e.type === "ssao" || e.type === "hbao")
+					.map((e) => {
+						const p = <Record<string, unknown>>e.properties;
+						return [e.type, p.mode, p.specularOcclusion];
+					}),
 			),
-		).toEqual(["shading"]);
+		).toEqual([["ssao", "shading", "uniform"]]);
 		expect(await page.evaluate(readMaximumRenderingSize)).toEqual({
 			width: 2560,
 			height: 1440,

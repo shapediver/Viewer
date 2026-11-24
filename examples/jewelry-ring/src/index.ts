@@ -23,19 +23,67 @@ const environmentMap = (name: string | null, fallback: string): string => {
 		? SDV.ENVIRONMENT_MAP[name as keyof typeof SDV.ENVIRONMENT_MAP]
 		: fallback;
 };
+// The viewer options are the values of the jewelry preset. The URL
+// parameters below override some of them.
+const PRESET = SDV.defaultSettings.jewelry() as unknown as {
+	environment: {
+		mapPbrMode: SDV.ENVIRONMENT_MAP_PBR_MODE;
+		mapOrientation: SDV.ENVIRONMENT_MAP_ORIENTATION;
+		mapAnalyticDfg: boolean;
+	};
+	material: {
+		physicalGemDispersion: boolean;
+		physicalGemFresnel: boolean;
+		gemLighting: "all" | "firstSurface" | "environment";
+		gemEnvironmentMapIntensity: number;
+		gemTracing: "sphere" | "facets";
+		gemNormalMapResolution: 256 | 512 | 1024;
+	};
+	rendering: {
+		accumulationFrames: number;
+		accumulationFramesMobile: number;
+		accumulationMode: "display" | "hdr";
+	};
+};
+// `?<name>=1` or `?<name>=0`; without the parameter the preset value
+const flag = (name: string, fallback: boolean): boolean => {
+	const value = urlParameters.get(name);
+	return value === null ? fallback : value === "1";
+};
 // `?late=1` applies the materials after the first render instead of before
 const LATE = urlParameters.get("late") === "1";
 // `?accumulation=<frames>` averages that many jittered frames of the still
-// view (default 32, 0 turns it off)
-const ACCUMULATION_FRAMES = Number(urlParameters.get("accumulation") ?? 32);
-// `?physicalDispersion=1` uses the physically based gem dispersion
-const PHYSICAL_DISPERSION = urlParameters.get("physicalDispersion") === "1";
-// `?physicalFresnel=1` lets most light leave the stone at the first facet it
+// view (0 turns it off)
+const ACCUMULATION_FRAMES = Number(
+	urlParameters.get("accumulation") ?? PRESET.rendering.accumulationFrames,
+);
+// `?accumulationMode=display|hdr`: "hdr" averages those frames before bloom
+// and tone mapping
+const ACCUMULATION_MODE =
+	(urlParameters.get("accumulationMode") ??
+		PRESET.rendering.accumulationMode) === "hdr"
+		? "hdr"
+		: "display";
+// `?physicalDispersion=0|1`: the physically based gem dispersion
+const PHYSICAL_DISPERSION = flag(
+	"physicalDispersion",
+	PRESET.material.physicalGemDispersion,
+);
+// `?physicalFresnel=0|1`: most light leaves the stone at the first facet it
 // can pass (larger, calmer facets)
-const PHYSICAL_FRESNEL = urlParameters.get("physicalFresnel") === "1";
+const PHYSICAL_FRESNEL = flag(
+	"physicalFresnel",
+	PRESET.material.physicalGemFresnel,
+);
 // `?gemIntensity=<factor>` scales the environment light of the gems only
 // (the reference uses 1.2 for its diamonds)
-const GEM_INTENSITY = Number(urlParameters.get("gemIntensity") ?? 1);
+const GEM_INTENSITY = Number(
+	urlParameters.get("gemIntensity") ??
+		PRESET.material.gemEnvironmentMapIntensity,
+);
+// `?gemLighting=all|firstSurface|environment`: which lights the gems use
+const GEM_LIGHTING = (urlParameters.get("gemLighting") ??
+	PRESET.material.gemLighting) as typeof PRESET.material.gemLighting;
 const SCENE_ENVIRONMENT_MAP = environmentMap(
 	urlParameters.get("sceneEnv"),
 	SDV.ENVIRONMENT_MAP.DEFAULT_STUDIO,
@@ -133,13 +181,15 @@ const createGemMaterial = () =>
 	viewport.environmentMap = SCENE_ENVIRONMENT_MAP;
 	viewport.environmentMapIntensity = 1;
 	viewport.environmentMapAsBackground = false;
-	viewport.environmentMapPbrMode = SDV.ENVIRONMENT_MAP_PBR_MODE.MODERN;
+	viewport.environmentMapPbrMode = PRESET.environment.mapPbrMode;
+	// custom .hdr maps in the orientation of three.js and other tools
+	viewport.environmentMapOrientation = PRESET.environment.mapOrientation;
 	viewport.physicalGemDispersion = PHYSICAL_DISPERSION;
 	viewport.physicalGemFresnel = PHYSICAL_FRESNEL;
 	viewport.gemEnvironmentMapIntensity = GEM_INTENSITY;
-	// the example was tuned with facet plane tracing and 512 px normal maps
-	viewport.gemTracing = "facets";
-	viewport.gemNormalMapResolution = 512;
+	viewport.gemLighting = GEM_LIGHTING;
+	viewport.gemTracing = PRESET.material.gemTracing;
+	viewport.gemNormalMapResolution = PRESET.material.gemNormalMapResolution;
 	// The background does not bloom (`backgroundBloom: false` below). The grey
 	// stays only because the reference's white background is tone mapped to a
 	// light grey.
@@ -156,11 +206,11 @@ const createGemMaterial = () =>
 	viewport.contactShadowDarkness = 1.5;
 	viewport.contactShadowOpacity = 0.6;
 	// the same reflection term as the reference renderer for polished metal
-	viewport.environmentMapAnalyticDfg = true;
+	viewport.environmentMapAnalyticDfg = PRESET.environment.mapAnalyticDfg;
 	// The model stores effects of its own (an SSAO): remove them, so that two
 	// ambient occlusions do not stack, and use the effects of the jewelry
-	// preset instead: contact darkening in crevices and a glow on the
-	// brightest highlights.
+	// preset instead: contact darkening in crevices, screen-space reflections
+	// on the metal and a glow on the brightest highlights.
 	viewport.postProcessing.hdr = true;
 	const effectTokens = viewport.postProcessing.getEffectTokens();
 	for (const token in effectTokens)
@@ -174,7 +224,11 @@ const createGemMaterial = () =>
 	// the reference refines the still image over many frames: smoother
 	// edges, facets and highlights
 	viewport.accumulationFrames = ACCUMULATION_FRAMES;
-	viewport.accumulationFramesMobile = Math.min(ACCUMULATION_FRAMES, 8);
+	viewport.accumulationFramesMobile = Math.min(
+		ACCUMULATION_FRAMES,
+		PRESET.rendering.accumulationFramesMobile,
+	);
+	viewport.accumulationMode = ACCUMULATION_MODE;
 
 	if (viewport.camera?.type === SDV.CAMERA_TYPE.PERSPECTIVE)
 		(<SDV.IPerspectiveCameraApi>viewport.camera).fov = 25;

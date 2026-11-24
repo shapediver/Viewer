@@ -32,8 +32,22 @@ export interface IMaterialGemData
 interface IMaterialGemDataPropertiesGeneric<
 	T,
 > extends IMaterialAbstractDataPropertiesGeneric<T> {
-	// #region Properties (16)
+	// #region Properties (18)
 
+	/**
+	 * The color that white light takes on after it has traveled
+	 * {@link attenuationDistance} through the stone (absorption by path
+	 * length, Beer-Lambert per channel). Same meaning as three.js
+	 * `MeshPhysicalMaterial.attenuationColor` and the glTF volume extension.
+	 * Applied on top of the color transfer. Default white.
+	 */
+	attenuationColor?: Color;
+	/**
+	 * The distance, in model units, after which light inside the stone has the
+	 * {@link attenuationColor}. Thicker parts of the stone absorb more and look
+	 * more saturated. Default `Infinity`: no absorption.
+	 */
+	attenuationDistance?: number;
 	brightness?: number;
 	center?: vec3;
 	colorTransferBegin?: Color;
@@ -57,7 +71,7 @@ interface IMaterialGemDataPropertiesGeneric<
 	tracingDepth?: number;
 	tracingOpacity?: number;
 
-	// #endregion Properties (16)
+	// #endregion Properties (18)
 }
 
 // #endregion Interfaces (2)

@@ -1,4 +1,4 @@
-import {expect, test, type Page} from "@playwright/test";
+import {expect, test, type CDPSession, type Page} from "@playwright/test";
 import {AEC_DEFAULT} from "../fixtures/aecScene";
 import {openViewer, type SceneVariant} from "../fixtures/probe";
 import {installOutputs, OUTPUT_FLOORS} from "../fixtures/sessionOutputs";
@@ -55,6 +55,28 @@ const VARIANTS: SceneVariant[] = [
 	{id: "outputReplacedShadowsSsao", shadows: true, ssao: true},
 ];
 
+/**
+ * One hover on the tower and off it again, before anything is counted, so the
+ * pick indexes exist and the updates have to keep them current.
+ */
+async function pickOnce(page: Page) {
+	const box = await page.evaluate(() => (window as any).__probe.canvasRect());
+	await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+	await page.clock.runFor(100);
+	expect(
+		await page.evaluate(() => (window as any).__update.state.hovers),
+		"the hover before the first replacement hit no output",
+	).toBeGreaterThan(0);
+	await page.mouse.move(box.x + 2, box.y + 2);
+	// `settle` pauses the clock at a fixed time, so it runs once per test.
+	for (let i = 0; i < 2; i++) {
+		await page.waitForFunction(() =>
+			(window as any).__probe.programsReady(),
+		);
+		await page.clock.runFor(SETTLE_MS);
+	}
+}
+
 async function runToFirstFrame(page: Page) {
 	for (let steps = 1; steps <= 100; steps++) {
 		await page.waitForFunction(() =>
@@ -76,7 +98,7 @@ async function read(page: Page) {
 			picks: probe.picks(),
 			batchBoundsReads: probe.batchBoundsReads(),
 			boundsComputed: update.state.boundsComputed,
-			busyMs: update.state.busyMs,
+			programsCreated: update.state.programsCreated,
 		};
 	});
 }
@@ -95,19 +117,26 @@ async function replaceOutput(
 		probe.snapshotMaterials();
 		(window as any).__update.reset();
 	});
+	const cdp = await page.context().newCDPSession(page);
+	await cdp.send("Performance.enable");
+	const before = await taskMs(cdp);
 	const call = await page.evaluate(
 		(i) => (window as any).__update.replace(i),
 		index,
 	);
+	const inCall = await taskMs(cdp);
 	const sync = await read(page);
 	const steps = await runToFirstFrame(page);
+	const firstFrame = await taskMs(cdp);
 	const first = await read(page);
 	// Until settled: the beauty render and the blend after it.
 	await page.waitForFunction(() => (window as any).__probe.programsReady());
 	await page.clock.runFor(SETTLE_MS);
 	await page.waitForFunction(() => (window as any).__probe.programsReady());
 	await page.clock.runFor(SETTLE_MS);
+	const settledAt = await taskMs(cdp);
 	const settled = await read(page);
+	await cdp.detach();
 	const result = await page.evaluate(() => {
 		const probe = (window as any).__probe;
 		return {
@@ -142,6 +171,9 @@ async function replaceOutput(
 			(r) => r.counters.programCacheKey.calls,
 		),
 		...split("boundsComputed", (r) => r.boundsComputed),
+		// Programs compiled anywhere: the viewer compiles ahead of the draw
+		// (`renderer.compile`), which `programsCompiledInRender` misses.
+		...split("programsCreated", (r) => r.programsCreated),
 		[`${prefix}.batchRebuilds`]: settled.counters.batchRebuild.calls,
 		[`${prefix}.batchesCreated`]:
 			settled.counters.batchedMesh.batchesCreated,
@@ -181,17 +213,16 @@ async function replaceOutput(
 		[`${prefix}.scene.treeNodes`]: result.stats.treeNodes,
 	};
 
-	// Times are machine-dependent: reported, never compared. `inCall` is the
-	// update call; the other two add the main-thread time of the animation
-	// frames up to the first drawn frame and until the picture settled.
-	// The paused page clock removes idle time, and shader compiles in the
-	// driver's own threads are not in it.
+	// Times are machine-dependent: reported, never compared. All three are
+	// the main-thread busy time from the start of the update call: to its end,
+	// to the first drawn frame, and until the picture settled. The paused page
+	// clock removes idle time. Shader compiles in the driver's own threads are
+	// not in it; the test's own polling is, by a few ms.
 	const timings = {
 		clockSteps: steps,
-		swapMs: round(call.swapMs),
-		inCallMs: round(call.updateMs),
-		untilFirstFrameMs: round(call.swapMs + call.updateMs + first.busyMs),
-		untilSettledMs: round(call.swapMs + call.updateMs + settled.busyMs),
+		inCallMs: round(inCall - before),
+		untilFirstFrameMs: round(firstFrame - before),
+		untilSettledMs: round(settledAt - before),
 	};
 	console.log(`${prefix}: ${JSON.stringify(timings)}`);
 	test.info().annotations.push({
@@ -199,6 +230,16 @@ async function replaceOutput(
 		description: `${prefix}: ${JSON.stringify(timings)}`,
 	});
 	return counters;
+}
+
+/**
+ * Main-thread busy time of the page in ms, from Chrome's `TaskDuration`.
+ * Playwright's clock fakes every clock in the page (`performance`,
+ * `Event.timeStamp`, also in frames), so the time is read over CDP.
+ */
+async function taskMs(cdp: CDPSession) {
+	const {metrics} = await cdp.send("Performance.getMetrics");
+	return (metrics.find((m) => m.name === "TaskDuration")?.value ?? 0) * 1000;
 }
 
 function round(ms: number) {
@@ -219,7 +260,14 @@ for (const variant of VARIANTS) {
 
 		await page.evaluate(installOutputs, OUTPUT_FLOORS);
 		await createScene(page, variant, AEC_DEFAULT);
+		// The standard lights a session gets, so the shadow variant has a
+		// light that casts a shadow. The AEC scene alone has no lights.
+		await page.evaluate(() =>
+			(window as any).__probe.viewport.createLightScene({standard: true}),
+		);
+		await page.evaluate(() => (window as any).__update.setupHover());
 		await settle(page);
+		await pickOnce(page);
 
 		const counters: Counters = {};
 		for (const size of SIZES)

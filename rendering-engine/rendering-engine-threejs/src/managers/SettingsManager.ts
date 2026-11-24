@@ -133,8 +133,9 @@ export class SettingsManager implements IManager {
 			const material = settingsEngine.material as {
 				physicalGemDispersion?: unknown;
 				physicalGemFresnel?: unknown;
-				gemBounceLighting?: unknown;
+				gemLighting?: unknown;
 				gemEnvironmentMapIntensity?: unknown;
+				gemClampColor?: unknown;
 				gemTracing?: unknown;
 				gemNormalMapResolution?: unknown;
 			};
@@ -142,15 +143,20 @@ export class SettingsManager implements IManager {
 				typeof material.physicalGemFresnel === "boolean"
 					? material.physicalGemFresnel
 					: false;
-			const bounceLighting =
-				material.gemBounceLighting === "environment"
-					? "environment"
+			const gemLighting =
+				material.gemLighting === "firstSurface" ||
+				material.gemLighting === "environment"
+					? material.gemLighting
 					: "all";
 			const gemIntensity =
 				typeof material.gemEnvironmentMapIntensity === "number" &&
 				material.gemEnvironmentMapIntensity >= 0
 					? material.gemEnvironmentMapIntensity
 					: 1;
+			const clampColor =
+				typeof material.gemClampColor === "boolean"
+					? material.gemClampColor
+					: true;
 			const dispersion =
 				typeof material.physicalGemDispersion === "boolean"
 					? material.physicalGemDispersion
@@ -171,13 +177,14 @@ export class SettingsManager implements IManager {
 				this._renderingEngine.physicalGemDispersion = dispersion;
 			if (this._renderingEngine.physicalGemFresnel !== fresnel)
 				this._renderingEngine.physicalGemFresnel = fresnel;
-			if (this._renderingEngine.gemBounceLighting !== bounceLighting)
-				this._renderingEngine.gemBounceLighting = bounceLighting;
+			if (this._renderingEngine.gemLighting !== gemLighting)
+				this._renderingEngine.gemLighting = gemLighting;
 			if (
 				this._renderingEngine.gemEnvironmentMapIntensity !==
 				gemIntensity
 			)
 				this._renderingEngine.gemEnvironmentMapIntensity = gemIntensity;
+			this._renderingEngine.gemClampColor = clampColor;
 			this._renderingEngine.gemTracing = tracing;
 			this._renderingEngine.gemNormalMapResolution = resolution;
 		}
@@ -424,8 +431,9 @@ export class SettingsManager implements IManager {
 		const materialGem = settingsEngine.material as {
 			physicalGemDispersion?: boolean;
 			physicalGemFresnel?: boolean;
-			gemBounceLighting?: string;
+			gemLighting?: string;
 			gemEnvironmentMapIntensity?: number;
+			gemClampColor?: boolean;
 			gemTracing?: string;
 			gemNormalMapResolution?: number;
 		};
@@ -433,9 +441,10 @@ export class SettingsManager implements IManager {
 			this._renderingEngine.physicalGemDispersion;
 		materialGem.physicalGemFresnel =
 			this._renderingEngine.physicalGemFresnel;
-		materialGem.gemBounceLighting = this._renderingEngine.gemBounceLighting;
+		materialGem.gemLighting = this._renderingEngine.gemLighting;
 		materialGem.gemEnvironmentMapIntensity =
 			this._renderingEngine.gemEnvironmentMapIntensity;
+		materialGem.gemClampColor = this._renderingEngine.gemClampColor;
 		materialGem.gemTracing = this._renderingEngine.gemTracing;
 		materialGem.gemNormalMapResolution =
 			this._renderingEngine.gemNormalMapResolution;
@@ -464,11 +473,14 @@ export class SettingsManager implements IManager {
 		const renderingAccumulation = settingsEngine.rendering as {
 			accumulationFrames?: number;
 			accumulationFramesMobile?: number;
+			accumulationMode?: "display" | "hdr";
 		};
 		renderingAccumulation.accumulationFrames =
 			this._renderingEngine.accumulationFrames;
 		renderingAccumulation.accumulationFramesMobile =
 			this._renderingEngine.accumulationFramesMobile;
+		renderingAccumulation.accumulationMode =
+			this._renderingEngine.accumulationMode;
 
 		// The engine holds the cap of this device only. The cap of the other
 		// device kind is the one last applied, else the engine default. Not the
@@ -574,6 +586,7 @@ export class SettingsManager implements IManager {
 			const rendering = settingsEngine.rendering as {
 				accumulationFrames?: unknown;
 				accumulationFramesMobile?: unknown;
+				accumulationMode?: unknown;
 			};
 			this._renderingEngine.accumulationFrames =
 				typeof rendering.accumulationFrames === "number"
@@ -583,6 +596,9 @@ export class SettingsManager implements IManager {
 				typeof rendering.accumulationFramesMobile === "number"
 					? rendering.accumulationFramesMobile
 					: 0;
+			// a missing or invalid value is the old look (on the canvas)
+			this._renderingEngine.accumulationMode =
+				rendering.accumulationMode === "hdr" ? "hdr" : "display";
 
 			// Settings without a maximum rendering size (saved before 7.2 and not
 			// converted) leave the value of the engine alone.

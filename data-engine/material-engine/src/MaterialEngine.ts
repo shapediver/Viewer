@@ -292,6 +292,9 @@ export class MaterialEngine {
 				const gemDefinition: IMaterialGemDataPropertiesDefinition =
 					definition;
 
+				gemProperties.attenuationColor = gemDefinition.attenuationColor;
+				gemProperties.attenuationDistance =
+					gemDefinition.attenuationDistance;
 				gemProperties.brightness = gemDefinition.brightness;
 				gemProperties.center = gemDefinition.center;
 				gemProperties.colorTransferBegin =

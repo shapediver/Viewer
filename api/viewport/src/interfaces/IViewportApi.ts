@@ -167,6 +167,16 @@ export interface IViewportApi {
 	 */
 	accumulationFramesMobile: number;
 	/**
+	 * Where the frames of {@link accumulationFrames} are averaged. (default: "display", the legacy look)
+	 * "display" averages the finished frames on the canvas, after post-processing and tone mapping.
+	 * "hdr" averages the scene in the high dynamic range buffer of the post-processing, before bloom
+	 * and tone mapping, which then run once on the average. Small bright highlights keep their
+	 * brightness instead of being clipped in every frame before they are averaged.
+	 * "hdr" needs post-processing with HDR buffers (`postprocessing.hdr`, a device with half-float
+	 * render targets); otherwise "display" is used.
+	 */
+	accumulationMode: "display" | "hdr";
+	/**
 	 * Option to enable / disable the automatic color space adaption. This converts all color inputs to the chosen {@link outputEncoding}. (default: true)
 	 */
 	automaticColorAdjustment: boolean;
@@ -268,16 +278,22 @@ export interface IViewportApi {
 	 */
 	environmentMapRotation: quat;
 	/**
-	 * Which lights gems use for the light that bounces inside the stone. (default: "all", the legacy look)
-	 * "all" evaluates the point, spot, directional and rect-area lights on every surface the ray hits.
-	 * "environment" evaluates them on the first surface only and uses the environment and ambient light for the internal bounces, which cuts the shader cost.
+	 * Which lights shade gems. (default: "all", the legacy look)
+	 * "all" evaluates the point, spot, directional and rect-area lights, the ambient and hemisphere lights and the environment map on every surface the ray hits.
+	 * "firstSurface" evaluates the point, spot, directional and rect-area lights on the first surface only and uses the environment and ambient light for the internal bounces, which cuts the shader cost.
+	 * "environment" ignores all scene lights (including ambient and hemisphere lights): the environment map is the only light on the first surface and the internal bounces.
 	 */
-	gemBounceLighting: "all" | "environment";
+	gemLighting: "all" | "firstSurface" | "environment";
 	/**
 	 * Factor on the environment reflections that gems trace, on top of `environmentMapIntensity`. Must be 0 or larger. (default: 1, the legacy look)
 	 * It applies to all gems, also to gems whose material has its own environment map. Use it to match the brightness of the stones to the rest of the scene for a given environment map.
 	 */
 	gemEnvironmentMapIntensity: number;
+	/**
+	 * Whether gems clamp their traced colors at 1 when no post-processing effect renders the scene into an HDR buffer. (default: true, the legacy look)
+	 * With the clamp, stones never reach white after tone mapping in viewports without effects. Set it to false to let the highlights of the stones reach white there as well. With `hdr` and at least one effect the colors are never clamped.
+	 */
+	gemClampColor: boolean;
 	/**
 	 * The resolution per cube face of the map that captures the facets of a gem. Allowed values are 256, 512 and 1024. (default: 1024, the legacy look; 512 is the value used with `gemTracing = "facets"`)
 	 * Used for gems whose material does not set `normalMapResolution`. Changing it captures the facet maps of the gems already in the scene again.
