@@ -41,9 +41,11 @@ export interface IPostProcessingEffectDefinition {
 }
 
 export interface IBloomEffectDefinition extends IPostProcessingEffectDefinition {
-	// #region Properties (10)
+	// #region Properties (11)
 
 	properties?: {
+		/** Only with `mipmapBlur`: add the blur levels instead of blending them. The glow then reaches over three octaves only and, at the same `intensity`, adds about 2.4 times the light above `luminanceThreshold`, as additive bloom implementations of other renderers do. Small, very bright highlights such as gem glints get a visible glow. The blur radius has no effect then, and `highlightLimit` caps the light before the blur, so a pixel can add up to about 2.4 times the limit. Meant for `IPostProcessingApi.hdr`: with 8-bit buffers each level is clipped at white. (default: false) */
+		additiveBlur?: boolean;
 		/** Whether the background (pixels where no geometry was drawn) contributes to the bloom. Set to false to keep a bright clear color or background from blooming. (default: true) */
 		backgroundBloom?: boolean;
 		/** Bloom only the light above `luminanceThreshold` (soft knee of width `luminanceSmoothing`, per-pixel cap, tighter mipmap blur), so only highlights glow and bright surfaces keep their colour. Recommended together with `IPostProcessingApi.hdr`. When enabled, unset `luminanceThreshold`, `luminanceSmoothing` and `mipmapBlur` default to 1, 0.25 and true. With 8-bit buffers the threshold is capped at 0.8. (default: false) */

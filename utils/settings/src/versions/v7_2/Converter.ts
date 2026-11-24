@@ -157,7 +157,7 @@ export const convertToPrevious = (
 	//   material.gemTracing, material.gemNormalMapResolution
 	// - rendering.accumulationFrames, rendering.accumulationFramesMobile
 	// - rendering.maximumRenderingSize, rendering.maximumRenderingSizeMobile
-	// - bloom properties: backgroundBloom, highlightsOnly, highlightLimit (mipmapBlur is required in 7.1)
+	// - bloom properties: backgroundBloom, highlightsOnly, highlightLimit, additiveBlur (mipmapBlur is required in 7.1)
 	// - HBAO/SSAO properties: mode, excludeGems
 	const oldEffects = newSettings.postprocessing.effects.map((effect) => {
 		if (effect.type === "bloom" && effect.properties) {
@@ -165,6 +165,7 @@ export const convertToPrevious = (
 			delete properties.backgroundBloom;
 			delete properties.highlightsOnly;
 			delete properties.highlightLimit;
+			delete properties.additiveBlur;
 			properties.mipmapBlur = properties.mipmapBlur ?? false;
 			return {...effect, properties};
 		}
