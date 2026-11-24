@@ -205,6 +205,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	private _physicalGemFresnel: boolean = false;
 	private _gemLighting: "all" | "firstSurface" | "environment" = "all";
 	private _gemEnvironmentMapIntensity: number = 1;
+	private _gemClampColor: boolean = true;
 	private _postRenderingCallback?:
 		| ((
 				renderer: THREE.WebGLRenderer,
@@ -757,6 +758,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	public set gemEnvironmentMapIntensity(value: number) {
 		this._gemEnvironmentMapIntensity = value;
 		this._materialLoader.assignGemEnvironmentMapIntensity(value);
+	}
+
+	public get gemClampColor(): boolean {
+		return this._gemClampColor;
+	}
+
+	public set gemClampColor(value: boolean) {
+		this._gemClampColor = value;
 	}
 
 	public get gemTracing(): "sphere" | "facets" {

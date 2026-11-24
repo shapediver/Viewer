@@ -119,6 +119,12 @@ export interface ISettings extends IGlobalSettings {
 		 */
 		gemEnvironmentMapIntensity: number;
 		/**
+		 * Whether gems clamp their traced colors at 1 when the scene is not rendered into an HDR buffer (no post-processing effect, or `hdr` off).
+		 * With the clamp, stones never reach white after tone mapping in viewports without effects.
+		 * Settings converted from before 7.2 use true.
+		 */
+		gemClampColor: boolean;
+		/**
 		 * How gems are traced.
 		 * Settings converted from before 7.2 use "sphere".
 		 */

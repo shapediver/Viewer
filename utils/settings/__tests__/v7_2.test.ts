@@ -66,6 +66,7 @@ describe("settings V7.2", () => {
 			physicalGemFresnel: false,
 			gemLighting: "all",
 			gemEnvironmentMapIntensity: 1,
+			gemClampColor: true,
 			gemTracing: "sphere",
 			gemNormalMapResolution: 1024,
 			accumulationFrames: 0,
@@ -177,6 +178,7 @@ describe("settings V7.2", () => {
 			(s) => delete (s.material as any).physicalGemFresnel,
 			(s) => delete (s.material as any).gemLighting,
 			(s) => delete (s.material as any).gemEnvironmentMapIntensity,
+			(s) => delete (s.material as any).gemClampColor,
 			(s) => delete (s.material as any).gemTracing,
 			(s) => delete (s.material as any).gemNormalMapResolution,
 			(s) => delete (s.rendering as any).accumulationFrames,
@@ -217,6 +219,7 @@ describe("settings V7.2", () => {
 			(s) => ((s.material as any).gemLighting = "yes"),
 			(s) => ((s.material as any).gemEnvironmentMapIntensity = "1"),
 			(s) => ((s.material as any).gemEnvironmentMapIntensity = -1),
+			(s) => ((s.material as any).gemClampColor = "false"),
 			(s) => ((s.material as any).gemTracing = "foo"),
 			(s) => ((s.material as any).gemNormalMapResolution = 300),
 			(s) => ((s.material as any).gemNormalMapResolution = "512"),
@@ -274,6 +277,7 @@ describe("settings V7.2", () => {
 		expect(converted.material.physicalGemFresnel).toBe(false);
 		expect(converted.material.gemLighting).toBe("all");
 		expect(converted.material.gemEnvironmentMapIntensity).toBe(1);
+		expect(converted.material.gemClampColor).toBe(true);
 		expect(converted.material.gemTracing).toBe("sphere");
 		expect(converted.material.gemNormalMapResolution).toBe(1024);
 		expect(converted.rendering.accumulationFrames).toBe(0);
@@ -321,6 +325,7 @@ describe("settings V7.2", () => {
 		settingsV7_1.material.physicalGemFresnel = true;
 		settingsV7_1.material.gemLighting = "environment";
 		settingsV7_1.material.gemEnvironmentMapIntensity = 1.5;
+		settingsV7_1.material.gemClampColor = false;
 		settingsV7_1.material.gemTracing = "facets";
 		settingsV7_1.material.gemNormalMapResolution = 512;
 		settingsV7_1.rendering.accumulationFrames = 16;
@@ -353,6 +358,7 @@ describe("settings V7.2", () => {
 		expect(converted.material.physicalGemFresnel).toBe(true);
 		expect(converted.material.gemLighting).toBe("environment");
 		expect(converted.material.gemEnvironmentMapIntensity).toBe(1.5);
+		expect(converted.material.gemClampColor).toBe(false);
 		expect(converted.material.gemTracing).toBe("facets");
 		expect(converted.material.gemNormalMapResolution).toBe(512);
 		expect(converted.rendering.accumulationFrames).toBe(16);
@@ -423,6 +429,7 @@ describe("settings V7.2", () => {
 		expect(converted.material).not.toHaveProperty(
 			"gemEnvironmentMapIntensity",
 		);
+		expect(converted.material).not.toHaveProperty("gemClampColor");
 		expect(converted.material).not.toHaveProperty("gemTracing");
 		expect(converted.material).not.toHaveProperty("gemNormalMapResolution");
 		expect(converted.rendering).not.toHaveProperty("accumulationFrames");

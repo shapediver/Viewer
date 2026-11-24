@@ -743,6 +743,24 @@ export class ViewportApi implements IViewportApi {
 		this.update("gemEnvironmentMapIntensity");
 	}
 
+	public get gemClampColor(): boolean {
+		return this.#renderingEngine.gemClampColor;
+	}
+
+	public set gemClampColor(value: boolean) {
+		const scope = "gemClampColor";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"boolean",
+		);
+		this.#renderingEngine.gemClampColor = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("gemClampColor");
+	}
+
 	public get gemNormalMapResolution(): number {
 		return this.#renderingEngine.gemNormalMapResolution;
 	}

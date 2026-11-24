@@ -38,6 +38,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
 	readonly effectiveEnvironmentMapRotation: quat;
 	gemNormalMapResolution: number;
 	gemEnvironmentMapIntensity: number;
+	gemClampColor: boolean;
 	gemTracing: "sphere" | "facets";
 	gridColor: Color;
 	gridVisibility: boolean;

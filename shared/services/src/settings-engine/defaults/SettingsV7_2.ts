@@ -81,6 +81,7 @@ export type ISettingsV7_2 = Omit<
 		physicalGemFresnel: boolean;
 		gemLighting: "all" | "firstSurface" | "environment";
 		gemEnvironmentMapIntensity: number;
+		gemClampColor: boolean;
 		gemTracing: "sphere" | "facets";
 		gemNormalMapResolution: 256 | 512 | 1024;
 	};
@@ -102,6 +103,7 @@ export const NEW_LOOK_V7_2 = {
 		physicalGemFresnel: true,
 		gemLighting: "environment",
 		gemEnvironmentMapIntensity: 1.2,
+		gemClampColor: false,
 		gemTracing: "facets",
 		gemNormalMapResolution: 512,
 	},
