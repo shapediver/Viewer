@@ -87,7 +87,18 @@ export const removeData = (
 						}
 					}
 
+					// a gem normal map is shared by the meshes of one shape
+					renderingEngine.geometryLoader.releaseGemNormalMap(o);
+
 					for (const texture of texturesToRemove) {
+						// the loader disposes a gem normal map with its last user
+						if (
+							texture.name === "sphericalNormalMap" ||
+							renderingEngine.geometryLoader.isGemNormalMap(
+								texture,
+							)
+						)
+							continue;
 						if (
 							texture.userData.cacheKey &&
 							renderingEngine.materialLoader.threeJsTextureCache[
@@ -98,16 +109,7 @@ export const removeData = (
 								texture.userData.cacheKey
 							].usage--;
 						} else {
-							if (texture.name === "sphericalNormalMap") {
-								renderingEngine.geometryLoader.removeFromGemSphericalMapsCache(
-									o.userData.primitiveSDid +
-										"_" +
-										o.userData.primitiveSDversion,
-								);
-								texture.dispose();
-							} else {
-								texture.dispose();
-							}
+							texture.dispose();
 						}
 					}
 				}
