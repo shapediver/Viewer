@@ -42,6 +42,7 @@ const PRESET = SDV.defaultSettings.jewelry() as unknown as {
 	rendering: {
 		accumulationFrames: number;
 		accumulationFramesMobile: number;
+		accumulationMode: "display" | "hdr";
 	};
 };
 // `?<name>=1` or `?<name>=0`; without the parameter the preset value
@@ -56,6 +57,13 @@ const LATE = urlParameters.get("late") === "1";
 const ACCUMULATION_FRAMES = Number(
 	urlParameters.get("accumulation") ?? PRESET.rendering.accumulationFrames,
 );
+// `?accumulationMode=display|hdr`: "hdr" averages those frames before bloom
+// and tone mapping
+const ACCUMULATION_MODE =
+	(urlParameters.get("accumulationMode") ??
+		PRESET.rendering.accumulationMode) === "hdr"
+		? "hdr"
+		: "display";
 // `?physicalDispersion=0|1`: the physically based gem dispersion
 const PHYSICAL_DISPERSION = flag(
 	"physicalDispersion",
@@ -220,6 +228,7 @@ const createGemMaterial = () =>
 		ACCUMULATION_FRAMES,
 		PRESET.rendering.accumulationFramesMobile,
 	);
+	viewport.accumulationMode = ACCUMULATION_MODE;
 
 	if (viewport.camera?.type === SDV.CAMERA_TYPE.PERSPECTIVE)
 		(<SDV.IPerspectiveCameraApi>viewport.camera).fov = 25;

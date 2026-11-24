@@ -31,6 +31,16 @@ export type IGemNormalMapResolution = 256 | 512 | 1024;
  */
 export type IRenderingSize = {width: number; height: number};
 
+/**
+ * Where the jittered frames of a still view are averaged:
+ * "display" averages the finished frames on the canvas, after post-processing and tone mapping;
+ * "hdr" averages the scene in the high dynamic range buffer of the post-processing,
+ * before bloom and tone mapping, which then run once on the average.
+ * "hdr" needs post-processing with `postprocessing.hdr`; otherwise "display" is used.
+ * Settings converted from before 7.2 use "display".
+ */
+export type IAccumulationMode = "display" | "hdr";
+
 export interface ISettings extends IGlobalSettings {
 	ar: ISettingsV7_1["ar"];
 	camera: ISettingsV7_1["camera"];
@@ -67,6 +77,11 @@ export interface ISettings extends IGlobalSettings {
 		 * Settings converted from before 7.2 use 0.
 		 */
 		accumulationFramesMobile: number;
+		/**
+		 * Where the jittered frames are averaged, see {@link IAccumulationMode}.
+		 * Settings converted from before 7.2 use "display".
+		 */
+		accumulationMode: IAccumulationMode;
 		/**
 		 * The largest drawing buffer on desktop devices, in physical pixels
 		 * (after the device pixel ratio). A larger viewport is rendered at this size and scaled up.

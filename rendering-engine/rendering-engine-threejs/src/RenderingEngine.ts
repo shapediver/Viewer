@@ -157,6 +157,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	// settings
 	private _accumulationFrames: number = 0;
 	private _accumulationFramesMobile: number = 0;
+	private _accumulationMode: "display" | "hdr" = "display";
 	private _arRotation: vec3 = vec3.create();
 	private _arScale: vec3 = vec3.fromValues(1, 1, 1);
 	private _arTranslation: vec3 = vec3.create();
@@ -357,6 +358,22 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
 	public set accumulationFramesMobile(value: number) {
 		this._accumulationFramesMobile = toFrameCount(value);
+	}
+
+	/**
+	 * Where the accumulated frames are averaged: "display" on the canvas,
+	 * after tone mapping, "hdr" in the HDR buffer of the post-processing,
+	 * before bloom and tone mapping. "hdr" falls back to "display" without
+	 * HDR post-processing.
+	 */
+	public get accumulationMode(): "display" | "hdr" {
+		return this._accumulationMode;
+	}
+
+	public set accumulationMode(value: "display" | "hdr") {
+		this._accumulationMode = value === "hdr" ? "hdr" : "display";
+		this._postProcessingManager.hdrAccumulation =
+			this._accumulationMode === "hdr";
 	}
 
 	public get arRotation(): vec3 {

@@ -103,6 +103,8 @@ export class RenderingManager implements IManager {
 	private _usingSwiftShader: boolean = false;
 	private _width: number = 0;
 	private _accumulator?: StillFrameAccumulator;
+	// whether the current mean is averaged by the post-processing in HDR
+	private _accumulatedInHdr = false;
 	/** lightSizeUV and blending of the last fade frame */
 	private _beautyShadowState?: [number, number];
 	private _updateShadowMapInNextRender: boolean = false;
@@ -1040,16 +1042,41 @@ export class RenderingManager implements IManager {
 				// Averaging frames whose shadows still fade would mix the
 				// harder shadows into the still image. A resize clears the
 				// canvas, and a new shadow map changes the image.
-				if (shadowStateChanged || resized || updateShadowMap)
+				// accumulationMode "hdr": the post-processing averages the
+				// frames before bloom and tone mapping, the canvas shows the mean
+				const postProcessingManager =
+					this._renderingEngine.postProcessingManager;
+				const hdr =
+					renderPostProcessing &&
+					this._renderingEngine.accumulationMode === "hdr" &&
+					postProcessingManager.hdrAccumulationAvailable;
+				if (
+					shadowStateChanged ||
+					resized ||
+					updateShadowMap ||
+					hdr !== this._accumulatedInHdr
+				)
 					accumulator.restart();
+				this._accumulatedInHdr = hdr;
 				if (accumulator.count < frames) {
 					accumulator.beginFrame(camera);
+					if (hdr)
+						postProcessingManager.beginHdrAccumulation(
+							accumulator.count === 0,
+						);
 					try {
 						draw();
 					} finally {
 						accumulator.endJitter(camera);
+						if (hdr) postProcessingManager.endHdrAccumulation();
 					}
-					accumulator.endFrame(camera);
+					accumulator.endFrame(camera, hdr);
+					// a rebuild of the passes restarts the HDR mean: count
+					// only the frames it holds, so the averaging goes on
+					if (hdr)
+						accumulator.setCount(
+							postProcessingManager.hdrAccumulationCount,
+						);
 				}
 				// otherwise the converged mean is already on the canvas
 				accumulationConverged = accumulator.count >= frames;

@@ -128,6 +128,10 @@ export const JewelryDefaults: () => ISettings = () => {
 			// fewer frames on mobile, where each one costs more
 			accumulationFrames: 32,
 			accumulationFramesMobile: 8,
+			// averages the frames before bloom and tone mapping, so small
+			// mirror highlights keep their brightness, as in the reference
+			// renderer (SS-10607)
+			accumulationMode: "hdr",
 		},
 		session: {},
 		material: {
