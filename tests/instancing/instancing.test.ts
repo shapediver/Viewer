@@ -796,4 +796,242 @@ test.describe("GPU instancing", () => {
 			expect(selection.inScene).toBe(true);
 		}
 	});
+
+	for (const instancing of [false, true])
+		test.describe(`shared gem normal maps (gpu instancing ${instancing})`, () => {
+			const stoneAsset = `${ASSET_HOST}/pave-stones.glb`;
+			// every stone geometry gets its own gem material data before the
+			// first conversion, like a model that assigns one gem per mesh
+			const giveEveryStoneItsOwnGem = `(node) => {
+			const SDV = window.SDV;
+			const visit = (n) => {
+				for (const d of n.data)
+					if (d.primitive !== undefined)
+						d.material = new SDV.MaterialGemData({
+							refractionIndex: 2.42,
+						});
+				n.children.forEach(visit);
+			};
+			visit(node);
+		}`;
+
+			/** Stone meshes by node name, found through the geometry data. */
+			const collectMeshes = `(() => {
+			const viewer = window.viewer;
+			const stones = [];
+			let other;
+			const visit = (n) => {
+				for (const d of n.data) {
+					if (d.primitive === undefined) continue;
+					const mesh = d.convertedObject[viewer.id];
+					if (!mesh) continue;
+					if (n.name === "other_stone_node") other = {data: d, mesh, node: n};
+					else if (n.name.startsWith("stone_node_"))
+						stones.push({data: d, mesh, node: n});
+				}
+				n.children.forEach(visit);
+			};
+			visit(window.SDV.sceneTree.root);
+			return {stones, other};
+		})()`;
+
+			test("identical stones share one normal map", async ({
+				workerPage,
+			}) => {
+				const pageErrors: string[] = [];
+				workerPage.on("pageerror", (error) =>
+					pageErrors.push(error.message),
+				);
+				const state = await workerPage.evaluate(
+					async ({uri, beforeAdd, collect, instancing}) => {
+						(<any>window).viewer.gpuInstancing.enabled = instancing;
+						await (<any>window).addGLTF(uri, beforeAdd);
+						const {stones, other} = (0, eval)(collect);
+						const maps = new Set(
+							stones.map(
+								(s: any) => s.mesh.material.sphericalNormalMap,
+							),
+						);
+						const centers = new Set(
+							stones.map((s: any) => {
+								const c = s.mesh.material.center;
+								return JSON.stringify(
+									c.toArray ? c.toArray() : c,
+								);
+							}),
+						);
+						return {
+							stones: stones.length,
+							allGems: stones.every(
+								(s: any) =>
+									s.mesh.material.isGemMaterial === true,
+							),
+							distinctMaps: maps.size,
+							hasMap: !!stones[0].mesh.material
+								.sphericalNormalMap,
+							otherHasOwnMap:
+								!!other.mesh.material.sphericalNormalMap &&
+								!maps.has(
+									other.mesh.material.sphericalNormalMap,
+								),
+							distinctCenters: centers.size,
+						};
+					},
+					{
+						uri: stoneAsset,
+						beforeAdd: giveEveryStoneItsOwnGem,
+						collect: collectMeshes,
+						instancing,
+					},
+				);
+
+				expect(state.stones).toBe(120);
+				expect(state.allGems).toBe(true);
+				expect(state.hasMap).toBe(true);
+				expect(state.distinctMaps).toBe(1);
+				expect(state.otherHasOwnMap).toBe(true);
+				// without instancing every stone has its own geometry and centre
+				if (!instancing) expect(state.distinctCenters).toBe(120);
+				expect(pageErrors).toEqual([]);
+			});
+
+			test("a shared normal map lives until its last stone is removed", async ({
+				workerPage,
+			}) => {
+				const pageErrors: string[] = [];
+				workerPage.on("pageerror", (error) =>
+					pageErrors.push(error.message),
+				);
+				const state = await workerPage.evaluate(
+					async ({uri, beforeAdd, collect, instancing}) => {
+						(<any>window).viewer.gpuInstancing.enabled = instancing;
+						await (<any>window).addGLTF(uri, beforeAdd);
+						const SDV = (<any>window).SDV;
+						let {stones} = (0, eval)(collect);
+						const texture =
+							stones[0].mesh.material.sphericalNormalMap;
+						let disposed = 0;
+						texture.addEventListener("dispose", () => disposed++);
+
+						SDV.sceneTree.removeNode(stones[0].node);
+						await (<any>window).rerender();
+						({stones} = (0, eval)(collect));
+						const afterOne = {
+							disposed,
+							remaining: stones.length,
+							sameMap: stones.every(
+								(s: any) =>
+									s.mesh.material.sphericalNormalMap ===
+									texture,
+							),
+						};
+
+						for (const stone of stones)
+							SDV.sceneTree.removeNode(stone.node);
+						await (<any>window).rerender();
+						return {afterOne, disposedAtEnd: disposed};
+					},
+					{
+						uri: stoneAsset,
+						beforeAdd: giveEveryStoneItsOwnGem,
+						collect: collectMeshes,
+						instancing,
+					},
+				);
+
+				expect(state.afterOne.disposed).toBe(0);
+				expect(state.afterOne.remaining).toBe(119);
+				expect(state.afterOne.sameMap).toBe(true);
+				expect(state.disposedAtEnd).toBe(1);
+				expect(pageErrors).toEqual([]);
+			});
+
+			test("a map freed by a material change is captured again for the same gem data", async ({
+				workerPage,
+			}) => {
+				const pageErrors: string[] = [];
+				workerPage.on("pageerror", (error) =>
+					pageErrors.push(error.message),
+				);
+				const state = await workerPage.evaluate(
+					async ({uri, beforeAdd, collect, instancing}) => {
+						(<any>window).viewer.gpuInstancing.enabled = instancing;
+						await (<any>window).addGLTF(uri, beforeAdd);
+						const SDV = (<any>window).SDV;
+						const viewer = (<any>window).viewer;
+						const {stones} = (0, eval)(collect);
+						const oldTexture =
+							stones[0].mesh.material.sphericalNormalMap;
+						let oldDisposed = 0;
+						oldTexture.addEventListener(
+							"dispose",
+							() => oldDisposed++,
+						);
+
+						const gems = stones.map((s: any) => s.data.material);
+						for (const stone of stones) {
+							stone.data.material = new SDV.MaterialStandardData({
+								color: "#00ff00",
+							});
+							viewer.updateNode(stone.node);
+						}
+						await (<any>window).rerender();
+						const afterStandard = {
+							oldDisposed,
+							noGems: stones.every(
+								(s: any) =>
+									s.data.convertedObject[viewer.id].material
+										.isGemMaterial !== true,
+							),
+						};
+
+						stones.forEach((stone: any, i: number) => {
+							stone.data.material = gems[i];
+							viewer.updateNode(stone.node);
+						});
+						await (<any>window).rerender();
+						const meshes = stones.map(
+							(s: any) => s.data.convertedObject[viewer.id],
+						);
+						const maps = new Set(
+							meshes.map(
+								(m: any) => m.material.sphericalNormalMap,
+							),
+						);
+						const newTexture =
+							meshes[0].material.sphericalNormalMap;
+						let newDisposed = 0;
+						newTexture?.addEventListener(
+							"dispose",
+							() => newDisposed++,
+						);
+						await (<any>window).rerender();
+						return {
+							afterStandard,
+							allGems: meshes.every(
+								(m: any) => m.material.isGemMaterial === true,
+							),
+							distinctMaps: maps.size,
+							isNewTexture:
+								!!newTexture && newTexture !== oldTexture,
+							newDisposed,
+						};
+					},
+					{
+						uri: stoneAsset,
+						beforeAdd: giveEveryStoneItsOwnGem,
+						collect: collectMeshes,
+						instancing,
+					},
+				);
+
+				expect(state.afterStandard.oldDisposed).toBe(1);
+				expect(state.afterStandard.noGems).toBe(true);
+				expect(state.allGems).toBe(true);
+				expect(state.distinctMaps).toBe(1);
+				expect(state.isNewTexture).toBe(true);
+				expect(state.newDisposed).toBe(0);
+				expect(pageErrors).toEqual([]);
+			});
+		});
 });

@@ -13,6 +13,8 @@
  *   translations (glTF-conformant reuse layout).
  * - baked-boxes.glb: 6 meshes containing the same box with per-occurrence
  *   transforms baked into POSITION/NORMAL (rotation around Z + translation).
+ * - pave-stones.glb: 120 identical gem stones with their own meshes and
+ *   baked translations, plus one stretched stone.
  */
 const fs = require("fs");
 const path = require("path");
@@ -78,6 +80,75 @@ function createTetrahedron(size) {
 		positions: new Float32Array(positions),
 		normals: new Float32Array(normals),
 		indices: new Uint16Array(indices),
+	};
+}
+
+/**
+ * Round brilliant with flat facets: 16 sided crown, table and pavilion,
+ * centred at the origin. stretch scales it along x. Normals are per facet.
+ */
+function createBrilliant(radius, stretch) {
+	const sides = 16;
+	const ring = (r, y) =>
+		Array.from({length: sides}, (_, i) => {
+			const a = (i / sides) * Math.PI * 2;
+			return [Math.cos(a) * r * stretch, y, Math.sin(a) * r];
+		});
+	const girdle = ring(radius, 0);
+	const table = ring(radius * 0.6, radius * 0.6);
+	const culet = [0, -radius * 0.8, 0];
+	const triangles = [];
+	for (let i = 0; i < sides; i++) {
+		const j = (i + 1) % sides;
+		triangles.push([girdle[i], girdle[j], table[j]]);
+		triangles.push([girdle[i], table[j], table[i]]);
+		triangles.push([girdle[j], girdle[i], culet]);
+		if (i > 0 && i < sides - 1)
+			triangles.push([table[0], table[i + 1], table[i]]);
+	}
+	const positions = [];
+	const normals = [];
+	const indices = [];
+	for (const [a, b, c] of triangles) {
+		const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+		const v = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+		let n = [
+			u[1] * v[2] - u[2] * v[1],
+			u[2] * v[0] - u[0] * v[2],
+			u[0] * v[1] - u[1] * v[0],
+		];
+		const l = Math.hypot(...n);
+		n = n.map((x) => x / l);
+		// wind every facet to face outwards
+		const outward = n[0] * a[0] + n[1] * a[1] + n[2] * a[2] > 0;
+		const corners = outward ? [a, b, c] : [a, c, b];
+		if (!outward) n = n.map((x) => -x);
+		const o = positions.length / 3;
+		for (const p of corners) {
+			positions.push(...p);
+			normals.push(...n);
+		}
+		indices.push(o, o + 1, o + 2);
+	}
+	return {
+		positions: new Float32Array(positions),
+		normals: new Float32Array(normals),
+		indices: new Uint16Array(indices),
+	};
+}
+
+/** Translate positions only (baked node transform). Returns new arrays. */
+function bakeTranslation(geometry, translation) {
+	const positions = new Float32Array(geometry.positions.length);
+	for (let i = 0; i < positions.length; i += 3) {
+		positions[i] = geometry.positions[i] + translation[0];
+		positions[i + 1] = geometry.positions[i + 1] + translation[1];
+		positions[i + 2] = geometry.positions[i + 2] + translation[2];
+	}
+	return {
+		positions,
+		normals: geometry.normals.slice(),
+		indices: geometry.indices.slice(),
 	};
 }
 
@@ -335,6 +406,34 @@ function generateBakedBoxes() {
 	return builder.build();
 }
 
+/**
+ * 120 identical gem stones, each with its OWN mesh and accessors and the
+ * node translation baked into POSITION (offsets are not round numbers, so
+ * float32 noise differs between the stones), plus one stretched stone.
+ */
+function generatePaveStones() {
+	const builder = createGlbBuilder();
+	const stone = createBrilliant(0.05, 1);
+	for (let i = 0; i < 120; i++) {
+		const materialId = builder.addMaterial(`stone_${i}`, [0.9, 0.9, 1, 1]);
+		const baked = bakeTranslation(stone, [
+			(i % 12) * 0.137,
+			Math.floor(i / 12) * 0.1373,
+			i * 0.0137,
+		]);
+		const meshId = builder.addMesh(`stone_mesh_${i}`, baked, materialId);
+		builder.addNode(`stone_node_${i}`, meshId);
+	}
+	const otherMaterial = builder.addMaterial("other_stone", [1, 0.9, 0.9, 1]);
+	const otherMesh = builder.addMesh(
+		"other_stone_mesh",
+		bakeTranslation(createBrilliant(0.05, 1.5), [0, -0.3, 0.0173]),
+		otherMaterial,
+	);
+	builder.addNode("other_stone_node", otherMesh);
+	return builder.build();
+}
+
 // #endregion
 
 const outDir = path.join(__dirname, "assets");
@@ -343,6 +442,7 @@ const assets = {
 	"duplicated-boxes.glb": generateDuplicatedBoxes(),
 	"shared-mesh-boxes.glb": generateSharedMeshBoxes(),
 	"baked-boxes.glb": generateBakedBoxes(),
+	"pave-stones.glb": generatePaveStones(),
 };
 for (const [name, buffer] of Object.entries(assets)) {
 	fs.writeFileSync(path.join(outDir, name), buffer);
