@@ -985,6 +985,18 @@ uniform vec3 sdvScreenAOColor;
 		}
 	}
 
+	/** Remove the cached gem materials that show the given normal map. */
+	public removeGemMaterialsWithMap(texture: THREE.Texture) {
+		for (const cacheKey in this._materialCache) {
+			const material = this._materialCache[cacheKey].material;
+			if (
+				material instanceof GemMaterial &&
+				material.sphericalNormalMap === texture
+			)
+				this.removeFromMaterialCache(cacheKey);
+		}
+	}
+
 	public assignPhysicalGemFresnel(value: boolean) {
 		this._physicalGemFresnel = value;
 		for (const cacheKey in this._materialCache) {
@@ -2580,11 +2592,15 @@ uniform vec3 sdvScreenAOColor;
 	 * Create a material object with the provided material data.
 	 *
 	 * @param material the material data
+	 * @param gemShapeKey for gem material data: the stone shape (normal map,
+	 * center, radius) the data was just prepared for. Stones of different
+	 * shapes that share one gem material data each get their own material.
 	 * @returns the material object
 	 */
 	public load(
 		incomingData: IMaterialAbstractData | GeometryData,
 		materialSettings?: MaterialSettings,
+		gemShapeKey?: string,
 	): THREE.Material {
 		let materialData: IMaterialAbstractData | null = null;
 		if (!(incomingData instanceof GeometryData))
@@ -2605,11 +2621,13 @@ uniform vec3 sdvScreenAOColor;
 			type = GEOMETRY_MATERIAL_TYPE.MESH;
 		}
 
-		const cacheKey = this.createDataKeyFromMaterial(
+		let cacheKey = this.createDataKeyFromMaterial(
 			incomingData,
 			type,
 			materialSettings,
 		);
+		if (gemShapeKey !== undefined)
+			cacheKey += "_" + btoaCustom(gemShapeKey);
 
 		// Check material cache first
 		if (this._materialCache[cacheKey]) {
