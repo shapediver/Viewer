@@ -35,6 +35,7 @@ const readOptions = () => {
 		bloom: properties("bloom").map((p) => ({
 			highlightsOnly: p.highlightsOnly,
 			backgroundBloom: p.backgroundBloom,
+			additiveBlur: p.additiveBlur,
 		})),
 	};
 };
@@ -133,7 +134,14 @@ test.describe("Default settings", () => {
 			accumulationFrames: 32,
 			accumulationFramesMobile: 8,
 			aoExcludeGems: [true],
-			bloom: [{highlightsOnly: true, backgroundBloom: false}],
+			// additive blur like the reference's bloom (SS-10603)
+			bloom: [
+				{
+					highlightsOnly: true,
+					backgroundBloom: false,
+					additiveBlur: true,
+				},
+			],
 		});
 		// AO only on the indirect light, so polished metal keeps its reflections
 		expect(
