@@ -127,7 +127,11 @@ export class PostProcessingManager implements IManager {
 	private _enablePostProcessingOnMobile: boolean = true;
 	// an AO effect in "shading" mode: it is not composited by an effect pass,
 	// the materials apply it to their indirect light instead
-	private _shadingAOEffect?: {token: string; effect: AOEffect};
+	private _shadingAOEffect?: {
+		token: string;
+		effect: AOEffect;
+		uniformSpecular: boolean;
+	};
 	// the screen space reflections, also applied by the materials
 	private _ssrEffect?: {token: string; effect: SSREffect};
 	private _fxaaEffect?: FXAAEffect;
@@ -207,7 +211,11 @@ export class PostProcessingManager implements IManager {
 
 	public get effects(): {token: string; effect: Effect}[] {
 		const shading: {token: string; effect: Effect}[] = [];
-		if (this._shadingAOEffect) shading.push(this._shadingAOEffect);
+		if (this._shadingAOEffect)
+			shading.push({
+				token: this._shadingAOEffect.token,
+				effect: this._shadingAOEffect.effect,
+			});
 		if (this._ssrEffect) shading.push(this._ssrEffect);
 		return shading.length > 0
 			? [...this._effects, ...shading]
@@ -767,6 +775,7 @@ export class PostProcessingManager implements IManager {
 							this._effectDefinitions[i].token,
 							hbaoEffect,
 							properties.mode,
+							properties.specularOcclusion,
 						);
 					}
 					break;
@@ -1082,6 +1091,7 @@ export class PostProcessingManager implements IManager {
 							this._effectDefinitions[i].token,
 							ssaoEffect,
 							properties.mode,
+							properties.specularOcclusion,
 						);
 					}
 					break;
@@ -1263,7 +1273,7 @@ export class PostProcessingManager implements IManager {
 		// the AO of the "shading" mode is rendered before the scene, the materials read it
 		// the effect is set while the definitions are processed above
 		const shadingAOEffect = this._shadingAOEffect as
-			| {token: string; effect: AOEffect}
+			| {token: string; effect: AOEffect; uniformSpecular: boolean}
 			| undefined;
 		if (shadingAOEffect) {
 			this.addPassToEffectComposer(
@@ -1273,7 +1283,10 @@ export class PostProcessingManager implements IManager {
 				),
 				0,
 			);
-			materialLoader.setScreenSpaceAmbientOcclusion(true);
+			materialLoader.setScreenSpaceAmbientOcclusion(
+				true,
+				shadingAOEffect.uniformSpecular,
+			);
 		} else {
 			materialLoader.setScreenSpaceAmbientOcclusion(false);
 		}
@@ -1673,6 +1686,7 @@ export class PostProcessingManager implements IManager {
 								rings: properties.rings,
 								lumaPhi: properties.lumaPhi,
 								mode: properties.mode,
+								specularOcclusion: properties.specularOcclusion,
 								excludeGems: properties.excludeGems,
 								depthPhi: properties.depthPhi,
 								normalPhi: properties.normalPhi,
@@ -1759,6 +1773,7 @@ export class PostProcessingManager implements IManager {
 								rings: properties.rings,
 								lumaPhi: properties.lumaPhi,
 								mode: properties.mode,
+								specularOcclusion: properties.specularOcclusion,
 								excludeGems: properties.excludeGems,
 								depthPhi: properties.depthPhi,
 								normalPhi: properties.normalPhi,
@@ -2119,9 +2134,14 @@ export class PostProcessingManager implements IManager {
 		token: string,
 		effect: AOEffect,
 		mode: "composite" | "shading" | undefined,
+		specularOcclusion: "physical" | "uniform" | undefined,
 	) {
 		if (mode === "shading" && !this._shadingAOEffect) {
-			this._shadingAOEffect = {token, effect};
+			this._shadingAOEffect = {
+				token,
+				effect,
+				uniformSpecular: specularOcclusion === "uniform",
+			};
 		} else {
 			this._effects.push({token, effect});
 		}

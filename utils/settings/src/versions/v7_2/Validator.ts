@@ -24,6 +24,8 @@ const zNumOrInf = z.union([
 ]);
 
 const ambientOcclusionModeSchema = z.enum(["composite", "shading"]);
+// optional: an unset value means "physical" at runtime (the look before the option existed)
+const ambientOcclusionSpecularOcclusionSchema = z.enum(["physical", "uniform"]);
 
 const hbaoEffectSchema = z.object({
 	properties: z
@@ -44,6 +46,8 @@ const hbaoEffectSchema = z.object({
 			normalPhi: zNumOrInf.optional(),
 			samples: zNumOrInf.optional(),
 			mode: ambientOcclusionModeSchema.optional(),
+			specularOcclusion:
+				ambientOcclusionSpecularOcclusionSchema.optional(),
 			excludeGems: z.boolean(),
 		})
 		.optional(),
@@ -67,6 +71,8 @@ const ssaoEffectSchema = z.object({
 			normalPhi: zNumOrInf.optional(),
 			samples: zNumOrInf.optional(),
 			mode: ambientOcclusionModeSchema.optional(),
+			specularOcclusion:
+				ambientOcclusionSpecularOcclusionSchema.optional(),
 			excludeGems: z.boolean(),
 		})
 		.optional(),

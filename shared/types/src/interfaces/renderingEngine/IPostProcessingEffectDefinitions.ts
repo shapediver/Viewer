@@ -194,6 +194,8 @@ export interface IHBAOEffectDefinition extends IPostProcessingEffectDefinition {
 		lumaPhi?: number;
 		/** How the ambient occlusion is applied. "composite" darkens the final image, "shading" darkens only indirect (ambient and environment) light inside material shading, so highlights keep their brightness. Gems are never darkened in the "shading" mode. (default: "composite") */
 		mode?: "composite" | "shading";
+		/** How the ambient occlusion darkens the environment reflections in the "shading" mode. "physical" uses the specular occlusion of three.js, which leaves polished metal seen head-on almost untouched and darkens it strongly at grazing angles. "uniform" darkens the reflections by the ambient occlusion itself, like the ambient light. (default: "physical") */
+		specularOcclusion?: "physical" | "uniform";
 		/** Whether gems are left out of the ambient occlusion in the composite mode. (default: false) */
 		excludeGems?: boolean;
 		/** Allows to adjust the influence of the depth difference in the denoising pass. (default: 2) */
@@ -317,6 +319,8 @@ export interface ISSAOEffectDefinition extends IPostProcessingEffectDefinition {
 		lumaPhi?: number;
 		/** How the ambient occlusion is applied. "composite" darkens the final image, "shading" darkens only indirect (ambient and environment) light inside material shading, so highlights keep their brightness. Gems are never darkened in the "shading" mode. (default: "composite") */
 		mode?: "composite" | "shading";
+		/** How the ambient occlusion darkens the environment reflections in the "shading" mode. "physical" uses the specular occlusion of three.js, which leaves polished metal seen head-on almost untouched and darkens it strongly at grazing angles. "uniform" darkens the reflections by the ambient occlusion itself, like the ambient light. (default: "physical") */
+		specularOcclusion?: "physical" | "uniform";
 		/** Whether gems are left out of the ambient occlusion in the composite mode. (default: false) */
 		excludeGems?: boolean;
 		/** Allows to adjust the influence of the depth difference in the denoising pass. (default: 2) */

@@ -329,6 +329,7 @@ import {
 } from "./versions/v7_2/Converter";
 import {
 	type IAmbientOcclusionMode as IAmbientOcclusionModeV7_2,
+	type IAmbientOcclusionSpecularOcclusion as IAmbientOcclusionSpecularOcclusionV7_2,
 	type IBloomEffectDefinition as IBloomEffectDefinitionV7_2,
 	type IHBAOEffectDefinition as IHBAOEffectDefinitionV7_2,
 	type IPostProcessingEffectsArray as IPostProcessingEffectsArrayV7_2,
@@ -534,6 +535,7 @@ export type {
 export type {
 	IAmbientLightPropertiesV7_2 as IAmbientLightProperties,
 	IAmbientOcclusionModeV7_2 as IAmbientOcclusionMode,
+	IAmbientOcclusionSpecularOcclusionV7_2 as IAmbientOcclusionSpecularOcclusion,
 	IBloomEffectDefinitionV7_2 as IBloomEffectDefinition,
 	ICameraControlsSettingsV7_2 as ICameraControlsSettings,
 	ICameraSettingsV7_2 as ICameraSettings,
