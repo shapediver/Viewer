@@ -45,7 +45,7 @@
 			"^.+\\.tsx?$": [
 				"ts-jest",
 				{
-					"tsconfig": "tsconfig.test.json",
+					"tsconfig": "<rootDir>/tsconfig.test.json",
 					"useESM": true
 				}
 			]

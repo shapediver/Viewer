@@ -28,8 +28,20 @@ export type Frame = {frame: number; passes: PassRecord[]};
 /** Long enough for the beauty delay (50 ms) and blend (1500 ms). */
 export const SETTLE_MS = 2500;
 
+/**
+ * `PERF_RENDERER=swiftshader` runs Chrome on the software renderer, which
+ * turns shadows and the soft-shadow fade off. Its counters differ from the
+ * GPU's, so it has its own baseline set in `baseline/swiftshader/`.
+ */
+export const SOFTWARE_BASELINES = process.env.PERF_RENDERER === "swiftshader";
+
 function baselineFile(id: string) {
-	return path.join(__dirname, "baseline", `${id}.json`);
+	return path.join(
+		__dirname,
+		"baseline",
+		...(SOFTWARE_BASELINES ? ["swiftshader"] : []),
+		`${id}.json`,
+	);
 }
 
 function readBaseline(id: string): Counters | undefined {

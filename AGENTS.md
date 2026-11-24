@@ -13,6 +13,7 @@ New worktree: `node scripts/agents/setup-worktree.mjs` copies the local files li
 - Typecheck one package: `pnpm check` in that package dir (`tsc --noEmit`). Packages type-check against other packages' `dist/`: if types from a workspace dependency are missing or stale, `pnpm build` that dependency first (e.g. `rendering-engine/camera-engine` before `rendering-engine/rendering-engine-threejs`), or `npx lerna run build --scope <package name> --include-dependencies` for the whole chain.
 - Build one package: `pnpm build` in that package dir. Never root `pnpm build` for a one-package change (~29 packages); it is for a full compile before publish or a broad check.
 - Package `build` scripts call `bash`. On Windows, `bash` may be the WSL stub (`C:\Windows\System32\bash.exe`) and fail when no distribution is installed. Put `C:\Program Files\Git\bin` first on `PATH` so those scripts use Git Bash.
+- Unit tests (Jest): `pnpm test:unit` from the root, after `pnpm build` (tests import workspace packages from `dist/`) and, once, `pnpm install` in `utils/settings` (it is not part of the workspace).
 - Format: `npx prettier --write <files>`. Lint: `npx eslint <files>`.
 
 ## Line endings

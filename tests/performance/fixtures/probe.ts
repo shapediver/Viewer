@@ -1,5 +1,6 @@
 import type {Page} from "@playwright/test";
 import {installAecScene} from "./aecScene";
+import {isSoftwareRenderer, SOFTWARE_BASELINES} from "../budgets/harness";
 import {COUNTER_INSTALLERS} from "./counters";
 
 /**
@@ -672,6 +673,21 @@ export function installProbe() {
 	};
 }
 
+/**
+ * Fails when the browser's renderer does not match PERF_RENDERER, so a GPU
+ * baseline is never compared with SwiftShader counters or the other way
+ * round. Every budget scenario opens the viewer through `openViewer`.
+ */
+async function assertRendererMatchesBaselineSet(page: Page) {
+	const software = await isSoftwareRenderer(page);
+	if (software === SOFTWARE_BASELINES) return;
+	throw new Error(
+		software
+			? "Chrome runs on a software renderer (SwiftShader), but PERF_RENDERER is not 'swiftshader'. The GPU baselines would not match. Set PERF_RENDERER=swiftshader to use baseline/swiftshader/."
+			: "PERF_RENDERER=swiftshader is set, but Chrome runs on a hardware renderer. Its counters would not match the software baselines in baseline/swiftshader/.",
+	);
+}
+
 const EMPTY_SVG = "<svg xmlns='http://www.w3.org/2000/svg'/>";
 
 /**
@@ -695,6 +711,7 @@ export async function openViewer(
 	);
 	await page.goto(url);
 	await page.waitForFunction(() => Boolean((window as any).SDV));
+	await assertRendererMatchesBaselineSet(page);
 	await page.evaluate(installAecScene);
 	await page.evaluate(installProbe);
 	if (options.counters)
