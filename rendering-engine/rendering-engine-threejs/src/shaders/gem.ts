@@ -350,6 +350,28 @@ uniform float dispersion;
 uniform float tracingOpacity;
 uniform float gemEnvMapIntensity;
 
+#ifdef GEM_ATTENUATION
+	// Absorption by path length (Beer-Lambert, per channel): light takes on
+	// gemAttenuationColor after gemAttenuationDistance in world units, like
+	// MeshPhysicalMaterial.attenuationColor / attenuationDistance in three.js.
+	uniform vec3 gemAttenuationColor;
+	uniform float gemAttenuationDistance;
+
+	// The share of the light that is left after the segment from a to b
+	// (model space). The length is measured in world space, so scaled and
+	// mirrored stones absorb like unscaled ones.
+	vec3 attenuationTransmittance(vec3 a, vec3 b) {
+		vec3 segment = b - a;
+		// The sphere fallback returns the origin when it misses; no segment
+		// inside the stone is longer than its bounding sphere.
+		float modelLength = length(segment);
+		if(modelLength > 2.0 * radius) segment *= 2.0 * radius / modelLength;
+		float worldLength = length(mat3(modelMatrix) * segment);
+		vec3 absorption = -log(max(gemAttenuationColor, vec3(1e-4))) / gemAttenuationDistance;
+		return exp(-absorption * worldLength);
+	}
+#endif
+
 #ifdef PHYSICAL_DISPERSION
 	// Per-channel IOR offsets for physical dispersion. refractionIndex is the
 	// IOR at the D line (589.3 nm) and dispersion is n(G line, 430.8 nm) minus
@@ -611,6 +633,11 @@ void main() {
 
 			float currentProbability = 1.0;
 
+			#ifdef GEM_ATTENUATION
+				// absorption from the entry point to the first internal hit
+				vec3 transmittance = attenuationTransmittance(frag_position, newPosition);
+			#endif
+
 			#ifdef USE_IMPURITYMAP
 				float impurityProbability = impurityLookUp(lookUpVector);
 				currentProbability -= impurityProbability * impurityScale;
@@ -627,8 +654,14 @@ void main() {
 			#pragma unroll_loop_start
 			for(int i = 0; i < TRACING_DEPTH; i++) {
 				// small position correction to avoid artefacts
+				#ifdef GEM_ATTENUATION
+					vec3 previousPosition = newPosition;
+				#endif
 				newPosition = newPosition - lookUpVector * 1e-6;
 				newPosition = traceGem(newPosition, newDirection, newNormal);
+				#ifdef GEM_ATTENUATION
+					transmittance *= attenuationTransmittance(previousPosition, newPosition);
+				#endif
 				lookUpVector = normalize(newPosition - center);
 			
 				float cos_theta = dot(newDirection, newNormal);
@@ -654,9 +687,15 @@ void main() {
 				#endif
 
 				vec3 refracted = refract(newDirection, newNormal*-1.0, exitRatio);
-				tempColor += probability * currentProbability * calculateBounceLight(newPosition, newNormal*-1.0, reflect(refracted, newNormal), material, i);
-				if(i+1 == TRACING_DEPTH)
-					tempColor += (1.0 - probability) * currentProbability * calculateBounceLight(newPosition, newNormal, newDirection, material, i);
+				#ifdef GEM_ATTENUATION
+					tempColor += probability * currentProbability * transmittance * calculateBounceLight(newPosition, newNormal*-1.0, reflect(refracted, newNormal), material, i);
+					if(i+1 == TRACING_DEPTH)
+						tempColor += (1.0 - probability) * currentProbability * transmittance * calculateBounceLight(newPosition, newNormal, newDirection, material, i);
+				#else
+					tempColor += probability * currentProbability * calculateBounceLight(newPosition, newNormal*-1.0, reflect(refracted, newNormal), material, i);
+					if(i+1 == TRACING_DEPTH)
+						tempColor += (1.0 - probability) * currentProbability * calculateBounceLight(newPosition, newNormal, newDirection, material, i);
+				#endif
 
 				newDirection = reflect(newDirection, newNormal);
 

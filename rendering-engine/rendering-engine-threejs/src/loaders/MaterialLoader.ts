@@ -2331,6 +2331,16 @@ uniform vec3 sdvScreenAOColor;
 					);
 			}
 
+			if (materialData.attenuationColor !== undefined) {
+				gemProperties.attenuationColor =
+					this._renderingEngine.createThreeJsColor(
+						materialData.attenuationColor,
+					);
+			}
+
+			gemProperties.attenuationDistance =
+				materialData.attenuationDistance;
+
 			gemProperties.center = new THREE.Vector3(
 				materialData.center[0],
 				materialData.center[1],
