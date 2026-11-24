@@ -30,11 +30,12 @@ type GeometryType =
 	| THREE.LineSegments
 	| THREE.LineLoop;
 
+const _gemShapePoint = new THREE.Vector3();
+
 export class GeometryLoader implements ILoader {
 	// #region Properties (8)
 
 	private _gemCubeCamera?: THREE.CubeCamera;
-	private _gemCubeCameraRenderTarget?: THREE.WebGLCubeRenderTarget;
 	private _gemNormalMaterial?: THREE.ShaderMaterial;
 	private _gemPlaneTracingSupported?: boolean;
 	private _gemScene?: THREE.Scene;
@@ -48,8 +49,26 @@ export class GeometryLoader implements ILoader {
 			requestedResolution: number | undefined;
 			resolution: number;
 			planeTracing: boolean;
+			// centre and extent of the captured shape, to match identical shapes
+			shapeCenter: THREE.Vector3;
+			shapeExtent: number;
+			shapeBucket: string;
 		};
 	} = {};
+	// A map lives as long as a rendered object uses it. The key of the map an
+	// object holds is kept per object, so a clone, a removal or a material
+	// change moves exactly one reference.
+	private _gemMapOfObject = new WeakMap<THREE.Object3D, string>();
+	private _gemMapKeyOfTexture = new Map<THREE.Texture, string>();
+	// maps whose last user switched to another material (hover or selection
+	// effect): kept until a node removal finds them still unused, so the
+	// effect ending does not capture them again
+	private _pendingGemMaps = new Set<string>();
+	// primitive key -> map key: one primitive always shows the same map
+	private _gemMapAliases = new Map<string, string>();
+	// coarse shape key -> map keys of the shapes behind it
+	private _gemShapeBuckets = new Map<string, string[]>();
+	private _gemMapCounter = 0;
 	private _geometryCache: {
 		[key: string]: {
 			obj: GeometryType;
@@ -306,8 +325,9 @@ export class GeometryLoader implements ILoader {
 				hasMorphTargets && morphAttributes.normal !== undefined,
 		};
 
+		let preparedGemMapKey: string | undefined;
 		if (incomingMaterialData instanceof MaterialGemData) {
-			this.prepareGemMaterialData(
+			preparedGemMapKey = this.prepareGemMaterialData(
 				geometry,
 				threeGeometry,
 				incomingMaterialData,
@@ -380,6 +400,10 @@ export class GeometryLoader implements ILoader {
 		}
 
 		this.applyMaterial(threeGeometryObject, material);
+		this.syncGemNormalMap(threeGeometryObject);
+		// the cached material can show another map than the one just prepared
+		// for this geometry, then nothing holds the prepared one
+		if (preparedGemMapKey) this.freeGemNormalMapIfUnused(preparedGemMapKey);
 
 		threeGeometryObject.castShadow = geometry.castShadow;
 		threeGeometryObject.receiveShadow = !(material instanceof GemMaterial)
@@ -486,27 +510,119 @@ export class GeometryLoader implements ILoader {
 		return geometry;
 	}
 
-	public removeFromGemSphericalMapsCache(id: string) {
-		if (this._gemSphericalMapsCache[id]) {
-			if (this._gemSphericalMapsCache[id].counter === 1) {
-				this._gemSphericalMapsCache[id].renderTarget.dispose();
-				this._gemSphericalMapsCache[id].texture.dispose();
-				delete this._gemSphericalMapsCache[id];
-			} else {
-				this._gemSphericalMapsCache[id].counter--;
+	/** Whether the texture is a gem normal map that is still in use. */
+	public isGemNormalMap(texture: THREE.Texture): boolean {
+		return this._gemMapKeyOfTexture.has(texture);
+	}
+
+	/** Number and size of the live gem normal maps, for measurements. */
+	public gemNormalMapStats(): {maps: number; bytes: number} {
+		let bytes = 0;
+		const entries = Object.values(this._gemSphericalMapsCache);
+		for (const entry of entries)
+			bytes +=
+				entry.resolution *
+				entry.resolution *
+				6 *
+				(entry.planeTracing ? 8 : 4);
+		return {maps: entries.length, bytes};
+	}
+
+	/** An object left the scene: it no longer holds its gem normal map. */
+	public releaseGemNormalMap(object: THREE.Object3D): void {
+		const key = this._gemMapOfObject.get(object);
+		if (key === undefined) return;
+		this._gemMapOfObject.delete(object);
+		this.releaseGemNormalMapKey(key);
+	}
+
+	/**
+	 * Make the object hold the gem normal map its material shows now, and let
+	 * go of the one it held before.
+	 */
+	private syncGemNormalMap(object: THREE.Object3D): void {
+		const material = (<THREE.Mesh>object).material;
+		let key: string | undefined;
+		if (material) {
+			for (const m of Array.isArray(material) ? material : [material]) {
+				if (m instanceof GemMaterial && m.sphericalNormalMap) {
+					key = this._gemMapKeyOfTexture.get(m.sphericalNormalMap);
+					if (key !== undefined) break;
+				}
 			}
+		}
+
+		const previous = this._gemMapOfObject.get(object);
+		if (key === previous) return;
+		if (key !== undefined) {
+			this._gemSphericalMapsCache[key].counter++;
+			this._pendingGemMaps.delete(key);
+			this._gemMapOfObject.set(object, key);
+		} else {
+			this._gemMapOfObject.delete(object);
+		}
+		if (previous !== undefined) {
+			// a material change is no removal: the map may be needed again
+			const entry = this._gemSphericalMapsCache[previous];
+			if (entry && --entry.counter <= 0)
+				this._pendingGemMaps.add(previous);
+		}
+	}
+
+	/** Free the pending maps that still have no user, after a node removal. */
+	public sweepPendingGemNormalMaps(): void {
+		for (const key of [...this._pendingGemMaps]) {
+			this._pendingGemMaps.delete(key);
+			if (this._gemSphericalMapsCache[key]?.counter === 0)
+				this.freeGemNormalMap(key);
+		}
+	}
+
+	private releaseGemNormalMapKey(key: string): void {
+		const entry = this._gemSphericalMapsCache[key];
+		if (!entry) return;
+		if (--entry.counter > 0) return;
+		this.freeGemNormalMap(key);
+	}
+
+	private freeGemNormalMapIfUnused(key: string): void {
+		// a pending map waits for the next removal sweep
+		if (
+			this._gemSphericalMapsCache[key]?.counter === 0 &&
+			!this._pendingGemMaps.has(key)
+		)
+			this.freeGemNormalMap(key);
+	}
+
+	private freeGemNormalMap(key: string): void {
+		this._pendingGemMaps.delete(key);
+		const entry = this._gemSphericalMapsCache[key];
+		// the render target frees the GPU texture, the texture tells its users
+		entry.renderTarget.dispose();
+		entry.texture.dispose();
+		this._gemMapKeyOfTexture.delete(entry.texture);
+		delete this._gemSphericalMapsCache[key];
+		for (const [alias, target] of this._gemMapAliases)
+			if (target === key) this._gemMapAliases.delete(alias);
+		const bucket = this._gemShapeBuckets.get(entry.shapeBucket);
+		if (bucket) {
+			const index = bucket.indexOf(key);
+			if (index >= 0) bucket.splice(index, 1);
+			if (bucket.length === 0)
+				this._gemShapeBuckets.delete(entry.shapeBucket);
 		}
 	}
 
 	/**
 	 * Fill in the geometry dependent parts of a gem material: tight bounding
 	 * sphere (center, radius), the spherical normal cube map and the side.
+	 * Returns the key of the normal map, which nothing holds yet.
 	 */
 	private prepareGemMaterialData(
 		geometry: GeometryData,
 		threeGeometry: THREE.BufferGeometry,
 		gemMaterialData: MaterialGemData,
-	): void {
+	): string {
 		// Gem shading wants the tight sphere around the vertices. The
 		// shared geometry keeps the AABB sphere createMesh stores for
 		// culling. Leaving the tight sphere on the geometry makes the
@@ -520,7 +636,7 @@ export class GeometryLoader implements ILoader {
 		threeGeometry.boundingSphere = savedSphere;
 		threeGeometry.boundingBox = savedBox;
 
-		const sphericalNormalMap = this.createCubeNormalMap(
+		const {key, texture: sphericalNormalMap} = this.createCubeNormalMap(
 			geometry,
 			threeGeometry,
 			gemMaterialData.normalMapResolution,
@@ -533,7 +649,22 @@ export class GeometryLoader implements ILoader {
 
 		gemMaterialData.center = vec3.fromValues(center.x, center.y, center.z);
 		gemMaterialData.radius = radius;
+		// cached gem materials built with a map that was freed in between get
+		// the new one. A live map stays: the data may be shared by other shapes.
+		const previous = <THREE.CubeTexture | undefined>(
+			(<unknown>gemMaterialData.sphericalNormalMap)
+		);
+		if (
+			previous &&
+			previous !== sphericalNormalMap &&
+			!this.isGemNormalMap(previous)
+		)
+			this._renderingEngine.materialLoader.replaceGemNormalMap(
+				previous,
+				sphericalNormalMap,
+			);
 		(<unknown>gemMaterialData.sphericalNormalMap) = sphericalNormalMap;
+		return key;
 	}
 
 	/**
@@ -817,13 +948,19 @@ export class GeometryLoader implements ILoader {
 				hasMorphTargets && morphAttributes.normal !== undefined,
 		};
 
-		// Only a gem material that was not set up yet: every setup takes
-		// another reference on the cached normal map.
+		// Only a gem material that was not set up yet, or whose map was freed
+		// when its last user left.
+		let preparedGemMapKey: string | undefined;
 		if (
 			incomingMaterialData instanceof MaterialGemData &&
-			!incomingMaterialData.sphericalNormalMap
+			(!incomingMaterialData.sphericalNormalMap ||
+				!this.isGemNormalMap(
+					<THREE.Texture>(
+						(<unknown>incomingMaterialData.sphericalNormalMap)
+					),
+				))
 		) {
-			this.prepareGemMaterialData(
+			preparedGemMapKey = this.prepareGemMaterialData(
 				geometry,
 				threeGeometry,
 				incomingMaterialData,
@@ -851,6 +988,9 @@ export class GeometryLoader implements ILoader {
 				}
 			}
 		});
+		for (const geometryObject of geometryObjects)
+			this.syncGemNormalMap(geometryObject);
+		if (preparedGemMapKey) this.freeGemNormalMapIfUnused(preparedGemMapKey);
 		this._renderingEngine.pulseEffectManager.update(
 			geometry,
 			geometryObjects,
@@ -872,6 +1012,8 @@ export class GeometryLoader implements ILoader {
 		}
 		this._releasedMeshes.delete(object);
 		geometryObjects.add(object as GeometryType);
+		// a clone shows the map of its original and holds it on its own
+		this.syncGemNormalMap(object);
 		// a clone of a mesh with a back and front pair shares its geometry
 		if (object instanceof THREE.Mesh)
 			this._sideSplits.get(object.geometry)?.users.add(object);
@@ -1065,8 +1207,10 @@ export class GeometryLoader implements ILoader {
 	private createGemCubeRenderTarget(
 		resolution: number,
 		planeTracing: boolean,
+		depthBuffer: boolean,
 	): THREE.WebGLCubeRenderTarget {
 		const renderTarget = new THREE.WebGLCubeRenderTarget(resolution, {
+			depthBuffer,
 			format: THREE.RGBAFormat,
 			type: planeTracing ? THREE.HalfFloatType : THREE.UnsignedByteType,
 			magFilter: THREE.LinearFilter,
@@ -1080,23 +1224,166 @@ export class GeometryLoader implements ILoader {
 		return renderTarget;
 	}
 
+	/**
+	 * Centre and largest side of the bounding box of the positions, as
+	 * BufferGeometry.center() computes them for the capture.
+	 */
+	private gemShapeBox(geometry: THREE.BufferGeometry): {
+		center: THREE.Vector3;
+		extent: number;
+	} {
+		const position = geometry.attributes.position;
+		const box = new THREE.Box3();
+		// getX and friends, the positions can be interleaved
+		for (let i = 0; position && i < position.count; i++)
+			box.expandByPoint(
+				_gemShapePoint.set(
+					position.getX(i),
+					position.getY(i),
+					position.getZ(i),
+				),
+			);
+		const size = box.getSize(new THREE.Vector3());
+		return {
+			center: box.getCenter(new THREE.Vector3()),
+			extent: Math.max(size.x, size.y, size.z),
+		};
+	}
+
+	/**
+	 * Key of what float noise cannot change: counts, draw range, indices and
+	 * normals (translating a shape leaves them as they are). The positions
+	 * are compared separately with a tolerance, because a hash of rounded
+	 * positions splits identical shapes whose coordinates are off by one
+	 * float step across a rounding boundary.
+	 */
+	private gemShapeBucket(
+		geometry: THREE.BufferGeometry,
+		requestedResolution: number | undefined,
+	): string {
+		let h1 = 0x811c9dc5;
+		let h2 = 0x9747b28c;
+		const add = (value: number) => {
+			// FNV-1a
+			h1 = Math.imul(h1 ^ value, 16777619);
+			// murmur3 style mix
+			let k = Math.imul(value, 0xcc9e2d51);
+			k = (k << 15) | (k >>> 17);
+			k = Math.imul(k, 0x1b873593);
+			h2 ^= k;
+			h2 = (h2 << 13) | (h2 >>> 19);
+			h2 = (Math.imul(h2, 5) + 0xe6546b64) | 0;
+		};
+
+		const normal = geometry.attributes.normal;
+		if (normal) {
+			for (let i = 0; i < normal.count; i++) {
+				add(Math.round(normal.getX(i) * 1e4));
+				add(Math.round(normal.getY(i) * 1e4));
+				add(Math.round(normal.getZ(i) * 1e4));
+			}
+		} else {
+			add(-1);
+		}
+		const index = geometry.index;
+		if (index) for (let i = 0; i < index.count; i++) add(index.getX(i));
+
+		return (
+			"shape_" +
+			(h1 >>> 0).toString(16) +
+			"_" +
+			(h2 >>> 0).toString(16) +
+			"_" +
+			(geometry.attributes.position?.count ?? 0) +
+			"_" +
+			(index?.count ?? 0) +
+			"_" +
+			geometry.drawRange.start +
+			"_" +
+			geometry.drawRange.count +
+			"_" +
+			requestedResolution
+		);
+	}
+
+	/** Whether the positions match those of a captured shape, centred. */
+	private isSameGemShape(
+		geometry: THREE.BufferGeometry,
+		center: THREE.Vector3,
+		extent: number,
+		entry: {
+			geometry: THREE.BufferGeometry;
+			shapeCenter: THREE.Vector3;
+			shapeExtent: number;
+		},
+	): boolean {
+		const a = geometry.attributes.position;
+		const b = entry.geometry.attributes.position;
+		if (!a || !b || a.count !== b.count) return false;
+		// Only float32 noise: translated copies differ by about one step of
+		// the largest original coordinate (rounding of the translation, and of
+		// the centring). 2^-20 is 8 or more steps. Anything larger is a
+		// different shape, which must keep its own map to render the same.
+		let maxAbs = 0;
+		for (let i = 0; i < a.count; i++)
+			maxAbs = Math.max(
+				maxAbs,
+				Math.abs(a.getX(i)),
+				Math.abs(a.getY(i)),
+				Math.abs(a.getZ(i)),
+			);
+		for (let i = 0; i < b.count; i++)
+			maxAbs = Math.max(
+				maxAbs,
+				Math.abs(b.getX(i)),
+				Math.abs(b.getY(i)),
+				Math.abs(b.getZ(i)),
+			);
+		const tolerance = Math.max(maxAbs * 2 ** -20, 1e-9);
+		if (Math.abs(extent - entry.shapeExtent) > 2 * tolerance) return false;
+		const c = entry.shapeCenter;
+		for (let i = 0; i < a.count; i++) {
+			if (
+				Math.abs(a.getX(i) - center.x - (b.getX(i) - c.x)) >
+					tolerance ||
+				Math.abs(a.getY(i) - center.y - (b.getY(i) - c.y)) >
+					tolerance ||
+				Math.abs(a.getZ(i) - center.z - (b.getZ(i) - c.z)) > tolerance
+			)
+				return false;
+		}
+		return true;
+	}
+
+	/**
+	 * The normal map of a primitive. Primitives with the same shape (e.g. the
+	 * stones of a pavé, each with its own mesh) share one map. The map starts
+	 * without a user: objects take their reference in syncGemNormalMap.
+	 */
 	private createCubeNormalMap(
 		geometryData: GeometryData,
 		geometry: THREE.BufferGeometry,
 		requestedResolution: number | undefined,
-	) {
-		// the first capture of a shape decides its resolution
-		if (
-			this._gemSphericalMapsCache[
-				geometryData.primitive.id + "_" + geometryData.primitive.version
-			]
-		) {
-			this._gemSphericalMapsCache[
-				geometryData.primitive.id + "_" + geometryData.primitive.version
-			].counter++;
-			return this._gemSphericalMapsCache[
-				geometryData.primitive.id + "_" + geometryData.primitive.version
-			].texture;
+	): {key: string; texture: THREE.CubeTexture} {
+		// the same primitive always shows the same map, whatever its
+		// resolution was when it was captured
+		const primitiveKey =
+			geometryData.primitive.id + "_" + geometryData.primitive.version;
+		const aliased = this._gemMapAliases.get(primitiveKey);
+		if (aliased && this._gemSphericalMapsCache[aliased])
+			return {
+				key: aliased,
+				texture: this._gemSphericalMapsCache[aliased].texture,
+			};
+
+		const bucket = this.gemShapeBucket(geometry, requestedResolution);
+		const {center, extent} = this.gemShapeBox(geometry);
+		for (const candidate of this._gemShapeBuckets.get(bucket) ?? []) {
+			const entry = this._gemSphericalMapsCache[candidate];
+			if (entry && this.isSameGemShape(geometry, center, extent, entry)) {
+				this._gemMapAliases.set(primitiveKey, candidate);
+				return {key: candidate, texture: entry.texture};
+			}
 		}
 
 		const {renderTarget, resolution, planeTracing} =
@@ -1106,21 +1393,26 @@ export class GeometryLoader implements ILoader {
 				requestedResolution,
 			);
 
-		this._gemSphericalMapsCache[
-			geometryData.primitive.id + "_" + geometryData.primitive.version
-		] = {
+		const key = bucket + "_" + this._gemMapCounter++;
+		this._gemSphericalMapsCache[key] = {
 			texture: renderTarget.texture,
 			renderTarget,
-			counter: 1,
+			counter: 0,
 			geometryData,
 			geometry,
 			requestedResolution,
 			resolution,
 			planeTracing,
+			shapeCenter: center,
+			shapeExtent: extent,
+			shapeBucket: bucket,
 		};
-		return this._gemSphericalMapsCache[
-			geometryData.primitive.id + "_" + geometryData.primitive.version
-		].texture;
+		this._gemMapKeyOfTexture.set(renderTarget.texture, key);
+		this._gemMapAliases.set(primitiveKey, key);
+		const siblings = this._gemShapeBuckets.get(bucket);
+		if (siblings) siblings.push(key);
+		else this._gemShapeBuckets.set(bucket, [key]);
+		return {key, texture: renderTarget.texture};
 	}
 
 	/**
@@ -1152,9 +1444,11 @@ export class GeometryLoader implements ILoader {
 		const {resolution, planeTracing} =
 			this.resolveGemCaptureSettings(requestedResolution);
 
-		this._gemCubeCameraRenderTarget = this.createGemCubeRenderTarget(
+		// the capture needs a depth buffer, the kept map does not
+		const captureTarget = this.createGemCubeRenderTarget(
 			resolution,
 			planeTracing,
+			true,
 		);
 
 		if (!this._gemScene) {
@@ -1162,11 +1456,11 @@ export class GeometryLoader implements ILoader {
 			this._gemCubeCamera = new THREE.CubeCamera(
 				0.001,
 				10000,
-				this._gemCubeCameraRenderTarget,
+				captureTarget,
 			);
 			this._gemScene.add(this._gemCubeCamera);
 		} else {
-			this._gemCubeCamera!.renderTarget = this._gemCubeCameraRenderTarget;
+			this._gemCubeCamera!.renderTarget = captureTarget;
 		}
 
 		if (!this._gemNormalMaterial) {
@@ -1262,16 +1556,80 @@ export class GeometryLoader implements ILoader {
 		mesh.geometry.dispose();
 		mesh.material.dispose();
 
-		this._gemCubeCamera!.renderTarget.texture.userData = {
+		const renderTarget = this.createGemCubeRenderTarget(
+			resolution,
+			planeTracing,
+			false,
+		);
+		this.copyGemCubeFaces(captureTarget, renderTarget, resolution);
+		captureTarget.dispose();
+
+		renderTarget.texture.userData = {
 			SDid: geometryData.primitive.id,
 			SDversion: geometryData.primitive.version,
 		};
 
 		return {
-			renderTarget: this._gemCubeCameraRenderTarget,
+			renderTarget,
 			resolution,
 			planeTracing,
 		};
+	}
+
+	/**
+	 * Copy the colour of the six faces of one cube target into another. The
+	 * capture target carries a depth buffer that nothing needs afterwards.
+	 */
+	private copyGemCubeFaces(
+		source: THREE.WebGLCubeRenderTarget,
+		target: THREE.WebGLCubeRenderTarget,
+		resolution: number,
+	): void {
+		const renderer = this._renderingEngine.renderer;
+		const gl = renderer.getContext() as WebGL2RenderingContext;
+		const properties = (
+			renderer as unknown as {
+				properties: {
+					get: (object: unknown) => {
+						__webglFramebuffer?: WebGLFramebuffer[];
+					};
+				};
+			}
+		).properties;
+
+		renderer.initRenderTarget(target);
+		const sourceFramebuffers = properties.get(source).__webglFramebuffer!;
+		const targetFramebuffers = properties.get(target).__webglFramebuffer!;
+		const previous = renderer.getRenderTarget();
+		const previousFace = renderer.getActiveCubeFace();
+		const previousLevel = renderer.getActiveMipmapLevel();
+
+		for (let i = 0; i < 6; i++) {
+			renderer.state.bindFramebuffer(
+				gl.READ_FRAMEBUFFER,
+				sourceFramebuffers[i],
+			);
+			renderer.state.bindFramebuffer(
+				gl.DRAW_FRAMEBUFFER,
+				targetFramebuffers[i],
+			);
+			gl.blitFramebuffer(
+				0,
+				0,
+				resolution,
+				resolution,
+				0,
+				0,
+				resolution,
+				resolution,
+				gl.COLOR_BUFFER_BIT,
+				gl.NEAREST,
+			);
+		}
+		renderer.state.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
+		renderer.state.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+		// three bound the framebuffer of this target last, bring it back
+		renderer.setRenderTarget(previous, previousFace, previousLevel);
 	}
 
 	/**
@@ -1323,6 +1681,8 @@ export class GeometryLoader implements ILoader {
 			entry.renderTarget = renderTarget;
 			entry.resolution = resolution;
 			entry.planeTracing = planeTracing;
+			this._gemMapKeyOfTexture.delete(oldTexture);
+			this._gemMapKeyOfTexture.set(newTexture, key);
 
 			oldRenderTarget.dispose();
 			oldTexture.dispose();
