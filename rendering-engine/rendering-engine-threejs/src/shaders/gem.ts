@@ -126,15 +126,33 @@ const directLightsBlock = `	float temp = material.roughness;
         #pragma unroll_loop_end
     #endif`;
 
+/** The ambient, hemisphere and light probe irradiance of {@link gemReflectedLight}. */
+const sceneAmbientBlock = `        vec3 irradiance = getAmbientLightIrradiance( ambientLightColor );
+
+		#if defined( USE_LIGHT_PROBES )
+        	irradiance += getLightProbeIrradiance( lightProbe, currentGeometryNormal );
+		#endif
+        #if ( NUM_HEMI_LIGHTS > 0 )
+            #pragma unroll_loop_start
+            for ( int i = 0; i < NUM_HEMI_LIGHTS; i ++ ) {
+                irradiance += getHemisphereLightIrradiance( hemisphereLights[ i ], currentGeometryNormal );
+            }
+            #pragma unroll_loop_end
+        #endif`;
+
 /**
  * The shading of one gem surface point as a GLSL function called `name`.
- * `directLights` is the GLSL that adds the direct lights to `rLight`: the full
- * function uses {@link directLightsBlock}, the bounce variant passes an empty
- * string and uses the environment and ambient light only.
+ * `directLights` is the GLSL that adds the direct lights to `rLight`, and
+ * `sceneAmbient` the GLSL that declares `irradiance` from the ambient,
+ * hemisphere and light probe lights. The full function uses
+ * {@link directLightsBlock} and {@link sceneAmbientBlock}; the bounce variant
+ * of "firstSurface" passes no direct lights; the "environment" variant passes
+ * neither, so the environment map is the only light.
  */
 const gemReflectedLight = (
 	name: string,
 	directLights: string,
+	sceneAmbient: string,
 ) => `vec3 ${name}(vec3 position, vec3 normal, vec3 viewDir, PhysicalMaterial material, int depth) {
 
 	vec3 currentGeometryPosition = (modelMatrix * vec4(position, 1.0)).xyz;
@@ -162,18 +180,7 @@ const gemReflectedLight = (
 ${directLights}
     #if defined( RE_IndirectDiffuse )
         vec3 iblIrradiance = vec3( 0.0 );
-        vec3 irradiance = getAmbientLightIrradiance( ambientLightColor );
-
-		#if defined( USE_LIGHT_PROBES )
-        	irradiance += getLightProbeIrradiance( lightProbe, currentGeometryNormal );
-		#endif
-        #if ( NUM_HEMI_LIGHTS > 0 )
-            #pragma unroll_loop_start
-            for ( int i = 0; i < NUM_HEMI_LIGHTS; i ++ ) {
-                irradiance += getHemisphereLightIrradiance( hemisphereLights[ i ], currentGeometryNormal );
-            }
-            #pragma unroll_loop_end
-        #endif
+${sceneAmbient}
     #endif
     #if defined( RE_IndirectSpecular )
         vec3 radiance = vec3( 0.0 );
@@ -364,11 +371,16 @@ vec3 getIBLRadianceVariation( const in vec3 viewDir, const in vec3 normal, const
 	#endif
 }
 
-${gemReflectedLight("calculateReflectedLight", directLightsBlock)}
-#ifdef GEM_BOUNCE_ENVIRONMENT_ONLY
-// Internal bounces use the environment and ambient light only: the direct lights are evaluated on the first surface, which keeps the shader small.
-${gemReflectedLight("calculateBounceLight", "")}
+#if defined( GEM_LIGHTING_ENVIRONMENT )
+// gemLighting "environment": no scene lights at all, the environment map lights the first surface and the bounces.
+${gemReflectedLight("calculateReflectedLight", "", "        vec3 irradiance = vec3( 0.0 );")}
+#define calculateBounceLight calculateReflectedLight
+#elif defined( GEM_LIGHTING_FIRST_SURFACE )
+${gemReflectedLight("calculateReflectedLight", directLightsBlock, sceneAmbientBlock)}
+// gemLighting "firstSurface": internal bounces use the environment and ambient light only: the direct lights are evaluated on the first surface, which keeps the shader small.
+${gemReflectedLight("calculateBounceLight", "", sceneAmbientBlock)}
 #else
+${gemReflectedLight("calculateReflectedLight", directLightsBlock, sceneAmbientBlock)}
 #define calculateBounceLight calculateReflectedLight
 #endif
 

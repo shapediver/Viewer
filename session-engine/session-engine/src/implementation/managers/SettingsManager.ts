@@ -294,7 +294,7 @@ export class SettingsManager {
 			const material = settings.material as {
 				physicalGemDispersion?: boolean;
 				physicalGemFresnel?: boolean;
-				gemBounceLighting?: string;
+				gemLighting?: string;
 				gemEnvironmentMapIntensity?: number;
 				gemTracing?: string;
 				gemNormalMapResolution?: number;
@@ -303,7 +303,7 @@ export class SettingsManager {
 			currentMaterial.physicalGemDispersion =
 				material.physicalGemDispersion;
 			currentMaterial.physicalGemFresnel = material.physicalGemFresnel;
-			currentMaterial.gemBounceLighting = material.gemBounceLighting;
+			currentMaterial.gemLighting = material.gemLighting;
 			currentMaterial.gemEnvironmentMapIntensity =
 				material.gemEnvironmentMapIntensity;
 			currentMaterial.gemTracing = material.gemTracing;

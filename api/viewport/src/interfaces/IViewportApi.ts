@@ -268,11 +268,12 @@ export interface IViewportApi {
 	 */
 	environmentMapRotation: quat;
 	/**
-	 * Which lights gems use for the light that bounces inside the stone. (default: "all", the legacy look)
-	 * "all" evaluates the point, spot, directional and rect-area lights on every surface the ray hits.
-	 * "environment" evaluates them on the first surface only and uses the environment and ambient light for the internal bounces, which cuts the shader cost.
+	 * Which lights shade gems. (default: "all", the legacy look)
+	 * "all" evaluates the point, spot, directional and rect-area lights, the ambient and hemisphere lights and the environment map on every surface the ray hits.
+	 * "firstSurface" evaluates the point, spot, directional and rect-area lights on the first surface only and uses the environment and ambient light for the internal bounces, which cuts the shader cost.
+	 * "environment" ignores all scene lights (including ambient and hemisphere lights): the environment map is the only light on the first surface and the internal bounces.
 	 */
-	gemBounceLighting: "all" | "environment";
+	gemLighting: "all" | "firstSurface" | "environment";
 	/**
 	 * Factor on the environment reflections that gems trace, on top of `environmentMapIntensity`. Must be 0 or larger. (default: 1, the legacy look)
 	 * It applies to all gems, also to gems whose material has its own environment map. Use it to match the brightness of the stones to the rest of the scene for a given environment map.
