@@ -39,6 +39,12 @@ import {
  * Each size counts the update call (`inUpdate.*`), the first frame drawn
  * after it (`firstFrame.*`), and everything until the picture has settled
  * (the rest). Times are printed and annotated, not budgeted: see `timings`.
+ *
+ * `viewport.update()` draws nothing itself: `RenderingManager.render` only
+ * starts the render loop, and the first frame is drawn in the next animation
+ * frame. So `firstFrame.*` deltas and the `firstFrame.*` pass and draw
+ * counts describe the same frame. `framesInUpdate` (0) guards this: if the
+ * update starts to draw in the call, it changes and the window needs a look.
  */
 
 const OUTPUT_FLOORS = [10, 2, 2, 2, 2, 2];
@@ -327,6 +333,9 @@ async function replaceOutput(
 	);
 	const inCall = await taskMs(cdp);
 	const sync = await read(page);
+	const framesInUpdate = await page.evaluate(
+		() => (window as any).__probe.frames().length,
+	);
 	const steps = await runToFirstFrame(page);
 	const firstFrame = await taskMs(cdp);
 	const first = await read(page);
@@ -401,6 +410,8 @@ async function replaceOutput(
 				frame.passes.reduce((n, pass) => n + pass.programsCreated, 0),
 			0,
 		),
+		// Frames drawn inside the update call. See the comment at the top.
+		[`${prefix}.framesInUpdate`]: framesInUpdate,
 		[`${prefix}.framesRendered`]: frames.length,
 		[`${prefix}.passes`]: frames.reduce(
 			(sum, frame) => sum + frame.passes.length,
