@@ -20,6 +20,7 @@ const readOptions = () => {
 		environmentMapPbrMode: viewport.environmentMapPbrMode,
 		environmentMapOrientation: viewport.environmentMapOrientation,
 		environmentMapAnalyticDfg: viewport.environmentMapAnalyticDfg,
+		environmentMapFiltering: viewport.environmentMapFiltering,
 		physicalGemDispersion: viewport.physicalGemDispersion,
 		physicalGemFresnel: viewport.physicalGemFresnel,
 		gemLighting: viewport.gemLighting,
@@ -56,6 +57,7 @@ const OLD_LOOK = {
 	environmentMapPbrMode: "legacy",
 	environmentMapOrientation: "legacy",
 	environmentMapAnalyticDfg: false,
+	environmentMapFiltering: "ggx",
 	physicalGemDispersion: false,
 	physicalGemFresnel: false,
 	gemLighting: "all",
@@ -74,6 +76,8 @@ const NEW_LOOK = {
 	environmentMapOrientation: "threejs",
 	// only the jewelry preset uses the analytic DFG
 	environmentMapAnalyticDfg: false,
+	// only the jewelry preset uses the Gaussian prefiltering (SS-10626)
+	environmentMapFiltering: "ggx",
 	physicalGemDispersion: true,
 	physicalGemFresnel: true,
 	gemLighting: "environment",
@@ -142,6 +146,7 @@ test.describe("Default settings", () => {
 		expect(await page.evaluate(readOptions)).toEqual({
 			...NEW_LOOK,
 			environmentMapAnalyticDfg: true,
+			environmentMapFiltering: "gaussian",
 			hdr: true,
 			toneMapping: "aces_filmic",
 			accumulationFrames: 32,
