@@ -131,6 +131,56 @@ test("SS-10618 an effect added with a one-node update on screen, the next frame 
 	expect(result.linkedInFrame, JSON.stringify(result)).toEqual([]);
 });
 
+test("SS-10618 after the effects are removed, a hidden node that is shown links no program", async ({
+	page,
+}) => {
+	await open(page);
+	await page.evaluate(installWatch);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const token = perf.viewport.postProcessing.addEffect({
+			type: SDV.POST_PROCESSING_EFFECT_TYPE.SSAO,
+		});
+		perf.addBoxes(
+			20,
+			new SDV.MaterialStandardData({
+				color: "#cccccc",
+				side: SDV.MATERIAL_SIDE.FRONT,
+			}),
+		);
+		// A variant with a program of its own, hidden at load.
+		const geometry = perf.boxGeometry([2, 2, 0], [3, 3, 1]);
+		geometry.material = new SDV.MaterialUnlitData({color: "#44aa44"});
+		const hidden = new SDV.TreeNode("hiddenVariant");
+		hidden.addData(geometry);
+		hidden.visible = false;
+		SDV.sceneTree.root.addChild(hidden);
+		SDV.sceneTree.root.updateVersion();
+		perf.viewport.update();
+		perf.viewport.show = true;
+		await perf.nextFrame();
+		await perf.nextFrame();
+
+		perf.viewport.postProcessing.removeEffect(token);
+		perf.viewport.render();
+		await perf.nextFrame();
+		await perf.nextFrame();
+
+		const watch = perf.watch();
+		hidden.visible = true;
+		hidden.updateVersion();
+		perf.viewport.update();
+		perf.viewport.render();
+		await perf.nextFrame();
+		return watch.result();
+	});
+	expect(result.framed, JSON.stringify(result)).toBe(true);
+	expect(result.drawn, JSON.stringify(result)).toBeGreaterThan(1);
+	expect(result.linkedInFrame, JSON.stringify(result)).toEqual([]);
+});
+
 test("SS-10618 without post-processing, the first frame links no scene program", async ({
 	page,
 }) => {

@@ -77,6 +77,8 @@ export class RenderingManager implements IManager {
 	private _compilingPrograms: Set<IProgramStatus> | null = null;
 	/** The draw the whole scene was last compiled for. */
 	private _compiledFor: SceneDraw | null = null;
+	/** Objects hidden at the last switch of the draw, not compiled for it. */
+	private _hiddenNotCompiled = new Set<THREE.Object3D>();
 	private _lightSignature: string | null = null;
 	private _continuousRendering: boolean = false;
 	private _continuousShadowMapUpdate: boolean = false;
@@ -399,7 +401,25 @@ export class RenderingManager implements IManager {
 		if (requested) this._firstCompilePending = false;
 		this._compileAll = false;
 		this._lightSignature = signature;
-		if (full) return null;
+		if (full) {
+			this._hiddenNotCompiled.clear();
+			return null;
+		}
+		// Hidden objects the last switch of the draw left out, once an
+		// update shows them. Those that left the scene are dropped.
+		for (const object of this._hiddenNotCompiled) {
+			let shown = object.visible;
+			let parent = object.parent;
+			while (parent && parent !== scene) {
+				shown &&= parent.visible;
+				parent = parent.parent;
+			}
+			if (parent !== scene) this._hiddenNotCompiled.delete(object);
+			else if (shown) {
+				objects.push(object);
+				this._hiddenNotCompiled.delete(object);
+			}
+		}
 		return objects.filter((object) => {
 			if (object.userData.batchedMesh) return false;
 			let parent: THREE.Object3D | null = object;
@@ -525,27 +545,34 @@ export class RenderingManager implements IManager {
 	/**
 	 * After {@link drawChanged}, compiles what the next frame draws: the
 	 * visible objects, without the source meshes hidden behind a batch.
-	 * Hidden objects keep their programs until they are shown, as before.
+	 * A hidden object is compiled by the scene update that shows it.
 	 */
 	private compileVisibleForDraw(scene: THREE.Scene): void {
-		const objects: THREE.Object3D[] = [];
-		scene.traverseVisible((object) => {
-			const drawable = object as THREE.Mesh &
+		const drawable = (object: THREE.Object3D) => {
+			const candidate = object as THREE.Mesh &
 				Partial<{
 					isLine: boolean;
 					isPoints: boolean;
 					isSprite: boolean;
 				}>;
-			if (
-				(drawable.isMesh ||
-					drawable.isLine ||
-					drawable.isPoints ||
-					drawable.isSprite) &&
+			return (
+				(candidate.isMesh ||
+					candidate.isLine ||
+					candidate.isPoints ||
+					candidate.isSprite) &&
 				!object.userData.batchedMesh
-			)
-				objects.push(object);
+			);
+		};
+		const objects = new Set<THREE.Object3D>();
+		scene.traverseVisible((object) => {
+			if (drawable(object)) objects.add(object);
 		});
-		this.startCompile(scene, this._hiddenCamera, objects);
+		this._hiddenNotCompiled.clear();
+		scene.traverse((object) => {
+			if (drawable(object) && !objects.has(object))
+				this._hiddenNotCompiled.add(object);
+		});
+		this.startCompile(scene, this._hiddenCamera, [...objects]);
 		this._compiledFor = this.sceneDraw();
 	}
 
