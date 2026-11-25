@@ -2707,6 +2707,8 @@ uniform vec3 sdvScreenAOColor;
 					)
 						return;
 					this.applyOwnedEnvMap(entry.material, envMap);
+					// the map may arrive after the viewport stopped rendering
+					this._renderingEngine.renderingManager.render();
 				})
 				// a map that fails to load keeps the previous one
 				.catch(() => undefined);

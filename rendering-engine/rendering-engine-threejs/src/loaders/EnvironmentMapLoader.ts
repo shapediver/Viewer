@@ -505,7 +505,8 @@ export class EnvironmentMapLoader implements ILoader {
 		// a newer load was started while this one was loading, for example by a change
 		// of the filtering right after the map: the newer one is assigned, not this one
 		if (loadId !== this._loadCount) {
-			this.notify(eventId);
+			// end the task, but only the newer load signals that the map is ready
+			this.notify(eventId, false, false);
 			return;
 		}
 		// set after the map resolved, so that type and flag always match the assigned map
@@ -670,7 +671,7 @@ export class EnvironmentMapLoader implements ILoader {
 		return this._environmentMaps[name];
 	}
 
-	private notify(eventId: string, failed = false) {
+	private notify(eventId: string, failed = false, mapAssigned = true) {
 		let event: ITaskEvent;
 		if (failed) {
 			event = {
@@ -687,7 +688,10 @@ export class EnvironmentMapLoader implements ILoader {
 				progress: 1,
 				status: "Loaded EnvironmentMap",
 			};
-			if (this._stateEngine.viewportEngines[this._renderingEngine.id]) {
+			if (
+				mapAssigned &&
+				this._stateEngine.viewportEngines[this._renderingEngine.id]
+			) {
 				this._stateEngine.viewportEngines[
 					this._renderingEngine.id
 				]!.environmentMapLoaded.resolve(true);
