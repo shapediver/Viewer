@@ -69,6 +69,7 @@ export type ISettingsV7_2 = Omit<
 		mapOrientation: "legacy" | "threejs";
 		mapAnalyticDfg: boolean;
 		mapFiltering: "ggx" | "gaussian";
+		mapSquaredRoughnessBend: boolean;
 	};
 	postprocessing: Omit<ISettings["postprocessing"], "effects"> & {
 		effects: (
@@ -100,6 +101,7 @@ export const NEW_LOOK_V7_2 = {
 		mapOrientation: "threejs",
 		mapAnalyticDfg: false,
 		mapFiltering: "ggx",
+		mapSquaredRoughnessBend: false,
 	},
 	material: {
 		physicalGemDispersion: true,

@@ -36,6 +36,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
 	environmentMapOrientation: ENVIRONMENT_MAP_ORIENTATION;
 	environmentMapPbrMode: ENVIRONMENT_MAP_PBR_MODE;
 	environmentMapResolution: string;
+	environmentMapSquaredRoughnessBend: boolean;
 	environmentMapRotation: quat;
 	readonly effectiveEnvironmentMapRotation: quat;
 	gemNormalMapResolution: number;

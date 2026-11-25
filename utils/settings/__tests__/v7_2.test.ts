@@ -63,6 +63,7 @@ describe("settings V7.2", () => {
 			mapOrientation: "legacy",
 			mapAnalyticDfg: false,
 			mapFiltering: "ggx",
+			mapSquaredRoughnessBend: false,
 			physicalGemDispersion: false,
 			physicalGemFresnel: false,
 			gemLighting: "all",
@@ -206,6 +207,7 @@ describe("settings V7.2", () => {
 			(s) => delete (s.environment as any).mapOrientation,
 			(s) => delete (s.environment as any).mapAnalyticDfg,
 			(s) => delete (s.environment as any).mapFiltering,
+			(s) => delete (s.environment as any).mapSquaredRoughnessBend,
 			(s) => delete (s.material as any).physicalGemDispersion,
 			(s) => delete (s.material as any).physicalGemFresnel,
 			(s) => delete (s.material as any).gemLighting,
@@ -247,6 +249,7 @@ describe("settings V7.2", () => {
 			(s) => ((s.environment as any).mapAnalyticDfg = "true"),
 			(s) => ((s.environment as any).mapFiltering = "other"),
 			(s) => ((s.environment as any).mapFiltering = true),
+			(s) => ((s.environment as any).mapSquaredRoughnessBend = "true"),
 			(s) => ((s.material as any).physicalGemDispersion = "yes"),
 			(s) => ((s.material as any).physicalGemFresnel = "yes"),
 			(s) => ((s.material as any).gemLighting = 5),
@@ -308,6 +311,7 @@ describe("settings V7.2", () => {
 		expect(converted.environment.mapOrientation).toBe("legacy");
 		expect(converted.environment.mapAnalyticDfg).toBe(false);
 		expect(converted.environment.mapFiltering).toBe("ggx");
+		expect(converted.environment.mapSquaredRoughnessBend).toBe(false);
 		expect(converted.material.physicalGemDispersion).toBe(false);
 		expect(converted.material.physicalGemFresnel).toBe(false);
 		expect(converted.material.gemLighting).toBe("all");
@@ -357,6 +361,7 @@ describe("settings V7.2", () => {
 		settingsV7_1.environment.mapPbrMode = "modern";
 		settingsV7_1.environment.mapAnalyticDfg = true;
 		settingsV7_1.environment.mapFiltering = "gaussian";
+		settingsV7_1.environment.mapSquaredRoughnessBend = true;
 		settingsV7_1.material.physicalGemDispersion = true;
 		settingsV7_1.material.physicalGemFresnel = true;
 		settingsV7_1.material.gemLighting = "environment";
@@ -391,6 +396,7 @@ describe("settings V7.2", () => {
 		expect(converted.environment.mapOrientation).toBe("legacy");
 		expect(converted.environment.mapAnalyticDfg).toBe(true);
 		expect(converted.environment.mapFiltering).toBe("gaussian");
+		expect(converted.environment.mapSquaredRoughnessBend).toBe(true);
 		expect(converted.material.physicalGemDispersion).toBe(true);
 		expect(converted.material.physicalGemFresnel).toBe(true);
 		expect(converted.material.gemLighting).toBe("environment");
@@ -461,6 +467,9 @@ describe("settings V7.2", () => {
 		expect(converted.environment).not.toHaveProperty("mapOrientation");
 		expect(converted.environment).not.toHaveProperty("mapAnalyticDfg");
 		expect(converted.environment).not.toHaveProperty("mapFiltering");
+		expect(converted.environment).not.toHaveProperty(
+			"mapSquaredRoughnessBend",
+		);
 		expect(converted.material).not.toHaveProperty("physicalGemDispersion");
 		expect(converted.material).not.toHaveProperty("physicalGemFresnel");
 		expect(converted.material).not.toHaveProperty("gemLighting");
@@ -587,6 +596,7 @@ describe("settings V7.2", () => {
 		settings.environment.mapOrientation = "threejs";
 		settings.environment.mapAnalyticDfg = true;
 		settings.environment.mapFiltering = "gaussian";
+		settings.environment.mapSquaredRoughnessBend = true;
 		settings.rendering.accumulationFrames = 16;
 		settings.rendering.accumulationFramesMobile = 8;
 		settings.rendering.accumulationMode = "hdr";
@@ -609,6 +619,7 @@ describe("settings V7.2", () => {
 		expect(converted.environment.mapOrientation).toBe("threejs");
 		expect(converted.environment.mapAnalyticDfg).toBe(true);
 		expect(converted.environment.mapFiltering).toBe("gaussian");
+		expect(converted.environment.mapSquaredRoughnessBend).toBe(true);
 		expect(converted.rendering.accumulationFrames).toBe(16);
 		expect(converted.rendering.accumulationFramesMobile).toBe(8);
 		expect(converted.rendering.maximumRenderingSize).toStrictEqual({

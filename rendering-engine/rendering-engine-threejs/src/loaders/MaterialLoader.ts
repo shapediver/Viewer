@@ -136,6 +136,8 @@ export class MaterialLoader implements ILoader {
 	private _environmentMapAnalyticDfg: boolean = false;
 	private _environmentMapPbrMode: ENVIRONMENT_MAP_PBR_MODE =
 		ENVIRONMENT_MAP_PBR_MODE.LEGACY;
+	private _environmentMapSquaredRoughnessBend: boolean = false;
+	private _environmentMapIrradianceMirror: boolean = true;
 	private _environmentMapRotationEuler: THREE.Euler = new THREE.Euler();
 	private _height: number = 1020;
 	private _physicalGemDispersion: boolean = false;
@@ -426,8 +428,40 @@ export class MaterialLoader implements ILoader {
 			delete materialWithDefines.defines["SDV_ANALYTIC_DFG"];
 		}
 
+		// the roughness² bend of the reflection vector alone, independent of the PBR mode
+		if (this._environmentMapSquaredRoughnessBend) {
+			materialWithDefines.defines["SDV_SQUARED_ROUGHNESS_BEND"] = "";
+		} else {
+			delete materialWithDefines.defines["SDV_SQUARED_ROUGHNESS_BEND"];
+		}
+
+		this.assignIrradianceMirrorToMaterial(material);
+
 		material.needsUpdate = true;
 	};
+
+	/**
+	 * The irradiance of .hdr maps is looked up mirrored in x, except with the
+	 * three.js orientation. Recompiles the material only if the define changes.
+	 */
+	private assignIrradianceMirrorToMaterial(material: THREE.Material): void {
+		if (!(material instanceof THREE.MeshStandardMaterial)) return;
+
+		const materialWithDefines = material as THREE.MeshStandardMaterial & {
+			defines: {[key: string]: string};
+		};
+		materialWithDefines.defines = materialWithDefines.defines || {};
+		const defined =
+			"SDV_IRRADIANCE_NO_MIRROR" in materialWithDefines.defines;
+		if (defined === !this._environmentMapIrradianceMirror) return;
+
+		if (this._environmentMapIrradianceMirror) {
+			delete materialWithDefines.defines["SDV_IRRADIANCE_NO_MIRROR"];
+		} else {
+			materialWithDefines.defines["SDV_IRRADIANCE_NO_MIRROR"] = "";
+		}
+		material.needsUpdate = true;
+	}
 
 	/**
 	 * Turns the screen space ambient occlusion in the material shading on
@@ -935,6 +969,31 @@ uniform vec3 sdvScreenAOColor;
 
 	public assignEnvironmentMapAnalyticDfg(value: boolean) {
 		this._environmentMapAnalyticDfg = value;
+		for (const cacheKey in this._materialCache) {
+			this.assignEnvironmentMapPbrModeToMaterial(
+				this._materialCache[cacheKey].material,
+				this._environmentMapPbrMode,
+			);
+		}
+	}
+
+	/**
+	 * Whether the irradiance of .hdr maps is looked up mirrored in x (the
+	 * legacy orientation). False while the three.js orientation is applied.
+	 */
+	public assignEnvironmentMapIrradianceMirror(value: boolean) {
+		if (this._environmentMapIrradianceMirror === value) return;
+		this._environmentMapIrradianceMirror = value;
+		for (const cacheKey in this._materialCache) {
+			this.assignEnvironmentMapPbrModeToMaterial(
+				this._materialCache[cacheKey].material,
+				this._environmentMapPbrMode,
+			);
+		}
+	}
+
+	public assignEnvironmentMapSquaredRoughnessBend(value: boolean) {
+		this._environmentMapSquaredRoughnessBend = value;
 		for (const cacheKey in this._materialCache) {
 			this.assignEnvironmentMapPbrModeToMaterial(
 				this._materialCache[cacheKey].material,
@@ -2783,6 +2842,8 @@ uniform vec3 sdvScreenAOColor;
 			materialSettings,
 		};
 		material.userData.cacheKey = cacheKey;
+		// Material.copy resets the defines of a clone (GPU instancing)
+		this.assignIrradianceMirrorToMaterial(material);
 		// Material.clone does not copy the loader's onBeforeCompile, so a clone
 		// has no screen AO patch. Chain it once. three shares programs by the
 		// hook's source text, so the program key stays the original hook's
@@ -3068,8 +3129,9 @@ export const adaptShaders = () => {
 			ENVIRONMENT_MAP_PBR_MODE.LEGACY,
 		)
 	) {
+		// SDV_SQUARED_ROUGHNESS_BEND: the roughness² bend of the legacy mode (three.js r162 and older) on its own
 		const legacyEnvironmentMapPbrMix = `
-			#ifdef ${ENVIRONMENT_MAP_PBR_MODE.LEGACY}
+			#if defined( ${ENVIRONMENT_MAP_PBR_MODE.LEGACY} ) || defined( SDV_SQUARED_ROUGHNESS_BEND )
 				float sdvEnvironmentMapPbrMix = roughness * roughness;
 			#else
 				float sdvEnvironmentMapPbrMix = roughness * roughness * roughness * roughness;
@@ -3299,7 +3361,11 @@ export const adaptShaders = () => {
                 vec4 envMapColor = textureCubeUV( envMap, vec3(rotatedReflectVec.xy, -rotatedReflectVec.z), 1.0 );
             #else
                 vec3 rotatedReflectVec = vec3(envMapRotation * worldNormal);
-                vec4 envMapColor = textureCubeUV( envMap, vec3(-rotatedReflectVec.x, rotatedReflectVec.y, rotatedReflectVec.z), 1.0 );
+                #ifdef SDV_IRRADIANCE_NO_MIRROR
+                    vec4 envMapColor = textureCubeUV( envMap, rotatedReflectVec, 1.0 );
+                #else
+                    vec4 envMapColor = textureCubeUV( envMap, vec3(-rotatedReflectVec.x, rotatedReflectVec.y, rotatedReflectVec.z), 1.0 );
+                #endif
             #endif
             `,
 		);

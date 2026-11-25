@@ -283,6 +283,10 @@ export interface IViewportApi {
 	 */
 	environmentMapRotation: quat;
 	/**
+	 * Bends the reflection vector of rough reflections towards the surface normal by roughness² like older three.js versions (r162 and older), instead of roughness⁴. The highlights on polished, thin and curved metal land where renderers on older three.js put them. Independent of `environmentMapPbrMode`. In the `LEGACY` PBR mode it has no effect, because that mode already bends by roughness². (default: false)
+	 */
+	environmentMapSquaredRoughnessBend: boolean;
+	/**
 	 * Which lights shade gems. (default: "all", the legacy look)
 	 * "all" evaluates the point, spot, directional and rect-area lights, the ambient and hemisphere lights and the environment map on every surface the ray hits.
 	 * "firstSurface" evaluates the point, spot, directional and rect-area lights on the first surface only and uses the environment and ambient light for the internal bounces, which cuts the shader cost.
