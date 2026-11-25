@@ -11,6 +11,7 @@ import {
 	SystemInfo,
 } from "@shapediver/viewer.shared.services";
 import {
+	ENVIRONMENT_MAP_FILTERING,
 	ENVIRONMENT_MAP_ORIENTATION,
 	ENVIRONMENT_MAP_PBR_MODE,
 	type IViewportEvent,
@@ -307,6 +308,24 @@ export class SettingsManager implements IManager {
 						})
 						.catch((e) => reject(e));
 
+					// the filtering applies when the map below is loaded, so assign it without a reload
+					// TODO: drop the cast once the @shapediver/viewer.settings pin includes settings 7.2
+					// a missing value is the old look
+					{
+						const mapFiltering = (
+							settingsEngine!.environment as {
+								mapFiltering?: string;
+							}
+						).mapFiltering;
+						this._renderingEngine.assignEnvironmentMapFiltering(
+							Object.values(ENVIRONMENT_MAP_FILTERING).includes(
+								mapFiltering as ENVIRONMENT_MAP_FILTERING,
+							)
+								? (mapFiltering as ENVIRONMENT_MAP_FILTERING)
+								: ENVIRONMENT_MAP_FILTERING.GGX,
+						);
+					}
+
 					// set it like this to not trigger the loading
 					this._renderingEngine.environmentMap =
 						this._renderingEngine.environmentMapLoader.reconstructSavedEnvironmentMapContent(
@@ -379,6 +398,8 @@ export class SettingsManager implements IManager {
 		(
 			settingsEngine.environment as {mapAnalyticDfg?: boolean}
 		).mapAnalyticDfg = this._renderingEngine.environmentMapAnalyticDfg;
+		(settingsEngine.environment as {mapFiltering?: string}).mapFiltering =
+			this._renderingEngine.environmentMapFiltering;
 
 		settingsEngine.environmentGeometry.gridVisibility =
 			this._renderingEngine.gridVisibility;

@@ -13,6 +13,7 @@ import {type IThreejsData} from "./types/IThreejsData";
 import {ThreejsData} from "./types/ThreejsData";
 
 import {
+	ENVIRONMENT_MAP_FILTERING,
 	ENVIRONMENT_MAP_ORIENTATION,
 	ENVIRONMENT_MAP_PBR_MODE,
 } from "@shapediver/viewer.shared.types";
@@ -63,6 +64,7 @@ export {
 	ENVIRONMENT_MAP,
 	ENVIRONMENT_MAP_CUBE,
 	ENVIRONMENT_MAP_EMPTY,
+	ENVIRONMENT_MAP_FILTERING,
 	ENVIRONMENT_MAP_ORIENTATION,
 	ENVIRONMENT_MAP_PBR_MODE,
 	FXAAEffect,

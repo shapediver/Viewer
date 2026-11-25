@@ -49,6 +49,13 @@ export enum ENVIRONMENT_MAP_ORIENTATION {
 	THREEJS = "threejs",
 }
 
+export enum ENVIRONMENT_MAP_FILTERING {
+	/** The prefiltering of current three.js: the blurred levels of the environment map are filtered with GGX importance sampling. */
+	GGX = "ggx",
+	/** The prefiltering of three.js r160 and older: the blurred levels of the environment map are filtered with a Gaussian blur. Polished metal on thin, curved parts reflects a slightly brighter environment, matching renderers on older three.js. */
+	GAUSSIAN = "gaussian",
+}
+
 export enum SPINNER_POSITIONING {
 	CENTER = "center",
 	TOP_LEFT = "top_left",

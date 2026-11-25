@@ -38,6 +38,7 @@ import {
 import {
 	BUSY_MODE_DISPLAY,
 	type Color,
+	ENVIRONMENT_MAP_FILTERING,
 	ENVIRONMENT_MAP_ORIENTATION,
 	ENVIRONMENT_MAP_PBR_MODE,
 	FLAG_TYPE,
@@ -177,6 +178,8 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	private _environmentMapAnalyticDfg: boolean = false;
 	private _environmentMapAsBackground: boolean = false;
 	private _environmentMapBlurriness: number = 0;
+	private _environmentMapFiltering: ENVIRONMENT_MAP_FILTERING =
+		ENVIRONMENT_MAP_FILTERING.GGX;
 	private _environmentMapForUnlitMaterials: boolean = false;
 	private _environmentMapIntensity: number = 1;
 	private _environmentMapOrientation: ENVIRONMENT_MAP_ORIENTATION =
@@ -658,6 +661,23 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._environmentMapBlurriness = value;
 		this._sceneTreeManager.scene.backgroundBlurriness =
 			this._environmentMapBlurriness;
+	}
+
+	public get environmentMapFiltering(): ENVIRONMENT_MAP_FILTERING {
+		return this._environmentMapFiltering;
+	}
+
+	public set environmentMapFiltering(value: ENVIRONMENT_MAP_FILTERING) {
+		if (this._environmentMapFiltering === value) return;
+		this.assignEnvironmentMapFiltering(value);
+		// HDR maps are prefiltered on load, reload the current one with the new filtering
+		this._environmentMapLoader
+			.load(this.environmentMap)
+			.catch((error) =>
+				this._logger.error(
+					`RenderingEngine.environmentMapFiltering: Error while reloading environment map ${this.environmentMap}: ${error}`,
+				),
+			);
 	}
 
 	public get environmentMapForUnlitMaterials(): boolean {
@@ -1274,6 +1294,15 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 			settingsEngine,
 			updateViewport,
 		);
+	}
+
+	/**
+	 * Set the environment map filtering without reloading the current map.
+	 * Used when the environment map is loaded right after, for example from settings.
+	 * Use {@link environmentMapFiltering} to change it for the current map.
+	 */
+	public assignEnvironmentMapFiltering(value: ENVIRONMENT_MAP_FILTERING) {
+		this._environmentMapFiltering = value;
 	}
 
 	public assignSettingsEngine(settingsEngine: SettingsEngine): void {

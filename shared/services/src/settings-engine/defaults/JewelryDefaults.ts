@@ -28,6 +28,8 @@ export const JewelryDefaults: () => ISettings = () => {
 			...NEW_LOOK_V7_2.environment,
 			// the metal reflectance of the reference renderer
 			mapAnalyticDfg: true,
+			// the environment prefiltering of the reference renderer (three.js r160)
+			mapFiltering: "gaussian",
 		},
 		environmentGeometry: {
 			gridColor: "#44444426",

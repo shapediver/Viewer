@@ -15,6 +15,14 @@ export type IEnvironmentMapPbrMode = "legacy" | "modern";
 export type IEnvironmentMapOrientation = "legacy" | "threejs";
 
 /**
+ * How the blurred levels of HDR environment maps are prefiltered:
+ * "ggx" with the GGX importance sampling of current three.js,
+ * "gaussian" with the Gaussian blur of three.js r160 and older.
+ * Settings converted from before 7.2 use "ggx".
+ */
+export type IEnvironmentMapFiltering = "ggx" | "gaussian";
+
+/**
  * How gems are traced: against a sphere approximation or against the facet planes.
  * Settings converted from before 7.2 use "sphere".
  */
@@ -52,6 +60,7 @@ export interface ISettings extends IGlobalSettings {
 		 * Settings converted from before 7.2 use false.
 		 */
 		mapAnalyticDfg: boolean;
+		mapFiltering: IEnvironmentMapFiltering;
 	};
 	environmentGeometry: ISettingsV7_1["environmentGeometry"];
 	general: ISettingsV7_1["general"];
