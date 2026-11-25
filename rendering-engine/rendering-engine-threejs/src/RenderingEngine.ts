@@ -1307,12 +1307,16 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	/**
-	 * Set the environment map filtering without reloading the current map.
+	 * Set the environment map filtering without reloading the current map of the viewport
+	 * (the environment maps of single materials are reloaded).
 	 * Used when the environment map is loaded right after, for example from settings.
 	 * Use {@link environmentMapFiltering} to change it for the current map.
 	 */
 	public assignEnvironmentMapFiltering(value: ENVIRONMENT_MAP_FILTERING) {
+		if (this._environmentMapFiltering === value) return;
 		this._environmentMapFiltering = value;
+		// environment maps of single materials are loaded with the filtering too
+		this._materialLoader.reloadOwnedEnvironmentMaps();
 	}
 
 	public assignSettingsEngine(settingsEngine: SettingsEngine): void {
