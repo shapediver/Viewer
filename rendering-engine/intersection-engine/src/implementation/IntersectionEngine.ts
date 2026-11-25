@@ -290,7 +290,12 @@ export class IntersectionEngine implements IIntersectionEngine {
 		object: THREE.Object3D,
 		output: THREE.Intersection[] = [],
 	): THREE.Intersection[] {
-		if (object.userData.batchedMesh == null)
+		// The raycast of `Object3D` (groups, the placeholders of instances)
+		// finds nothing: it is not called.
+		if (
+			object.userData.batchedMesh == null &&
+			object.raycast !== THREE.Object3D.prototype.raycast
+		)
 			this._raycaster.intersectObject(object, false, output);
 		for (let i = 0; i < object.children.length; i++)
 			this.intersectSkippingBatchedSources(object.children[i], output);
