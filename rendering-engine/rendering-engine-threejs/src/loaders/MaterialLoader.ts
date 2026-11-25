@@ -137,6 +137,7 @@ export class MaterialLoader implements ILoader {
 	private _environmentMapPbrMode: ENVIRONMENT_MAP_PBR_MODE =
 		ENVIRONMENT_MAP_PBR_MODE.LEGACY;
 	private _environmentMapSquaredRoughnessBend: boolean = false;
+	private _environmentMapIrradianceMirror: boolean = true;
 	private _environmentMapRotationEuler: THREE.Euler = new THREE.Euler();
 	private _height: number = 1020;
 	private _physicalGemDispersion: boolean = false;
@@ -432,6 +433,13 @@ export class MaterialLoader implements ILoader {
 			materialWithDefines.defines["SDV_SQUARED_ROUGHNESS_BEND"] = "";
 		} else {
 			delete materialWithDefines.defines["SDV_SQUARED_ROUGHNESS_BEND"];
+		}
+
+		// the irradiance of .hdr maps is looked up mirrored in x, except with the three.js orientation
+		if (this._environmentMapIrradianceMirror) {
+			delete materialWithDefines.defines["SDV_IRRADIANCE_NO_MIRROR"];
+		} else {
+			materialWithDefines.defines["SDV_IRRADIANCE_NO_MIRROR"] = "";
 		}
 
 		material.needsUpdate = true;
@@ -943,6 +951,21 @@ uniform vec3 sdvScreenAOColor;
 
 	public assignEnvironmentMapAnalyticDfg(value: boolean) {
 		this._environmentMapAnalyticDfg = value;
+		for (const cacheKey in this._materialCache) {
+			this.assignEnvironmentMapPbrModeToMaterial(
+				this._materialCache[cacheKey].material,
+				this._environmentMapPbrMode,
+			);
+		}
+	}
+
+	/**
+	 * Whether the irradiance of .hdr maps is looked up mirrored in x (the
+	 * legacy orientation). False while the three.js orientation is applied.
+	 */
+	public assignEnvironmentMapIrradianceMirror(value: boolean) {
+		if (this._environmentMapIrradianceMirror === value) return;
+		this._environmentMapIrradianceMirror = value;
 		for (const cacheKey in this._materialCache) {
 			this.assignEnvironmentMapPbrModeToMaterial(
 				this._materialCache[cacheKey].material,
@@ -3278,7 +3301,11 @@ export const adaptShaders = () => {
                 vec4 envMapColor = textureCubeUV( envMap, vec3(rotatedReflectVec.xy, -rotatedReflectVec.z), 1.0 );
             #else
                 vec3 rotatedReflectVec = vec3(envMapRotation * worldNormal);
-                vec4 envMapColor = textureCubeUV( envMap, vec3(-rotatedReflectVec.x, rotatedReflectVec.y, rotatedReflectVec.z), 1.0 );
+                #ifdef SDV_IRRADIANCE_NO_MIRROR
+                    vec4 envMapColor = textureCubeUV( envMap, rotatedReflectVec, 1.0 );
+                #else
+                    vec4 envMapColor = textureCubeUV( envMap, vec3(-rotatedReflectVec.x, rotatedReflectVec.y, rotatedReflectVec.z), 1.0 );
+                #endif
             #endif
             `,
 		);

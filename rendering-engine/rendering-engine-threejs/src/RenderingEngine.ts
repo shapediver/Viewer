@@ -721,6 +721,9 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
 	public set environmentMapOrientation(value: ENVIRONMENT_MAP_ORIENTATION) {
 		this._environmentMapOrientation = value;
+		this._materialLoader.assignEnvironmentMapIrradianceMirror(
+			!this.threeJsOrientationApplied,
+		);
 		this._materialLoader.assignEnvironmentMapRotation(
 			this.effectiveEnvironmentMapRotation,
 		);
@@ -814,18 +817,27 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	 * orientation, where the orientation correction is applied on top.
 	 */
 	public get effectiveEnvironmentMapRotation(): quat {
-		if (
-			this._environmentMapOrientation ===
-				ENVIRONMENT_MAP_ORIENTATION.THREEJS &&
-			this._environmentMapLoader.type === ENVIRONMENT_MAP_TYPE.HDR &&
-			!this._environmentMapLoader.isBuiltInEnvironmentMap
-		)
+		if (this.threeJsOrientationApplied)
 			return quat.multiply(
 				quat.create(),
 				THREEJS_ORIENTATION_CORRECTION,
 				this._environmentMapRotation,
 			);
 		return this._environmentMapRotation;
+	}
+
+	/**
+	 * Whether the three.js orientation is applied to the current map: only
+	 * custom .hdr maps with the "threejs" orientation. Built-in maps and
+	 * cube maps look the same in both orientations.
+	 */
+	public get threeJsOrientationApplied(): boolean {
+		return (
+			this._environmentMapOrientation ===
+				ENVIRONMENT_MAP_ORIENTATION.THREEJS &&
+			this._environmentMapLoader.type === ENVIRONMENT_MAP_TYPE.HDR &&
+			!this._environmentMapLoader.isBuiltInEnvironmentMap
+		);
 	}
 
 	public get geometryLoader(): GeometryLoader {

@@ -493,6 +493,9 @@ export class EnvironmentMapLoader implements ILoader {
 		this._type = type;
 		this._isBuiltInEnvironmentMap = isBuiltIn;
 		// set the environment map in the material loader
+		this._renderingEngine.materialLoader.assignEnvironmentMapIrradianceMirror(
+			!this._renderingEngine.threeJsOrientationApplied,
+		);
 		this._renderingEngine.materialLoader.assignEnvironmentMap(map, type);
 		// the background rotation has to be updated even if there are no materials
 		this._renderingEngine.materialLoader.assignEnvironmentMapRotation(
