@@ -104,7 +104,9 @@ const BOX_EXPANSION = 1e-6;
  * animations do not emit `VIEWPORT_UPDATED`. So every query first compares
  * what it recorded (parent, child count, raycast function, geometry,
  * position attribute version, bounding box, world matrix) with the scene,
- * once per node, and records the nodes that differ again. The boxes of the
+ * once per node, and records the nodes that differ again. A node whose
+ * entries all convert to instanced meshes is a candidate for every ray and
+ * is not compared (see `validate`). The boxes of the
  * tree are then fitted to the new boxes, or the tree is built again if a
  * node started or stopped being bounded. The answer is exactly the nodes
  * the plain loop would have given results for, in the same order.
@@ -149,27 +151,40 @@ export class NodeBoundsHierarchy {
 		}
 		this._checked = 0;
 
-		const found = new Set<number>(this._always);
+		// The leaves of the tree that are only hit through their box, if the
+		// ray hits that box. Each leaf is in one node of the tree. The leaves
+		// that are candidates for every ray are merged in below; they are
+		// already in ascending order, so a scene of instanced nodes is not
+		// sorted again on every query.
+		const hit: number[] = [];
 		const stack: IHierarchyNode[] = this._root ? [this._root] : [];
 		while (stack.length > 0) {
 			const current = stack.pop()!;
 			if (!ray.intersectsBox(current.box)) continue;
-			if (current.leaves)
-				for (const leaf of current.leaves) found.add(leaf);
-			else {
+			if (current.leaves) {
+				for (const index of current.leaves) {
+					const leaf = this._leaves[index];
+					if (!leaf.always && ray.intersectsBox(leaf.recording.box))
+						hit.push(index);
+				}
+			} else {
 				if (current.left) stack.push(current.left);
 				if (current.right) stack.push(current.right);
 			}
 		}
-		const result: number[] = [];
-		for (const index of found) {
-			const leaf = this._leaves[index];
-			// A leaf that can only be hit through its box is a candidate if
-			// the ray hits that box.
-			if (leaf.always || ray.intersectsBox(leaf.recording.box))
-				result.push(index);
-		}
-		return result.sort((a, b) => a - b);
+		const always = this._always;
+		if (hit.length === 0) return always.slice();
+		hit.sort((a, b) => a - b);
+		if (always.length === 0) return hit;
+		const result = new Array<number>(always.length + hit.length);
+		let a = 0;
+		let h = 0;
+		let r = 0;
+		while (a < always.length && h < hit.length)
+			result[r++] = always[a] < hit[h] ? always[a++] : hit[h++];
+		while (a < always.length) result[r++] = always[a++];
+		while (h < hit.length) result[r++] = hit[h++];
+		return result;
 	}
 
 	private validate(): void {
@@ -180,20 +195,10 @@ export class NodeBoundsHierarchy {
 		let stale = false;
 		let structural = false;
 		const viewportId = this._viewportId;
-		for (let r = 0; r < this._recordings.length; r++) {
-			const recording = this._recordings[r];
-			if (this.isCurrent(recording)) continue;
-			const fresh = this.record(recording.node, recording.entries);
-			this._recordings[r] = fresh;
-			stale = true;
-			if (fresh.box.isEmpty() !== recording.box.isEmpty())
-				structural = true;
-			for (const index of recording.entries)
-				this._leaves[index].recording = fresh;
-		}
 		// The geometry data of an entry can be replaced (the interaction
 		// feature does so on an update of a node), and an entry can start or
 		// stop converting to an instanced mesh.
+		let switched: Set<IRecording> | undefined;
 		for (let i = 0; i < this._leaves.length; i++) {
 			const leaf = this._leaves[i];
 			const geometryData = leaf.entry.geometryData;
@@ -211,9 +216,30 @@ export class NodeBoundsHierarchy {
 				instanced === leaf.instanced
 			)
 				continue;
+			if (instanced !== leaf.instanced)
+				(switched ??= new Set()).add(leaf.recording);
 			leaf.geometryData = geometryData;
 			leaf.instanced = instanced;
 			stale = true;
+		}
+		for (let r = 0; r < this._recordings.length; r++) {
+			const recording = this._recordings[r];
+			const switchedHere = switched?.has(recording) === true;
+			// A node whose entries all convert to instanced meshes is a
+			// candidate for every ray, so what is below it is not compared:
+			// on a scene of instances that would be every node on every
+			// query. It is recorded again when one of its entries starts or
+			// stops converting to an instanced mesh, since it was not
+			// compared meanwhile.
+			if (!switchedHere && this.allInstanced(recording)) continue;
+			if (!switchedHere && this.isCurrent(recording)) continue;
+			const fresh = this.record(recording.node, recording.entries);
+			this._recordings[r] = fresh;
+			stale = true;
+			if (fresh.box.isEmpty() !== recording.box.isEmpty())
+				structural = true;
+			for (const index of recording.entries)
+				this._leaves[index].recording = fresh;
 		}
 		if (!stale) return;
 		const stats = testStats();
@@ -222,6 +248,13 @@ export class NodeBoundsHierarchy {
 		const alwaysChanged = this.alwaysKey() !== this._alwaysKey;
 		if (structural || alwaysChanged || !this._root) this.buildTree();
 		else this.refit(this._root);
+	}
+
+	/** Whether every entry of the node converts to an instanced mesh. */
+	private allInstanced(recording: IRecording): boolean {
+		for (const index of recording.entries)
+			if (!this._leaves[index].instanced) return false;
+		return true;
 	}
 
 	/** Whether a node still looks as it did when it was recorded. */
