@@ -118,7 +118,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	// viewer essentials
 	private readonly _canvas: ICanvas;
 	private readonly _canvasEngine: CanvasEngine = CanvasEngine.instance;
-	private readonly _colorCache: SDColor[] = [];
+	// Every color made by createThreeJsColor, for a change of the automatic
+	// color adjustment. Weak: a color of a removed material must not stay
+	// alive for good, and every computation makes new ones.
+	private _colorCache: WeakRef<SDColor>[] = [];
+	// the length at which the next createThreeJsColor drops the dead entries
+	private _colorCachePruneAt = 256;
 
 	// utils
 	private readonly _converter: Converter = Converter.instance;
@@ -407,7 +412,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	public set automaticColorAdjustment(value: boolean) {
 		if (this._automaticColorAdjustment === value) return;
 		this._automaticColorAdjustment = value;
-		this._colorCache.forEach((c) => c.colorCorrection(value));
+		this.colorCache.forEach((c) => c.colorCorrection(value));
 		this._materialLoader.assignColorCorrection(value);
 		this._instanceGroupManager.refreshColors();
 		this._pulseEffectManager.refreshInstanceBaseColors();
@@ -499,8 +504,14 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		return this._closed;
 	}
 
+	/** The colors made by createThreeJsColor that are still in use. */
 	public get colorCache(): SDColor[] {
-		return this._colorCache;
+		const colors: SDColor[] = [];
+		for (const ref of this._colorCache) {
+			const color = ref.deref();
+			if (color) colors.push(color);
+		}
+		return colors;
 	}
 
 	public get contactShadowBlur(): number {
@@ -1322,7 +1333,16 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 			color,
 		);
 		sdColor.colorCorrection(this.automaticColorAdjustment);
-		this._colorCache.push(sdColor);
+		this._colorCache.push(new WeakRef(sdColor));
+		if (this._colorCache.length >= this._colorCachePruneAt) {
+			this._colorCache = this._colorCache.filter(
+				(ref) => ref.deref() !== undefined,
+			);
+			this._colorCachePruneAt = Math.max(
+				256,
+				this._colorCache.length * 2,
+			);
+		}
 		return sdColor;
 	}
 
