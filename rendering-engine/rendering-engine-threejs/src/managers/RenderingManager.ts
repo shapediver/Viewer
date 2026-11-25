@@ -77,6 +77,10 @@ export class RenderingManager implements IManager {
 	private _compilingPrograms: Set<IProgramStatus> | null = null;
 	/** The draw the whole scene was last compiled for. */
 	private _compiledFor: SceneDraw | null = null;
+	/** Bound while compiling for a draw into a render target. */
+	private readonly _compileRenderTarget = new THREE.WebGLRenderTarget(1, 1, {
+		depthBuffer: false,
+	});
 	/** Objects hidden at the last switch of the draw, not compiled for it. */
 	private _hiddenNotCompiled = new Set<THREE.Object3D>();
 	/** The grid and ground plane objects among them, shown without update. */
@@ -502,23 +506,26 @@ export class RenderingManager implements IManager {
 			return;
 		}
 		// The same state as PostProcessingManager.render: no tone mapping,
-		// and the scene pass draws into the input buffer of the composer.
+		// and for the scene pass a render target. Any render target gives
+		// the programs of the composer's input buffer. Binding that buffer
+		// itself would allocate its depth buffer before the composer
+		// attaches its depth texture, so a 1x1 target without depth is
+		// bound, and its GPU resources are released right after.
 		const toneMapping = renderer.toneMapping;
 		const previous = renderer.getRenderTarget();
 		const face = renderer.getActiveCubeFace();
 		const level = renderer.getActiveMipmapLevel();
 		renderer.toneMapping = THREE.NoToneMapping;
 		if (draw === "composerTarget")
-			renderer.setRenderTarget(
-				this._renderingEngine.postProcessingManager.effectComposer!
-					.inputBuffer,
-			);
+			renderer.setRenderTarget(this._compileRenderTarget);
 		try {
 			renderer.compile(scene, camera, targetScene);
 		} finally {
 			renderer.toneMapping = toneMapping;
-			if (draw === "composerTarget")
+			if (draw === "composerTarget") {
 				renderer.setRenderTarget(previous, face, level);
+				this._compileRenderTarget.dispose();
+			}
 		}
 	}
 
