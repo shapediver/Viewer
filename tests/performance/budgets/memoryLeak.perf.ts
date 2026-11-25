@@ -1,6 +1,12 @@
 import {expect, test, type Page} from "@playwright/test";
 import {AEC_DEFAULT} from "../fixtures/aecScene";
-import {gpuMemory, jsHeap, megabytes, type JsHeap} from "../fixtures/memory";
+import {
+	collectGarbage,
+	gpuMemory,
+	jsHeap,
+	megabytes,
+	type JsHeap,
+} from "../fixtures/memory";
 import {openViewer, type SceneVariant} from "../fixtures/probe";
 import {installOutputs} from "../fixtures/sessionOutputs";
 import {
@@ -83,6 +89,13 @@ async function compute(page: Page) {
 	// The probe keeps a record of every pass drawn; drop it, it is not the
 	// viewer's memory.
 	await page.evaluate(() => (window as any).__probe.reset());
+	// The tree nodes of the replaced output are garbage now. Collect them
+	// before the next computation: the viewer's classes keep their private
+	// fields in WeakMaps (one per field, TypeScript's ES2015 output), and V8
+	// does not shrink those tables after a collection. Garbage left over
+	// several computations grows them by megabytes that no reading can tell
+	// apart from a leak (SS-10613).
+	await collectGarbage(page);
 }
 
 async function snapshot(page: Page) {

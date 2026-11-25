@@ -23,12 +23,22 @@ export type JsHeap = {
 	totalBytes: number;
 };
 
-export async function jsHeap(page: Page): Promise<JsHeap> {
+/** A full garbage collection, through the browser's debugging protocol. */
+export async function collectGarbage(page: Page) {
 	const cdp = await page.context().newCDPSession(page);
 	try {
 		// Twice: objects freed by finalizers of the first pass go in the second.
 		await cdp.send("HeapProfiler.collectGarbage");
 		await cdp.send("HeapProfiler.collectGarbage");
+	} finally {
+		await cdp.detach();
+	}
+}
+
+export async function jsHeap(page: Page): Promise<JsHeap> {
+	await collectGarbage(page);
+	const cdp = await page.context().newCDPSession(page);
+	try {
 		const usage = (await cdp.send("Runtime.getHeapUsage")) as {
 			usedSize: number;
 			backingStorageSize?: number;
