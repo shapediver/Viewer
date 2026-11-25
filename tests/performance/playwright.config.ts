@@ -11,6 +11,8 @@ const swiftshader = process.env.PERF_RENDERER === "swiftshader";
 export default defineConfig({
 	testDir: ".",
 	testMatch: "**/*.perf.ts",
+	// The leak test runs for minutes; only the budgets config runs it.
+	testIgnore: "budgets/memoryLeak.perf.ts",
 	tsconfig: "../tsconfig.json",
 	fullyParallel: false,
 	workers: 1,
