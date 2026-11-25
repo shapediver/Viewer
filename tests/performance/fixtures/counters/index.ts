@@ -1,5 +1,6 @@
 import {installBatchedMesh} from "./batchedMesh";
 import {installBatchRebuild} from "./batchRebuild";
+import {installGpuMemory} from "./gpuMemory";
 import {installMatrixWorld} from "./matrixWorld";
 import {installProgramCacheKey} from "./programCacheKey";
 import {installShadowMap} from "./shadowMap";
@@ -21,4 +22,5 @@ export const COUNTER_INSTALLERS = [
 	installBatchedMesh,
 	installBatchRebuild,
 	installShadowMap,
+	installGpuMemory,
 ];
