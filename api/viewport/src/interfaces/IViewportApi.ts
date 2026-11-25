@@ -16,6 +16,7 @@ import {
 } from "@shapediver/viewer.shared.services";
 import {
 	type Color,
+	ENVIRONMENT_MAP_FILTERING,
 	ENVIRONMENT_MAP_ORIENTATION,
 	ENVIRONMENT_MAP_PBR_MODE,
 	FLAG_TYPE,
@@ -250,6 +251,10 @@ export interface IViewportApi {
 	 * The amount of which the environment map is blurred. (default: 0)
 	 */
 	environmentMapBlurriness: number;
+	/**
+	 * How the blurred levels of HDR environment maps are prefiltered. `GGX` (default) uses the GGX importance sampling of current three.js. `GAUSSIAN` uses the Gaussian blur of three.js r160 and older: polished metal on thin, curved parts reflects a slightly brighter environment, matching renderers on older three.js. The sharp level, and so mirror-like surfaces away from edges and gems with roughness 0, are the same in both. Changing it reloads the current environment map. Cube maps of six images are not affected.
+	 */
+	environmentMapFiltering: ENVIRONMENT_MAP_FILTERING;
 	/**
 	 * Option to set the environment map for unlit materials. (default: false)
 	 * For unlit materials, which use the three.js MeshBasicMaterial, per default we don't set the environment map to keep the colors as realistic as possible.

@@ -30,6 +30,7 @@ const PRESET = SDV.defaultSettings.jewelry() as unknown as {
 		mapPbrMode: SDV.ENVIRONMENT_MAP_PBR_MODE;
 		mapOrientation: SDV.ENVIRONMENT_MAP_ORIENTATION;
 		mapAnalyticDfg: boolean;
+		mapFiltering: SDV.ENVIRONMENT_MAP_FILTERING;
 	};
 	material: {
 		physicalGemDispersion: boolean;
@@ -178,6 +179,8 @@ const createGemMaterial = () =>
 	};
 
 	// scene setup matching the reference
+	// the environment prefiltering of the reference, set before the map so that it is filtered once
+	viewport.environmentMapFiltering = PRESET.environment.mapFiltering;
 	viewport.environmentMap = SCENE_ENVIRONMENT_MAP;
 	viewport.environmentMapIntensity = 1;
 	viewport.environmentMapAsBackground = false;

@@ -150,6 +150,7 @@ export const environmentSettingsSchemaV7_2 = environmentSettingsSchema.extend({
 	mapPbrMode: z.enum(["legacy", "modern"]),
 	mapOrientation: z.enum(["legacy", "threejs"]),
 	mapAnalyticDfg: z.boolean(),
+	mapFiltering: z.enum(["ggx", "gaussian"]),
 });
 
 const renderingSizeSchema = z

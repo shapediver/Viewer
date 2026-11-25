@@ -12,11 +12,16 @@ import {
 } from "@shapediver/viewer.shared.services";
 import * as THREE from "three";
 
-import {type ITaskEvent, TASK_TYPE} from "@shapediver/viewer.shared.types";
+import {
+	ENVIRONMENT_MAP_FILTERING,
+	type ITaskEvent,
+	TASK_TYPE,
+} from "@shapediver/viewer.shared.types";
 import {RenderingEngine} from "..";
 import {type ILoader} from "../interfaces/ILoader";
 import {assignEnvironmentMapForThreeJsData} from "../managers/sceneTree/ThreeJsDataUtils";
 import {RGBELoader} from "../three/loaders/RGBELoader";
+import {GaussianPMREMGenerator} from "./GaussianPMREMGenerator";
 
 export enum ENVIRONMENT_MAP_CUBE {
 	DEFAULT = "default",
@@ -152,8 +157,10 @@ export class EnvironmentMapLoader implements ILoader {
 	private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
 	private _envMap: THREE.CubeTexture | THREE.Texture | null = null;
+	private _gaussianPmremGenerator?: GaussianPMREMGenerator;
 	private _isBuiltInEnvironmentMap: boolean = false;
 	private _isHDRMap: boolean = false;
+	private _loadCount: number = 0;
 	private _pmremGenerator!: THREE.PMREMGenerator;
 	private _textureEncoding: THREE.ColorSpace = THREE.SRGBColorSpace;
 	private _type: ENVIRONMENT_MAP_TYPE = ENVIRONMENT_MAP_TYPE.NULL;
@@ -273,9 +280,15 @@ export class EnvironmentMapLoader implements ILoader {
 
 	public async load(name: string | string[]): Promise<boolean> {
 		const eventId = this._uuidGenerator.create();
+		const loadId = ++this._loadCount;
 		try {
 			const res = this.loadEnvMap(name, eventId);
-			await this.assignEnvironmentMap(res.name, res.type, eventId);
+			await this.assignEnvironmentMap(
+				res.name,
+				res.type,
+				eventId,
+				loadId,
+			);
 		} catch (e) {
 			if (e instanceof ShapeDiverViewerEnvironmentMapError) {
 				throw e;
@@ -335,6 +348,17 @@ export class EnvironmentMapLoader implements ILoader {
 			name_internal = name.toLowerCase().replace(/ /g, "_");
 			name_caching =
 				name_internal + this._renderingEngine.environmentMapResolution;
+			// HDR maps are prefiltered on load, so each filtering is cached on its own
+			const isHDR =
+				this._environmentMapNamesHDR.indexOf(name_internal) >= 0 ||
+				((name.startsWith("https://") || name.startsWith("http://")) &&
+					name.endsWith(".hdr"));
+			if (
+				isHDR &&
+				this._renderingEngine.environmentMapFiltering ===
+					ENVIRONMENT_MAP_FILTERING.GAUSSIAN
+			)
+				name_caching += "_" + ENVIRONMENT_MAP_FILTERING.GAUSSIAN;
 		} else {
 			if (name.length !== 6) {
 				this.notify(eventId, true);
@@ -473,10 +497,18 @@ export class EnvironmentMapLoader implements ILoader {
 		name: string,
 		type: ENVIRONMENT_MAP_TYPE,
 		eventId: string,
+		loadId: number,
 	) {
 		if (name in this._environmentMaps === false) return;
 		const isBuiltIn = this._environmentMaps[name].isBuiltIn === true;
 		const map = await this._environmentMaps[name].map;
+		// a newer load was started while this one was loading, for example by a change
+		// of the filtering right after the map: the newer one is assigned, not this one
+		if (loadId !== this._loadCount) {
+			// end the task, but only the newer load signals that the map is ready
+			this.notify(eventId, false, false);
+			return;
+		}
 		// set after the map resolved, so that type and flag always match the assigned map
 		this._type = type;
 		this._isBuiltInEnvironmentMap = isBuiltIn;
@@ -519,6 +551,24 @@ export class EnvironmentMapLoader implements ILoader {
 		}
 	}
 
+	/**
+	 * The PMREM generator for the given filtering. The Gaussian one is only
+	 * created when it is first used.
+	 */
+	private getPmremGenerator(
+		filtering: ENVIRONMENT_MAP_FILTERING,
+	): THREE.PMREMGenerator {
+		if (filtering !== ENVIRONMENT_MAP_FILTERING.GAUSSIAN)
+			return this._pmremGenerator;
+		if (!this._gaussianPmremGenerator) {
+			this._gaussianPmremGenerator = new GaussianPMREMGenerator(
+				this._renderingEngine.renderer,
+			);
+			this._gaussianPmremGenerator.compileEquirectangularShader();
+		}
+		return this._gaussianPmremGenerator;
+	}
+
 	private loadEnvironmentMap(
 		name: string,
 		url: string | string[],
@@ -528,6 +578,8 @@ export class EnvironmentMapLoader implements ILoader {
 		map: Promise<THREE.CubeTexture | THREE.Texture | null>;
 		type: ENVIRONMENT_MAP_TYPE;
 	} {
+		// read now: the cache entry is named after the filtering at the time of the call
+		const filtering = this._renderingEngine.environmentMapFiltering;
 		this._environmentMaps[name] = {
 			name,
 			type: !Array.isArray(url)
@@ -556,11 +608,13 @@ export class EnvironmentMapLoader implements ILoader {
 							new RGBELoader().load(
 								blobUrl,
 								(texture) => {
+									const pmremGenerator =
+										this.getPmremGenerator(filtering);
 									const map =
-										this._pmremGenerator.fromEquirectangular(
+										pmremGenerator.fromEquirectangular(
 											texture,
 										).texture;
-									this._pmremGenerator.dispose();
+									pmremGenerator.dispose();
 									URL.revokeObjectURL(blobUrl);
 									this._environmentMaps[name].resolved = true;
 									resolve(map);
@@ -617,7 +671,7 @@ export class EnvironmentMapLoader implements ILoader {
 		return this._environmentMaps[name];
 	}
 
-	private notify(eventId: string, failed = false) {
+	private notify(eventId: string, failed = false, mapAssigned = true) {
 		let event: ITaskEvent;
 		if (failed) {
 			event = {
@@ -634,7 +688,10 @@ export class EnvironmentMapLoader implements ILoader {
 				progress: 1,
 				status: "Loaded EnvironmentMap",
 			};
-			if (this._stateEngine.viewportEngines[this._renderingEngine.id]) {
+			if (
+				mapAssigned &&
+				this._stateEngine.viewportEngines[this._renderingEngine.id]
+			) {
 				this._stateEngine.viewportEngines[
 					this._renderingEngine.id
 				]!.environmentMapLoaded.resolve(true);

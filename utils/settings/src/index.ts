@@ -337,6 +337,7 @@ import {
 } from "./versions/v7_2/IPostProcessingEffectSettings";
 import {
 	type IAccumulationMode as IAccumulationModeV7_2,
+	type IEnvironmentMapFiltering as IEnvironmentMapFilteringV7_2,
 	type IEnvironmentMapOrientation as IEnvironmentMapOrientationV7_2,
 	type IEnvironmentMapPbrMode as IEnvironmentMapPbrModeV7_2,
 	type IGemNormalMapResolution as IGemNormalMapResolutionV7_2,
@@ -542,6 +543,7 @@ export type {
 	ICameraControlsSettingsV7_2 as ICameraControlsSettings,
 	ICameraSettingsV7_2 as ICameraSettings,
 	IDirectionalLightPropertiesV7_2 as IDirectionalLightProperties,
+	IEnvironmentMapFilteringV7_2 as IEnvironmentMapFiltering,
 	IEnvironmentMapOrientationV7_2 as IEnvironmentMapOrientation,
 	IEnvironmentMapPbrModeV7_2 as IEnvironmentMapPbrMode,
 	IGemNormalMapResolutionV7_2 as IGemNormalMapResolution,
