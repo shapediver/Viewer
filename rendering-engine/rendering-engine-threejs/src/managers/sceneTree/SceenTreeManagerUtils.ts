@@ -19,6 +19,7 @@ export const removeData = (
 
 	switch (true) {
 		case dataObject.userData.SDtype === SD_DATA_TYPE.GEOMETRY:
+			renderingEngine.geometryLoader.unregisterGeometryObject(dataObject);
 			// Instanced-geometry placeholder: delegate removal to InstanceGroupManager
 			if (dataObject.userData.isInstanced) {
 				const instanceGeometry = dataObject.userData

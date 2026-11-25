@@ -78,6 +78,8 @@ export class GeometryLoader implements ILoader {
 		};
 	} = {};
 	private _geometryObjects = new WeakMap<GeometryData, Set<GeometryType>>();
+	// the reverse of _geometryObjects, so a removal can unregister the object
+	private _geometryOfObject = new WeakMap<THREE.Object3D, GeometryData>();
 	// The shared geometry of a mesh that shows a back and front material pair
 	// meshes that left the scene, they are no users of a split geometry
 	private _releasedMeshes = new WeakSet<THREE.Object3D>();
@@ -86,11 +88,11 @@ export class GeometryLoader implements ILoader {
 		THREE.BufferGeometry,
 		THREE.BufferGeometry
 	>();
-	// per split geometry: the shared geometry and the meshes that show it (a
-	// clone of a mesh shares the split geometry of the original)
+	// per split geometry: the shared geometry (a clone of a mesh shares the
+	// split geometry of the original)
 	private _sideSplits = new WeakMap<
 		THREE.BufferGeometry,
-		{source: THREE.BufferGeometry; users: Set<THREE.Mesh>}
+		{source: THREE.BufferGeometry}
 	>();
 	private _logger: Logger = Logger.instance;
 	private _primitiveCache: {
@@ -717,7 +719,7 @@ export class GeometryLoader implements ILoader {
 		object: GeometryType,
 		material: THREE.Material,
 	): void {
-		// a released mesh stays in _geometryObjects but is no user of a split
+		// a released mesh is no user of a split
 		if (
 			!(object instanceof THREE.Mesh) ||
 			object instanceof THREE.InstancedMesh ||
@@ -742,15 +744,10 @@ export class GeometryLoader implements ILoader {
 	 * for the meshes that share it (a batch rejects a geometry with groups).
 	 */
 	private splitGeometry(mesh: THREE.Mesh): boolean {
-		const existing = this._sideSplits.get(mesh.geometry);
-		if (existing) {
-			existing.users.add(mesh);
-			return true;
-		}
+		if (this._sideSplits.has(mesh.geometry)) return true;
 		const source = mesh.geometry;
 		const shared = this._splitOfSource.get(source);
 		if (shared) {
-			this._sideSplits.get(shared)?.users.add(mesh);
 			mesh.geometry = shared;
 			return true;
 		}
@@ -770,8 +767,18 @@ export class GeometryLoader implements ILoader {
 		split.drawRange = {...source.drawRange};
 		split.addGroup(0, count, 0);
 		split.addGroup(0, count, 1);
-		this._sideSplits.set(split, {source, users: new Set([mesh])});
+		this._sideSplits.set(split, {source});
 		this._splitOfSource.set(source, split);
+		// The split lives as long as its source. When only the split is
+		// drawn, three uploads the shared attributes for the split alone,
+		// and only the split's dispose frees those buffers.
+		const disposeSplit = () => {
+			source.removeEventListener("dispose", disposeSplit);
+			this._sideSplits.delete(split);
+			this._splitOfSource.delete(source);
+			split.dispose();
+		};
+		source.addEventListener("dispose", disposeSplit);
 		mesh.geometry = split;
 		return true;
 	}
@@ -781,19 +788,9 @@ export class GeometryLoader implements ILoader {
 		const split = mesh.geometry;
 		const entry = this._sideSplits.get(split);
 		if (!entry) return;
-		entry.users.delete(mesh);
 		mesh.geometry = entry.source;
-		// a clone may still show it
-		if (entry.users.size > 0) return;
-		this._sideSplits.delete(split);
-		this._splitOfSource.delete(entry.source);
-		// dispose frees the buffers of the attributes it holds, and those
-		// belong to the shared geometry
-		for (const name of Object.keys(split.attributes))
-			split.deleteAttribute(name);
-		split.setIndex(null);
-		split.morphAttributes = {};
-		split.dispose();
+		// The split stays: it is disposed with its source (see
+		// splitGeometry), and the next pair of this source reuses it.
 	}
 
 	/** Release what a mesh holds for its back and front pair. */
@@ -1021,14 +1018,28 @@ export class GeometryLoader implements ILoader {
 		}
 		this._releasedMeshes.delete(object);
 		geometryObjects.add(object as GeometryType);
+		this._geometryOfObject.set(object, geometry);
 		// a clone shows the map of its original and holds it on its own
 		this.syncGemNormalMap(object);
-		// a clone of a mesh with a back and front pair shares its geometry
-		if (object instanceof THREE.Mesh)
-			this._sideSplits.get(object.geometry)?.users.add(object);
 		this._renderingEngine.pulseEffectManager.update(geometry, [
 			object as GeometryType,
 		]);
+	}
+
+	/**
+	 * The object left the scene. A scene update converts a node anew and
+	 * registers a new object (often a clone) for the same GeometryData, so a
+	 * removed object that stayed registered would keep its old tree, through
+	 * its parents, alive for as long as the GeometryData lives.
+	 */
+	public unregisterGeometryObject(object: THREE.Object3D): void {
+		const geometry = this._geometryOfObject.get(object);
+		if (!geometry) return;
+		this._geometryOfObject.delete(object);
+		const geometryObjects = this._geometryObjects.get(geometry);
+		if (!geometryObjects) return;
+		geometryObjects.delete(object as GeometryType);
+		if (geometryObjects.size === 0) this._geometryObjects.delete(geometry);
 	}
 
 	private updateInstancedPulse(geometry: GeometryData): void {

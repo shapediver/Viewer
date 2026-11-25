@@ -1,8 +1,15 @@
 import {expect, test, type Page} from "@playwright/test";
 import {AEC_DEFAULT} from "../fixtures/aecScene";
-import {gpuMemory, jsHeap, megabytes, type JsHeap} from "../fixtures/memory";
+import {
+	collectGarbage,
+	gpuMemory,
+	jsHeap,
+	megabytes,
+	type JsHeap,
+} from "../fixtures/memory";
 import {openViewer, type SceneVariant} from "../fixtures/probe";
 import {installOutputs} from "../fixtures/sessionOutputs";
+import base from "../playwright.config";
 import {
 	createScene,
 	isSoftwareRenderer,
@@ -51,6 +58,22 @@ const HEAP_TOLERANCE = {bytes: 1024 * 1024, share: 0.01};
  */
 const HEAP_TREND_BYTES = 256 * 1024;
 
+/**
+ * V8 without its optimizing compilers. Over the run they keep compiling more
+ * of the viewer's functions, and that code is on the heap too: about 0.5 MB
+ * in the first half and 0.25 MB in the second with shadows and ambient
+ * occlusion, while every kind of JavaScript object stayed flat (SS-10613,
+ * heap snapshots). The interpreter and the baseline compiler stay on.
+ */
+test.use({
+	launchOptions: {
+		args: [
+			...((base.use?.launchOptions?.args as string[] | undefined) ?? []),
+			"--js-flags=--no-opt --no-maglev",
+		],
+	},
+});
+
 const VARIANTS: SceneVariant[] = [
 	// Software-safe: runs on SwiftShader too.
 	{id: "memoryLeak", shadows: false, ssao: false},
@@ -83,6 +106,13 @@ async function compute(page: Page) {
 	// The probe keeps a record of every pass drawn; drop it, it is not the
 	// viewer's memory.
 	await page.evaluate(() => (window as any).__probe.reset());
+	// The tree nodes of the replaced output are garbage now. Collect them
+	// before the next computation: the viewer's classes keep their private
+	// fields in WeakMaps (one per field, TypeScript's ES2015 output), and V8
+	// does not shrink those tables after a collection. Garbage left over
+	// several computations grows them by megabytes that no reading can tell
+	// apart from a leak (SS-10613).
+	await collectGarbage(page);
 }
 
 async function snapshot(page: Page) {
@@ -126,10 +156,6 @@ for (const variant of VARIANTS) {
 		test.skip(
 			variant.shadows && software,
 			"This viewer disables shadows on a software renderer.",
-		);
-		test.fail(
-			true,
-			"SS-10613 not fixed: the meshes of a replaced output stay in memory; remove this line in its PR",
 		);
 		test.setTimeout(1_200_000);
 
