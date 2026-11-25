@@ -79,6 +79,8 @@ export class RenderingManager implements IManager {
 	private _compiledFor: SceneDraw | null = null;
 	/** Objects hidden at the last switch of the draw, not compiled for it. */
 	private _hiddenNotCompiled = new Set<THREE.Object3D>();
+	/** The grid and ground plane objects among them, shown without update. */
+	private _hiddenEnvironmentNotCompiled = new Set<THREE.Object3D>();
 	private _lightSignature: string | null = null;
 	private _continuousRendering: boolean = false;
 	private _continuousShadowMapUpdate: boolean = false;
@@ -403,23 +405,12 @@ export class RenderingManager implements IManager {
 		this._lightSignature = signature;
 		if (full) {
 			this._hiddenNotCompiled.clear();
+			this._hiddenEnvironmentNotCompiled.clear();
 			return null;
 		}
 		// Hidden objects the last switch of the draw left out, once an
-		// update shows them. Those that left the scene are dropped.
-		for (const object of this._hiddenNotCompiled) {
-			let shown = object.visible;
-			let parent = object.parent;
-			while (parent && parent !== scene) {
-				shown &&= parent.visible;
-				parent = parent.parent;
-			}
-			if (parent !== scene) this._hiddenNotCompiled.delete(object);
-			else if (shown) {
-				objects.push(object);
-				this._hiddenNotCompiled.delete(object);
-			}
-		}
+		// update shows them.
+		objects.push(...this.takeShown(this._hiddenNotCompiled, scene));
 		return objects.filter((object) => {
 			if (object.userData.batchedMesh) return false;
 			let parent: THREE.Object3D | null = object;
@@ -545,7 +536,9 @@ export class RenderingManager implements IManager {
 	/**
 	 * After {@link drawChanged}, compiles what the next frame draws: the
 	 * visible objects, without the source meshes hidden behind a batch.
-	 * A hidden object is compiled by the scene update that shows it.
+	 * A hidden object is compiled by the scene update that shows it. The
+	 * grid and the ground plane are shown without one: the animation loop
+	 * compiles them when they are shown ({@link compileShownEnvironment}).
 	 */
 	private compileVisibleForDraw(scene: THREE.Scene): void {
 		const drawable = (object: THREE.Object3D) => {
@@ -568,12 +561,55 @@ export class RenderingManager implements IManager {
 			if (drawable(object)) objects.add(object);
 		});
 		this._hiddenNotCompiled.clear();
+		this._hiddenEnvironmentNotCompiled.clear();
 		scene.traverse((object) => {
 			if (drawable(object) && !objects.has(object))
 				this._hiddenNotCompiled.add(object);
 		});
+		this._renderingEngine.environmentGeometryManager.environmentGeometryObject?.traverse(
+			(object) => {
+				if (!this._hiddenNotCompiled.delete(object)) return;
+				this._hiddenEnvironmentNotCompiled.add(object);
+			},
+		);
 		this.startCompile(scene, this._hiddenCamera, [...objects]);
 		this._compiledFor = this.sceneDraw();
+	}
+
+	/**
+	 * Compiles the grid and ground plane objects that
+	 * {@link compileVisibleForDraw} left out once they are shown. Their
+	 * setters only change the visibility, without a scene update.
+	 */
+	private compileShownEnvironment(scene: THREE.Scene): void {
+		const shown = this.takeShown(this._hiddenEnvironmentNotCompiled, scene);
+		if (shown.length > 0)
+			this.startCompile(scene, this._hiddenCamera, shown);
+	}
+
+	/**
+	 * Removes the objects of the set that are shown, and returns them.
+	 * Objects that left the scene are removed as well.
+	 */
+	private takeShown(
+		objects: Set<THREE.Object3D>,
+		scene: THREE.Object3D,
+	): THREE.Object3D[] {
+		const shown: THREE.Object3D[] = [];
+		for (const object of objects) {
+			let visible = object.visible;
+			let parent = object.parent;
+			while (parent && parent !== scene) {
+				visible &&= parent.visible;
+				parent = parent.parent;
+			}
+			if (parent !== scene) objects.delete(object);
+			else if (visible) {
+				shown.push(object);
+				objects.delete(object);
+			}
+		}
+		return shown;
 	}
 
 	/** Whether the frame is drawn through the post-processing. */
@@ -885,6 +921,8 @@ export class RenderingManager implements IManager {
 		// depends on it: compile the scene for the draw it now gets.
 		if (this.drawChanged())
 			this.compileVisibleForDraw(this._renderingEngine.scene);
+		else if (this._hiddenEnvironmentNotCompiled.size > 0)
+			this.compileShownEnvironment(this._renderingEngine.scene);
 
 		// A draw would wait for programs that are still compiling. Keep the
 		// frame that is on screen (or the logo) until they are ready.

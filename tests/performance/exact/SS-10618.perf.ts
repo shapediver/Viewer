@@ -181,6 +181,47 @@ test("SS-10618 after the effects are removed, a hidden node that is shown links 
 	expect(result.linkedInFrame, JSON.stringify(result)).toEqual([]);
 });
 
+test("SS-10618 after the effects are removed, the ground plane that is shown links no program", async ({
+	page,
+}) => {
+	await open(page);
+	await page.evaluate(installWatch);
+	const result = await page.evaluate(async () => {
+		const perf = (window as any).__perf;
+		const SDV = (window as any).SDV;
+		await perf.create({shadows: false});
+		const token = perf.viewport.postProcessing.addEffect({
+			type: SDV.POST_PROCESSING_EFFECT_TYPE.SSAO,
+		});
+		perf.addBoxes(
+			20,
+			new SDV.MaterialStandardData({
+				color: "#cccccc",
+				side: SDV.MATERIAL_SIDE.FRONT,
+			}),
+		);
+		perf.viewport.update();
+		perf.viewport.show = true;
+		await perf.nextFrame();
+		await perf.nextFrame();
+
+		perf.viewport.postProcessing.removeEffect(token);
+		perf.viewport.render();
+		await perf.nextFrame();
+		await perf.nextFrame();
+
+		// The ground plane is shown without a scene update.
+		const watch = perf.watch();
+		perf.viewport.groundPlaneVisibility = true;
+		perf.viewport.render();
+		await perf.nextFrame();
+		return watch.result();
+	});
+	expect(result.framed, JSON.stringify(result)).toBe(true);
+	expect(result.drawn, JSON.stringify(result)).toBeGreaterThan(1);
+	expect(result.linkedInFrame, JSON.stringify(result)).toEqual([]);
+});
+
 test("SS-10618 without post-processing, the first frame links no scene program", async ({
 	page,
 }) => {

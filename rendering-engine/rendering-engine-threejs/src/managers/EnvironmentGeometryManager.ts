@@ -2,7 +2,8 @@ import {Box, type IBox} from "@shapediver/viewer.shared.math";
 import {
 	Converter,
 	EventEngine,
-	EVENTTYPE} from "@shapediver/viewer.shared.services";
+	EVENTTYPE,
+} from "@shapediver/viewer.shared.services";
 import {vec3} from "gl-matrix";
 
 import {type IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
@@ -45,6 +46,11 @@ export class EnvironmentGeometryManager implements IManager {
 
 	public get contactShadow(): ContactShadow {
 		return this._contactShadow!;
+	}
+
+	/** The parent of the grid, ground plane and contact shadow. */
+	public get environmentGeometryObject(): SDObject | undefined {
+		return this._environmentGeometryObject;
 	}
 
 	public get grid(): Grid {
