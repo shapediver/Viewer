@@ -435,15 +435,33 @@ export class MaterialLoader implements ILoader {
 			delete materialWithDefines.defines["SDV_SQUARED_ROUGHNESS_BEND"];
 		}
 
-		// the irradiance of .hdr maps is looked up mirrored in x, except with the three.js orientation
+		this.assignIrradianceMirrorToMaterial(material);
+
+		material.needsUpdate = true;
+	};
+
+	/**
+	 * The irradiance of .hdr maps is looked up mirrored in x, except with the
+	 * three.js orientation. Recompiles the material only if the define changes.
+	 */
+	private assignIrradianceMirrorToMaterial(material: THREE.Material): void {
+		if (!(material instanceof THREE.MeshStandardMaterial)) return;
+
+		const materialWithDefines = material as THREE.MeshStandardMaterial & {
+			defines: {[key: string]: string};
+		};
+		materialWithDefines.defines = materialWithDefines.defines || {};
+		const defined =
+			"SDV_IRRADIANCE_NO_MIRROR" in materialWithDefines.defines;
+		if (defined === !this._environmentMapIrradianceMirror) return;
+
 		if (this._environmentMapIrradianceMirror) {
 			delete materialWithDefines.defines["SDV_IRRADIANCE_NO_MIRROR"];
 		} else {
 			materialWithDefines.defines["SDV_IRRADIANCE_NO_MIRROR"] = "";
 		}
-
 		material.needsUpdate = true;
-	};
+	}
 
 	/**
 	 * Turns the screen space ambient occlusion in the material shading on
@@ -2784,6 +2802,8 @@ uniform vec3 sdvScreenAOColor;
 			materialSettings,
 		};
 		material.userData.cacheKey = cacheKey;
+		// Material.copy resets the defines of a clone (GPU instancing)
+		this.assignIrradianceMirrorToMaterial(material);
 		// Material.clone does not copy the loader's onBeforeCompile, so a clone
 		// has no screen AO patch. Chain it once. three shares programs by the
 		// hook's source text, so the program key stays the original hook's
