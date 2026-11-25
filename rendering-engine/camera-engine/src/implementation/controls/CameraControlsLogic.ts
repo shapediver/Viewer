@@ -1,17 +1,48 @@
 import {Box, Sphere, Spherical} from "@shapediver/viewer.shared.math";
 import {
 	CAMERA_TYPE,
-	ORTHOGRAPHIC_CAMERA_DIRECTION} from "@shapediver/viewer.shared.types";
+	ORTHOGRAPHIC_CAMERA_DIRECTION,
+} from "@shapediver/viewer.shared.types";
 import {mat4, quat, vec2, vec3} from "gl-matrix";
 import {
 	type Adjustments,
-	type ICameraControls} from "../../interfaces/controls/ICameraControls";
+	type ICameraControls,
+} from "../../interfaces/controls/ICameraControls";
 import {type ICameraControlsLogic} from "../../interfaces/controls/ICameraControlsLogic";
 import {OrthographicCamera} from "../camera/OrthographicCamera";
 import {PerspectiveCamera} from "../camera/PerspectiveCamera";
+import {Damper} from "./Damper";
+import {VelocityTracker} from "./VelocityTracker";
+
+/**
+ * The frame length in milliseconds that the damping setting refers to.
+ */
+const REFERENCE_FRAME = 1000 / 60;
+/**
+ * The time in milliseconds that a movementSmoothness of 1 stands for.
+ */
+const SMOOTHNESS_TIME = 100;
+/**
+ * Factor between the step of a wheel notch or key press and the step of a
+ * drag event. It keeps the distance of one notch or key press that the
+ * former damping gave at its default of 0.1 on a 60 Hz display.
+ */
+const IMPULSE_GAIN = 10;
+/**
+ * Below these distances to the goal the camera is put onto the goal.
+ * Angles in radians, zoom as logarithm of the distance, pan relative to the
+ * distance between position and target.
+ */
+const ANGLE_EPSILON = 1e-5;
+const PAN_EPSILON = 1e-5;
+const ZOOM_EPSILON = 1e-5;
+/**
+ * The polar angle stays this far away from the poles.
+ */
+const POLE_EPSILON = 0.000001;
 
 export class CameraControlsLogic implements ICameraControlsLogic {
-	// #region Properties (13)
+	// #region Properties (22)
 
 	private _adjustedSettings = {
 		autoRotationSpeed: () =>
@@ -30,37 +61,52 @@ export class CameraControlsLogic implements ICameraControlsLogic {
 		zoomSpeed: () =>
 			this._controls.zoomSpeed * this._settingsAdjustments.zoomSpeed,
 	};
-	private _damping = {
-		rotation: {
-			time: 0,
-			duration: 0,
-			theta: 0,
-			phi: 0,
-		},
-		zoom: {
-			time: 0,
-			duration: 0,
-			delta: 0,
-		},
-		pan: {
-			time: 0,
-			duration: 0,
-			offset: vec3.create(),
-		},
-	};
 	private _dollyDelta = 0;
 	private _dollyEnd = 0;
 	private _dollyStart = 0;
+	/**
+	 * If the current gesture has moved the camera. A pointer that is only
+	 * pressed does not count as camera movement.
+	 */
+	private _dragging = false;
+	/**
+	 * If input arrived since the last call of {@link consumeInput}.
+	 */
+	private _input = false;
 	private _panDelta = vec2.create();
+	/**
+	 * The pan that is still to be done, in world coordinates.
+	 */
+	private _panDampers = [new Damper(), new Damper(), new Damper()];
 	private _panEnd = vec2.create();
 	private _panStart = vec2.create();
+	private _panTracker = new VelocityTracker(3);
+	/**
+	 * The polar rotation that is still to be done, in radians.
+	 */
+	private _phiDamper = new Damper();
+	/**
+	 * If a mouse button or a finger is down.
+	 */
+	private _pointerDown = false;
 	private _quat: quat;
 	private _quatInverse: quat;
 	private _rotateDelta = vec2.create();
 	private _rotateEnd = vec2.create();
 	private _rotateStart = vec2.create();
+	private _rotationTracker = new VelocityTracker(2);
+	/**
+	 * The azimuth rotation that is still to be done, in radians.
+	 */
+	private _thetaDamper = new Damper();
+	/**
+	 * The zoom that is still to be done, as the change of the logarithm of
+	 * the distance between position and target.
+	 */
+	private _zoomDamper = new Damper();
+	private _zoomTracker = new VelocityTracker(1);
 
-	// #endregion Properties (13)
+	// #endregion Properties (22)
 
 	// #region Constructors (1)
 
@@ -85,7 +131,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
 
 	// #endregion Constructors (1)
 
-	// #region Public Methods (7)
+	// #region Public Methods (15)
 
 	public isWithinRestrictions(position: vec3, target: vec3): boolean {
 		const pBox = new Box(
@@ -153,9 +199,43 @@ export class CameraControlsLogic implements ICameraControlsLogic {
 		return true;
 	}
 
-	public pan(x: number, y: number, active: boolean, touch: boolean): void {
+	public consumeInput(): boolean {
+		const input = this._input;
+		this._input = false;
+		return input;
+	}
+
+	public endGesture(): void {
+		this._pointerDown = false;
+		this._dragging = false;
+		this._rotationTracker.reset();
+		this._panTracker.reset();
+		this._zoomTracker.reset();
+	}
+
+	public isMoving(): boolean {
+		return (
+			this._dragging ||
+			!this._thetaDamper.isSettled() ||
+			!this._phiDamper.isSettled() ||
+			!this._zoomDamper.isSettled() ||
+			this._panDampers.some((d) => !d.isSettled()) ||
+			(this._controls.enableAutoRotation &&
+				this._adjustedSettings.autoRotationSpeed() !== 0)
+		);
+	}
+
+	public pan(
+		x: number,
+		y: number,
+		active: boolean,
+		touch: boolean,
+		time: number = performance.now(),
+	): void {
 		if (!active) {
 			this._panStart = vec2.fromValues(x, y);
+			this._panTracker.start(time);
+			this.startGesture();
 		} else {
 			this._panEnd = vec2.fromValues(x, y);
 			vec2.sub(this._panDelta, this._panEnd, this._panStart);
@@ -173,99 +253,49 @@ export class CameraControlsLogic implements ICameraControlsLogic {
 				),
 			);
 
-			if (this._damping.pan.duration > 0) {
-				if (offset[0] < 0) {
-					offset[0] = Math.min(
-						offset[0],
-						this._adjustedSettings.movementSmoothness() *
-							this._damping.pan.offset[0],
-					);
-				} else {
-					offset[0] = Math.max(
-						offset[0],
-						this._adjustedSettings.movementSmoothness() *
-							this._damping.pan.offset[0],
-					);
-				}
-				if (offset[1] < 0) {
-					offset[1] = Math.min(
-						offset[1],
-						this._adjustedSettings.movementSmoothness() *
-							this._damping.pan.offset[1],
-					);
-				} else {
-					offset[1] = Math.max(
-						offset[1],
-						this._adjustedSettings.movementSmoothness() *
-							this._damping.pan.offset[1],
-					);
-				}
-				if (offset[2] < 0) {
-					offset[2] = Math.min(
-						offset[2],
-						this._adjustedSettings.movementSmoothness() *
-							this._damping.pan.offset[2],
-					);
-				} else {
-					offset[2] = Math.max(
-						offset[2],
-						this._adjustedSettings.movementSmoothness() *
-							this._damping.pan.offset[2],
-					);
-				}
-			}
-
-			const damping =
-				1 -
-				Math.max(
-					0.01,
-					Math.min(0.99, this._adjustedSettings.damping()),
-				);
-
-			const framesOffsetX =
-				(Math.log(1 / Math.abs(offset[0])) - 5 * Math.log(10)) /
-				Math.log(damping);
-			const framesOffsetY =
-				(Math.log(1 / Math.abs(offset[1])) - 5 * Math.log(10)) /
-				Math.log(damping);
-			const framesOffsetZ =
-				(Math.log(1 / Math.abs(offset[2])) - 5 * Math.log(10)) /
-				Math.log(damping);
-			this._damping.pan.time = 0;
-			this._damping.pan.duration =
-				Math.max(
-					framesOffsetX,
-					Math.max(framesOffsetY, framesOffsetZ),
-				) * 16.6666;
-			this._damping.pan.offset = vec3.clone(offset);
-
-			this._damping.rotation.duration = 0;
-			this._damping.zoom.duration = 0;
-
-			this._controls.applyTargetVector(offset, true);
-			this._controls.applyPositionVector(offset, true);
+			this.addPan(offset);
+			this._panTracker.add(time, [offset[0], offset[1], offset[2]]);
+			this._dragging = true;
+			this._input = true;
 		}
 	}
 
+	public panStep(x: number, y: number): void {
+		const speed = this._adjustedSettings.panSpeed() * IMPULSE_GAIN;
+		this.addPan(
+			this.panDeltaToOffset(vec2.fromValues(x * speed, y * speed)),
+		);
+		this._input = true;
+	}
+
+	public release(time: number = performance.now()): void {
+		if (this._pointerDown) {
+			// The camera keeps the speed of the pointer and loses it with the
+			// time constant of the damping setting. Following the goal that is
+			// moved here gives exactly that motion.
+			const tau = this.releaseTau();
+			const snap = !(this.dragTau() > 0);
+			const coast = (damper: Damper, velocity: number) => {
+				if (velocity === 0) return;
+				damper.add(velocity * tau);
+				// without smoothing the damper stands still between events
+				if (snap) damper.velocity = velocity;
+			};
+
+			const rotation = this._rotationTracker.velocity(time);
+			coast(this._thetaDamper, rotation[0]);
+			coast(this._phiDamper, rotation[1]);
+			const pan = this._panTracker.velocity(time);
+			for (let i = 0; i < 3; i++) coast(this._panDampers[i], pan[i]);
+			coast(this._zoomDamper, this._zoomTracker.velocity(time)[0]);
+		}
+		this.endGesture();
+	}
+
 	public reset() {
-		this._damping = {
-			rotation: {
-				time: 0,
-				duration: 0,
-				theta: 0,
-				phi: 0,
-			},
-			zoom: {
-				time: 0,
-				duration: 0,
-				delta: 0,
-			},
-			pan: {
-				time: 0,
-				duration: 0,
-				offset: vec3.create(),
-			},
-		};
+		this.stop();
+		this.endGesture();
+		this._input = false;
 		this._dollyDelta = 0;
 		this._dollyEnd = 0;
 		this._dollyStart = 0;
@@ -447,7 +477,13 @@ export class CameraControlsLogic implements ICameraControlsLogic {
 		return {position, target, sceneRotation};
 	}
 
-	public rotate(x: number, y: number, active: boolean, touch: boolean): void {
+	public rotate(
+		x: number,
+		y: number,
+		active: boolean,
+		touch: boolean,
+		time: number = performance.now(),
+	): void {
 		if (
 			this._controls.camera.type === CAMERA_TYPE.ORTHOGRAPHIC &&
 			(this._controls.camera as OrthographicCamera).direction !==
@@ -457,6 +493,8 @@ export class CameraControlsLogic implements ICameraControlsLogic {
 
 		if (!active) {
 			this._rotateStart = vec2.fromValues(x, y);
+			this._rotationTracker.start(time);
+			this.startGesture();
 		} else {
 			this._rotateEnd = vec2.fromValues(x, y);
 			vec2.subtract(
@@ -473,229 +511,262 @@ export class CameraControlsLogic implements ICameraControlsLogic {
 			)
 				return;
 
-			const spherical = new Spherical();
 			const rotationSpeed =
 				this._adjustedSettings.rotationSpeed() *
 				(touch ? this._touchAdjustments.rotationSpeed : 1.0);
-			spherical.theta -=
-				(rotationSpeed * this._rotateDelta[0]) /
+			const theta =
+				-(rotationSpeed * this._rotateDelta[0]) /
 				this._controls.canvas.clientHeight;
-			spherical.phi -=
-				(rotationSpeed * this._rotateDelta[1]) /
+			const phi =
+				-(rotationSpeed * this._rotateDelta[1]) /
 				this._controls.canvas.clientHeight;
+			if (theta === 0 && phi === 0) return;
 
-			if (this._damping.rotation.duration > 0) {
-				const thetaDelta =
-					this._damping.rotation.theta - spherical.theta;
-				spherical.theta +=
-					thetaDelta * this._adjustedSettings.movementSmoothness();
-
-				const phiDelta = this._damping.rotation.phi - spherical.phi;
-				spherical.phi +=
-					phiDelta * this._adjustedSettings.movementSmoothness();
-			}
-
-			let sphericalForOffset = spherical;
-			if (this._controls.enableTurntableControls)
-				sphericalForOffset = new Spherical(1.0, spherical.phi, 0);
-
-			const offset = this.rotationSphericalToOffset(sphericalForOffset);
-
-			const damping =
-				1 -
-				Math.max(0.01, Math.min(1, this._adjustedSettings.damping()));
-			const framesTheta =
-				(Math.log(1 / Math.abs(spherical.theta)) - 5 * Math.log(10)) /
-				Math.log(damping);
-			const framesPhi =
-				(Math.log(1 / Math.abs(spherical.phi)) - 5 * Math.log(10)) /
-				Math.log(damping);
-
-			this._damping.rotation.time = 0;
-			this._damping.rotation.duration =
-				Math.max(framesTheta, framesPhi) * 16.6666;
-			this._damping.rotation.theta = spherical.theta;
-			this._damping.rotation.phi = spherical.phi;
-
-			this._damping.pan.duration = 0;
-			this._damping.zoom.duration = 0;
-
-			this._controls.applyPositionVector(offset, true);
-
-			if (this._controls.enableTurntableControls)
-				this._controls.applyRotation([0, spherical.theta], true);
-			if (this._controls.enableObjectControls)
-				this._controls.applyRotation(
-					[spherical.phi, spherical.theta],
-					true,
-				);
+			this._thetaDamper.add(theta);
+			this._phiDamper.add(phi);
+			this._rotationTracker.add(time, [theta, phi]);
+			this._dragging = true;
+			this._input = true;
 		}
 	}
 
-	public update(time: number, manualInteraction: boolean): void {
-		if (manualInteraction === true) {
-			this._damping.zoom.duration = 0;
-			this._damping.pan.duration = 0;
-			this._damping.rotation.duration = 0;
-		}
+	public stop(): void {
+		this._thetaDamper.reset();
+		this._phiDamper.reset();
+		this._zoomDamper.reset();
+		for (const damper of this._panDampers) damper.reset();
+	}
 
-		const damping =
-			1 - Math.max(0.01, Math.min(1, this._adjustedSettings.damping()));
+	public update(time: number, animating: boolean): void {
+		// a camera animation replaces whatever the input still had to do
+		if (animating === true) this.stop();
 
-		if (this._damping.pan.duration > 0) {
-			if (this._damping.pan.time + time > this._damping.pan.duration) {
-				this._damping.pan.time = this._damping.pan.duration;
-				this._damping.pan.duration = 0;
-			} else {
-				this._damping.pan.time += time;
+		const position = this._controls.getPositionWithManualUpdates();
+		const target = this._controls.getTargetWithManualUpdates();
+		const offset = vec3.subtract(vec3.create(), position, target);
+		vec3.transformQuat(offset, offset, this._quat);
+		const spherical = new Spherical();
+		spherical.fromVec3(offset);
+		const distance = spherical.radius;
 
-				const frameSinceStart = this._damping.pan.time / 16.6666;
-				const dampingFrames = Math.pow(damping, frameSinceStart);
-				const offset = vec3.multiply(
-					vec3.create(),
-					this._damping.pan.offset,
-					vec3.fromValues(
-						dampingFrames,
-						dampingFrames,
-						dampingFrames,
-					),
-				);
-				this._controls.applyTargetVector(offset);
-				this._controls.applyPositionVector(offset);
+		const tau = this._pointerDown ? this.dragTau() : this.releaseTau();
+		this.restrictGoal(spherical, tau);
+
+		let theta = this._thetaDamper.step(time, tau, ANGLE_EPSILON);
+		const phi = this._phiDamper.step(time, tau, ANGLE_EPSILON);
+		const zoom = this._zoomDamper.step(time, tau, ZOOM_EPSILON);
+		const panEpsilon = PAN_EPSILON * (distance > 0 ? distance : 1);
+		const pan = vec3.fromValues(
+			this._panDampers[0].step(time, tau, panEpsilon),
+			this._panDampers[1].step(time, tau, panEpsilon),
+			this._panDampers[2].step(time, tau, panEpsilon),
+		);
+
+		if (this._controls.enableAutoRotation)
+			theta -= this._adjustedSettings.autoRotationSpeed() * time;
+
+		// with turntable controls the scene turns instead of the camera
+		const cameraTheta = this._controls.enableTurntableControls ? 0 : theta;
+
+		const newTarget = vec3.add(vec3.create(), target, pan);
+		let newPosition = vec3.add(vec3.create(), position, pan);
+		if (distance > 0 && (cameraTheta !== 0 || phi !== 0 || zoom !== 0)) {
+			spherical.theta += cameraTheta;
+			spherical.phi += phi;
+			spherical.radius = distance * Math.exp(zoom);
+
+			const minAzimuthAngle =
+					this._controls.rotationRestriction.minAzimuthAngle *
+					(Math.PI / 180),
+				maxAzimuthAngle =
+					this._controls.rotationRestriction.maxAzimuthAngle *
+					(Math.PI / 180);
+
+			if (spherical.theta > Math.PI) {
+				spherical.theta -= 2 * Math.PI;
+				if (minAzimuthAngle > spherical.theta) {
+					spherical.theta += 2 * Math.PI;
+				}
+			} else if (spherical.theta < -Math.PI) {
+				spherical.theta += 2 * Math.PI;
+				if (maxAzimuthAngle < spherical.theta) {
+					spherical.theta -= 2 * Math.PI;
+				}
 			}
-		} else {
-			this._damping.pan.time = 0;
+
+			spherical.makeSafe();
+			const newOffset = vec3.transformQuat(
+				vec3.create(),
+				spherical.toVec3(),
+				this._quatInverse,
+			);
+			newPosition = vec3.add(vec3.create(), newTarget, newOffset);
 		}
 
-		if (this._damping.rotation.duration > 0) {
-			if (
-				this._damping.rotation.time + time >
-				this._damping.rotation.duration
-			) {
-				this._damping.rotation.time = this._damping.rotation.duration;
-				this._damping.rotation.duration = 0;
-			} else {
-				this._damping.rotation.time += time;
-
-				const frameSinceStart = this._damping.rotation.time / 16.6666;
-				const spherical = new Spherical();
-				spherical.theta =
-					this._damping.rotation.theta *
-					Math.pow(damping, frameSinceStart);
-				spherical.phi =
-					this._damping.rotation.phi *
-					Math.pow(damping, frameSinceStart);
-
-				let sphericalForOffset = spherical;
-				if (this._controls.enableTurntableControls)
-					sphericalForOffset = new Spherical(1.0, spherical.phi, 0);
-
-				const offset =
-					this.rotationSphericalToOffset(sphericalForOffset);
-				this._controls.applyPositionVector(offset);
-
-				if (this._controls.enableTurntableControls)
-					this._controls.applyRotation([0, spherical.theta]);
-				if (this._controls.enableObjectControls)
-					this._controls.applyRotation([
-						spherical.phi,
-						spherical.theta,
-					]);
-			}
-		} else {
-			this._damping.rotation.time = 0;
-		}
-
-		if (this._damping.zoom.duration > 0) {
-			if (this._damping.zoom.time + time > this._damping.zoom.duration) {
-				this._damping.zoom.time = this._damping.zoom.duration;
-				this._damping.zoom.duration = 0;
-			} else {
-				this._damping.zoom.time += time;
-
-				const frameSinceStart = this._damping.zoom.time / 16.6666;
-				const delta =
-					this._damping.zoom.delta *
-					Math.pow(damping, frameSinceStart);
-				const offset = this.zoomDistanceToOffset(delta);
-				this._controls.applyPositionVector(offset);
-			}
-		} else {
-			this._damping.zoom.time = 0;
-		}
-
-		if (this._controls.enableAutoRotation) {
-			const spherical = new Spherical(
-				1.0,
-				0.0,
-				-this._adjustedSettings.autoRotationSpeed(),
+		if (!vec3.exactEquals(newTarget, target))
+			this._controls.applyTargetVector(
+				vec3.subtract(vec3.create(), newTarget, target),
+			);
+		if (!vec3.exactEquals(newPosition, position))
+			this._controls.applyPositionVector(
+				vec3.subtract(vec3.create(), newPosition, position),
 			);
 
-			let sphericalForOffset = spherical;
+		if (theta !== 0 || phi !== 0) {
 			if (this._controls.enableTurntableControls)
-				sphericalForOffset = new Spherical(1.0, spherical.phi, 0);
-			const offset = this.rotationSphericalToOffset(sphericalForOffset);
-
-			this._controls.applyPositionVector(offset);
-			if (this._controls.enableTurntableControls)
-				this._controls.applyRotation([0, spherical.theta]);
+				this._controls.applyRotation([0, theta]);
 			if (this._controls.enableObjectControls)
-				this._controls.applyRotation([spherical.phi, spherical.theta]);
+				this._controls.applyRotation([phi, theta]);
 		}
 	}
 
-	public zoom(x: number, y: number, active: boolean, touch: boolean): void {
+	public zoom(
+		x: number,
+		y: number,
+		active: boolean,
+		touch: boolean,
+		time: number = performance.now(),
+	): void {
 		const distance = Math.sqrt(x * x + y * y);
 
 		if (!active) {
 			this._dollyStart = distance;
+			this._zoomTracker.start(time);
+			this.startGesture();
 		} else {
 			this._dollyEnd = distance;
 			this._dollyDelta = this._dollyEnd - this._dollyStart;
 			this._dollyStart = this._dollyEnd;
-
-			if (this._damping.zoom.duration > 0) {
-				if (this._dollyDelta < 0) {
-					this._dollyDelta = Math.min(
-						this._dollyDelta,
-						this._adjustedSettings.movementSmoothness() *
-							this._damping.zoom.delta,
-					);
-				} else {
-					this._dollyDelta = Math.max(
-						this._dollyDelta,
-						this._adjustedSettings.movementSmoothness() *
-							this._damping.zoom.delta,
-					);
-				}
-			}
+			if (this._dollyDelta === 0) return;
 
 			const delta =
 				-this._dollyDelta *
 				this._adjustedSettings.zoomSpeed() *
 				(touch ? this._touchAdjustments.zoomSpeed : 1.0);
 
-			const damping =
-				1 -
-				Math.max(0.01, Math.min(1, this._adjustedSettings.damping()));
-			const framesDelta =
-				(Math.log(1 / Math.abs(this._dollyDelta)) - 5 * Math.log(10)) /
-				Math.log(damping);
-			this._damping.zoom.time = 0;
-			this._damping.zoom.duration = framesDelta * 16.6666;
-			this._damping.zoom.delta = delta;
-
-			this._damping.rotation.duration = 0;
-			this._damping.pan.duration = 0;
-
-			const offset = this.zoomDistanceToOffset(delta);
-			this._controls.applyPositionVector(offset, true);
+			this._zoomDamper.add(delta);
+			this._zoomTracker.add(time, [delta]);
+			this._dragging = true;
+			this._input = true;
 		}
 	}
 
-	// #endregion Public Methods (7)
+	public zoomStep(steps: number): void {
+		this._zoomDamper.add(
+			-steps * this._adjustedSettings.zoomSpeed() * IMPULSE_GAIN,
+		);
+		this._input = true;
+	}
 
-	// #region Private Methods (3)
+	// #endregion Public Methods (15)
+
+	// #region Private Methods (7)
+
+	private addPan(offset: vec3): void {
+		for (let i = 0; i < 3; i++) this._panDampers[i].add(offset[i]);
+	}
+
+	/**
+	 * The time constant in milliseconds while a pointer is down.
+	 */
+	private dragTau(): number {
+		return (
+			Math.max(0, this._adjustedSettings.movementSmoothness()) *
+			SMOOTHNESS_TIME
+		);
+	}
+
+	/**
+	 * The time constant in milliseconds of the inertia: the remaining motion
+	 * shrinks by the damping setting every {@link REFERENCE_FRAME}.
+	 */
+	private releaseTau(): number {
+		const damping = this._adjustedSettings.damping();
+		// 1 and anything that is not a number: no inertia
+		if (!(damping < 1)) return 0;
+		return -REFERENCE_FRAME / Math.log(1 - Math.max(0.01, damping));
+	}
+
+	/**
+	 * A mouse button or a finger went down. It catches a camera that still
+	 * moves from an earlier input.
+	 */
+	private startGesture(): void {
+		if (!this._pointerDown) this.stop();
+		this._pointerDown = true;
+	}
+
+	/**
+	 * Keep the goals of the rotation and the zoom within the restrictions,
+	 * so the camera stops at a limit instead of pushing into it.
+	 */
+	private restrictGoal(spherical: Spherical, tau: number): void {
+		const clamp = (damper: Damper, min: number, max: number) => {
+			// A camera outside of the limits is put back by restrict(), that
+			// is no way the camera still has to go.
+			min = Math.min(0, min);
+			max = Math.max(0, max);
+			if (!(min <= max)) return;
+			const remaining = Math.max(min, Math.min(max, damper.remaining));
+			if (remaining === damper.remaining) return;
+			damper.remaining = remaining;
+			// do not run past the new goal
+			const limit = tau > 0 ? Math.abs(remaining) / tau : 0;
+			damper.velocity =
+				Math.sign(remaining) *
+				Math.min(
+					limit,
+					Math.max(0, Math.sign(remaining) * damper.velocity),
+				);
+		};
+
+		if (spherical.radius > 0) {
+			const zoomRestriction = this._controls.zoomRestriction;
+			clamp(
+				this._zoomDamper,
+				Math.log(
+					Math.max(0, zoomRestriction.minDistance) / spherical.radius,
+				),
+				Math.log(zoomRestriction.maxDistance / spherical.radius),
+			);
+		}
+
+		// with object controls the object turns freely, the camera stays
+		if (this._controls.enableObjectControls) return;
+
+		const restriction = this._controls.rotationRestriction;
+		const toRadians = Math.PI / 180;
+
+		if (this._controls.enablePolarRotation === false) {
+			this._phiDamper.reset();
+		} else if (spherical.radius > 0) {
+			clamp(
+				this._phiDamper,
+				Math.max(restriction.minPolarAngle * toRadians, POLE_EPSILON) -
+					spherical.phi,
+				Math.min(
+					restriction.maxPolarAngle * toRadians,
+					Math.PI - POLE_EPSILON,
+				) - spherical.phi,
+			);
+		}
+
+		if (this._controls.enableAzimuthRotation === false) {
+			this._thetaDamper.reset();
+		} else {
+			const theta = this._controls.enableTurntableControls
+				? this._controls.sceneRotation[1]
+				: spherical.theta;
+			const min = restriction.minAzimuthAngle * toRadians;
+			const max = restriction.maxAzimuthAngle * toRadians;
+			if (
+				(min !== -Infinity || max !== Infinity) &&
+				theta >= min &&
+				theta <= max
+			)
+				clamp(this._thetaDamper, min - theta, max - theta);
+		}
+	}
 
 	private panDeltaToOffset(panDelta: vec2): vec3 {
 		const offset = vec3.create();
@@ -788,67 +859,5 @@ export class CameraControlsLogic implements ICameraControlsLogic {
 		return vec3.clone(panOffset);
 	}
 
-	private rotationSphericalToOffset(s: Spherical): vec3 {
-		let offset = vec3.create();
-		vec3.subtract(
-			offset,
-			this._controls.getPositionWithManualUpdates(),
-			this._controls.getTargetWithManualUpdates(),
-		);
-		vec3.transformQuat(offset, offset, this._quat);
-		const spherical = new Spherical().fromVec3(offset);
-
-		spherical.theta += s.theta;
-		spherical.phi += s.phi;
-
-		const minAzimuthAngle =
-				this._controls.rotationRestriction.minAzimuthAngle *
-				(Math.PI / 180),
-			maxAzimuthAngle =
-				this._controls.rotationRestriction.maxAzimuthAngle *
-				(Math.PI / 180);
-
-		if (spherical.theta > Math.PI) {
-			spherical.theta -= 2 * Math.PI;
-			if (minAzimuthAngle > spherical.theta) {
-				spherical.theta += 2 * Math.PI;
-			}
-		} else if (spherical.theta < -Math.PI) {
-			spherical.theta += 2 * Math.PI;
-			if (maxAzimuthAngle < spherical.theta) {
-				spherical.theta -= 2 * Math.PI;
-			}
-		}
-
-		spherical.makeSafe();
-		offset = spherical.toVec3();
-		offset = vec3.transformQuat(vec3.create(), offset, this._quatInverse);
-		offset = vec3.add(
-			vec3.create(),
-			offset,
-			this._controls.getTargetWithManualUpdates(),
-		);
-		offset = vec3.subtract(
-			vec3.create(),
-			offset,
-			this._controls.getPositionWithManualUpdates(),
-		);
-		return vec3.clone(offset);
-	}
-
-	private zoomDistanceToOffset(distance: number): vec3 {
-		const offset = vec3.create();
-		vec3.subtract(
-			offset,
-			this._controls.getPositionWithManualUpdates(),
-			this._controls.getTargetWithManualUpdates(),
-		);
-		return vec3.multiply(
-			vec3.create(),
-			offset,
-			vec3.fromValues(distance, distance, distance),
-		);
-	}
-
-	// #endregion Private Methods (3)
+	// #endregion Private Methods (7)
 }

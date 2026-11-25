@@ -35,6 +35,7 @@ export interface ICameraApi {
 	autoAdjust: boolean;
 	/**
 	 * The speed of the camera for auto rotating.
+	 * 1 = one full turn per minute, on any display refresh rate. Negative values turn the other way.
 	 */
 	autoRotationSpeed: number;
 	/**
@@ -50,9 +51,13 @@ export interface ICameraApi {
 	 */
 	cubeTargetRestriction: {min: vec3; max: vec3};
 	/**
-	 * The damping factor for the camera.
-	 * The dampening affects how much the camera moves even after you let it got.
-	 * This smooths the usage of the camera.
+	 * The inertia of the camera after the pointer is released, the mouse wheel stops or a key was pressed.
+	 * The remaining motion shrinks by this fraction every 1/60 s, on any display refresh rate.
+	 * 1 = no inertia. The value is limited to the range from 0.01 to 1. (default: 0.1, about 160 ms)
+	 *
+	 * After a release the camera continues with the speed of the pointer and slows down;
+	 * releasing a pointer that stands still gives no inertia.
+	 * The setting does not change how far a drag, a wheel notch or a key press moves the camera.
 	 */
 	damping: number;
 	/**
@@ -109,11 +114,17 @@ export interface ICameraApi {
 	initialAutoAdjust: boolean;
 	/**
 	 * The speed of the camera for key panning. The higher this value, the faster you can pan.
+	 * One key press pans a perspective camera by `keyPanSpeed` / 2 pixels at {@link panSpeed} 0.5,
+	 * on any display refresh rate. A held key repeats with the key repeat rate of the system.
 	 */
 	keyPanSpeed: number;
 	/**
-	 * The factor for applying smoothing to the camera movement.
-	 * The various events that come in are blended together to ensure that extremes are not as pronounced.
+	 * The smoothing of the camera movement while a mouse button or a finger is down:
+	 * the time the camera needs to catch up with the pointer, as a fraction of 100 ms.
+	 * 0 = the camera follows the pointer exactly. (default: 0.5, about 50 ms)
+	 *
+	 * The camera stops shortly after the pointer stops and a drag moves the camera
+	 * by the pointer distance times the speed setting, whatever this value is.
 	 */
 	movementSmoothness: number;
 	/**
@@ -132,6 +143,8 @@ export interface ICameraApi {
 	order?: number;
 	/**
 	 * The speed of the camera for panning. The higher this value, the faster you can pan.
+	 * For a perspective camera, 0.5 means that the point under the pointer at the depth of the target
+	 * follows the pointer exactly, for mouse and touch. (default: 0.5)
 	 */
 	panSpeed: number;
 	/**
@@ -157,6 +170,7 @@ export interface ICameraApi {
 	};
 	/**
 	 * The speed of the camera for rotating.
+	 * 0.5 = one full turn per canvas height dragged, for mouse and touch. (default: 0.5)
 	 */
 	rotationSpeed: number;
 	/**
@@ -181,6 +195,8 @@ export interface ICameraApi {
 	zoomRestriction: {minDistance: number; maxDistance: number};
 	/**
 	 * The speed of the camera for zooming. The higher this value, the faster you can zoom.
+	 * At 0.5, one notch of the mouse wheel changes the distance to the target by about 12 %,
+	 * on any display refresh rate.
 	 */
 	zoomSpeed: number;
 	/**

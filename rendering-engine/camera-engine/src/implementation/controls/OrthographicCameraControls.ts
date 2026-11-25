@@ -6,11 +6,13 @@ export class OrthographicCameraControls extends AbstractCameraControls {
 	// #region Properties (2)
 
 	private _settingsAdjustments = {
-		autoRotationSpeed: (2 * Math.PI) / 60 / 60,
+		// radians per millisecond: 1 = one full turn per minute
+		autoRotationSpeed: (2 * Math.PI) / 60000,
 		damping: 1.0,
 		movementSmoothness: 1.0,
 		panSpeed: 1.75,
-		rotationSpeed: Math.PI,
+		// 0.5 = one full turn per canvas height
+		rotationSpeed: 4 * Math.PI,
 		zoomSpeed: 0.025,
 	};
 	private _touchAdjustments = {
@@ -18,7 +20,7 @@ export class OrthographicCameraControls extends AbstractCameraControls {
 		damping: 1.0,
 		movementSmoothness: 1.0,
 		panSpeed: 4.0 / 1.75,
-		rotationSpeed: 1.5,
+		rotationSpeed: 1.0,
 		zoomSpeed: 100.0,
 	};
 
