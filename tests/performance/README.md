@@ -24,7 +24,7 @@ The rule that keeps parallel work apart: **a new test, counter or benchmark sect
 | `bench/`                                                       | Work counts and timing for two builds. See [bench/README.md](bench/README.md).                                                                                               |
 | `bench/timing/`, `bench/count/`                                | One file per timing metric and per work-count section, listed in `timing/index.ts` and `count/index.ts`.                                                                     |
 
-Configs: `playwright.config.ts` (`pnpm test:performance`) runs everything that matches `**/*.perf.ts`, so exact tests and budgets, on port 8099. `budgets.playwright.config.ts` runs only `budgets/**/*.perf.ts` on port 8191. The benchmarks use 8195 to 8198 (see `bench/`). Before a run, check that the ports are free: a second run on a port reads the other run's build.
+Configs: `playwright.config.ts` (`pnpm test:performance`) runs everything that matches `**/*.perf.ts`, so exact tests and budgets, on port 8099, except the leak test `budgets/memoryLeak.perf.ts` (several minutes), which only the budgets config runs. `budgets.playwright.config.ts` runs only `budgets/**/*.perf.ts` on port 8191. The benchmarks use 8195 to 8198 (see `bench/`). Before a run, check that the ports are free: a second run on a port reads the other run's build.
 
 ## Run
 
