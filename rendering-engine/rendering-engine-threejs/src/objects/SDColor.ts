@@ -28,6 +28,11 @@ export class SDColor extends ThreeColor {
 
 	// #endregion Constructors (1)
 
+	/** The color space of the value the color was made from. */
+	public get originalColorSpace(): "srgb" | "srgb-linear" {
+		return this._originalColorSpace;
+	}
+
 	// #region Public Methods (1)
 
 	/**

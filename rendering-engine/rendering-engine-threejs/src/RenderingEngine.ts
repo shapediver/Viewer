@@ -123,6 +123,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	// color adjustment. Weak: a color of a removed material must not stay
 	// alive for good, and every computation makes new ones.
 	private _colorCache: WeakRef<SDColor>[] = [];
+	// The first color made from each value, held strongly. A material copies
+	// the value into a color of its own (three's setValues), so nothing else
+	// holds that SDColor, and MaterialLoader.assignColorCorrection finds it by
+	// value. Bounded by the number of distinct colors, not by computations.
+	private readonly _colorByValue = new Map<string, SDColor>();
 	// the length at which the next createThreeJsColor drops the dead entries
 	private _colorCachePruneAt = 256;
 
@@ -1361,11 +1366,12 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public createThreeJsColor(color: Color): THREE.Color {
-		const sdColor = new SDColor(
-			this._converter.toThreeJsColorInput(color),
-			color,
-		);
+		const input = this._converter.toThreeJsColorInput(color);
+		const sdColor = new SDColor(input, color);
 		sdColor.colorCorrection(this.automaticColorAdjustment);
+		const valueKey = `${sdColor.originalColorSpace}:${input}`;
+		if (!this._colorByValue.has(valueKey))
+			this._colorByValue.set(valueKey, sdColor);
 		this._colorCache.push(new WeakRef(sdColor));
 		if (this._colorCache.length >= this._colorCachePruneAt) {
 			this._colorCache = this._colorCache.filter(
