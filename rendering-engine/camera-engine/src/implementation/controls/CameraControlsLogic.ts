@@ -131,7 +131,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
 
 	// #endregion Constructors (1)
 
-	// #region Public Methods (15)
+	// #region Public Methods (16)
 
 	public isWithinRestrictions(position: vec3, target: vec3): boolean {
 		const pBox = new Box(
@@ -197,6 +197,24 @@ export class CameraControlsLogic implements ICameraControlsLogic {
 		}
 
 		return true;
+	}
+
+	public cancel(channel: "rotation" | "pan" | "zoom"): void {
+		switch (channel) {
+			case "rotation":
+				this._thetaDamper.reset();
+				this._phiDamper.reset();
+				this._rotationTracker.reset();
+				break;
+			case "pan":
+				for (const damper of this._panDampers) damper.reset();
+				this._panTracker.reset();
+				break;
+			case "zoom":
+				this._zoomDamper.reset();
+				this._zoomTracker.reset();
+				break;
+		}
 	}
 
 	public consumeInput(): boolean {
@@ -658,7 +676,7 @@ export class CameraControlsLogic implements ICameraControlsLogic {
 		this._input = true;
 	}
 
-	// #endregion Public Methods (15)
+	// #endregion Public Methods (16)
 
 	// #region Private Methods (7)
 

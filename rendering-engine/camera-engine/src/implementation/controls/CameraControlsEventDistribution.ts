@@ -62,6 +62,9 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
 			);
 			this._active.rotation = true;
 		} else {
+			// another button or finger took over, e.g. the second finger of
+			// a pinch that started as a rotation
+			if (this._active.rotation) this._cameraLogic.cancel("rotation");
 			this._active.rotation = false;
 		}
 
@@ -75,6 +78,7 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
 			);
 			this._active.pan = true;
 		} else {
+			if (this._active.pan) this._cameraLogic.cancel("pan");
 			this._active.pan = false;
 		}
 
@@ -106,6 +110,7 @@ export class CameraControlsEventDistribution implements ICameraControlsEventDist
 			);
 			this._active.zoom = true;
 		} else {
+			if (this._active.zoom) this._cameraLogic.cancel("zoom");
 			this._active.zoom = false;
 		}
 	}

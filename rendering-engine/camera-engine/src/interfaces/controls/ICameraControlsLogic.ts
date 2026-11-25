@@ -1,8 +1,13 @@
 import {vec2, vec3} from "gl-matrix";
 
 export interface ICameraControlsLogic {
-	// #region Public Methods (15)
+	// #region Public Methods (16)
 
+	/**
+	 * End one kind of movement of the current gesture without inertia and
+	 * drop the motion it still had to do. The gesture goes on.
+	 */
+	cancel(channel: "rotation" | "pan" | "zoom"): void;
 	/**
 	 * If input arrived since the last call. Input interrupts a camera animation.
 	 */
@@ -84,5 +89,5 @@ export interface ICameraControlsLogic {
 	 */
 	zoomStep(steps: number): void;
 
-	// #endregion Public Methods (15)
+	// #endregion Public Methods (16)
 }

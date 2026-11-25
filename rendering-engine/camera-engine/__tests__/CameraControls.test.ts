@@ -221,6 +221,47 @@ describe("drag", () => {
 		}
 	});
 
+	test("a second finger ends the rotation of the first one", () => {
+		// the pinch distance is measured relative to the window
+		const globals = globalThis as {window?: unknown};
+		const originalWindow = globals.window;
+		globals.window = {innerWidth: 800, innerHeight: CANVAS_HEIGHT};
+
+		const rig = new Rig();
+		const events = rig.controls.cameraControlsEventDistribution;
+		const touch = (x: number, y: number, isPrimary: boolean) =>
+			({
+				isPrimary,
+				pointerType: "touch",
+				button: 0,
+				clientX: x,
+				clientY: y,
+				pageX: x,
+				pageY: y,
+				timeStamp: rig.time,
+			}) as PointerEvent;
+
+		// one finger rotates
+		events.onPointerDown(touch(100, 300, true));
+		for (let i = 1; i <= 5; i++) {
+			rig.frame(8);
+			events.onPointerMove(touch(100 + 10 * i, 300, true));
+		}
+		rig.frame(8);
+		expect(Math.abs(rig.azimuth)).toBeGreaterThan(0);
+
+		// the second finger starts the pinch: the rotation that was still to
+		// be done is dropped, and a quick release gives no rotation inertia
+		events.onPointerDown(touch(300, 300, false));
+		rig.frame(8);
+		const azimuth = rig.azimuth;
+		rig.frame(8);
+		events.onPointerEnd(touch(300, 300, false));
+		rig.frames(500, 1000 / 60);
+		globals.window = originalWindow;
+		expect(rig.azimuth).toBe(azimuth);
+	});
+
 	test("does not count a click as camera movement", () => {
 		const rig = new Rig();
 		rig.down(100, 300);
