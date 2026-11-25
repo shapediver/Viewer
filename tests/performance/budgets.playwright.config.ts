@@ -17,6 +17,8 @@ const dist = path.resolve(
 export default defineConfig({
 	...base,
 	testMatch: "budgets/**/*.perf.ts",
+	// The base config leaves out the leak test; this config runs it.
+	testIgnore: [],
 	use: {...base.use, baseURL: `http://127.0.0.1:${port}/`},
 	webServer: {
 		command: `node "${path.join(__dirname, "bench/serve.mjs")}" "${dist}" ${port}`,

@@ -1,0 +1,16 @@
+{
+	"settled.canvas.drawingBufferPixels": 921600,
+	"settled.gpu.bufferBytes": 8508,
+	"settled.gpu.buffers": 10,
+	"settled.gpu.framebuffers": 13,
+	"settled.gpu.renderTargetTextureBytes": 58155008,
+	"settled.gpu.renderTargetTextures": 14,
+	"settled.gpu.renderbufferBytes": 3686400,
+	"settled.gpu.renderbuffers": 1,
+	"settled.gpu.textureBytes": 830016,
+	"settled.gpu.textures": 13,
+	"settled.gpu.totalBytes": 62679932,
+	"settled.gpu.unknownFormats": 0,
+	"settled.three.geometries": 5,
+	"settled.three.textures": 23
+}
