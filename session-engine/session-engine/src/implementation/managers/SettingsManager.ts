@@ -347,6 +347,11 @@ export class SettingsManager {
 			).mapAnalyticDfg = (
 				settings.environment as {mapAnalyticDfg?: boolean}
 			).mapAnalyticDfg;
+			(
+				currentSettings.environment as {mapFiltering?: string}
+			).mapFiltering = (
+				settings.environment as {mapFiltering?: string}
+			).mapFiltering;
 		}
 	}
 

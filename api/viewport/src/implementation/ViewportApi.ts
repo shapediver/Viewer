@@ -38,6 +38,7 @@ import {
 } from "@shapediver/viewer.shared.services";
 import {
 	type Color,
+	ENVIRONMENT_MAP_FILTERING,
 	ENVIRONMENT_MAP_ORIENTATION,
 	ENVIRONMENT_MAP_PBR_MODE,
 	FLAG_TYPE,
@@ -605,6 +606,26 @@ export class ViewportApi implements IViewportApi {
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
 		this.update("environmentMapBlurriness");
+	}
+
+	public get environmentMapFiltering(): ENVIRONMENT_MAP_FILTERING {
+		return this.#renderingEngine.environmentMapFiltering;
+	}
+
+	public set environmentMapFiltering(value: ENVIRONMENT_MAP_FILTERING) {
+		const scope = "environmentMapFiltering";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"enum",
+			true,
+			Object.values(ENVIRONMENT_MAP_FILTERING),
+		);
+		this.#renderingEngine.environmentMapFiltering = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("environmentMapFiltering");
 	}
 
 	public get environmentMapForUnlitMaterials(): boolean {
