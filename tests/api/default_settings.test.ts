@@ -21,6 +21,8 @@ const readOptions = () => {
 		environmentMapOrientation: viewport.environmentMapOrientation,
 		environmentMapAnalyticDfg: viewport.environmentMapAnalyticDfg,
 		environmentMapFiltering: viewport.environmentMapFiltering,
+		environmentMapSquaredRoughnessBend:
+			viewport.environmentMapSquaredRoughnessBend,
 		physicalGemDispersion: viewport.physicalGemDispersion,
 		physicalGemFresnel: viewport.physicalGemFresnel,
 		gemLighting: viewport.gemLighting,
@@ -58,6 +60,7 @@ const OLD_LOOK = {
 	environmentMapOrientation: "legacy",
 	environmentMapAnalyticDfg: false,
 	environmentMapFiltering: "ggx",
+	environmentMapSquaredRoughnessBend: false,
 	physicalGemDispersion: false,
 	physicalGemFresnel: false,
 	gemLighting: "all",
@@ -78,6 +81,8 @@ const NEW_LOOK = {
 	environmentMapAnalyticDfg: false,
 	// only the jewelry preset uses the Gaussian prefiltering (SS-10626)
 	environmentMapFiltering: "ggx",
+	// only the jewelry preset uses the roughness² bend (SS-10627)
+	environmentMapSquaredRoughnessBend: false,
 	physicalGemDispersion: true,
 	physicalGemFresnel: true,
 	gemLighting: "environment",
@@ -147,6 +152,7 @@ test.describe("Default settings", () => {
 			...NEW_LOOK,
 			environmentMapAnalyticDfg: true,
 			environmentMapFiltering: "gaussian",
+			environmentMapSquaredRoughnessBend: true,
 			hdr: true,
 			toneMapping: "aces_filmic",
 			accumulationFrames: 32,
