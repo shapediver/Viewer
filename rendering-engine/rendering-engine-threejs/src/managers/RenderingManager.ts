@@ -64,6 +64,8 @@ export class RenderingManager implements IManager {
 	/** The size of the set at which the objects that left the scene go. */
 	private _pruneAt: number = COMPILE_SET_PRUNE;
 	private _compilingPrograms: Set<IProgramStatus> | null = null;
+	/** Whether the last compile was for a draw into the post-processing. */
+	private _compiledIntoTarget: boolean | null = null;
 	private _lightSignature: string | null = null;
 	private _continuousRendering: boolean = false;
 	private _continuousShadowMapUpdate: boolean = false;
@@ -412,14 +414,14 @@ export class RenderingManager implements IManager {
 		const renderer = this._renderingEngine.renderer;
 		const before = new Set(this.livePrograms());
 		const targets = this.compileTargets(scene, fullCompile);
-		if (targets === null) renderer.compile(scene, camera);
+		if (targets === null) this.compileForDraw(scene, camera);
 		else if (targets.length > 0) {
 			// One call for all objects: every call collects the lights of
 			// the scene again. The group only lists the objects, they keep
 			// their parents.
 			const group = new THREE.Group();
 			group.children = targets;
-			renderer.compile(group, camera, scene);
+			this.compileForDraw(group, camera, scene);
 		}
 		// The contact shadow draws its own passes in the same frame. Its
 		// depth programs vary only with what the scene programs vary with
@@ -436,6 +438,65 @@ export class RenderingManager implements IManager {
 		for (const program of this.livePrograms())
 			if (!before.has(program)) pending.add(program);
 		this._compilingPrograms = pending.size > 0 ? pending : null;
+	}
+
+	/**
+	 * `renderer.compile` for the draw the next frame makes. The program of a
+	 * material depends on where the scene is drawn: onto the canvas with the
+	 * output colour space and tone mapping of the renderer, or into the
+	 * render target of the post-processing in linear colour without tone
+	 * mapping. Compiling for the canvas while the post-processing draws
+	 * builds programs no frame uses, and the first frame links its own.
+	 */
+	private compileForDraw(
+		scene: THREE.Object3D,
+		camera: THREE.Camera,
+		targetScene: THREE.Scene | null = null,
+	): void {
+		const renderer = this._renderingEngine.renderer;
+		const target = this.sceneRenderTarget();
+		this._compiledIntoTarget = target !== null;
+		if (!target) {
+			renderer.compile(scene, camera, targetScene);
+			return;
+		}
+		const previous = renderer.getRenderTarget();
+		const face = renderer.getActiveCubeFace();
+		const level = renderer.getActiveMipmapLevel();
+		renderer.setRenderTarget(target);
+		try {
+			renderer.compile(scene, camera, targetScene);
+		} finally {
+			renderer.setRenderTarget(previous, face, level);
+		}
+	}
+
+	/** Whether the frame is drawn through the post-processing. */
+	private renderPostProcessing(): boolean {
+		const postProcessingManager =
+			this._renderingEngine.postProcessingManager;
+		return (
+			(postProcessingManager.effects.length > 0 ||
+				postProcessingManager.manualPostProcessing) &&
+			!(
+				postProcessingManager.enablePostProcessingOnMobile === false &&
+				this._systemInfo.isMobile === true
+			)
+		);
+	}
+
+	/**
+	 * The render target the post-processing draws the scene into, or null
+	 * when the scene is drawn onto the canvas.
+	 */
+	private sceneRenderTarget(): THREE.WebGLRenderTarget | null {
+		if (!this.renderPostProcessing()) return null;
+		const composer =
+			this._renderingEngine.postProcessingManager.effectComposer;
+		// Without a composer nothing is drawn yet. A scene pass that is the
+		// last pass draws onto the canvas.
+		if (!composer || composer.passes[0]?.renderToScreen) return null;
+		return composer.inputBuffer;
 	}
 
 	public getScreenshot(
@@ -712,6 +773,19 @@ export class RenderingManager implements IManager {
 
 		// animation loop - part 4: evaluating state
 		const states = this.evaluateRenderingState();
+
+		// The post-processing was switched on or off since the last compile,
+		// for example by effects added after the scene update. Every program
+		// depends on it: compile the scene for the draw it now gets.
+		if (
+			this._compiledIntoTarget !== null &&
+			this._compiledIntoTarget !== (this.sceneRenderTarget() !== null)
+		)
+			this.compileShaders(
+				this._renderingEngine.scene,
+				this._hiddenCamera,
+				true,
+			);
 
 		// A draw would wait for programs that are still compiling. Keep the
 		// frame that is on screen (or the logo) until they are ready.
@@ -990,23 +1064,14 @@ export class RenderingManager implements IManager {
 		);
 
 		// check if we should render with post-processing
-		const renderPostProcessing =
-			(this._renderingEngine.postProcessingManager.effects.length > 0 ||
-				this._renderingEngine.postProcessingManager
-					.manualPostProcessing) &&
-			!(
-				this._renderingEngine.postProcessingManager
-					.enablePostProcessingOnMobile === false &&
-				this._systemInfo.isMobile === true
-			);
+		const renderPostProcessing = this.renderPostProcessing();
 
 		const scene = (<SceneTreeManager>this._renderingEngine.sceneTreeManager)
 			.scene;
 		// A screenshot cannot read the buffer after this call returns.
 		// Compile here so the draw waits for programs that an in-flight
 		// asynchronous compile has not finished yet.
-		if (options.compileShaders)
-			this._renderingEngine.renderer.compile(scene, camera);
+		if (options.compileShaders) this.compileForDraw(scene, camera);
 
 		const draw = () => {
 			// the uniform is shared by all viewports, so set it for each draw
