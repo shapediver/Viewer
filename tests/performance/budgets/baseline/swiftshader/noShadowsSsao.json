@@ -34,7 +34,7 @@
 	"final.programs": 22,
 	"final.textures": 21,
 	"idle.renderCalls": 0,
-	"load.programsCompiledInRender": 11,
+	"load.programsCompiledInRender": 7,
 	"oneNodeChange.batchesRebuilt": 0,
 	"oneNodeChange.programCacheKeyCalls": 2,
 	"oneNodeChange.sceneChangeNodes": 8,

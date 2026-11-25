@@ -23,10 +23,12 @@ import {
 	RENDERER_TYPE,
 	SPINNER_POSITIONING,
 } from "@shapediver/viewer.shared.types";
+import {RenderPass} from "postprocessing";
 import * as Stats from "stats.js";
 import * as THREE from "three";
 import {GemMaterial} from "../materials/GemMaterial";
 import {RenderingEngine} from "../RenderingEngine";
+import {SSAARenderPass} from "./postprocessing/SSAARenderPass";
 import {StillFrameAccumulator} from "./postprocessing/StillFrameAccumulator";
 import {updateMorphWeights} from "./sceneTree/SceenTreeManagerUtils";
 import {SceneTreeManager} from "./SceneTreeManager";
@@ -38,6 +40,15 @@ const COMPILE_SET_PRUNE = 1024;
 interface IProgramStatus {
 	isReady(): boolean;
 }
+
+/**
+ * Where a frame draws the scene. three.js builds a program per material for
+ * each: onto the canvas with the renderer's output colour space and tone
+ * mapping (`canvas`), through the post-processing without tone mapping onto
+ * the canvas (`composerCanvas`, a scene pass that is the last pass) or into
+ * the composer's render target in linear colour (`composerTarget`).
+ */
+type SceneDraw = "canvas" | "composerCanvas" | "composerTarget";
 
 export class RenderingManager implements IManager {
 	// #region Properties (31)
@@ -64,6 +75,16 @@ export class RenderingManager implements IManager {
 	/** The size of the set at which the objects that left the scene go. */
 	private _pruneAt: number = COMPILE_SET_PRUNE;
 	private _compilingPrograms: Set<IProgramStatus> | null = null;
+	/** The draw the whole scene was last compiled for. */
+	private _compiledFor: SceneDraw | null = null;
+	/** Bound while compiling for a draw into a render target. */
+	private readonly _compileRenderTarget = new THREE.WebGLRenderTarget(1, 1, {
+		depthBuffer: false,
+	});
+	/** Objects hidden at the last switch of the draw, not compiled for it. */
+	private _hiddenNotCompiled = new Set<THREE.Object3D>();
+	/** The grid and ground plane objects among them, shown without update. */
+	private _hiddenEnvironmentNotCompiled = new Set<THREE.Object3D>();
 	private _lightSignature: string | null = null;
 	private _continuousRendering: boolean = false;
 	private _continuousShadowMapUpdate: boolean = false;
@@ -386,7 +407,14 @@ export class RenderingManager implements IManager {
 		if (requested) this._firstCompilePending = false;
 		this._compileAll = false;
 		this._lightSignature = signature;
-		if (full) return null;
+		if (full) {
+			this._hiddenNotCompiled.clear();
+			this._hiddenEnvironmentNotCompiled.clear();
+			return null;
+		}
+		// Hidden objects the last switch of the draw left out, once an
+		// update shows them.
+		objects.push(...this.takeShown(this._hiddenNotCompiled, scene));
 		return objects.filter((object) => {
 			if (object.userData.batchedMesh) return false;
 			let parent: THREE.Object3D | null = object;
@@ -409,17 +437,37 @@ export class RenderingManager implements IManager {
 		camera: THREE.Camera,
 		fullCompile: boolean = false,
 	): void {
+		// Objects compiled for another draw than the next one would keep
+		// programs no frame uses: compile the whole scene for the new draw.
+		const targets = this.compileTargets(
+			scene,
+			fullCompile || this.drawChanged(),
+		);
+		this.startCompile(scene, camera, targets);
+	}
+
+	/**
+	 * Compiles the objects (null: the whole scene) for the next draw and
+	 * lets the animation loop wait for the new programs.
+	 */
+	private startCompile(
+		scene: THREE.Scene,
+		camera: THREE.Camera,
+		targets: THREE.Object3D[] | null,
+	): void {
 		const renderer = this._renderingEngine.renderer;
 		const before = new Set(this.livePrograms());
-		const targets = this.compileTargets(scene, fullCompile);
-		if (targets === null) renderer.compile(scene, camera);
-		else if (targets.length > 0) {
+		const draw = this.sceneDraw();
+		if (targets === null) {
+			this.compileForDraw(scene, camera, null, draw);
+			this._compiledFor = draw;
+		} else if (targets.length > 0) {
 			// One call for all objects: every call collects the lights of
 			// the scene again. The group only lists the objects, they keep
 			// their parents.
 			const group = new THREE.Group();
 			group.children = targets;
-			renderer.compile(group, camera, scene);
+			this.compileForDraw(group, camera, scene, draw);
 		}
 		// The contact shadow draws its own passes in the same frame. Its
 		// depth programs vary only with what the scene programs vary with
@@ -436,6 +484,168 @@ export class RenderingManager implements IManager {
 		for (const program of this.livePrograms())
 			if (!before.has(program)) pending.add(program);
 		this._compilingPrograms = pending.size > 0 ? pending : null;
+	}
+
+	/**
+	 * `renderer.compile` for the draw the next frame makes. The program of a
+	 * material depends on where the scene is drawn: onto the canvas with the
+	 * output colour space and tone mapping of the renderer, or into the
+	 * render target of the post-processing in linear colour without tone
+	 * mapping. Compiling for the canvas while the post-processing draws
+	 * builds programs no frame uses, and the first frame links its own.
+	 */
+	private compileForDraw(
+		scene: THREE.Object3D,
+		camera: THREE.Camera,
+		targetScene: THREE.Scene | null,
+		draw: SceneDraw,
+	): void {
+		const renderer = this._renderingEngine.renderer;
+		if (draw === "canvas") {
+			renderer.compile(scene, camera, targetScene);
+			return;
+		}
+		// The same state as PostProcessingManager.render: no tone mapping,
+		// and for the scene pass a render target. Any render target gives
+		// the programs of the composer's input buffer. Binding that buffer
+		// itself would allocate its depth buffer before the composer
+		// attaches its depth texture, so a 1x1 target without depth is
+		// bound, and its GPU resources are released right after.
+		const toneMapping = renderer.toneMapping;
+		const previous = renderer.getRenderTarget();
+		const face = renderer.getActiveCubeFace();
+		const level = renderer.getActiveMipmapLevel();
+		renderer.toneMapping = THREE.NoToneMapping;
+		if (draw === "composerTarget")
+			renderer.setRenderTarget(this._compileRenderTarget);
+		try {
+			renderer.compile(scene, camera, targetScene);
+		} finally {
+			renderer.toneMapping = toneMapping;
+			if (draw === "composerTarget") {
+				renderer.setRenderTarget(previous, face, level);
+				this._compileRenderTarget.dispose();
+			}
+		}
+	}
+
+	/**
+	 * The post-processing was switched on or off, or its scene pass moved
+	 * between the canvas and a render target, since the whole scene was
+	 * last compiled.
+	 */
+	private drawChanged(): boolean {
+		return (
+			this._compiledFor !== null && this._compiledFor !== this.sceneDraw()
+		);
+	}
+
+	/**
+	 * After {@link drawChanged}, compiles what the next frame draws: the
+	 * visible objects, without the source meshes hidden behind a batch.
+	 * A hidden object is compiled by the scene update that shows it. The
+	 * grid and the ground plane are shown without one: the animation loop
+	 * compiles them when they are shown ({@link compileShownEnvironment}).
+	 */
+	private compileVisibleForDraw(scene: THREE.Scene): void {
+		const drawable = (object: THREE.Object3D) => {
+			const candidate = object as THREE.Mesh &
+				Partial<{
+					isLine: boolean;
+					isPoints: boolean;
+					isSprite: boolean;
+				}>;
+			return (
+				(candidate.isMesh ||
+					candidate.isLine ||
+					candidate.isPoints ||
+					candidate.isSprite) &&
+				!object.userData.batchedMesh
+			);
+		};
+		const objects = new Set<THREE.Object3D>();
+		scene.traverseVisible((object) => {
+			if (drawable(object)) objects.add(object);
+		});
+		this._hiddenNotCompiled.clear();
+		this._hiddenEnvironmentNotCompiled.clear();
+		scene.traverse((object) => {
+			if (drawable(object) && !objects.has(object))
+				this._hiddenNotCompiled.add(object);
+		});
+		this._renderingEngine.environmentGeometryManager.environmentGeometryObject?.traverse(
+			(object) => {
+				if (!this._hiddenNotCompiled.delete(object)) return;
+				this._hiddenEnvironmentNotCompiled.add(object);
+			},
+		);
+		this.startCompile(scene, this._hiddenCamera, [...objects]);
+		this._compiledFor = this.sceneDraw();
+	}
+
+	/**
+	 * Compiles the grid and ground plane objects that
+	 * {@link compileVisibleForDraw} left out once they are shown. Their
+	 * setters only change the visibility, without a scene update.
+	 */
+	private compileShownEnvironment(scene: THREE.Scene): void {
+		const shown = this.takeShown(this._hiddenEnvironmentNotCompiled, scene);
+		if (shown.length > 0)
+			this.startCompile(scene, this._hiddenCamera, shown);
+	}
+
+	/**
+	 * Removes the objects of the set that are shown, and returns them.
+	 * Objects that left the scene are removed as well.
+	 */
+	private takeShown(
+		objects: Set<THREE.Object3D>,
+		scene: THREE.Object3D,
+	): THREE.Object3D[] {
+		const shown: THREE.Object3D[] = [];
+		for (const object of objects) {
+			let visible = object.visible;
+			let parent = object.parent;
+			while (parent && parent !== scene) {
+				visible &&= parent.visible;
+				parent = parent.parent;
+			}
+			if (parent !== scene) objects.delete(object);
+			else if (visible) {
+				shown.push(object);
+				objects.delete(object);
+			}
+		}
+		return shown;
+	}
+
+	/** Whether the frame is drawn through the post-processing. */
+	private renderPostProcessing(): boolean {
+		const postProcessingManager =
+			this._renderingEngine.postProcessingManager;
+		return (
+			(postProcessingManager.effects.length > 0 ||
+				postProcessingManager.manualPostProcessing) &&
+			!(
+				postProcessingManager.enablePostProcessingOnMobile === false &&
+				this._systemInfo.isMobile === true
+			)
+		);
+	}
+
+	/** How the next frame draws the scene, see {@link SceneDraw}. */
+	private sceneDraw(): SceneDraw {
+		if (!this.renderPostProcessing()) return "canvas";
+		const composer =
+			this._renderingEngine.postProcessingManager.effectComposer;
+		// Without a composer the post-processing draws nothing yet.
+		if (!composer) return "canvas";
+		// A scene pass that is the last pass draws onto the canvas.
+		const scenePass = composer.passes.find(
+			(pass) =>
+				pass instanceof RenderPass || pass instanceof SSAARenderPass,
+		);
+		return scenePass?.renderToScreen ? "composerCanvas" : "composerTarget";
 	}
 
 	public getScreenshot(
@@ -712,6 +922,14 @@ export class RenderingManager implements IManager {
 
 		// animation loop - part 4: evaluating state
 		const states = this.evaluateRenderingState();
+
+		// The post-processing was switched on or off since the last compile,
+		// for example by effects added after the scene update. Every program
+		// depends on it: compile the scene for the draw it now gets.
+		if (this.drawChanged())
+			this.compileVisibleForDraw(this._renderingEngine.scene);
+		else if (this._hiddenEnvironmentNotCompiled.size > 0)
+			this.compileShownEnvironment(this._renderingEngine.scene);
 
 		// A draw would wait for programs that are still compiling. Keep the
 		// frame that is on screen (or the logo) until they are ready.
@@ -990,23 +1208,18 @@ export class RenderingManager implements IManager {
 		);
 
 		// check if we should render with post-processing
-		const renderPostProcessing =
-			(this._renderingEngine.postProcessingManager.effects.length > 0 ||
-				this._renderingEngine.postProcessingManager
-					.manualPostProcessing) &&
-			!(
-				this._renderingEngine.postProcessingManager
-					.enablePostProcessingOnMobile === false &&
-				this._systemInfo.isMobile === true
-			);
+		const renderPostProcessing = this.renderPostProcessing();
 
 		const scene = (<SceneTreeManager>this._renderingEngine.sceneTreeManager)
 			.scene;
 		// A screenshot cannot read the buffer after this call returns.
 		// Compile here so the draw waits for programs that an in-flight
 		// asynchronous compile has not finished yet.
-		if (options.compileShaders)
-			this._renderingEngine.renderer.compile(scene, camera);
+		if (options.compileShaders) {
+			const sceneDraw = this.sceneDraw();
+			this.compileForDraw(scene, camera, null, sceneDraw);
+			this._compiledFor = sceneDraw;
+		}
 
 		const draw = () => {
 			// the uniform is shared by all viewports, so set it for each draw
