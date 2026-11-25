@@ -127,10 +127,6 @@ for (const variant of VARIANTS) {
 			variant.shadows && software,
 			"This viewer disables shadows on a software renderer.",
 		);
-		test.fail(
-			true,
-			"SS-10613 not fixed: the meshes of a replaced output stay in memory; remove this line in its PR",
-		);
 		test.setTimeout(1_200_000);
 
 		await page.evaluate(installOutputs, FLOORS);

@@ -78,6 +78,8 @@ export class GeometryLoader implements ILoader {
 		};
 	} = {};
 	private _geometryObjects = new WeakMap<GeometryData, Set<GeometryType>>();
+	// the reverse of _geometryObjects, so a removal can unregister the object
+	private _geometryOfObject = new WeakMap<THREE.Object3D, GeometryData>();
 	// The shared geometry of a mesh that shows a back and front material pair
 	// meshes that left the scene, they are no users of a split geometry
 	private _releasedMeshes = new WeakSet<THREE.Object3D>();
@@ -717,7 +719,7 @@ export class GeometryLoader implements ILoader {
 		object: GeometryType,
 		material: THREE.Material,
 	): void {
-		// a released mesh stays in _geometryObjects but is no user of a split
+		// a released mesh is no user of a split
 		if (
 			!(object instanceof THREE.Mesh) ||
 			object instanceof THREE.InstancedMesh ||
@@ -1021,6 +1023,7 @@ export class GeometryLoader implements ILoader {
 		}
 		this._releasedMeshes.delete(object);
 		geometryObjects.add(object as GeometryType);
+		this._geometryOfObject.set(object, geometry);
 		// a clone shows the map of its original and holds it on its own
 		this.syncGemNormalMap(object);
 		// a clone of a mesh with a back and front pair shares its geometry
@@ -1029,6 +1032,22 @@ export class GeometryLoader implements ILoader {
 		this._renderingEngine.pulseEffectManager.update(geometry, [
 			object as GeometryType,
 		]);
+	}
+
+	/**
+	 * The object left the scene. A scene update converts a node anew and
+	 * registers a new object (often a clone) for the same GeometryData, so a
+	 * removed object that stayed registered would keep its old tree, through
+	 * its parents, alive for as long as the GeometryData lives.
+	 */
+	public unregisterGeometryObject(object: THREE.Object3D): void {
+		const geometry = this._geometryOfObject.get(object);
+		if (!geometry) return;
+		this._geometryOfObject.delete(object);
+		const geometryObjects = this._geometryObjects.get(geometry);
+		if (!geometryObjects) return;
+		geometryObjects.delete(object as GeometryType);
+		if (geometryObjects.size === 0) this._geometryObjects.delete(geometry);
 	}
 
 	private updateInstancedPulse(geometry: GeometryData): void {
