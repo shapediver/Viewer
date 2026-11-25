@@ -2675,6 +2675,44 @@ uniform vec3 sdvScreenAOColor;
 		return material;
 	}
 
+	/**
+	 * Loads the environment maps that materials define themselves again, for
+	 * example after a change of the environment map filtering. The loader
+	 * caches each map per filtering.
+	 */
+	public reloadOwnedEnvironmentMaps(): void {
+		const filtering = this._renderingEngine.environmentMapFiltering;
+		for (const key in this._materialCache) {
+			const entry = this._materialCache[key];
+			const materialData = entry.materialData;
+			if (
+				!(
+					materialData instanceof MaterialStandardData ||
+					materialData instanceof MaterialGemData ||
+					materialData instanceof MaterialSpecularGlossinessData ||
+					materialData instanceof MaterialUnlitData ||
+					materialData instanceof MaterialLambertData ||
+					materialData instanceof MaterialPhongData
+				) ||
+				materialData.envMap === undefined
+			)
+				continue;
+			this._renderingEngine.environmentMapLoader
+				.loadEnvMap(materialData.envMap)
+				.map.then((envMap) => {
+					// a later change of the filtering loads its own maps
+					if (
+						this._renderingEngine.environmentMapFiltering !==
+						filtering
+					)
+						return;
+					this.applyOwnedEnvMap(entry.material, envMap);
+				})
+				// a map that fails to load keeps the previous one
+				.catch(() => undefined);
+		}
+	}
+
 	private applyOwnedEnvMap(
 		material: THREE.Material,
 		envMap: THREE.CubeTexture | THREE.Texture | null,

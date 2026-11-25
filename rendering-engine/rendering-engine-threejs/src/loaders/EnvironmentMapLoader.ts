@@ -160,6 +160,7 @@ export class EnvironmentMapLoader implements ILoader {
 	private _gaussianPmremGenerator?: GaussianPMREMGenerator;
 	private _isBuiltInEnvironmentMap: boolean = false;
 	private _isHDRMap: boolean = false;
+	private _loadCount: number = 0;
 	private _pmremGenerator!: THREE.PMREMGenerator;
 	private _textureEncoding: THREE.ColorSpace = THREE.SRGBColorSpace;
 	private _type: ENVIRONMENT_MAP_TYPE = ENVIRONMENT_MAP_TYPE.NULL;
@@ -279,9 +280,15 @@ export class EnvironmentMapLoader implements ILoader {
 
 	public async load(name: string | string[]): Promise<boolean> {
 		const eventId = this._uuidGenerator.create();
+		const loadId = ++this._loadCount;
 		try {
 			const res = this.loadEnvMap(name, eventId);
-			await this.assignEnvironmentMap(res.name, res.type, eventId);
+			await this.assignEnvironmentMap(
+				res.name,
+				res.type,
+				eventId,
+				loadId,
+			);
 		} catch (e) {
 			if (e instanceof ShapeDiverViewerEnvironmentMapError) {
 				throw e;
@@ -342,9 +349,14 @@ export class EnvironmentMapLoader implements ILoader {
 			name_caching =
 				name_internal + this._renderingEngine.environmentMapResolution;
 			// HDR maps are prefiltered on load, so each filtering is cached on its own
+			const isHDR =
+				this._environmentMapNamesHDR.indexOf(name_internal) >= 0 ||
+				((name.startsWith("https://") || name.startsWith("http://")) &&
+					name.endsWith(".hdr"));
 			if (
+				isHDR &&
 				this._renderingEngine.environmentMapFiltering ===
-				ENVIRONMENT_MAP_FILTERING.GAUSSIAN
+					ENVIRONMENT_MAP_FILTERING.GAUSSIAN
 			)
 				name_caching += "_" + ENVIRONMENT_MAP_FILTERING.GAUSSIAN;
 		} else {
@@ -485,10 +497,17 @@ export class EnvironmentMapLoader implements ILoader {
 		name: string,
 		type: ENVIRONMENT_MAP_TYPE,
 		eventId: string,
+		loadId: number,
 	) {
 		if (name in this._environmentMaps === false) return;
 		const isBuiltIn = this._environmentMaps[name].isBuiltIn === true;
 		const map = await this._environmentMaps[name].map;
+		// a newer load was started while this one was loading, for example by a change
+		// of the filtering right after the map: the newer one is assigned, not this one
+		if (loadId !== this._loadCount) {
+			this.notify(eventId);
+			return;
+		}
 		// set after the map resolved, so that type and flag always match the assigned map
 		this._type = type;
 		this._isBuiltInEnvironmentMap = isBuiltIn;
