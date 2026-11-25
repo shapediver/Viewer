@@ -151,6 +151,7 @@ export const environmentSettingsSchemaV7_2 = environmentSettingsSchema.extend({
 	mapOrientation: z.enum(["legacy", "threejs"]),
 	mapAnalyticDfg: z.boolean(),
 	mapFiltering: z.enum(["ggx", "gaussian"]),
+	mapSquaredRoughnessBend: z.boolean(),
 });
 
 const renderingSizeSchema = z

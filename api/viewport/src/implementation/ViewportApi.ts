@@ -746,6 +746,24 @@ export class ViewportApi implements IViewportApi {
 		this.update("environmentMapRotation");
 	}
 
+	public get environmentMapSquaredRoughnessBend(): boolean {
+		return this.#renderingEngine.environmentMapSquaredRoughnessBend;
+	}
+
+	public set environmentMapSquaredRoughnessBend(value: boolean) {
+		const scope = "environmentMapSquaredRoughnessBend";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"boolean",
+		);
+		this.#renderingEngine.environmentMapSquaredRoughnessBend = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.update("environmentMapSquaredRoughnessBend");
+	}
+
 	public get gemEnvironmentMapIntensity(): number {
 		return this.#renderingEngine.gemEnvironmentMapIntensity;
 	}

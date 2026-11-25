@@ -352,6 +352,13 @@ export class SettingsManager {
 			).mapFiltering = (
 				settings.environment as {mapFiltering?: string}
 			).mapFiltering;
+			(
+				currentSettings.environment as {
+					mapSquaredRoughnessBend?: boolean;
+				}
+			).mapSquaredRoughnessBend = (
+				settings.environment as {mapSquaredRoughnessBend?: boolean}
+			).mapSquaredRoughnessBend;
 		}
 	}
 

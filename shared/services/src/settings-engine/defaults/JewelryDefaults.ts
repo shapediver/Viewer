@@ -30,6 +30,8 @@ export const JewelryDefaults: () => ISettings = () => {
 			mapAnalyticDfg: true,
 			// the environment prefiltering of the reference renderer (three.js r160)
 			mapFiltering: "gaussian",
+			// the reflection-vector bend of the reference renderer (roughness², three.js r160)
+			mapSquaredRoughnessBend: true,
 		},
 		environmentGeometry: {
 			gridColor: "#44444426",
