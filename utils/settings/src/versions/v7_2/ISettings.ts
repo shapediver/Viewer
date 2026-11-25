@@ -61,6 +61,12 @@ export interface ISettings extends IGlobalSettings {
 		 */
 		mapAnalyticDfg: boolean;
 		mapFiltering: IEnvironmentMapFiltering;
+		/**
+		 * Bends the reflection vector of rough reflections by roughness² like three.js r162 and older, instead of roughness⁴.
+		 * No effect with `mapPbrMode` "legacy", which already does.
+		 * Settings converted from before 7.2 use false.
+		 */
+		mapSquaredRoughnessBend: boolean;
 	};
 	environmentGeometry: ISettingsV7_1["environmentGeometry"];
 	general: ISettingsV7_1["general"];

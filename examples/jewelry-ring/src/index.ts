@@ -31,6 +31,7 @@ const PRESET = SDV.defaultSettings.jewelry() as unknown as {
 		mapOrientation: SDV.ENVIRONMENT_MAP_ORIENTATION;
 		mapAnalyticDfg: boolean;
 		mapFiltering: SDV.ENVIRONMENT_MAP_FILTERING;
+		mapSquaredRoughnessBend: boolean;
 	};
 	material: {
 		physicalGemDispersion: boolean;
@@ -210,6 +211,9 @@ const createGemMaterial = () =>
 	viewport.contactShadowOpacity = 0.6;
 	// the same reflection term as the reference renderer for polished metal
 	viewport.environmentMapAnalyticDfg = PRESET.environment.mapAnalyticDfg;
+	// the same reflection-vector bend as the reference renderer (roughness²)
+	viewport.environmentMapSquaredRoughnessBend =
+		PRESET.environment.mapSquaredRoughnessBend;
 	// The model stores effects of its own (an SSAO): remove them, so that two
 	// ambient occlusions do not stack, and use the effects of the jewelry
 	// preset instead: contact darkening in crevices, screen-space reflections

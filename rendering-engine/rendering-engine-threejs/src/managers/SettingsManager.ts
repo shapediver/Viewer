@@ -289,6 +289,27 @@ export class SettingsManager implements IManager {
 										this._renderingEngine.environmentMapAnalyticDfg =
 											analyticDfg;
 								}
+								{
+									// only a boolean is accepted, a missing value is the old look
+									const mapSquaredRoughnessBend = (
+										settingsEngine.environment as {
+											mapSquaredRoughnessBend?: unknown;
+										}
+									).mapSquaredRoughnessBend;
+									const squaredRoughnessBend =
+										typeof mapSquaredRoughnessBend ===
+										"boolean"
+											? mapSquaredRoughnessBend
+											: false;
+									// the setter recompiles the materials, so only call it on a change
+									if (
+										this._renderingEngine
+											.environmentMapSquaredRoughnessBend !==
+										squaredRoughnessBend
+									)
+										this._renderingEngine.environmentMapSquaredRoughnessBend =
+											squaredRoughnessBend;
+								}
 								this.applySyncSettings(
 									sections,
 									settingsEngine,
@@ -400,6 +421,10 @@ export class SettingsManager implements IManager {
 		).mapAnalyticDfg = this._renderingEngine.environmentMapAnalyticDfg;
 		(settingsEngine.environment as {mapFiltering?: string}).mapFiltering =
 			this._renderingEngine.environmentMapFiltering;
+		(
+			settingsEngine.environment as {mapSquaredRoughnessBend?: boolean}
+		).mapSquaredRoughnessBend =
+			this._renderingEngine.environmentMapSquaredRoughnessBend;
 
 		settingsEngine.environmentGeometry.gridVisibility =
 			this._renderingEngine.gridVisibility;

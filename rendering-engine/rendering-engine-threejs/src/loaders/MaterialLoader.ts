@@ -136,6 +136,7 @@ export class MaterialLoader implements ILoader {
 	private _environmentMapAnalyticDfg: boolean = false;
 	private _environmentMapPbrMode: ENVIRONMENT_MAP_PBR_MODE =
 		ENVIRONMENT_MAP_PBR_MODE.LEGACY;
+	private _environmentMapSquaredRoughnessBend: boolean = false;
 	private _environmentMapRotationEuler: THREE.Euler = new THREE.Euler();
 	private _height: number = 1020;
 	private _physicalGemDispersion: boolean = false;
@@ -424,6 +425,13 @@ export class MaterialLoader implements ILoader {
 			materialWithDefines.defines["SDV_ANALYTIC_DFG"] = "";
 		} else {
 			delete materialWithDefines.defines["SDV_ANALYTIC_DFG"];
+		}
+
+		// the roughness² bend of the reflection vector alone, independent of the PBR mode
+		if (this._environmentMapSquaredRoughnessBend) {
+			materialWithDefines.defines["SDV_SQUARED_ROUGHNESS_BEND"] = "";
+		} else {
+			delete materialWithDefines.defines["SDV_SQUARED_ROUGHNESS_BEND"];
 		}
 
 		material.needsUpdate = true;
@@ -935,6 +943,16 @@ uniform vec3 sdvScreenAOColor;
 
 	public assignEnvironmentMapAnalyticDfg(value: boolean) {
 		this._environmentMapAnalyticDfg = value;
+		for (const cacheKey in this._materialCache) {
+			this.assignEnvironmentMapPbrModeToMaterial(
+				this._materialCache[cacheKey].material,
+				this._environmentMapPbrMode,
+			);
+		}
+	}
+
+	public assignEnvironmentMapSquaredRoughnessBend(value: boolean) {
+		this._environmentMapSquaredRoughnessBend = value;
 		for (const cacheKey in this._materialCache) {
 			this.assignEnvironmentMapPbrModeToMaterial(
 				this._materialCache[cacheKey].material,
@@ -3068,8 +3086,9 @@ export const adaptShaders = () => {
 			ENVIRONMENT_MAP_PBR_MODE.LEGACY,
 		)
 	) {
+		// SDV_SQUARED_ROUGHNESS_BEND: the roughness² bend of the legacy mode (three.js r162 and older) on its own
 		const legacyEnvironmentMapPbrMix = `
-			#ifdef ${ENVIRONMENT_MAP_PBR_MODE.LEGACY}
+			#if defined( ${ENVIRONMENT_MAP_PBR_MODE.LEGACY} ) || defined( SDV_SQUARED_ROUGHNESS_BEND )
 				float sdvEnvironmentMapPbrMix = roughness * roughness;
 			#else
 				float sdvEnvironmentMapPbrMix = roughness * roughness * roughness * roughness;

@@ -187,6 +187,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	private _environmentMapPbrMode: ENVIRONMENT_MAP_PBR_MODE =
 		ENVIRONMENT_MAP_PBR_MODE.LEGACY;
 	private _environmentMapResolution: string = "1024";
+	private _environmentMapSquaredRoughnessBend: boolean = false;
 	private _environmentMapRotation: quat = quat.create();
 	private _gemNormalMapResolution: number = 1024;
 	private _gemTracing: "sphere" | "facets" = "sphere";
@@ -643,6 +644,15 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	public set environmentMapAnalyticDfg(value: boolean) {
 		this._environmentMapAnalyticDfg = value;
 		this._materialLoader.assignEnvironmentMapAnalyticDfg(value);
+	}
+
+	public get environmentMapSquaredRoughnessBend(): boolean {
+		return this._environmentMapSquaredRoughnessBend;
+	}
+
+	public set environmentMapSquaredRoughnessBend(value: boolean) {
+		this._environmentMapSquaredRoughnessBend = value;
+		this._materialLoader.assignEnvironmentMapSquaredRoughnessBend(value);
 	}
 
 	public get environmentMapAsBackground(): boolean {
