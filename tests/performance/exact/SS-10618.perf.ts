@@ -53,14 +53,17 @@ function installWatch() {
 	};
 }
 
-async function run(page: any, effect: "none" | "before" | "after") {
+async function run(
+	page: any,
+	effect: "none" | "before" | "after" | "withUpdate",
+) {
 	await open(page);
 	await page.evaluate(installWatch);
 	return page.evaluate(async (when: string) => {
 		const perf = (window as any).__perf;
 		const SDV = (window as any).SDV;
 		await perf.create({shadows: false});
-		const watch = perf.watch();
+		let watch = perf.watch();
 		const addSsao = () =>
 			perf.viewport.postProcessing.addEffect({
 				type: SDV.POST_PROCESSING_EFFECT_TYPE.SSAO,
@@ -87,6 +90,24 @@ async function run(page: any, effect: "none" | "before" | "after") {
 		if (when === "after") addSsao();
 		perf.viewport.show = true;
 		await perf.nextFrame();
+		if (when === "withUpdate") {
+			// A scene on screen without effects gets an effect and, in the
+			// same turn, an update of one node. That update compiles only
+			// the new node, but every object needs its program for the
+			// post-processing.
+			await perf.nextFrame();
+			watch = perf.watch();
+			addSsao();
+			perf.addBoxes(
+				1,
+				new SDV.MaterialStandardData({
+					color: "#dd8844",
+					side: SDV.MATERIAL_SIDE.FRONT,
+				}),
+			);
+			perf.viewport.update();
+			await perf.nextFrame();
+		}
 		return watch.result();
 	}, effect);
 }
@@ -100,6 +121,15 @@ for (const effect of ["before", "after"] as const)
 		expect(result.drawn, JSON.stringify(result)).toBeGreaterThan(0);
 		expect(result.linkedInFrame, JSON.stringify(result)).toEqual([]);
 	});
+
+test("SS-10618 an effect added with a one-node update on screen, the next frame links no scene program", async ({
+	page,
+}) => {
+	const result = await run(page, "withUpdate");
+	expect(result.framed, JSON.stringify(result)).toBe(true);
+	expect(result.drawn, JSON.stringify(result)).toBeGreaterThan(1);
+	expect(result.linkedInFrame, JSON.stringify(result)).toEqual([]);
+});
 
 test("SS-10618 without post-processing, the first frame links no scene program", async ({
 	page,
