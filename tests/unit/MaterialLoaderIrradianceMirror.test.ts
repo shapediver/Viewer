@@ -45,6 +45,17 @@ test("the dropped mirror survives a change of the PBR mode", () => {
 	}
 });
 
+test("a tracked clone (GPU instancing) gets the define back after copy reset it", () => {
+	const {loader, source} = setup();
+	loader.assignEnvironmentMapIrradianceMirror(false);
+	const clone = source.clone();
+	expect(definesOf(clone)).not.toHaveProperty("SDV_IRRADIANCE_NO_MIRROR");
+	loader.trackMaterial("gpu-instance/test", clone);
+	expect(definesOf(clone)).toHaveProperty("SDV_IRRADIANCE_NO_MIRROR");
+	loader.assignEnvironmentMapIrradianceMirror(true);
+	expect(definesOf(clone)).not.toHaveProperty("SDV_IRRADIANCE_NO_MIRROR");
+});
+
 test("the patched irradiance lookup mirrors only without the define", () => {
 	adaptShaders();
 	const chunk = THREE.ShaderChunk.envmap_physical_pars_fragment;
