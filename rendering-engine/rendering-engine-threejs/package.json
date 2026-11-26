@@ -34,7 +34,15 @@
 	"typings": "dist/index.d.ts",
 	"jest": {
 		"preset": "ts-jest",
-		"testEnvironment": "node"
+		"testEnvironment": "node",
+		"transform": {
+			"^.+\\.tsx?$": [
+				"ts-jest",
+				{
+					"tsconfig": "<rootDir>/../../tsconfig.test.json"
+				}
+			]
+		}
 	},
 	"dependencies": {
 		"@shapediver/viewer.data-engine.gltf-converter": "workspace:*",
