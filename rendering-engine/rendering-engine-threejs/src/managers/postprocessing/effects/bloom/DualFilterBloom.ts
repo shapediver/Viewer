@@ -87,7 +87,8 @@ const PREFILTER_FRAGMENT_SHADER = [
 	"#endif",
 	"mask*=1.0-step(1.0,backgroundDepth);",
 	"#endif",
-	"gl_FragColor=vec4(c.rgb*mask,1.0);",
+	// alpha as the stock luminance shader: a transparent background stays transparent
+	"gl_FragColor=c*mask;",
 	"}",
 ].join("\n");
 
