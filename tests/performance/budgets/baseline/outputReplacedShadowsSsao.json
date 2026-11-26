@@ -15,6 +15,7 @@
 	"half.firstFrame.passes": 9,
 	"half.firstFrame.programCacheKeyCalls": 16,
 	"half.firstFrame.programsCreated": 0,
+	"half.firstFrame.renderListVisits": 18243,
 	"half.firstFrame.scenePass0.drawCalls": 2563,
 	"half.firstFrame.scenePass0.triangles": 61680,
 	"half.firstFrame.scenePass1.drawCalls": 2,
@@ -34,6 +35,7 @@
 	"half.lastFrame.fullScreenPasses": 7,
 	"half.lastFrame.materialUpdatesInRender": 0,
 	"half.lastFrame.passes": 9,
+	"half.lastFrame.renderListVisits": 18243,
 	"half.lastFrame.scenePass0.drawCalls": 2563,
 	"half.lastFrame.scenePass0.triangles": 61680,
 	"half.lastFrame.scenePass1.drawCalls": 2,
@@ -55,7 +57,7 @@
 	"half.shadowMapRenders": 2,
 	"half.treeDataReads": 104703,
 	"half.updateMatrixWorldCalls": 25321,
-	"half.versionsCreated": 12936,
+	"half.versionsCreated": 12949,
 	"tenth.batchBoundsReads": 0,
 	"tenth.batchInstancesAdded": 258,
 	"tenth.batchInstancesDeleted": 258,
@@ -72,6 +74,7 @@
 	"tenth.firstFrame.passes": 9,
 	"tenth.firstFrame.programCacheKeyCalls": 16,
 	"tenth.firstFrame.programsCreated": 0,
+	"tenth.firstFrame.renderListVisits": 18243,
 	"tenth.firstFrame.scenePass0.drawCalls": 2563,
 	"tenth.firstFrame.scenePass0.triangles": 61680,
 	"tenth.firstFrame.scenePass1.drawCalls": 2,
@@ -91,6 +94,7 @@
 	"tenth.lastFrame.fullScreenPasses": 7,
 	"tenth.lastFrame.materialUpdatesInRender": 0,
 	"tenth.lastFrame.passes": 9,
+	"tenth.lastFrame.renderListVisits": 18243,
 	"tenth.lastFrame.scenePass0.drawCalls": 2563,
 	"tenth.lastFrame.scenePass0.triangles": 61680,
 	"tenth.lastFrame.scenePass1.drawCalls": 2,
@@ -112,5 +116,5 @@
 	"tenth.shadowMapRenders": 2,
 	"tenth.treeDataReads": 104703,
 	"tenth.updateMatrixWorldCalls": 25321,
-	"tenth.versionsCreated": 12936
+	"tenth.versionsCreated": 12949
 }
