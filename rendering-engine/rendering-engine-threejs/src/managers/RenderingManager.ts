@@ -136,6 +136,8 @@ export class RenderingManager implements IManager {
 	 * the beauty rendering starts. Both count as a moving camera.
 	 */
 	private _cameraMotion: "none" | "moving" | "stopping" = "none";
+	/** The camera whose CAMERA_START began the moving phase. */
+	private _movingCameraId?: string;
 	/** The soft-shadow blend of the interactive frames last applied. */
 	private _interactiveBlend?: number;
 
@@ -758,6 +760,7 @@ export class RenderingManager implements IManager {
 					if (viewerEvent.viewportId !== this._renderingEngine.id)
 						return;
 					this._cameraMotion = "moving";
+					this._movingCameraId = viewerEvent.cameraId;
 					this.startRendering();
 				},
 			);
@@ -1655,14 +1658,26 @@ export class RenderingManager implements IManager {
 	 * Whether the camera moves (SS-10553): from CAMERA_START until the
 	 * beauty rendering starts after CAMERA_END, and while it autorotates.
 	 */
-	private cameraMoving(): boolean {
-		if (this._cameraMotion !== "none") return true;
+	private cameraMoving(startCountdown = true): boolean {
 		const camera = this._renderingEngine.cameraEngine.camera;
+		if (
+			this._cameraMotion !== "none" &&
+			(!camera ||
+				camera.id !== this._movingCameraId ||
+				camera.controls?.enabled === false)
+		) {
+			// SS-10553: a switched camera or disabled controls send no
+			// CAMERA_END, so end the phase as CAMERA_END would.
+			this._cameraMotion = "none";
+			if (startCountdown) this.startBeautyRenderCountdown();
+		}
+		if (this._cameraMotion !== "none") return true;
 		if (camera?.type !== CAMERA_TYPE.PERSPECTIVE) return false;
 		const controls = <PerspectiveCameraControls>(
 			(<PerspectiveCamera>camera).controls
 		);
 		return (
+			controls.enabled !== false &&
 			controls.enableAutoRotation === true &&
 			controls.autoRotationSpeed !== 0
 		);
@@ -1910,7 +1925,18 @@ export class RenderingManager implements IManager {
 	}
 
 	private startBeautyRendering() {
-		// SS-10553: the moving phase ends with the beauty rendering
+		// SS-10553: a change during a drag (a hide, a setting) does not end
+		// the moving phase; CAMERA_END starts the countdown again. With both
+		// settings on, the beauty rendering starts as before.
+		// drops a stale moving phase; the beauty rendering starts right here
+		this.cameraMoving(false);
+		if (
+			this._cameraMotion === "moving" &&
+			(!this._renderingEngine.ambientOcclusionWhileMoving ||
+				!this._renderingEngine.softShadowsWhileMoving)
+		)
+			return;
+		// the moving phase ends with the beauty rendering
 		if (this._cameraMotion === "stopping") this._cameraMotion = "none";
 		this._softShadowRenderingActive = true;
 		this._softShadowRenderingDurationActive = 0;
