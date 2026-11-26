@@ -122,6 +122,11 @@ export class RenderingManager implements IManager {
 	private _softShadowRenderingDurationActive: number = 0;
 	private _softShadowRenderingTimeout: ReturnType<typeof setTimeout> | null =
 		null;
+	/**
+	 * SS-10392: nothing fades and the frame on screen is the settled one.
+	 * The countdown only sends BEAUTY_RENDERING_FINISHED when it ends.
+	 */
+	private _settledOnScreen = false;
 	private _stats: any;
 	private _usingSwiftShader: boolean = false;
 	private _width: number = 0;
@@ -1345,6 +1350,15 @@ export class RenderingManager implements IManager {
 			if (
 				options.trackBeauty &&
 				accumulationConverged &&
+				this._softShadowRenderingTimeout &&
+				!this.stillFramesChange()
+			) {
+				// SS-10392: settled, the countdown sends the event
+				this._settledOnScreen = true;
+				this._activeRendering = false;
+			} else if (
+				options.trackBeauty &&
+				accumulationConverged &&
 				(this._softShadowRenderingDurationActive >=
 					this._renderingEngine.beautyRenderBlendingDuration ||
 					!this.stillFramesChange())
@@ -1365,7 +1379,18 @@ export class RenderingManager implements IManager {
 			if (options.trackBeauty) this._accumulator?.restart();
 
 			// if the beauty rendering was active, disable it
-			if (options.trackBeauty && this._softShadowRenderingActive) {
+			if (
+				options.trackBeauty &&
+				this._softShadowRenderingActive &&
+				this._softShadowRenderingTimeout &&
+				!this.stillFramesChange()
+			) {
+				// SS-10392: the beauty frame cannot run here (busy, an
+				// animation, no shadow map), this frame is the settled one
+				// and the countdown sends the event
+				this._settledOnScreen = true;
+				this._activeRendering = false;
+			} else if (options.trackBeauty && this._softShadowRenderingActive) {
 				// stop first: a listener that calls render() starts again
 				this.deactivateBeautyRenderShaders();
 				this._activeRendering = false;
@@ -1584,7 +1609,11 @@ export class RenderingManager implements IManager {
 	}
 
 	private deactivateBeautyRenderShaders() {
+		// a countdown still pending would start another beauty frame
+		if (this._softShadowRenderingTimeout)
+			clearTimeout(this._softShadowRenderingTimeout);
 		this._softShadowRenderingTimeout = null;
+		this._settledOnScreen = false;
 		this._beautyShadowState = undefined;
 		this._softShadowRenderingActive = false;
 		this._softShadowRenderingDurationActive = 0;
@@ -1827,10 +1856,11 @@ export class RenderingManager implements IManager {
 		// and so is the previous frame the reflections read
 		this._renderingEngine.postProcessingManager.invalidateHistory();
 		this.stopBeautyRenderCountdown();
-		// SS-10392: when nothing fades, the next frame is the settled one.
-		// Waiting for the countdown would only draw the same frame again.
-		if (this.stillFramesChange()) this.startBeautyRenderCountdown();
-		else this.startBeautyRendering();
+		// SS-10392: when nothing fades, the next frame is drawn in the
+		// settled look, and the countdown only sends the event. Changes in a
+		// row (a drag) restart it, so the event comes once at their end.
+		if (!this.stillFramesChange()) this.startBeautyRendering();
+		this.startBeautyRenderCountdown();
 	}
 
 	private startBeautyRenderCountdown() {
@@ -1838,8 +1868,17 @@ export class RenderingManager implements IManager {
 		if (this._softShadowRenderingTimeout)
 			clearTimeout(this._softShadowRenderingTimeout);
 		const timeout = setTimeout(() => {
-			if (this._softShadowRenderingTimeout === timeout)
-				this._softShadowRenderingTimeout = null;
+			if (this._softShadowRenderingTimeout !== timeout) return;
+			this._softShadowRenderingTimeout = null;
+			if (this._settledOnScreen && !this.stillFramesChange()) {
+				// the settled frame is on screen already
+				this.deactivateBeautyRenderShaders();
+				this._eventEngine.emitEvent(
+					EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
+					{viewportId: this._renderingEngine.id},
+				);
+				return;
+			}
 			this.startBeautyRendering();
 		}, this._renderingEngine.beautyRenderDelay);
 		this._softShadowRenderingTimeout = timeout;
