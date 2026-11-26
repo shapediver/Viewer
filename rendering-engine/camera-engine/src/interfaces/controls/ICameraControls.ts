@@ -55,6 +55,7 @@ export interface ICameraControls {
 		maxAzimuthAngle: number;
 	};
 	rotationSpeed: number;
+	sceneRotation: vec2;
 	spherePositionRestriction: {center: vec3; radius: number};
 	sphereTargetRestriction: {center: vec3; radius: number};
 	target: vec3;

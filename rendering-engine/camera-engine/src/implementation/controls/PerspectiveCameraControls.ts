@@ -7,19 +7,22 @@ export class PerspectiveCameraControls extends AbstractCameraControls {
 	// #region Properties (3)
 
 	private _settingsAdjustments = {
-		autoRotationSpeed: (2 * Math.PI) / 60 / 60,
+		// radians per millisecond: 1 = one full turn per minute
+		autoRotationSpeed: (2 * Math.PI) / 60000,
 		damping: 1.0,
 		movementSmoothness: 1.0,
-		panSpeed: 1.75,
-		rotationSpeed: Math.PI,
+		// 0.5 = the point under the pointer at target depth follows the pointer
+		panSpeed: 2.0,
+		// 0.5 = one full turn per canvas height
+		rotationSpeed: 4 * Math.PI,
 		zoomSpeed: 0.025,
 	};
 	private _touchAdjustments = {
 		autoRotationSpeed: 1.0,
 		damping: 1.0,
 		movementSmoothness: 1.0,
-		panSpeed: 1.0 / 1.75,
-		rotationSpeed: 1.5,
+		panSpeed: 1.0,
+		rotationSpeed: 1.0,
 		zoomSpeed: 100.0,
 	};
 

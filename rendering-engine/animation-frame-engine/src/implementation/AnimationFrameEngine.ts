@@ -19,14 +19,14 @@ export class AnimationFrameEngine implements IAnimationFrameEngine {
 	private _animationFrameCallbacks: {
 		[key: string]: AnimationFrameCallback;
 	} = {};
-	private _lastTime: number = 0;
+	private _lastTime: number | undefined;
 
 	// #endregion Properties (5)
 
 	// #region Constructors (1)
 
 	private constructor() {
-		this.animate(0);
+		requestAnimationFrame((time: number) => this.animate(time));
 	}
 
 	// #endregion Constructors (1)
@@ -65,7 +65,12 @@ export class AnimationFrameEngine implements IAnimationFrameEngine {
 		requestAnimationFrame((time: number) => this.animate(time));
 		TWEEN.update(time);
 
-		const deltaTime = time - this._lastTime < 0 ? 0 : time - this._lastTime;
+		// The first frame has no frame before it: its delta is 0, not the time
+		// since the page was opened.
+		const deltaTime =
+			this._lastTime === undefined
+				? 0
+				: Math.max(0, time - this._lastTime);
 		this._lastTime = time;
 
 		const runningAnimation = this.#animationEngine.update(deltaTime);

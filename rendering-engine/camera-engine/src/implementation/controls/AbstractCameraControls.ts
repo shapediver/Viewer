@@ -13,6 +13,11 @@ import {type ICameraControlsEventDistribution} from "../../interfaces/controls/I
 import {type ICameraControlsLogic} from "../../interfaces/controls/ICameraControlsLogic";
 import {CameraInterpolationManager} from "../interpolation/CameraInterpolationManager";
 
+/**
+ * The longest frame in milliseconds that the camera takes into account.
+ */
+const MAX_FRAME_TIME = 100;
+
 export abstract class AbstractCameraControls implements ICameraControls {
 	// #region Properties (38)
 
@@ -448,6 +453,11 @@ export abstract class AbstractCameraControls implements ICameraControls {
 		path: {position: vec3; target: vec3}[],
 		options: ICameraOptions,
 	): Promise<boolean> {
+		// The animation replaces the motion that the input still had to do.
+		// Input from before its start must not interrupt it.
+		this._cameraLogic.stop();
+		this._cameraLogic.consumeInput();
+
 		if (options && options.duration === 0) {
 			this._position = path[path.length - 1].position;
 			this._target = path[path.length - 1].target;
@@ -720,7 +730,11 @@ export abstract class AbstractCameraControls implements ICameraControls {
 	}
 
 	public isMoving(): boolean {
-		return this._manualInteraction || this._nonmanualInteraction;
+		return (
+			this._manualInteraction ||
+			this._nonmanualInteraction ||
+			this._cameraLogic.isMoving()
+		);
 	}
 
 	public isWithinRestrictions(position: vec3, target: vec3): boolean {
@@ -737,45 +751,37 @@ export abstract class AbstractCameraControls implements ICameraControls {
 		target: vec3;
 		sceneRotation: vec2;
 	} {
-		if (!this._enabled)
+		if (!this._enabled) {
+			// input that arrives while the controls are disabled is dropped
+			this._cameraLogic.stop();
+			this._cameraLogic.consumeInput();
 			return {
 				position: vec3.clone(this._position),
 				target: vec3.clone(this._target),
 				sceneRotation: vec2.clone(this._sceneRotation),
 			};
+		}
 
-		// reset all values
+		// A long frame (hidden tab, stall) must not move the camera by seconds.
+		time = Math.max(0, Math.min(time, MAX_FRAME_TIME));
+
+		// input interrupts a camera animation
+		const input = this._cameraLogic.consumeInput();
 		if (
-			this._manualInteraction === true &&
+			(this._manualInteraction === true || input) &&
 			this._cameraInterpolationManager.active()
 		)
 			this._cameraInterpolationManager.stop();
 
-		const {position, target, sceneRotation} = this._cameraLogic.restrict(
-			this.getPosition(),
-			this.getTarget(),
-			this.getSceneRotation(),
-		);
-		this._position = vec3.clone(position);
-		this._target = vec3.clone(target);
-		this._sceneRotation = sceneRotation
-			? vec2.clone(sceneRotation)
-			: vec2.create();
+		// transformations that were applied since the last frame
+		this.applyTransformations(false);
 
-		this._manualInteraction = false;
-		this._manualInteractionTransformations = {
-			position: [],
-			target: [],
-			sceneRotation: [],
-		};
-		this._nonmanualInteraction = this._cameraInterpolationManager.active();
-		this._nonmanualInteractionTransformations = {
-			position: [],
-			target: [],
-			sceneRotation: [],
-		};
+		// the motion of this frame towards the goal of the input
+		const animating = this._cameraInterpolationManager.active();
+		this._cameraLogic.update(time, animating);
+		this.applyTransformations(true);
 
-		this._cameraLogic.update(time, this._nonmanualInteraction);
+		this._nonmanualInteraction = animating;
 
 		const oldMovement = this._moving;
 		const cameraDefinition = {
@@ -785,7 +791,7 @@ export abstract class AbstractCameraControls implements ICameraControls {
 		};
 
 		this._movingDuration += time;
-		this._moving = this._manualInteraction || this._nonmanualInteraction;
+		this._moving = animating || this._cameraLogic.isMoving();
 
 		switch (true) {
 			case oldMovement !== this._moving && this._moving === true:
@@ -814,7 +820,44 @@ export abstract class AbstractCameraControls implements ICameraControls {
 
 	// #endregion Public Methods (17)
 
-	// #region Private Methods (3)
+	// #region Private Methods (4)
+
+	/**
+	 * Apply the queued transformations to the position, the target and the
+	 * scene rotation and empty the queues.
+	 *
+	 * @param restrict If the result is kept within the restrictions.
+	 */
+	private applyTransformations(restrict: boolean): void {
+		let position = this.getPosition();
+		let target = this.getTarget();
+		let sceneRotation: vec2 | undefined = this.getSceneRotation();
+		if (restrict)
+			({position, target, sceneRotation} = this._cameraLogic.restrict(
+				position,
+				target,
+				sceneRotation,
+			));
+
+		this._position = vec3.clone(position);
+		this._target = vec3.clone(target);
+		this._sceneRotation = sceneRotation
+			? vec2.clone(sceneRotation)
+			: vec2.create();
+
+		this._manualInteraction = false;
+		this._manualInteractionTransformations = {
+			position: [],
+			target: [],
+			sceneRotation: [],
+		};
+		this._nonmanualInteraction = false;
+		this._nonmanualInteractionTransformations = {
+			position: [],
+			target: [],
+			sceneRotation: [],
+		};
+	}
 
 	private getPosition(): vec3 {
 		let position = vec3.clone(this._position);
@@ -971,5 +1014,5 @@ export abstract class AbstractCameraControls implements ICameraControls {
 		return target;
 	}
 
-	// #endregion Private Methods (3)
+	// #endregion Private Methods (4)
 }
