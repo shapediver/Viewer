@@ -111,6 +111,11 @@ export function frameCounters(
 			(sum, p) => sum + p.materialUpdates,
 			0,
 		),
+		// Objects the render-list walk of three.js entered (SS-10606).
+		[`${prefix}.renderListVisits`]: scenePasses.reduce(
+			(sum, p) => sum + p.renderListVisits,
+			0,
+		),
 	};
 	scenePasses.forEach((pass, index) => {
 		counters[`${prefix}.scenePass${index}.drawCalls`] = pass.calls;
@@ -145,7 +150,11 @@ export async function createScene(
 	options: typeof AEC_DEFAULT = AEC_DEFAULT,
 ) {
 	const gpu = await page.evaluate(
-		([v, o]) => (window as any).__probe.create(v, o),
+		([v, o]) => {
+			const probe = (window as any).__probe;
+			probe.countRenderList = true;
+			return probe.create(v, o);
+		},
 		[variant, options] as const,
 	);
 	test.info().annotations.push({type: "gpu", description: gpu});

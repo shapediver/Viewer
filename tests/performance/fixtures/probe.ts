@@ -1,6 +1,6 @@
 import type {Page} from "@playwright/test";
-import {installAecScene} from "./aecScene";
 import {isSoftwareRenderer, SOFTWARE_BASELINES} from "../budgets/harness";
+import {installAecScene} from "./aecScene";
 import {COUNTER_INSTALLERS} from "./counters";
 
 /**
@@ -26,6 +26,12 @@ export interface PassRecord {
 	triangles: number;
 	/** `material.needsUpdate = true` assignments during this pass. */
 	materialUpdates: number;
+	/**
+	 * Objects the render-list walk of three.js entered in this pass. Only
+	 * counted for a scene pass while `__probe.countRenderList` is true,
+	 * otherwise 0.
+	 */
+	renderListVisits: number;
 	/** Pixels of the render target, or of the drawing buffer for the canvas. */
 	pixels: number;
 	/** Synchronous time inside `renderer.render`. Not GPU time. */
@@ -82,9 +88,41 @@ export function installProbe() {
 			callback(timestamp);
 		});
 
+	/**
+	 * The objects the render-list walk of three.js 0.184 (`projectObject`
+	 * in `WebGLRenderer`) enters: every object, but not below one whose
+	 * `visible` is false. three.js gives no hook into that closure, so this
+	 * mirrors its rule. It runs from the scene's `onBeforeRender`, inside
+	 * `render()`, where three.js reads `visible` (SS-10606).
+	 */
+	function renderListVisits(root: any): number {
+		let visits = 0;
+		const stack = [root];
+		while (stack.length > 0) {
+			const object = stack.pop();
+			visits++;
+			if (object.visible === false) continue;
+			const children = object.children;
+			for (let i = 0; i < children.length; i++) stack.push(children[i]);
+		}
+		return visits;
+	}
+
 	function track(renderer: any, mainScene: any) {
 		const original = renderer.render.bind(renderer);
 		renderer.render = (scene: any, camera: any) => {
+			// Off unless a test turns it on: the walk is work of the probe,
+			// and the work counts of `bench/count` must not include it.
+			let listVisits = 0;
+			const countList =
+				(window as any).__probe.countRenderList === true &&
+				scene === mainScene;
+			const onBeforeRender = scene.onBeforeRender;
+			if (countList)
+				scene.onBeforeRender = function (...args: any[]) {
+					listVisits = renderListVisits(scene);
+					return onBeforeRender.apply(this, args);
+				};
 			const info = renderer.info;
 			const callsBefore = info.render.calls;
 			const trianglesBefore = info.render.triangles;
@@ -97,6 +135,7 @@ export function installProbe() {
 				result = original(scene, camera);
 			} finally {
 				renderDepth--;
+				if (countList) scene.onBeforeRender = onBeforeRender;
 			}
 			const ms = performance.now() - start;
 			const target = renderer.getRenderTarget();
@@ -114,6 +153,7 @@ export function installProbe() {
 					? info.render.triangles
 					: info.render.triangles - trianglesBefore,
 				materialUpdates: updatesInRender - updatesBefore,
+				renderListVisits: listVisits,
 				ms,
 				programsCreated: Math.max(
 					0,
