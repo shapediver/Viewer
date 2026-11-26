@@ -220,13 +220,21 @@ test.describe("SS-10619 program links do not block", () => {
 			window.addEventListener("unhandledrejection", (event) =>
 				unhandled.push(String(event.reason)),
 			);
-			perf.env.load(url);
+			const loading = perf.env.load(url);
 			await perf.viewport.close();
 			closed = true;
 			await new Promise((resolve) => setTimeout(resolve, 2000));
-			return {callsAfterClose, unhandled};
+			// the task is cancelled, not ended
+			const events = await loading;
+			return {callsAfterClose, unhandled, events};
 		}, HDR.a.url);
 		expect(after.callsAfterClose, JSON.stringify(after)).toBe(0);
+		expect(after.events, JSON.stringify(after)).toEqual({
+			status: "cancel",
+			starts: 1,
+			ends: 0,
+			cancels: 1,
+		});
 		expect(after.unhandled, JSON.stringify(after)).toEqual([]);
 		expect(errors).toEqual([]);
 	});

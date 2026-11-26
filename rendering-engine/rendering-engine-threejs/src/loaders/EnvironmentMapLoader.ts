@@ -546,6 +546,8 @@ export class EnvironmentMapLoader implements ILoader {
 		if (name in this._environmentMaps === false) return;
 		const isBuiltIn = this._environmentMaps[name].isBuiltIn === true;
 		const map = await this._environmentMaps[name].map;
+		// the viewport closed while the map was loading: its task was cancelled
+		if (this._disposed) return;
 		// a newer load was started while this one was loading, for example by a change
 		// of the filtering right after the map: the newer one is assigned, not this one
 		if (loadId !== this._loadCount) {
@@ -711,6 +713,10 @@ export class EnvironmentMapLoader implements ILoader {
 										)
 										.then(
 											() => {
+												// prepare created the intermediate
+												// target object; three.js prefilters
+												// with its own generator
+												this._pmremGenerator.releaseTargets();
 												this._environmentMaps[
 													name
 												].resolved = true;
@@ -719,9 +725,10 @@ export class EnvironmentMapLoader implements ILoader {
 											(e) => {
 												this.notify(eventId, true);
 												// closed viewport: nothing to report
-												if (this._disposed)
+												if (this._disposed) {
+													map.dispose();
 													resolve(null);
-												else reject(e);
+												} else reject(e);
 											},
 										);
 								},
