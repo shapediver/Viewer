@@ -187,13 +187,7 @@ export class ContactShadow implements IEnvironmentGeometry {
 		// Read before the swap: the blur plane is a scene mesh as well.
 		const initialBlurMaterial = this._blurPlane.material;
 
-		const initialGridVisibility = engine.gridVisibility;
-		const initialGroundPlaneVisibility = engine.groundPlaneVisibility;
-		const initialGroundPlaneShadowVisibility =
-			engine.groundPlaneShadowVisibility;
-		engine.gridVisibility = false;
-		engine.groundPlaneVisibility = false;
-		engine.groundPlaneShadowVisibility = false;
+		this.hideEnvironmentGeometry();
 		const planes = [this._blurPlane, this._fillPlane, this._plane];
 		const planeVisibility = planes.map((plane) => plane.visible);
 		planes.forEach((plane) => (plane.visible = false));
@@ -233,12 +227,30 @@ export class ContactShadow implements IEnvironmentGeometry {
 			});
 			this._blurPlane.material = initialBlurMaterial;
 			planes.forEach((plane, i) => (plane.visible = planeVisibility[i]));
-			engine.gridVisibility = initialGridVisibility;
-			engine.groundPlaneVisibility = initialGroundPlaneVisibility;
-			engine.groundPlaneShadowVisibility =
-				initialGroundPlaneShadowVisibility;
+			this.restoreEnvironmentGeometry();
 			renderer.setRenderTarget(initialRenderTarget);
 		}
+	}
+
+	/**
+	 * Hide the grid, the ground plane and its shadow for a draw of the
+	 * contact shadow. Their objects only: the viewport's settings stay as
+	 * they are, so no setting change is recorded.
+	 */
+	private hideEnvironmentGeometry(): void {
+		const geometry = this._renderingEngine.environmentGeometryManager;
+		geometry.grid.visible = false;
+		geometry.groundPlane.visible = false;
+		geometry.groundPlaneShadow.visible = false;
+	}
+
+	/** Show what {@link hideEnvironmentGeometry} hid, as the settings say. */
+	private restoreEnvironmentGeometry(): void {
+		const engine = this._renderingEngine;
+		const geometry = engine.environmentGeometryManager;
+		geometry.grid.visible = engine.gridVisibility;
+		geometry.groundPlane.visible = engine.groundPlaneVisibility;
+		geometry.groundPlaneShadow.visible = engine.groundPlaneShadowVisibility;
 	}
 
 	public render() {
@@ -252,14 +264,7 @@ export class ContactShadow implements IEnvironmentGeometry {
 			this._renderingEngine.renderer.debug.checkShaderErrors;
 		this._renderingEngine.renderer.debug.checkShaderErrors = false;
 
-		const initialGridVisibility = this._renderingEngine.gridVisibility;
-		this._renderingEngine.gridVisibility = false;
-		const initialGroundPlaneVisibility =
-			this._renderingEngine.groundPlaneVisibility;
-		this._renderingEngine.groundPlaneVisibility = false;
-		const initialGroundPlaneShadowVisibility =
-			this._renderingEngine.groundPlaneShadowVisibility;
-		this._renderingEngine.groundPlaneShadowVisibility = false;
+		this.hideEnvironmentGeometry();
 
 		this._blurPlane.visible = false;
 		this._fillPlane.visible = false;
@@ -328,11 +333,7 @@ export class ContactShadow implements IEnvironmentGeometry {
 
 		this._plane.visible = true;
 
-		this._renderingEngine.gridVisibility = initialGridVisibility;
-		this._renderingEngine.groundPlaneVisibility =
-			initialGroundPlaneVisibility;
-		this._renderingEngine.groundPlaneShadowVisibility =
-			initialGroundPlaneShadowVisibility;
+		this.restoreEnvironmentGeometry();
 
 		this._renderingEngine.renderer.debug.checkShaderErrors =
 			initialCheckShaderErrors;

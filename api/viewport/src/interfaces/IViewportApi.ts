@@ -410,10 +410,6 @@ export interface IViewportApi {
 	 * applied a change (`revisions`). A new object per read.
 	 * `EVENTTYPE_VIEWPORT.SCENE_STATE_CHANGED` is sent when `static` or
 	 * `reasons` change.
-	 *
-	 * A hide, show or move of a node is the edit plus `updateVersion()`: the
-	 * next frame applies it. {@link update} applies it at once. Both give the
-	 * same `sceneChanges` on `VIEWPORT_UPDATED` and the same `revisions`.
 	 */
 	readonly sceneState: ISceneState;
 	/**
@@ -795,11 +791,11 @@ export interface IViewportApi {
 	 * This carries out preparations for rendering. Call it after doing
 	 * direct changes to the scene tree.
 	 *
-	 * A change with a new version (`node.updateVersion()`) does not need this
-	 * call: the next frame applies it, with the same `VIEWPORT_UPDATED`
-	 * report. Call it to apply the change at once, or after an edit without
-	 * a new version. Without a new version, the scene state marks everything
-	 * as changed (channel `unknown` of {@link sceneState}).
+	 * It applies the changes at once and synchronously. Without it, a shown
+	 * viewport applies a change with a new version (`node.updateVersion()`)
+	 * in its next frame, with the same `VIEWPORT_UPDATED` report. Called
+	 * without a new version, the scene state marks everything as changed
+	 * (channel `unknown` of {@link sceneState}).
 	 */
 	update(): void;
 	/**

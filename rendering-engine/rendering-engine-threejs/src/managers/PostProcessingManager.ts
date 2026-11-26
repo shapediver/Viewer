@@ -495,6 +495,7 @@ export class PostProcessingManager implements IManager {
 			});
 		}
 		this._suspendEffectPassUpdate = false;
+		this.recordChange();
 		this.changeEffectPass();
 	}
 

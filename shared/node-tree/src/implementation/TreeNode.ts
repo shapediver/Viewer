@@ -71,8 +71,11 @@ export class TreeNode implements ITreeNode {
 	 * constructor are not recorded either.
 	 */
 	private readonly _createdAt: number = currentSerial() + 1;
-	/** The kinds (bits) of the data items of this node. */
-	private _dataKinds = 0;
+	/**
+	 * The number of data items of each change kind: digit `i` in base 128 is
+	 * the count of kind `i` (see DATA_KIND_WEIGHTS). No allocation per node.
+	 */
+	private _dataKindCounts = 0;
 
 	/**
 	 * Creation of a node that can be used in the node tree.
@@ -623,11 +626,12 @@ export class TreeNode implements ITreeNode {
 	}
 
 	private onDataChanged(data: readonly ITreeNodeData[]) {
-		let kinds = 0;
+		let counts = 0;
 		// ensure parent update versions are set
 		data.forEach((d) => {
 			const kind = dataChangeKind(d);
-			if (kind) kinds |= 1 << SCENE_NODE_CHANGE_KIND_INDEX[kind];
+			if (kind)
+				counts += DATA_KIND_WEIGHTS[SCENE_NODE_CHANGE_KIND_INDEX[kind]];
 			if (d.parentsUpdateVersions[this.id] === undefined) {
 				// Called by the data item: with no argument for a new version
 				// of the item, with a kind for a change without a version
@@ -643,11 +647,22 @@ export class TreeNode implements ITreeNode {
 				d.parentsUpdateVersions[this.id] = onChange;
 			}
 		});
-		// An item was added or removed. The removed one is no longer in the
-		// list: record the kinds of the items before and after the change.
-		const changed = kinds | this._dataKinds;
-		this._dataKinds = kinds;
-		for (let i = 0; changed >> i; i++)
-			if (changed & (1 << i)) this.noteChange(SCENE_NODE_CHANGE_KINDS[i]);
+		// An item was added or removed: the kinds whose count changed.
+		const before = this._dataKindCounts;
+		this._dataKindCounts = counts;
+		if (counts === before) return;
+		for (let i = 0; i < DATA_KIND_WEIGHTS.length; i++) {
+			const weight = DATA_KIND_WEIGHTS[i];
+			if (
+				Math.floor(counts / weight) % 128 !==
+				Math.floor(before / weight) % 128
+			)
+				this.noteChange(SCENE_NODE_CHANGE_KINDS[i]);
+		}
 	}
 }
+
+/** The weight of one data item of each change kind in `_dataKindCounts`. */
+const DATA_KIND_WEIGHTS: readonly number[] = SCENE_NODE_CHANGE_KINDS.map(
+	(_, i) => 128 ** i,
+);

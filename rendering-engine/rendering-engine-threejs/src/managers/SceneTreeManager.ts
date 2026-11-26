@@ -578,24 +578,21 @@ export class SceneTreeManager implements IManager {
 			// A transformation-only pass also applies the visibility of the
 			// node. The next scene update then finds it applied and leaves the
 			// node out, so it is reported here.
-			if (filter.transformationOnly && visibilityChanged) {
+			if (filter.transformationOnly && visibilityChanged)
 				this._changedNodes.add(treeNode);
-				// The visibility in this viewport changed: through the node,
-				// or through its excludeViewports or restrictViewports, which
-				// record no kind. Read below as well.
-				this.addChangedKinds(
+			if (
+				filter.transformationOnly &&
+				appliedBefore > 0 &&
+				(moved || visibilityChanged)
+			)
+				this.applyMoveOrVisibility(
 					treeNode,
-					appliedBefore > 0
-						? VISIBILITY_BIT |
-								(changedKindsSince(treeNode, appliedBefore) &
-									TRANSFORMATION_BIT)
-						: 0,
+					convertedObject,
+					appliedBefore,
+					(moved ? TRANSFORMATION_BIT : 0) |
+						(visibilityChanged ? VISIBILITY_BIT : 0),
+					visibilityChanged,
 				);
-			}
-			if (filter.transformationOnly && appliedBefore > 0) {
-				if (moved) this.recordChannel("transformation");
-				if (visibilityChanged) this.recordChannel("visibility");
-			}
 
 			// The transformation and the visibility are inherited by the
 			// whole branch (world matrices, bounding boxes, instances and
@@ -814,6 +811,8 @@ export class SceneTreeManager implements IManager {
 				);
 		} finally {
 			this._batchDepth--;
+			// Nodes created during the update (by a callback) count as read.
+			if (this._batchDepth === 0) markTreeRead();
 			if (
 				this._batchDepth === 0 &&
 				filter.transformationOnly === false &&
@@ -1113,6 +1112,31 @@ export class SceneTreeManager implements IManager {
 		this.addChangedKinds(treeNode, kinds);
 		for (let i = 0; kinds >> i; i++)
 			if (kinds & (1 << i)) this._revisions[i] = applied;
+	}
+
+	/**
+	 * A transformation-only visit applied a move or a visibility change of
+	 * the node (`kinds`): records their channels and, for a visibility
+	 * change, the node's report (the visibility in this viewport can also
+	 * change through `excludeViewports` or `restrictViewports`, which record
+	 * no kind). The node counts as applied only if nothing else waits on
+	 * it: this visit does not convert its data.
+	 */
+	private applyMoveOrVisibility(
+		treeNode: ITreeNode,
+		convertedObject: SDObject,
+		appliedBefore: number,
+		kinds: number,
+		reported: boolean,
+	): void {
+		const applied = nextSerial();
+		for (let i = 0; kinds >> i; i++)
+			if (kinds & (1 << i)) this._revisions[i] = applied;
+		if (reported) this.addChangedKinds(treeNode, kinds);
+		const waiting =
+			changedKindsSince(treeNode, appliedBefore) &
+			~(TRANSFORMATION_BIT | VISIBILITY_BIT);
+		if (waiting === 0) convertedObject.SDappliedSerial = applied;
 	}
 
 	/**

@@ -521,17 +521,23 @@ describe("change clock and change kinds (SS-10565)", () => {
 		expect(kindsAfter(child, serial)).toEqual(["geometry"]);
 		serial = currentSerial();
 		child.addData(light);
-		// the kinds of the items before and after the change
-		expect(kindsAfter(child, serial)).toEqual(["geometry", "light"]);
+		// only the kind of the item that was added or removed
+		expect(kindsAfter(child, serial)).toEqual(["light"]);
 		serial = currentSerial();
 		light.updateVersion();
 		expect(kindsAfter(child, serial)).toEqual(["light"]);
 		serial = currentSerial();
 		child.removeData(geometry);
-		expect(kindsAfter(child, serial)).toEqual(["geometry", "light"]);
+		expect(kindsAfter(child, serial)).toEqual(["geometry"]);
+		serial = currentSerial();
+		child.addData(new CustomData({}));
+		expect(kindsAfter(child, serial)).toEqual(["geometry"]);
+		serial = currentSerial();
+		child.removeData(light);
+		expect(kindsAfter(child, serial)).toEqual(["light"]);
 		serial = currentSerial();
 		child.data.pop();
-		expect(kindsAfter(child, serial)).toEqual(["light"]);
+		expect(kindsAfter(child, serial)).toEqual(["geometry"]);
 	});
 
 	test("a change without a version records its kind on the data's nodes", async () => {
