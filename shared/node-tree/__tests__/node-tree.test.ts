@@ -2,6 +2,7 @@ import {SceneNodeChangeKind} from "@shapediver/viewer.shared.types";
 import {mat4} from "gl-matrix";
 import {
 	AbstractTreeNodeData,
+	changedChildrenSince,
 	currentSerial,
 	CustomData,
 	ITransformation,
@@ -598,5 +599,164 @@ describe("change clock and change kinds (SS-10565)", () => {
 		expect(second).not.toBe(first);
 		parent.removeChild(other);
 		expect(parent.structureVersion).not.toBe(second);
+	});
+});
+
+describe("log of changed children (SS-10564)", () => {
+	/** A parent with `count` children, and a grandchild below the first. */
+	const family = (count: number) => {
+		const parent = new TreeNode("parent");
+		const children: TreeNode[] = [];
+		for (let i = 0; i < count; i++)
+			children.push(new TreeNode("c" + i, parent));
+		const grandchild = new TreeNode("g", children[0]);
+		// A viewport read the tree.
+		markTreeRead();
+		return {parent, children, grandchild};
+	};
+	const names = (
+		entries: {child: ITreeNode; removed: boolean}[] | undefined,
+	) => entries?.map((e) => (e.removed ? "-" : "") + e.child.name);
+
+	test("updateVersion logs the node in its parent and each ancestor in its own", async () => {
+		const {parent, children, grandchild} = family(3);
+		const before = currentSerial();
+		grandchild.updateVersion();
+		expect(names(changedChildrenSince(children[0], before))).toEqual(["g"]);
+		expect(names(changedChildrenSince(parent, before))).toEqual(["c0"]);
+		expect(changedChildrenSince(children[1], before)).toEqual([]);
+	});
+
+	test("the entries carry clock values; only later ones are returned", async () => {
+		const {parent, children} = family(3);
+		children[1].updateVersion();
+		const between = currentSerial();
+		children[2].updateVersion();
+		const entry = parent.changedChildren[parent.changedChildren.length - 1];
+		expect(entry.serial).toBe(children[2].serial);
+		expect(names(changedChildrenSince(parent, between))).toEqual(["c2"]);
+		expect(changedChildrenSince(parent, currentSerial())).toEqual([]);
+	});
+
+	test("the same child again updates the last entry; a reader sees each child once", async () => {
+		const {parent, children} = family(3);
+		const before = currentSerial();
+		const length = parent.changedChildren.length;
+		children[1].updateVersion();
+		children[1].updateVersion();
+		expect(parent.changedChildren.length).toBe(length + 1);
+		children[2].updateVersion();
+		children[1].updateVersion();
+		expect(names(changedChildrenSince(parent, before))).toEqual([
+			"c2",
+			"c1",
+		]);
+	});
+
+	test("updateVersion(false, false) logs the node, children = true logs each descendant", async () => {
+		const {parent, children, grandchild} = family(2);
+		const before = currentSerial();
+		children[1].updateVersion(false, false);
+		expect(names(changedChildrenSince(parent, before))).toEqual(["c1"]);
+		const between = currentSerial();
+		children[0].updateVersion(false, true);
+		expect(names(changedChildrenSince(children[0], between))).toEqual([
+			grandchild.name,
+		]);
+		expect(names(changedChildrenSince(parent, between))).toEqual(["c0"]);
+	});
+
+	test("addChild and removeChild log the child", async () => {
+		const {parent} = family(2);
+		const before = currentSerial();
+		const added = new TreeNode("added");
+		parent.addChild(added);
+		expect(names(changedChildrenSince(parent, before))).toEqual(["added"]);
+		parent.removeChild(added);
+		expect(names(changedChildrenSince(parent, before))).toEqual(["-added"]);
+	});
+
+	test("a move to another parent logs a removal and an addition", async () => {
+		const other = new TreeNode("other");
+		const {parent, children} = family(2);
+		const before = currentSerial();
+		other.addChild(children[1]);
+		expect(names(changedChildrenSince(parent, before))).toEqual(["-c1"]);
+		expect(names(changedChildrenSince(other, before))).toEqual(["c1"]);
+	});
+
+	test("an overflow clears the log; a reader from before looks at all children", async () => {
+		const {parent, children} = family(3);
+		const before = currentSerial();
+		// More distinct entries than children + 1.
+		for (let i = 0; i < 3; i++)
+			for (const child of children) child.updateVersion();
+		expect(parent.changedChildren.length).toBeLessThanOrEqual(
+			children.length + 1,
+		);
+		expect(parent.changedChildrenReset).toBeGreaterThan(before);
+		expect(changedChildrenSince(parent, before)).toBeUndefined();
+		// A reader from after the reset reads the entries since.
+		const since = changedChildrenSince(parent, parent.changedChildrenReset);
+		expect(since).toBeDefined();
+		expect(since!.length).toBeGreaterThan(0);
+	});
+
+	test("a clone starts with its own log", async () => {
+		const {parent, children} = family(2);
+		children[1].updateVersion();
+		const clone = parent.clone() as TreeNode;
+		expect(
+			clone.changedChildren.every((e) => e.child.parent === clone),
+		).toBe(true);
+	});
+
+	test("a child added or removed is logged in every ancestor, without updateVersion", async () => {
+		const {parent, children, grandchild} = family(2);
+		const before = currentSerial();
+		const added = new TreeNode("added");
+		grandchild.addChild(added);
+		expect(names(changedChildrenSince(grandchild, before))).toEqual([
+			"added",
+		]);
+		expect(names(changedChildrenSince(children[0], before))).toEqual(["g"]);
+		expect(names(changedChildrenSince(parent, before))).toEqual(["c0"]);
+	});
+
+	test("entries every reader had the chance to apply are dropped at the next entry", async () => {
+		const {parent, children} = family(3);
+		const removed = children[2];
+		parent.removeChild(removed);
+		// A viewport visits the parent: it applied the removal.
+		markTreeRead();
+		const applied = currentSerial();
+		children[1].updateVersion();
+		expect(parent.changedChildren.map((e) => e.child)).toEqual([
+			children[1],
+		]);
+		// A reader that applied the removal reads on; one that did not
+		// looks at all children.
+		expect(names(changedChildrenSince(parent, applied))).toEqual(["c1"]);
+		expect(changedChildrenSince(parent, applied - 2)).toBeUndefined();
+	});
+
+	test("a node nobody has read logs nothing", async () => {
+		markTreeRead();
+		const parent = new TreeNode("unread");
+		const child = new TreeNode("child", parent);
+		child.updateVersion();
+		expect(parent.changedChildren).toEqual([]);
+	});
+
+	test("visible without updateVersion logs nothing", async () => {
+		const {parent, children} = family(2);
+		const before = currentSerial();
+		children[1].visible = false;
+		expect(changedChildrenSince(parent, before)).toEqual([]);
+	});
+
+	test("a node of another implementation has no log", async () => {
+		const foreign = {children: []} as unknown as ITreeNode;
+		expect(changedChildrenSince(foreign, 0)).toBeUndefined();
 	});
 });
