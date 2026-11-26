@@ -1887,6 +1887,7 @@ export class PostProcessingManager implements IManager {
 								lumaPhi: properties.lumaPhi,
 								mode: properties.mode,
 								specularOcclusion: properties.specularOcclusion,
+								algorithm: properties.algorithm,
 								excludeGems: properties.excludeGems,
 								depthPhi: properties.depthPhi,
 								normalPhi: properties.normalPhi,
