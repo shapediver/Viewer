@@ -117,6 +117,18 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 		this.#drawingToolsManager.pauseWhileBusy = value;
 	}
 
+	public get pointerDownFilter():
+		| ((event: PointerEvent) => boolean)
+		| undefined {
+		return this.#drawingToolsManager.pointerDownFilter;
+	}
+
+	public set pointerDownFilter(
+		value: ((event: PointerEvent) => boolean) | undefined,
+	) {
+		this.#drawingToolsManager.pointerDownFilter = value;
+	}
+
 	public get pointsData(): PointsData {
 		return this.#drawingToolsManager.getPointsData();
 	}
@@ -234,6 +246,10 @@ export class DrawingToolsApi implements IDrawingToolsApi {
 
 	public cancelDrag(): void {
 		this.#drawingToolsManager.cancelDrag();
+	}
+
+	public hitsPointer(event: PointerEvent): boolean {
+		return this.#drawingToolsManager.hitsPointer(event);
 	}
 
 	public isInteractionActive(): boolean {

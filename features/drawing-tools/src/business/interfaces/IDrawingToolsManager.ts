@@ -29,10 +29,12 @@ export interface IDrawingToolsManager {
 	readonly uuid: string;
 
 	pauseWhileBusy: boolean;
+	pointerDownFilter?: (event: PointerEvent) => boolean;
 	showDistanceLabels: boolean;
 	showPointLabels: boolean;
 	showPointerPosition: boolean;
 
+	hitsPointer(event: PointerEvent): boolean;
 	pause(): void;
 	continue(): void;
 	addPoint(

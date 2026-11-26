@@ -3,7 +3,8 @@ import * as THREE from "three";
 import {AbstractCamera} from "@shapediver/viewer.rendering-engine.camera-engine";
 import {
 	AbstractLight,
-	DirectionalLight} from "@shapediver/viewer.rendering-engine.light-engine";
+	DirectionalLight,
+} from "@shapediver/viewer.rendering-engine.light-engine";
 import {type IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {Box, type IBox} from "@shapediver/viewer.shared.math";
 import {
@@ -13,17 +14,22 @@ import {
 	type ITree,
 	type ITreeNode,
 	type ITreeNodeData,
-	Tree} from "@shapediver/viewer.shared.node-tree";
-import {type ISDTFOverview, RENDERER_TYPE} from "@shapediver/viewer.shared.types";
+	Tree,
+} from "@shapediver/viewer.shared.node-tree";
+import {
+	type ISDTFOverview,
+	RENDERER_TYPE,
+} from "@shapediver/viewer.shared.types";
 
 import {
 	EventEngine,
 	EVENTTYPE,
 	PerformanceEvaluator,
-	StateEngine} from "@shapediver/viewer.shared.services";
+	StateEngine,
+} from "@shapediver/viewer.shared.services";
 import {vec3} from "gl-matrix";
 
-import {SDObject, SD_DATA_TYPE} from "../objects/SDObject";
+import {SD_DATA_TYPE, SDObject} from "../objects/SDObject";
 import {RenderingEngine} from "../RenderingEngine";
 import {ThreejsData} from "../types/ThreejsData";
 import {assignBoundingBox, removeData} from "./sceneTree/SceenTreeManagerUtils";
@@ -44,6 +50,7 @@ export class SceneTreeManager implements IManager {
 		new THREE.PerspectiveCamera();
 	private _lastRendererType: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
 	private _lastRootVersion: string = "";
+	private _lastInstancingEnabled: boolean = false;
 	private _mainConvertedObject!: SDObject;
 	private _newRendererType: boolean = false;
 	private _suspendSceneUpdates: boolean = false;
@@ -96,6 +103,18 @@ export class SceneTreeManager implements IManager {
 		isVisibleInHierarchy: boolean = true,
 	): void {
 		let dataChild: THREE.Object3D | undefined;
+		if (this._newRendererType && filter.transformationOnly === false) {
+			const staleObjects = convertedObject.children.filter(
+				(child) =>
+					child.userData.SDtype === SD_DATA_TYPE.GEOMETRY &&
+					child.userData.SDid === treeNodeData.id &&
+					child.userData.SDversion === treeNodeData.version,
+			);
+			staleObjects.forEach((child) => {
+				removeData(this._renderingEngine, child);
+				convertedObject.remove(child);
+			});
+		}
 
 		if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
 			if (treeNodeData instanceof GeometryData) {
@@ -117,38 +136,124 @@ export class SceneTreeManager implements IManager {
 		switch (true) {
 			case treeNodeData instanceof GeometryData:
 				{
-					// We search for the instance matrices data in the parent of our current node
-					// We are currently at the primitive level and the instance matrices are stored at the mesh level
+					const geometryData = treeNodeData as GeometryData;
+					// The instance matrices (EXT_mesh_gpu_instancing) live on the
+					// same node as the geometry since the gltf tree was flattened.
+					// Older producers still store them on the mesh-level parent.
 					const instanceTransformationData: InstanceData | undefined =
-						treeNode.parent?.data.find(
-							(d) => d instanceof InstanceData,
-						) as InstanceData | undefined;
-					if (filter.transformationOnly === false) {
-						dataChild = this._renderingEngine.geometryLoader.load(
-							<GeometryData>treeNodeData,
-							instanceTransformationData,
-						);
+						(treeNode.data.find((d) => d instanceof InstanceData) ??
+							treeNode.parent?.data.find(
+								(d) => d instanceof InstanceData,
+							)) as InstanceData | undefined;
+					const existingGeometry = convertedObject.children.find(
+						(child) =>
+							child.userData.SDtype === SD_DATA_TYPE.GEOMETRY &&
+							child.userData.SDid === treeNodeData.id &&
+							child.userData.SDversion === treeNodeData.version,
+					);
+					const shouldInstance = this.shouldUseGpuInstancing(
+						geometryData,
+						treeNode,
+					);
+					const instanceModeChanged =
+						!!existingGeometry &&
+						!!existingGeometry.userData.isInstanced !==
+							shouldInstance;
+					const instanceGroupChanged =
+						!!existingGeometry?.userData.isInstanced &&
+						existingGeometry.userData.instanceGroupKey !==
+							this._renderingEngine.instanceGroupManager.getGroupKey(
+								geometryData,
+							);
+					const instancingChanged =
+						instanceModeChanged || instanceGroupChanged;
+					if (instancingChanged && existingGeometry) {
+						removeData(this._renderingEngine, existingGeometry);
+						convertedObject.remove(existingGeometry);
+					}
 
-						// Three.js Object3Ds can only have one parent. If the
-						// same GeometryData is referenced by multiple tree nodes,
-						// the cache returns the same mesh each time. Adding it to
-						// a second node silently removes it from the first. Clone
-						// only when this would happen (different existing parent).
+					if (
+						filter.transformationOnly === false ||
+						instancingChanged
+					) {
+						// Geometry children are Object3D placeholders/meshes, not
+						// SDObjects, so the convertedChildrenMap miss would otherwise
+						// recreate them on every scene update — leaking instanced
+						// placeholders and moving InstancedMeshes out of instancedRoot.
 						if (
-							dataChild.parent !== null &&
-							dataChild.parent !== convertedObject
+							existingGeometry &&
+							!instancingChanged &&
+							!this._newRendererType
 						) {
-							dataChild = dataChild.clone() as typeof dataChild;
-						}
-						this._renderingEngine.geometryLoader.registerGeometryObject(
-							treeNodeData as GeometryData,
-							dataChild,
-						);
+							dataChild = existingGeometry;
+							// Instancing and attribute visualization keep color on a
+							// separate material or instance attribute. Beauty-mode color
+							// edits already mutate the existing material; replacing it
+							// here drops the environment map and flattens the shading.
+							if (
+								(geometryData.instantiable &&
+									this._renderingEngine.instanceGroupManager
+										.enabled) ||
+								this._renderingEngine.type ===
+									RENDERER_TYPE.ATTRIBUTES
+							)
+								this._renderingEngine.geometryLoader.updateGeometryMaterial(
+									geometryData,
+								);
+						} else {
+							// In attribute-visualization mode instancing works with
+							// per-instance flat colors, but transparency needs
+							// per-object sorting: occurrences with a non-opaque
+							// attribute material use the regular path.
+							if (shouldInstance) {
+								// GPU-instanced geometry: delegate to InstanceGroupManager.
+								// Returns a lightweight placeholder that tracks this node.
+								dataChild =
+									this._renderingEngine.geometryLoader.loadInstanced(
+										treeNode,
+										geometryData,
+									);
+							} else {
+								dataChild =
+									this._renderingEngine.geometryLoader.load(
+										treeNode,
+										geometryData,
+										instanceTransformationData,
+									);
 
-						dataChild.userData.SDtype = SD_DATA_TYPE.GEOMETRY;
-						dataChild.userData.SDid = treeNodeData.id;
-						dataChild.userData.SDversion = treeNodeData.version;
-						convertedObject.add(dataChild);
+								// Three.js Object3Ds can only have one parent. If the
+								// same GeometryData is referenced by multiple tree nodes,
+								// the cache returns the same mesh each time. Adding it to
+								// a second node silently removes it from the first. Clone
+								// only when this would happen (different existing parent).
+								if (
+									dataChild.parent !== null &&
+									dataChild.parent !== convertedObject
+								) {
+									dataChild =
+										dataChild.clone() as typeof dataChild;
+								}
+
+								// Baked-transform occurrences share the source
+								// geometry; place the mesh via the offset matrix.
+								if (geometryData.instanceOffsetMatrix) {
+									dataChild.matrixAutoUpdate = false;
+									dataChild.matrix.fromArray(
+										geometryData.instanceOffsetMatrix,
+									);
+									dataChild.matrixWorldNeedsUpdate = true;
+								}
+							}
+							this._renderingEngine.geometryLoader.registerGeometryObject(
+								treeNodeData as GeometryData,
+								dataChild,
+							);
+
+							dataChild.userData.SDtype = SD_DATA_TYPE.GEOMETRY;
+							dataChild.userData.SDid = treeNodeData.id;
+							dataChild.userData.SDversion = treeNodeData.version;
+							convertedObject.add(dataChild);
+						}
 					}
 				}
 				break;
@@ -343,13 +448,23 @@ export class SceneTreeManager implements IManager {
 
 		convertedObject.visible = isVisible;
 		convertedObject.applyTransformation(treeNode.nodeMatrix);
+		this._renderingEngine.instanceGroupManager.updateNode(treeNode);
+		this._renderingEngine.instanceGroupManager.setNodeVisible(
+			treeNode.id,
+			isVisibleInHierarchy,
+		);
 	}
 
 	public updateSceneTree(rootTreeNode: ITreeNode): void {
+		const instancingChanged =
+			this._renderingEngine.instanceGroupManager.enabled !==
+			this._lastInstancingEnabled;
+
 		// check if we currently have the same root version
 		if (
 			this._tree.root.version === this._lastRootVersion &&
-			this._renderingEngine.type === this._lastRendererType
+			this._renderingEngine.type === this._lastRendererType &&
+			!instancingChanged
 		)
 			return;
 
@@ -358,10 +473,22 @@ export class SceneTreeManager implements IManager {
 
 		this._lastRootVersion = this._tree.root.version;
 		this._newRendererType =
-			this._renderingEngine.type !== this._lastRendererType;
+			this._renderingEngine.type !== this._lastRendererType ||
+			instancingChanged;
 		this._lastRendererType = this._renderingEngine.type;
+		this._lastInstancingEnabled =
+			this._renderingEngine.instanceGroupManager.enabled;
 
-		if (this._renderingEngine.closed) return;
+		if (this._renderingEngine.closed) {
+			this._newRendererType = false;
+			return;
+		}
+
+		if (
+			instancingChanged &&
+			!this._renderingEngine.instanceGroupManager.enabled
+		)
+			this._renderingEngine.instanceGroupManager.clear();
 
 		this._performanceEvaluator.startSection(
 			"sceneTreeUpdate." + this._lastRootVersion,
@@ -390,8 +517,16 @@ export class SceneTreeManager implements IManager {
 			this._scene.add(this._mainConvertedObject);
 		}
 
+		// Ensure the instanced-mesh root container is in the scene.
+		if (!this._scene.getObjectByName("instancedRoot"))
+			this._scene.add(
+				this._renderingEngine.instanceGroupManager.instancedRoot,
+			);
+
 		this._currentSDTFOverview = createSDTFOverview(rootTreeNode);
+		this._renderingEngine.instanceGroupManager.beginBoundsUpdate();
 		this.updateNode(rootTreeNode, this._mainConvertedObject);
+		this._renderingEngine.instanceGroupManager.endBoundsUpdate();
 		this._boundingBox =
 			rootTreeNode.boundingBoxViewport[this._renderingEngine.id].clone();
 
@@ -493,6 +628,13 @@ export class SceneTreeManager implements IManager {
 			this._hiddenCamera,
 		);
 
+		// Instancing (and renderer-type) toggles dispose and recreate meshes.
+		// Rebind outline/bloom selections onto the new objects so they do not
+		// keep referencing disposed InstancedMeshes or regular meshes.
+		if (this._newRendererType)
+			this._renderingEngine.postProcessingManager.refreshInstancedEffectSelections();
+		this._newRendererType = false;
+
 		this._performanceEvaluator.endSection(
 			"sceneTreeUpdate." + this._lastRootVersion,
 		);
@@ -535,6 +677,30 @@ export class SceneTreeManager implements IManager {
 			});
 			convertedObject.remove(cTR);
 		});
+	}
+
+	private shouldUseGpuInstancing(
+		geometry: GeometryData,
+		node: ITreeNode,
+	): boolean {
+		if (
+			!geometry.instantiable ||
+			!this._renderingEngine.instanceGroupManager.enabled
+		)
+			return false;
+		if (
+			this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES &&
+			(geometry.attributeMaterial?.opacity ?? 1) < 1
+		)
+			return false;
+
+		const matrix = new THREE.Matrix4().fromArray(node.worldMatrix);
+		if (geometry.instanceOffsetMatrix)
+			matrix.multiply(
+				new THREE.Matrix4().fromArray(geometry.instanceOffsetMatrix),
+			);
+		// THREE.InstancedMesh does not support negatively scaled matrices.
+		return matrix.determinant() >= 0;
 	}
 
 	/**

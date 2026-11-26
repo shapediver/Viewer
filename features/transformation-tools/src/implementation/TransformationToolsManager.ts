@@ -6,6 +6,7 @@ import {
 	RestrictionManager,
 	type RestrictionProperties,
 } from "@shapediver/viewer.rendering-engine.intersection-restriction-engine";
+import {type IBox} from "@shapediver/viewer.shared.math";
 import {
 	GeometryData,
 	type ITreeNode,
@@ -26,15 +27,55 @@ import {
 	type SettingsOptional,
 } from "../interfaces/ITransformationToolsManager";
 
+/**
+ * Entries of a matrix closer to the identity than this count as the identity.
+ * Computing the matrix of a tool at rest leaves rounding errors, e.g. up to
+ * 4e-5 for a rectangle transform on a slanted plane, and a listener would
+ * take them for a move.
+ */
+const IDENTITY_TOLERANCE = 1e-4;
+
+/**
+ * The identity matrix if the given matrix is the identity up to rounding
+ * errors (see {@link IDENTITY_TOLERANCE}), the given matrix otherwise.
+ *
+ * @param extent The distance of the object from the origin: the rounding
+ * errors of the translation grow with it (the rotation errors applied around
+ * the position of the object, float32 coordinates).
+ */
+const snapToIdentity = (matrix: mat4, extent: number): mat4 => {
+	const identity = mat4.create();
+	for (let i = 0; i < 16; i++) {
+		// the translation (identity 0) against the distance of the object,
+		// the other entries relative to their value
+		const tolerance =
+			i >= 12 && i <= 14
+				? IDENTITY_TOLERANCE * Math.max(1, extent)
+				: IDENTITY_TOLERANCE * Math.max(1, Math.abs(matrix[i]));
+		if (Math.abs(matrix[i] - identity[i]) > tolerance) return matrix;
+	}
+	return identity;
+};
+
+/**
+ * The largest absolute coordinate of the bounding box of the node, 0 if the
+ * node has no bounding box.
+ */
+const extentOf = (node: ITreeNode): number => {
+	const box = node.boundingBox;
+	if (!box || box.isEmpty()) return 0;
+	return Math.max(...[...box.min, ...box.max].map(Math.abs));
+};
+
 export abstract class TransformationToolsManager implements ITransformationToolsManager {
 	readonly #eventEngine: EventEngine = EventEngine.instance;
-	readonly #id: string;
+	#id: string;
 	readonly #keysPressed: {[key: string]: boolean} = {};
 	readonly #matrixId: string = "SD_transformation_tools_matrix";
 	readonly #nodes: ITreeNode[] = [];
 	readonly #parentObject: THREE.Object3D = new THREE.Object3D();
 	readonly #restrictionManager?: IRestrictionManager;
-	readonly #singleNode: boolean;
+	#singleNode: boolean;
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 	readonly #viewport: IViewportApi;
 
@@ -143,7 +184,9 @@ export abstract class TransformationToolsManager implements ITransformationTools
 	}
 
 	public set show(value: boolean) {
+		if (this.#show === value) return;
 		this.#show = value;
+		if (!this.#closed) this.showLogic(value);
 	}
 
 	protected get canvasEventListenerToken(): string {
@@ -299,6 +342,12 @@ export abstract class TransformationToolsManager implements ITransformationTools
 
 	public onMouseWheel(event: WheelEvent): void {}
 
+	public onPointerCancel(event: PointerEvent): void {
+		if (this.closed || this.#paused) return;
+
+		this.onPointerCancelLogic(event);
+	}
+
 	public onPointerDown(event: PointerEvent): void {
 		if (this.closed || this.#paused) return;
 
@@ -361,6 +410,29 @@ export abstract class TransformationToolsManager implements ITransformationTools
 	 */
 	protected continueLogic(): void {}
 
+	/**
+	 * Called when {@link show} changes.
+	 */
+	protected showLogic(_show: boolean): void {}
+
+	/** Change the id reported by the events of this instance. */
+	protected changeId(id: string): void {
+		this.#id = id;
+	}
+
+	/**
+	 * Replace the transformed nodes, the implementation places itself on them
+	 * again (see {@link initialize}).
+	 */
+	protected replaceNodes(nodes: ITreeNode[]): void {
+		this.#nodes.splice(0, this.#nodes.length, ...nodes);
+		this.#singleNode = nodes.length === 1;
+		this.#previousTransformationToolsMatrix = [];
+		this.#initialTransform = [];
+		this.#instanceTransform = [];
+		this.#initialOffset = vec3.create();
+	}
+
 	protected getMatrix(previousMatrix: mat4, instanceMatrix: mat4): mat4 {
 		const placeholderMatrix = mat4.copy(
 			mat4.create(),
@@ -416,6 +488,17 @@ export abstract class TransformationToolsManager implements ITransformationTools
 		}
 	}
 
+	/**
+	 * Bounds of the geometry in the space of its node. Baked-transform
+	 * instances share the source geometry and are placed by their offset.
+	 */
+	protected geometryBoundingBox(data: GeometryData): IBox {
+		if (!data.instanceOffsetMatrix) return data.boundingBox;
+		return data.boundingBox
+			.clone()
+			.applyMatrix(data.instanceOffsetMatrix as unknown as mat4);
+	}
+
 	protected initialize(): mat4 {
 		const transformationPlaceholderMatrix = mat4.create();
 
@@ -436,7 +519,7 @@ export abstract class TransformationToolsManager implements ITransformationTools
 				const trueBB = new Box();
 				this.#nodes[0].traverseData((d) => {
 					if (d instanceof GeometryData) {
-						trueBB.union(d.boundingBox);
+						trueBB.union(this.geometryBoundingBox(d));
 					}
 				});
 
@@ -611,6 +694,8 @@ export abstract class TransformationToolsManager implements ITransformationTools
 		_pointerInCanvas: boolean,
 	): void {}
 
+	protected onPointerCancelLogic(_event: PointerEvent): void {}
+
 	protected onPointerDownLogic(_event: PointerEvent): void {}
 
 	protected onPointerEndLogic(_event: PointerEvent): void {}
@@ -651,7 +736,15 @@ export abstract class TransformationToolsManager implements ITransformationTools
 		});
 	}
 
-	protected updateObjectMatrices(): void {
+	/**
+	 * Write the tool matrix onto the nodes.
+	 *
+	 * @param emit Report `MATRIX_CHANGED` and publish a new node version.
+	 * A drag omits both and applies the matrix with
+	 * `updateNodeTransformation`, so the object moves without rebuilding
+	 * its descendants. The event is sent once the gesture ends.
+	 */
+	protected updateObjectMatrices(emit = true): void {
 		const eventData: ITransformationToolsEvent = {
 			viewportId: this.viewport.id,
 			transformations: [],
@@ -676,6 +769,7 @@ export abstract class TransformationToolsManager implements ITransformationTools
 			const localTransformationMatrix = localTransformationMatrices[i];
 
 			eventData.nodes.push(node);
+			const extent = extentOf(node);
 
 			if (localTransformationMatrix) {
 				// Compute the event transformation using the same formula
@@ -691,7 +785,9 @@ export abstract class TransformationToolsManager implements ITransformationTools
 						mat4.invert(mat4.create(), this.instanceTransform[i])!,
 						eventMatrix,
 					);
-					eventData.transformations.push(mat4.clone(eventMatrix));
+					eventData.transformations.push(
+						snapToIdentity(mat4.clone(eventMatrix), extent),
+					);
 				} else {
 					const eventDataMatrix = mat4.clone(eventMatrix);
 					mat4.multiply(
@@ -704,12 +800,17 @@ export abstract class TransformationToolsManager implements ITransformationTools
 						mat4.invert(mat4.create(), this.instanceTransform[i])!,
 						eventDataMatrix,
 					);
-					eventData.transformations.push(eventDataMatrix);
+					eventData.transformations.push(
+						snapToIdentity(eventDataMatrix, extent),
+					);
 				}
 
 				// Use the localTransformationMatrix as the new matrixId value
 				// (this is what gets stored in node.transformations).
-				const matrix = mat4.clone(localTransformationMatrix);
+				const matrix = snapToIdentity(
+					mat4.clone(localTransformationMatrix),
+					extent,
+				);
 
 				const transformation = node.transformations.find(
 					(t) => t.id === this.#matrixId,
@@ -733,12 +834,15 @@ export abstract class TransformationToolsManager implements ITransformationTools
 					mat4.invert(mat4.create(), this.instanceTransform[i])!,
 					matrix,
 				);
-				eventData.transformations.push(mat4.clone(matrix));
+				eventData.transformations.push(
+					snapToIdentity(mat4.clone(matrix), extent),
+				);
 				mat4.multiply(
 					matrix,
 					matrix,
 					mat4.invert(mat4.create(), this.initialTransform[i])!,
 				);
+				mat4.copy(matrix, snapToIdentity(matrix, extent));
 
 				const transformation = node.transformations.find(
 					(t) => t.id === this.#matrixId,
@@ -768,13 +872,16 @@ export abstract class TransformationToolsManager implements ITransformationTools
 					mat4.invert(mat4.create(), this.instanceTransform[i])!,
 					eventDataMatrix,
 				);
-				eventData.transformations.push(eventDataMatrix);
+				eventData.transformations.push(
+					snapToIdentity(eventDataMatrix, extent),
+				);
 
 				mat4.multiply(
 					matrix,
 					mat4.invert(mat4.create(), this.instanceTransform[i])!,
 					matrix,
 				);
+				mat4.copy(matrix, snapToIdentity(matrix, extent));
 
 				const transformation = node.transformations.find(
 					(t) => t.id === this.#matrixId,
@@ -790,10 +897,17 @@ export abstract class TransformationToolsManager implements ITransformationTools
 				}
 			}
 
-			node.updateVersion();
+			// updateVersion rebuilds this node and its descendants. A drag only
+			// needs the matrix on screen; the committed gesture is the one
+			// that publishes a new node version.
+			if (emit) node.updateVersion();
+			else this.#viewport.updateNodeTransformation(node);
 		});
 
-		// emit the event
+		// A drag writes the matrix and applies that transformation. Emitting
+		// here would report every move as a committed transformation.
+		if (!emit) return;
+
 		this.#eventEngine.emitEvent(
 			EVENTTYPE_TRANSFORMATION_TOOLS.MATRIX_CHANGED,
 			eventData,

@@ -28,6 +28,9 @@ import {InteractionManagerUtils} from "../utils/InteractionManagerUtils";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export class HoverManager extends AbstractInteractionManager {
+	// distances closer than this count as a tie (as in the InteractionEngine)
+	private static readonly TIE_DISTANCE = 1e-4;
+
 	readonly #eventEngine: EventEngine = EventEngine.instance;
 	readonly #logger: Logger = Logger.instance;
 	readonly #tree: Tree = Tree.instance;
@@ -201,15 +204,32 @@ export class HoverManager extends AbstractInteractionManager {
 		// if there are no box selection intersections, adjust the filteredIntersections to only contain the first ray tracing intersection
 		if (!hasBoxSelection) {
 			// Only hover if this manager's node is the closest interactive node
-			// overall. If filteredIntersections[0] is null, another manager's node
-			// is in front — don't hover anything for this manager.
-			const firstIntersectionIndex =
+			// overall. If filteredIntersections[0] is null, this manager's node
+			// in front is being dragged. The intersections of the other managers
+			// are filtered out above, so a node of another manager in front is
+			// found in the unfiltered list: it wins, a tie (e.g. a node and the
+			// node it holds, on one surface) does not.
+			const closest = intersection.find(
+				(i) => i.type === "RayTracingIntersection",
+			) as IRayTracingIntersection | undefined;
+			let firstIntersectionIndex =
 				filteredIntersections.length > 0 &&
 				filteredIntersections[0] !== null
 					? filteredIntersections.findIndex(
 							(fi) => fi?.type === "RayTracingIntersection",
 						)
 					: -1;
+			if (
+				closest &&
+				firstIntersectionIndex !== -1 &&
+				(
+					filteredIntersections[
+						firstIntersectionIndex
+					] as IRayTracingIntersection
+				).distance >
+					closest.distance + HoverManager.TIE_DISTANCE
+			)
+				firstIntersectionIndex = -1;
 			for (let i = 0; i < filteredIntersections.length; i++) {
 				if (i !== firstIntersectionIndex) {
 					filteredIntersections[i] = null;

@@ -4,6 +4,7 @@ import {
 	CreationControlCenterViewport,
 	type ICreationControlCenterViewport,
 } from "@shapediver/viewer.creation-control-center.viewport";
+import {GeometryEngine} from "@shapediver/viewer.data-engine.geometry-engine";
 import {GLTFConverter} from "@shapediver/viewer.data-engine.gltf-converter";
 import {AnimationEngine} from "@shapediver/viewer.rendering-engine.animation-engine";
 import {
@@ -624,6 +625,40 @@ export class ViewportApi implements IViewportApi {
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
 		this.update("environmentMapRotation");
+	}
+
+	/**
+	 * @internal
+	 * GPU instancing for this viewport. On by default. Turning it back on scans
+	 * already-loaded geometry so a later conversion can batch it. Not part of
+	 * the public API and subject to change without notice.
+	 */
+	public get gpuInstancing(): {
+		enabled: boolean;
+		stats: {
+			groupCount: number;
+			instanceCount: number;
+			effectMeshCount: number;
+			drawCallCount: number;
+		};
+	} {
+		const manager = this.#renderingEngine.instanceGroupManager;
+		const viewport = this;
+		return {
+			get enabled() {
+				return manager.enabled;
+			},
+			set enabled(value: boolean) {
+				if (value === manager.enabled) return;
+				if (value)
+					GeometryEngine.instance.applyGpuInstancing(sceneTree.root);
+				manager.enabled = value;
+				viewport.update("gpuInstancing");
+			},
+			get stats() {
+				return manager.stats;
+			},
+		};
 	}
 
 	public get gridColor(): Color {

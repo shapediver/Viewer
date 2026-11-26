@@ -1,8 +1,3 @@
----
-description: How viewer texture downloads choose the Geometry Backend proxy or a direct fetch
-alwaysApply: true
----
-
 # Texture downloads
 
 `HttpClient.loadTexture` calls the session's `downloadTexture` callback. That callback uses `UtilsApi.downloadImage`.

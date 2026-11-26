@@ -34,14 +34,16 @@ export class Tag3dEngine {
 
 	private readonly _logger: Logger = Logger.instance;
 
-	private static _asciiGlb: ITreeNode | undefined;
+	// The font glbs are cached as promises, so that tags and outputs which are
+	// loaded in parallel share one load instead of each parsing the glb again.
+	private static _asciiGlb: Promise<ITreeNode> | undefined;
 	private static _fontInfo: FontInfo = {
 		ascii: "https://viewer.shapediver.com/v3/gltf/tagsAsciiSegoeUi.glb",
 		other: "https://viewer.shapediver.com/v3/gltf/tagsNonAsciiSegoeUi.glb",
 	};
 	private static _instance: Tag3dEngine;
-	private static _mainGlb: ITreeNode | undefined;
-	private static _nonAsciiGlb: ITreeNode | undefined;
+	private static _mainGlb: Promise<ITreeNode> | undefined;
+	private static _nonAsciiGlb: Promise<ITreeNode> | undefined;
 
 	// #endregion Properties (6)
 
@@ -64,6 +66,40 @@ export class Tag3dEngine {
 
 	// #endregion Public Static Methods (1)
 
+	// #region Private Static Methods (1)
+
+	/**
+	 * Get a font glb, starting its load only if no load is cached yet.
+	 * A failed load is removed from the cache, so that the next call retries it.
+	 *
+	 * @param key the static property that caches the glb
+	 * @param href the url of the glb
+	 * @returns the scene graph node of the glb
+	 */
+	private static loadFont(
+		key: "_asciiGlb" | "_mainGlb" | "_nonAsciiGlb",
+		href: string,
+	): Promise<ITreeNode> {
+		const cached = this[key];
+		if (cached) return cached;
+
+		const promise = GeometryEngine.instance.loadContent(
+			{
+				href,
+				format: "glb",
+			},
+			"Tag3dEngine.loadContent",
+		);
+		this[key] = promise;
+		promise.catch(() => {
+			if (this[key] === promise) this[key] = undefined;
+		});
+
+		return promise;
+	}
+
+	// #endregion Private Static Methods (1)
+
 	// #region Public Methods (1)
 
 	/**
@@ -80,34 +116,16 @@ export class Tag3dEngine {
 				"Tag3dEngine.loadContent: Invalid content was provided to tag3d engine.",
 			);
 
-		if (typeof Tag3dEngine._fontInfo === "string") {
-			// if there is a single glb for both ascii and non-ascii characters defined
-			// but the glb has not been loaded yet, we load it now
-			if (!Tag3dEngine._mainGlb) {
-				const geometryEngine = GeometryEngine.instance;
-				Tag3dEngine._mainGlb = await geometryEngine.loadContent(
-					{
-						href: Tag3dEngine._fontInfo,
-						format: "glb",
-					},
-					"Tag3dEngine.loadContent",
-				);
-			}
-		} else {
-			// if there are separate glbs for ascii and non-ascii characters defined
-			// but the glb for ascii has not been loaded yet, we load it now
-			// the glb for non-ascii characters is loaded when the character is encountered
-			if (!Tag3dEngine._asciiGlb) {
-				const geometryEngine = GeometryEngine.instance;
-				Tag3dEngine._asciiGlb = await geometryEngine.loadContent(
-					{
-						href: Tag3dEngine._fontInfo.ascii,
-						format: "glb",
-					},
-					"Tag3dEngine.loadContent",
-				);
-			}
-		}
+		// if there is a single glb for both ascii and non-ascii characters defined, we load it
+		// otherwise we load the glb for ascii characters,
+		// the glb for non-ascii characters is loaded when the character is encountered
+		const characterGlb =
+			typeof Tag3dEngine._fontInfo === "string"
+				? await Tag3dEngine.loadFont("_mainGlb", Tag3dEngine._fontInfo)
+				: await Tag3dEngine.loadFont(
+						"_asciiGlb",
+						Tag3dEngine._fontInfo.ascii,
+					);
 
 		if (content.data && Array.isArray(content.data)) {
 			const textTagDictionary: {
@@ -130,7 +148,7 @@ export class Tag3dEngine {
 			>[] = [];
 			for (let i = 0; i < content.data.length; i++) {
 				const tag3dInfo: ITag3D = content.data[i];
-				const dictionary = this.loadTag(tag3dInfo);
+				const dictionary = this.loadTag(tag3dInfo, characterGlb);
 				if (dictionary) dictionaryPromises.push(dictionary);
 			}
 
@@ -210,7 +228,10 @@ export class Tag3dEngine {
 	 * @param tag3dInfo
 	 * @returns
 	 */
-	private async loadTag(tag3dInfo: ITag3D): Promise<
+	private async loadTag(
+		tag3dInfo: ITag3D,
+		characterGlb: ITreeNode,
+	): Promise<
 		| {
 				[key: string]: {
 					characterNode: ITreeNode;
@@ -220,10 +241,6 @@ export class Tag3dEngine {
 		  }
 		| undefined
 	> {
-		const characterGlb =
-			Tag3dEngine._fontInfo === "string"
-				? Tag3dEngine._mainGlb!
-				: Tag3dEngine._asciiGlb!;
 		const material = new MaterialStandardData({
 			color: "#ffffff",
 			metalness: 0,
@@ -309,20 +326,11 @@ export class Tag3dEngine {
 					if (typeof Tag3dEngine._fontInfo !== "string") {
 						// if the character is not found in the ascii glb, try to load the non-ascii glb
 						// and search for the character there
-						if (!Tag3dEngine._nonAsciiGlb) {
-							const geometryEngine = GeometryEngine.instance;
-							Tag3dEngine._nonAsciiGlb =
-								await geometryEngine.loadContent(
-									{
-										href: Tag3dEngine._fontInfo.other,
-										format: "glb",
-									},
-									"Tag3dEngine.loadContent",
-								);
-						}
-
-						nodesWithName =
-							Tag3dEngine._nonAsciiGlb.getNodesByName(char);
+						const nonAsciiGlb = await Tag3dEngine.loadFont(
+							"_nonAsciiGlb",
+							Tag3dEngine._fontInfo.other,
+						);
+						nodesWithName = nonAsciiGlb.getNodesByName(char);
 					}
 				}
 

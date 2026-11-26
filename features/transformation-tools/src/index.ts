@@ -12,7 +12,11 @@ import {
 	type IRectangleTransform,
 	type RectangleTransformSettings,
 } from "./interfaces/rectangleTransform/IRectangleTransform";
-import {type IRectangleTransformEvent} from "./interfaces/rectangleTransform/IRectangleTransformEvents";
+import {
+	type IRectangleTransformEvent,
+	type IRectangleTransformGestureEvent,
+	type IRectangleTransformHoverEvent,
+} from "./interfaces/rectangleTransform/IRectangleTransformEvents";
 import {updateTransformation} from "./updateTransformation";
 
 export {GumballTransform, RectangleTransform, updateTransformation};
@@ -23,6 +27,8 @@ export type {
 	IGumballTransformEvent,
 	IRectangleTransform,
 	IRectangleTransformEvent,
+	IRectangleTransformGestureEvent,
+	IRectangleTransformHoverEvent,
 	ITransformationToolsEvent,
 	RectangleTransformSettings,
 	Settings as TransformationToolsSettings,
