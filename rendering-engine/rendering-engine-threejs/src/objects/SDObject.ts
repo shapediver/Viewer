@@ -188,6 +188,13 @@ export class SDObject extends Object3D implements ISDObject {
 	 * node recorded after it (`TreeNode.changedKindsSince`) is not applied.
 	 */
 	public SDappliedSerial = 0;
+	/**
+	 * The value of the change clock up to which a transformation-only visit
+	 * reported the node's moves and visibility changes while other kinds
+	 * were still waiting (`0`: none). Those two kinds count as applied up to
+	 * the later of this and {@link SDappliedSerial}.
+	 */
+	public SDmovesReportedSerial = 0;
 	public SDalwaysUpdate = false;
 	public SDboundsStale = false;
 

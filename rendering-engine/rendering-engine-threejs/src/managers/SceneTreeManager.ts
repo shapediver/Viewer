@@ -562,6 +562,11 @@ export class SceneTreeManager implements IManager {
 			// The clock value when this viewport last applied the node, 0 if
 			// it converts the node for the first time.
 			const appliedBefore = convertedObject.SDappliedSerial;
+			// Moves and visibility changes can be reported ahead of the rest.
+			const movesApplied = Math.max(
+				appliedBefore,
+				convertedObject.SDmovesReportedSerial,
+			);
 			const moved = !convertedObject.hasTransformation(nodeMatrix);
 			const visibilityChanged = convertedObject.visible !== isVisible;
 			// A matrix changed in place (no setter of the node saw it): the
@@ -570,7 +575,7 @@ export class SceneTreeManager implements IManager {
 				moved &&
 				appliedBefore > 0 &&
 				!(
-					changedKindsSince(treeNode, appliedBefore) &
+					changedKindsSince(treeNode, movesApplied) &
 					TRANSFORMATION_BIT
 				)
 			)
@@ -589,6 +594,7 @@ export class SceneTreeManager implements IManager {
 					treeNode,
 					convertedObject,
 					appliedBefore,
+					movesApplied,
 					(moved ? TRANSFORMATION_BIT : 0) |
 						(visibilityChanged ? VISIBILITY_BIT : 0),
 					visibilityChanged,
@@ -652,7 +658,10 @@ export class SceneTreeManager implements IManager {
 				this._changedNodes.add(treeNode);
 				if (appliedBefore > 0)
 					changedKinds =
-						changedKindsSince(treeNode, appliedBefore) |
+						(changedKindsSince(treeNode, appliedBefore) &
+							~MOVE_BITS) |
+						(changedKindsSince(treeNode, movesApplied) &
+							MOVE_BITS) |
 						(visibilityChanged ? VISIBILITY_BIT : 0);
 				this.cleanupObsoleteData(treeNode, convertedObject);
 				this.cleanupObsoleteChildren(treeNode, convertedObject);
@@ -1119,24 +1128,33 @@ export class SceneTreeManager implements IManager {
 	 * the node (`kinds`): records their channels and, for a visibility
 	 * change, the node's report (the visibility in this viewport can also
 	 * change through `excludeViewports` or `restrictViewports`, which record
-	 * no kind). The node counts as applied only if nothing else waits on
-	 * it: this visit does not convert its data.
+	 * no kind). A report includes every move and visibility change of the
+	 * node not reported yet. The node then counts as applied if nothing else
+	 * waits on it (this visit does not convert its data); otherwise only its
+	 * moves and visibility changes do, and the full visit reports the rest.
+	 * A move alone is reported by the next full visit, so it stays waiting:
+	 * the in-place record of an animated node is then written once, not
+	 * every frame.
 	 */
 	private applyMoveOrVisibility(
 		treeNode: ITreeNode,
 		convertedObject: SDObject,
 		appliedBefore: number,
+		movesApplied: number,
 		kinds: number,
 		reported: boolean,
 	): void {
 		const applied = nextSerial();
 		for (let i = 0; kinds >> i; i++)
 			if (kinds & (1 << i)) this._revisions[i] = applied;
-		if (reported) this.addChangedKinds(treeNode, kinds);
-		const waiting =
-			changedKindsSince(treeNode, appliedBefore) &
-			~(TRANSFORMATION_BIT | VISIBILITY_BIT);
-		if (waiting === 0) convertedObject.SDappliedSerial = applied;
+		if (!reported) return;
+		this.addChangedKinds(
+			treeNode,
+			kinds | (changedKindsSince(treeNode, movesApplied) & MOVE_BITS),
+		);
+		if (changedKindsSince(treeNode, appliedBefore) & ~MOVE_BITS)
+			convertedObject.SDmovesReportedSerial = applied;
+		else convertedObject.SDappliedSerial = applied;
 	}
 
 	/**
@@ -1507,3 +1525,4 @@ type UpdateFilter = {
 
 const TRANSFORMATION_BIT = 1 << SCENE_NODE_CHANGE_KIND_INDEX.transformation;
 const VISIBILITY_BIT = 1 << SCENE_NODE_CHANGE_KIND_INDEX.visibility;
+const MOVE_BITS = TRANSFORMATION_BIT | VISIBILITY_BIT;

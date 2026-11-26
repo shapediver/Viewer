@@ -75,8 +75,13 @@ export class GeometryLoader implements ILoader {
 			primitiveCacheId: string;
 			clones: GeometryType[];
 			counter: number;
+			// "<id>_<version>" of an entry that has an InstanceData suffix
+			baseKey?: string;
 		};
 	} = {};
+	// "<id>_<version>" -> cache keys of the entries with an InstanceData suffix,
+	// in the order they were added
+	private _geometryCacheByBase = new Map<string, Set<string>>();
 	private _geometryObjects = new WeakMap<GeometryData, Set<GeometryType>>();
 	// the reverse of _geometryObjects, so a removal can unregister the object
 	private _geometryOfObject = new WeakMap<THREE.Object3D, GeometryData>();
@@ -117,6 +122,7 @@ export class GeometryLoader implements ILoader {
 		for (const key in this._geometryCache)
 			this.removeFromGeometryCache(key);
 		this._geometryCache = {};
+		this._geometryCacheByBase.clear();
 
 		for (const key in this._primitiveCache)
 			this.removeFromPrimitiveCache(key);
@@ -401,7 +407,17 @@ export class GeometryLoader implements ILoader {
 				clones: [],
 				primitiveCacheId:
 					geometry.primitive.id + "_" + geometry.primitive.version,
+				baseKey: instanceData
+					? geometry.id + "_" + geometry.version
+					: undefined,
 			};
+			if (instanceData) {
+				const baseKey = geometry.id + "_" + geometry.version;
+				let keys = this._geometryCacheByBase.get(baseKey);
+				if (!keys)
+					this._geometryCacheByBase.set(baseKey, (keys = new Set()));
+				keys.add(geometryCacheKey);
+			}
 		}
 
 		this.applyMaterial(threeGeometryObject, material);
@@ -803,11 +819,15 @@ export class GeometryLoader implements ILoader {
 	public updateGeometryMaterial(geometry: GeometryData): void {
 		// Instanced-data meshes carry an InstanceData suffix in their cache key.
 		const cacheKey = geometry.id + "_" + geometry.version;
-		const cached =
-			this._geometryCache[cacheKey] ??
-			Object.entries(this._geometryCache).find(([key]) =>
-				key.startsWith(cacheKey + "_"),
-			)?.[1];
+		let cached = this._geometryCache[cacheKey];
+		if (!cached) {
+			// the first entry of this geometry that has an InstanceData suffix
+			const firstKey = this._geometryCacheByBase
+				.get(cacheKey)
+				?.values()
+				.next().value;
+			if (firstKey !== undefined) cached = this._geometryCache[firstKey];
+		}
 
 		let incomingMaterialData: IMaterialAbstractData | null;
 		if (geometry.effectMaterials.length > 0) {
@@ -1070,6 +1090,16 @@ export class GeometryLoader implements ILoader {
 					);
 				});
 				delete this._geometryCache[id];
+				if (cachedGeometry.baseKey !== undefined) {
+					const keys = this._geometryCacheByBase.get(
+						cachedGeometry.baseKey,
+					);
+					keys?.delete(id);
+					if (keys?.size === 0)
+						this._geometryCacheByBase.delete(
+							cachedGeometry.baseKey,
+						);
+				}
 			} else {
 				cachedGeometry.counter--;
 			}
