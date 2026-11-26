@@ -25,7 +25,7 @@
 	"cameraMove.materialUpdatesOutsideRender": 0,
 	"cameraMove.materialsCreated": 0,
 	"final.geometries": 4,
-	"final.programs": 11,
+	"final.programs": 10,
 	"final.textures": 6,
 	"idle.renderCalls": 0,
 	"load.programsCompiledInRender": 0,
