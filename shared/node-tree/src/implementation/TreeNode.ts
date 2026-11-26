@@ -21,7 +21,7 @@ import {
 	lastReadSerial,
 	markTreeRead,
 	nextSerial,
-	nextVersion,
+	nextSerialIfRead,
 	serialOfVersion,
 } from "./version";
 
@@ -42,7 +42,7 @@ export class TreeNode implements ITreeNode {
 	 * the last change of that kind. Allocated at the first change after the
 	 * node was read.
 	 */
-	#changeSerials?: Float64Array;
+	private _changeSerials?: Float64Array;
 	#convertedObject: {[key: string]: unknown} = {};
 	#displayName: string | undefined;
 	#excludeViewports: string[] = [];
@@ -61,7 +61,7 @@ export class TreeNode implements ITreeNode {
 		| ((newObj: unknown, oldObj: unknown, viewport: string) => void)
 		| null = null;
 	#version: string;
-	#serial: number;
+	private _serial: number;
 	#visible: boolean = true;
 	/**
 	 * The clock value at the creation of this node. While it is later than
@@ -70,9 +70,9 @@ export class TreeNode implements ITreeNode {
 	 * Set before the constructor body runs, so changes made in the
 	 * constructor are not recorded either.
 	 */
-	readonly #createdAt: number = currentSerial() + 1;
+	private readonly _createdAt: number = currentSerial() + 1;
 	/** The kinds (bits) of the data items of this node. */
-	#dataKinds = 0;
+	private _dataKinds = 0;
 
 	/**
 	 * Creation of a node that can be used in the node tree.
@@ -95,8 +95,10 @@ export class TreeNode implements ITreeNode {
 
 		this.#id = this.#uuidGenerator.create();
 		this.#originalId = this.#id;
-		this.#version = nextVersion();
-		this.#serial = serialOfVersion(this.#version);
+		// nextVersion(), with its number kept
+		const serial = nextSerial();
+		this._serial = serial;
+		this.#version = "v" + serial;
 		this.#parent?.addChild(this);
 	}
 
@@ -118,7 +120,7 @@ export class TreeNode implements ITreeNode {
 	public get changeSerials(): Readonly<Record<SceneNodeChangeKind, number>> {
 		const record = {} as Record<SceneNodeChangeKind, number>;
 		for (let i = 0; i < SCENE_NODE_CHANGE_KINDS.length; i++)
-			record[SCENE_NODE_CHANGE_KINDS[i]] = this.#changeSerials?.[i] ?? 0;
+			record[SCENE_NODE_CHANGE_KINDS[i]] = this._changeSerials?.[i] ?? 0;
 		return Object.freeze(record);
 	}
 
@@ -228,7 +230,7 @@ export class TreeNode implements ITreeNode {
 	 * @internal
 	 */
 	public get serial(): number {
-		return this.#serial;
+		return this._serial;
 	}
 
 	public get structureVersion(): number {
@@ -279,7 +281,7 @@ export class TreeNode implements ITreeNode {
 
 	public set version(value: string) {
 		this.#version = value;
-		this.#serial = serialOfVersion(value);
+		this._serial = serialOfVersion(value);
 	}
 
 	public get visible(): boolean {
@@ -352,7 +354,7 @@ export class TreeNode implements ITreeNode {
 	 * @internal
 	 */
 	public changedKindsSince(serial: number): number {
-		const serials = this.#changeSerials;
+		const serials = this._changeSerials;
 		if (!serials) return 0;
 		let bits = 0;
 		for (let i = 0; i < serials.length; i++)
@@ -423,10 +425,11 @@ export class TreeNode implements ITreeNode {
 	 * @internal
 	 */
 	public noteChange(kind: SceneNodeChangeKind): void {
-		if (this.#createdAt > lastReadSerial()) return;
-		(this.#changeSerials ??= new Float64Array(
+		const serial = nextSerialIfRead(this._createdAt);
+		if (serial === 0) return;
+		(this._changeSerials ??= new Float64Array(
 			SCENE_NODE_CHANGE_KINDS.length,
-		))[SCENE_NODE_CHANGE_KIND_INDEX[kind]] = nextSerial();
+		))[SCENE_NODE_CHANGE_KIND_INDEX[kind]] = serial;
 	}
 
 	public getChild(id: string): ITreeNode | undefined {
@@ -527,9 +530,13 @@ export class TreeNode implements ITreeNode {
 	 * tree that nobody has read since cost one step each.
 	 */
 	private structureChanged(): void {
-		this.noteChange("structure");
 		const version = nextSerial();
 		const read = lastReadSerial();
+		// The structure change of this node, at the same clock value.
+		if (this._createdAt <= read)
+			(this._changeSerials ??= new Float64Array(
+				SCENE_NODE_CHANGE_KINDS.length,
+			))[SCENE_NODE_CHANGE_KIND_INDEX.structure] = version;
 		this._structureVersion = version;
 		let node = this.parent;
 		while (node instanceof TreeNode && node._structureVersion <= read) {
@@ -607,8 +614,10 @@ export class TreeNode implements ITreeNode {
 		}
 
 		const oldVersion = this.#version;
-		this.#version = nextVersion();
-		this.#serial = serialOfVersion(this.#version);
+		// nextVersion(), with its number kept
+		const serial = nextSerial();
+		this._serial = serial;
+		this.#version = "v" + serial;
 		if (this.#updateCallback)
 			this.#updateCallback(this.#version, oldVersion);
 	}
@@ -628,8 +637,7 @@ export class TreeNode implements ITreeNode {
 						this.noteChange(changeOnly);
 						return;
 					}
-					const itemKind = dataChangeKind(d);
-					if (itemKind) this.noteChange(itemKind);
+					if (kind) this.noteChange(kind);
 					this.updateVersion(true, false);
 				};
 				d.parentsUpdateVersions[this.id] = onChange;
@@ -637,8 +645,8 @@ export class TreeNode implements ITreeNode {
 		});
 		// An item was added or removed. The removed one is no longer in the
 		// list: record the kinds of the items before and after the change.
-		const changed = kinds | this.#dataKinds;
-		this.#dataKinds = kinds;
+		const changed = kinds | this._dataKinds;
+		this._dataKinds = kinds;
 		for (let i = 0; changed >> i; i++)
 			if (changed & (1 << i)) this.noteChange(SCENE_NODE_CHANGE_KINDS[i]);
 	}

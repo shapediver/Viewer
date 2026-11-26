@@ -22,23 +22,32 @@ export class PostProcessingApi implements IPostProcessingApi {
 	readonly #inputValidator: InputValidator = InputValidator.instance;
 	readonly #logger: Logger = Logger.instance;
 	readonly #renderingEngine: RenderingEngineThreeJs;
-	readonly #viewportApi: IViewportApi;
 
 	// #endregion Properties (4)
 
 	// #region Constructors (1)
 
 	constructor(
-		viewportApi: IViewportApi,
+		// The viewport of this API. Unused: its updates go to the rendering
+		// engine directly (see #applyUpdate).
+		_viewportApi: IViewportApi,
 		renderingEngine: RenderingEngineThreeJs,
 	) {
-		this.#viewportApi = viewportApi;
 		this.#renderingEngine = renderingEngine;
 	}
 
 	// #endregion Constructors (1)
 
 	// #region Public Getters And Setters (14)
+
+	/**
+	 * The update after a change of the post-processing. The change recorded
+	 * its own channel in the scene state: without a scene update, it does
+	 * not mark everything as changed (see `IViewportApi.update`).
+	 */
+	#applyUpdate(): void {
+		this.#renderingEngine.update("PostProcessingApi", false);
+	}
 
 	public get antiAliasingTechnique(): ANTI_ALIASING_TECHNIQUE {
 		return this.#renderingEngine.postProcessingManager
@@ -59,7 +68,7 @@ export class PostProcessingApi implements IPostProcessingApi {
 		this.#logger.debug(
 			`PostProcessingApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#applyUpdate();
 	}
 
 	public get antiAliasingTechniqueMobile(): ANTI_ALIASING_TECHNIQUE {
@@ -81,7 +90,7 @@ export class PostProcessingApi implements IPostProcessingApi {
 		this.#logger.debug(
 			`PostProcessingApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#applyUpdate();
 	}
 
 	public get effectComposer(): EffectComposer | undefined {
@@ -105,7 +114,7 @@ export class PostProcessingApi implements IPostProcessingApi {
 		this.#logger.debug(
 			`PostProcessingApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#applyUpdate();
 	}
 
 	public get godRaysEffects(): {
@@ -129,7 +138,7 @@ export class PostProcessingApi implements IPostProcessingApi {
 		this.#logger.debug(
 			`PostProcessingApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#applyUpdate();
 	}
 
 	public get manualPostProcessing(): boolean {
@@ -148,7 +157,7 @@ export class PostProcessingApi implements IPostProcessingApi {
 		this.#logger.debug(
 			`PostProcessingApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#applyUpdate();
 	}
 
 	public get outlineEffects(): {
@@ -179,7 +188,7 @@ export class PostProcessingApi implements IPostProcessingApi {
 		this.#logger.debug(
 			`PostProcessingApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.#viewportApi.update();
+		this.#applyUpdate();
 	}
 
 	// #endregion Public Getters And Setters (14)
@@ -204,7 +213,7 @@ export class PostProcessingApi implements IPostProcessingApi {
 		this.#logger.debug(
 			`PostProcessingApi.${scope}: ${scope} was called with definition ${definition}.`,
 		);
-		this.#viewportApi.update();
+		this.#applyUpdate();
 		return res;
 	}
 
@@ -262,7 +271,7 @@ export class PostProcessingApi implements IPostProcessingApi {
 		this.#logger.debug(
 			`PostProcessingApi.${scope}: ${scope} was called with token ${token}.`,
 		);
-		this.#viewportApi.update();
+		this.#applyUpdate();
 		return res;
 	}
 
@@ -283,7 +292,7 @@ export class PostProcessingApi implements IPostProcessingApi {
 		this.#logger.debug(
 			`PostProcessingApi.${scope}: ${scope} was called with token ${token} and definition ${definition}.`,
 		);
-		this.#viewportApi.update();
+		this.#applyUpdate();
 	}
 
 	// #endregion Public Methods (7)

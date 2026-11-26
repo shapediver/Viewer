@@ -75,6 +75,17 @@ export function markTreeRead(): void {
 }
 
 /**
+ * The next value of the clock if the tree was read at or after `createdAt`
+ * (see {@link markTreeRead}), else `0`: nobody has read a node created
+ * after the last read, so its changes are not recorded.
+ *
+ * @internal
+ */
+export function nextSerialIfRead(createdAt: number): number {
+	return createdAt > clock.read ? 0 : ++clock.n;
+}
+
+/**
  * The value of the clock at the last {@link markTreeRead}. A node created
  * after it has not been read by anyone yet.
  *
