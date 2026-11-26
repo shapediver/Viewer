@@ -108,6 +108,7 @@ const ssrEffectSchema = z.object({
 			steps: z.number().int().min(1).max(64).optional(),
 			distance: z.number().min(0).optional(),
 			thickness: z.number().min(0).optional(),
+			compositing: z.enum(["radiance", "specular"]).optional(),
 			enableOnMobile: z.boolean().optional(),
 		})
 		.strict()
