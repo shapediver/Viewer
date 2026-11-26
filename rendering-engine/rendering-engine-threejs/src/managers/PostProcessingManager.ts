@@ -2059,11 +2059,25 @@ export class PostProcessingManager implements IManager {
 	}
 
 	/**
+	 * Whether the next frames leave the ambient occlusion out (SS-10553,
+	 * set by the rendering manager while the camera moves).
+	 */
+	public ambientOcclusionSuspended = false;
+
+	/**
 	 * @param single true when this frame is drawn on its own (a screenshot),
 	 * not as one frame of the render loop
 	 */
 	public render(deltaTime: number, camera: THREE.Camera, single = false) {
 		if (!this._composer) return;
+
+		// SS-10553: set on every frame, effects may have been added since
+		for (const e of this._effects)
+			if (e.effect instanceof AOEffect)
+				e.effect.suspended = this.ambientOcclusionSuspended;
+		if (this._shadingAOEffect)
+			this._shadingAOEffect.effect.suspended =
+				this.ambientOcclusionSuspended;
 
 		const cameraId = `${camera.id}_${camera.type}${camera.type === "PerspectiveCamera" ? "" : "_" + camera.up.toArray().toString()}`;
 		if (cameraId !== this._currentCameraId) {

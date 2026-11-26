@@ -2,6 +2,7 @@ import {Effect, EffectComposer} from "postprocessing";
 import {
 	Camera,
 	Color,
+	DataTexture,
 	Scene,
 	ShaderMaterial,
 	Uniform,
@@ -29,6 +30,22 @@ class AOEffect extends Effect {
 	// #region Properties (7)
 
 	public static DefaultOptions = defaultAOOptions;
+	/** No occlusion: white with alpha 1, for frames without the AO work. */
+	public static readonly noAOTexture = (() => {
+		const texture = new DataTexture(
+			new Uint8Array([255, 255, 255, 255]),
+			1,
+			1,
+		);
+		texture.needsUpdate = true;
+		return texture;
+	})();
+
+	/**
+	 * Skips the normal, AO and denoise passes and shows no occlusion
+	 * (SS-10553, ambient occlusion off while the camera moves).
+	 */
+	public suspended = false;
 
 	public aoPass: AOPass;
 	public composer: EffectComposer;
@@ -231,6 +248,13 @@ class AOEffect extends Effect {
 				.animatedNoise;
 			(this.aoPass.fullscreenMaterial as ShaderMaterial).needsUpdate =
 				true;
+		}
+
+		// SS-10553: no AO work, and no occlusion (alpha 1) in this frame.
+		// Only a uniform changes, so no program is rebuilt.
+		if (this.suspended) {
+			this.uniforms.get("inputTexture")!.value = AOEffect.noAOTexture;
+			return;
 		}
 
 		// set input texture

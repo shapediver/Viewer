@@ -29,6 +29,12 @@
 
 > The ambient occlusion intensity.
 
+### ambientOcclusionWhileMoving
+
+> Whether ambient occlusion is drawn while the camera moves. (default: true)
+>
+> With false, frames drawn while the camera moves leave the ambient occlusion out. It returns at full strength on the first frame of the beauty rendering after the camera stopped ({@link beautyRenderDelay} after the stop).
+
 ### automaticResizing
 
 > Option to enable / disable the automatic resizing of the viewport to changes of the {@link canvas}. (default: true)
@@ -137,6 +143,12 @@
 ### showStatistics
 
 > Option to show / hide rendering statistics overlayed to the viewport. (default: false)
+
+### softShadowsWhileMoving
+
+> Whether soft shadows are drawn while the camera moves. (default: true)
+>
+> With false, frames drawn while the camera moves show hard shadows. After the camera stopped, the soft shadows fade in as before.
 
 ### textureEncoding
 

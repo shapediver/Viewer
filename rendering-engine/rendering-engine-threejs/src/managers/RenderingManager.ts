@@ -131,6 +131,13 @@ export class RenderingManager implements IManager {
 	/** lightSizeUV and blending of the last fade frame */
 	private _beautyShadowState?: [number, number];
 	private _updateShadowMapInNextRender: boolean = false;
+	/**
+	 * SS-10553: "moving" from CAMERA_START, "stopping" after CAMERA_END until
+	 * the beauty rendering starts. Both count as a moving camera.
+	 */
+	private _cameraMotion: "none" | "moving" | "stopping" = "none";
+	/** The soft-shadow blend of the interactive frames last applied. */
+	private _interactiveBlend?: number;
 
 	// #endregion Properties (31)
 
@@ -748,14 +755,19 @@ export class RenderingManager implements IManager {
 				EVENTTYPE.CAMERA.CAMERA_START,
 				(e) => {
 					const viewerEvent = <ICameraEvent>e;
-					if (viewerEvent.viewportId === this._renderingEngine.id)
-						this.startRendering();
+					if (viewerEvent.viewportId !== this._renderingEngine.id)
+						return;
+					this._cameraMotion = "moving";
+					this.startRendering();
 				},
 			);
 			this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_END, (e) => {
 				const viewerEvent = <ICameraEvent>e;
-				if (viewerEvent.viewportId === this._renderingEngine.id)
-					this.stopRendering();
+				if (viewerEvent.viewportId !== this._renderingEngine.id) return;
+				// still moving until the beauty rendering starts
+				if (this._cameraMotion === "moving")
+					this._cameraMotion = "stopping";
+				this.stopRendering();
 			});
 
 			window.onresize = () => {
@@ -886,6 +898,8 @@ export class RenderingManager implements IManager {
 			this._lightSizeUVStart,
 			0,
 		);
+		// the fade owns the blend until the next interactive frame
+		this._interactiveBlend = undefined;
 	}
 
 	private animate(
@@ -1251,6 +1265,10 @@ export class RenderingManager implements IManager {
 
 		// check if we should render with post-processing
 		const renderPostProcessing = this.renderPostProcessing();
+		// SS-10553: no ambient occlusion while the camera moves, if set
+		this._renderingEngine.postProcessingManager.ambientOcclusionSuspended =
+			!this._renderingEngine.ambientOcclusionWhileMoving &&
+			this.cameraMoving();
 
 		const scene = (<SceneTreeManager>this._renderingEngine.sceneTreeManager)
 			.scene;
@@ -1592,13 +1610,59 @@ export class RenderingManager implements IManager {
 	}
 
 	private applyInteractiveShaders() {
-		if (!this._restoreInteractiveShaders) return;
+		const blend = this.interactiveBlend();
+		if (!this._restoreInteractiveShaders) {
+			// SS-10553: the camera started or stopped moving, or the setting
+			// changed, after the interactive look was applied. Uniforms only.
+			if (
+				this._interactiveBlend === undefined ||
+				this._softShadowRenderingActive ||
+				this._interactiveBlend === blend
+			)
+				return;
+			this._interactiveBlend = blend;
+			this._renderingEngine.materialLoader.updateSoftShadow(
+				this._lightSizeUVStart,
+				blend,
+			);
+			return;
+		}
 		this._restoreInteractiveShaders = false;
 		this._renderingEngine.renderer.shadowMap.type = THREE.BasicShadowMap;
 		this._renderingEngine.renderer.shadowMap.needsUpdate = true;
+		this._interactiveBlend = blend;
 		this._renderingEngine.materialLoader.updateSoftShadow(
 			this._lightSizeUVStart,
-			0.1,
+			blend,
+		);
+	}
+
+	/**
+	 * The soft-shadow blend of interactive frames: hard shadows (0, no PCSS
+	 * kernel) while the camera moves and softShadowsWhileMoving is off
+	 * (SS-10553), otherwise 0.1.
+	 */
+	private interactiveBlend(): number {
+		return !this._renderingEngine.softShadowsWhileMoving &&
+			this.cameraMoving()
+			? 0
+			: 0.1;
+	}
+
+	/**
+	 * Whether the camera moves (SS-10553): from CAMERA_START until the
+	 * beauty rendering starts after CAMERA_END, and while it autorotates.
+	 */
+	private cameraMoving(): boolean {
+		if (this._cameraMotion !== "none") return true;
+		const camera = this._renderingEngine.cameraEngine.camera;
+		if (camera?.type !== CAMERA_TYPE.PERSPECTIVE) return false;
+		const controls = <PerspectiveCameraControls>(
+			(<PerspectiveCamera>camera).controls
+		);
+		return (
+			controls.enableAutoRotation === true &&
+			controls.autoRotationSpeed !== 0
 		);
 	}
 
@@ -1840,6 +1904,8 @@ export class RenderingManager implements IManager {
 
 	private startBeautyRendering() {
 		this._softShadowRenderingTimeout = null;
+		// SS-10553: the moving phase ends with the beauty rendering
+		if (this._cameraMotion === "stopping") this._cameraMotion = "none";
 		this._softShadowRenderingActive = true;
 		this._softShadowRenderingDurationActive = 0;
 		// the frames while the countdown ran may have stopped the rendering
