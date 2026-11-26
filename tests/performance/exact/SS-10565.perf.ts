@@ -311,10 +311,17 @@ test("SS-10565 a second viewport reads the in-place move of the first without a 
 		const recorded = node.changeSerials.transformation;
 		const firstRevisions = tools.revisions();
 		const before = tools.revisions(second);
+		tools.updates.length = 0;
 		second.update();
+		const fromSecond = tools.updates.filter(
+			(u: any) => u.viewportId === "perf2",
+		);
 		return {
 			first,
-			second: tools.kindsOf(tools.last(), node),
+			second:
+				fromSecond.length === 1
+					? tools.kindsOf(fromSecond[0], node)
+					: `${fromSecond.length} events`,
 			secondChannels: tools.later(before, tools.revisions(second)),
 			recordedOnce: node.changeSerials.transformation === recorded,
 			firstUnchanged:
@@ -394,6 +401,8 @@ test("SS-10565 revisions are application times, not edit times", async ({
 		const whileSuspended = tools.later(before, tools.revisions());
 		perf.viewport.environmentMapIntensity = 0.5;
 		const setting = tools.revisions().environment;
+		// The setting is applied after the hide was edited.
+		const settingAfterEdit = setting > node.changeSerials.visibility;
 		tools.updates.length = 0;
 		// Removing the flag applies the waiting change.
 		perf.viewport.removeFlag(token);
@@ -403,12 +412,14 @@ test("SS-10565 revisions are application times, not edit times", async ({
 		);
 		return {
 			whileSuspended,
+			settingAfterEdit,
 			hide: tools.kindsOf(update, node),
 			appliedAfterSetting: tools.revisions().visibility > setting,
 		};
 	});
 	expect(result).toEqual({
 		whileSuspended: [],
+		settingAfterEdit: true,
 		hide: ["visibility"],
 		appliedAfterSetting: true,
 	});
@@ -424,14 +435,25 @@ test("SS-10565 a setting or size change raises only its channel, the same value 
 		await tools.setup(count);
 		const viewport = perf.viewport;
 		const steps: Record<string, unknown> = {};
-		const step = async (name: string, edit: () => void, frames = false) => {
+		// A size is applied by the next animation frame.
+		const frames = async (n: number) => {
+			for (let i = 0; i < n; i++)
+				await new Promise((resolve) => requestAnimationFrame(resolve));
+		};
+		/** The channels `edit` raises, then those `again` (the same value) raises. */
+		const step = async (
+			name: string,
+			edit: () => void,
+			again: () => void = edit,
+			wait = 0,
+		) => {
 			let before = tools.revisions();
 			edit();
-			if (frames) await perf.nextFrame();
+			await frames(wait);
 			const changed = tools.later(before, tools.revisions());
 			before = tools.revisions();
-			edit();
-			if (frames) await perf.nextFrame();
+			again();
+			await frames(wait);
 			steps[name] = [changed, tools.later(before, tools.revisions())];
 		};
 		await step("environmentMapIntensity", () => {
@@ -446,24 +468,25 @@ test("SS-10565 a setting or size change raises only its channel, the same value 
 		await step("groundPlaneVisibility", () => {
 			viewport.groundPlaneVisibility = true;
 		});
-		let token: string | undefined;
-		await step("ssao", () => {
-			if (token) return;
-			token = viewport.postProcessing.addEffect({
-				type: SDV.POST_PROCESSING_EFFECT_TYPE.SSAO,
-			});
-		});
 		await step(
-			"resize",
+			"ssao",
+			() =>
+				viewport.postProcessing.addEffect({
+					type: SDV.POST_PROCESSING_EFFECT_TYPE.SSAO,
+				}),
+			// a post-processing setting set to its value
 			() => {
-				// The canvas fills its parent.
-				const parent =
-					document.getElementById("canvas")!.parentElement!;
-				parent.style.width = "640px";
-				parent.style.height = "360px";
+				const hdr = viewport.postProcessing.hdr;
+				viewport.postProcessing.hdr = hdr;
 			},
-			true,
 		);
+		const resize = () => {
+			// The canvas fills its parent.
+			const parent = document.getElementById("canvas")!.parentElement!;
+			parent.style.width = "640px";
+			parent.style.height = "360px";
+		};
+		await step("resize", resize, resize, 5);
 		// A smaller drawing buffer: the pixel ratio the canvas is drawn
 		// with changes (the public way to change it; the internal pixel
 		// ratio override takes the same path).
@@ -472,7 +495,8 @@ test("SS-10565 a setting or size change raises only its channel, the same value 
 			() => {
 				viewport.maximumRenderingSize = {width: 320, height: 180};
 			},
-			true,
+			undefined,
+			5,
 		);
 		return steps;
 	});
@@ -613,9 +637,12 @@ test("SS-10565 an update without a new version is unknown, and the next frame re
 		const viewport = perf.viewport;
 
 		let before = tools.revisions();
+		tools.updates.length = 0;
 		viewport.update();
 		const unknown = {
-			report: tools.last()?.sceneChanges === undefined,
+			report:
+				tools.updates.length === 1 &&
+				tools.updates[0].sceneChanges === undefined,
 			channels: tools.later(before, tools.revisions()),
 		};
 

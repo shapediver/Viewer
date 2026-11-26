@@ -19,7 +19,7 @@ export interface IViewportEvent extends IEvent {
  * by the setters of the node and by its data.
  */
 export type SceneNodeChangeKind =
-	/** A geometry data item (or another data item that is drawn) was added, removed or got a new version. */
+	/** A data item other than a light, a camera or an HTML anchor (for example a geometry) was added, removed or got a new version. */
 	| "geometry"
 	/** The shown material of an unchanged geometry was replaced, for example by a hover or selection effect material. */
 	| "material"

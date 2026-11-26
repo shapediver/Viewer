@@ -632,7 +632,18 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set defaultMaterialColor(value: Color) {
+		// It sets the line and point colors as well.
 		this.noteSetting("materialSettings", this.defaultMaterialColor, value);
+		this.noteSetting(
+			"materialSettings",
+			this.materialLoader.defaultLineMaterialData.color,
+			value,
+		);
+		this.noteSetting(
+			"materialSettings",
+			this.materialLoader.defaultPointMaterialData.color,
+			value,
+		);
 		this.materialLoader.defaultMaterialData.color = value;
 		this.materialLoader.assignDefaultMaterial();
 		this.materialLoader.defaultLineMaterialData.color = value;

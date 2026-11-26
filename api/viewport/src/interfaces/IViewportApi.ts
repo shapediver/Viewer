@@ -410,10 +410,6 @@ export interface IViewportApi {
 	 * applied a change (`revisions`). A new object per read.
 	 * `EVENTTYPE_VIEWPORT.SCENE_STATE_CHANGED` is sent when `static` or
 	 * `reasons` change.
-	 *
-	 * A hide, show or move of a node is the edit plus `updateVersion()`: the
-	 * next frame applies it. {@link update} applies it at once. Both give the
-	 * same `sceneChanges` on `VIEWPORT_UPDATED` and the same `revisions`.
 	 */
 	readonly sceneState: ISceneState;
 	/**
