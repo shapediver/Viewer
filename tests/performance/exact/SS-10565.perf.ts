@@ -794,9 +794,11 @@ test.describe("SS-10565 the call", () => {
 
 	test("SS-10565 an edit plus updateVersion() costs the same on 20 and 80 floors", async ({
 		playwright,
+		baseURL,
 	}) => {
 		test.setTimeout(15 * 60_000);
-		const origin = "http://127.0.0.1:8099";
+		// The suite's server, whatever port it runs on.
+		const origin = new URL(baseURL!).origin;
 		const counts: Record<
 			number,
 			Record<string, {calls: number; blocks: number}>
