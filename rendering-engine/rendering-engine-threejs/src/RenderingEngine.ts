@@ -44,6 +44,7 @@ import {
 	FLAG_TYPE,
 	type IGeometryData,
 	type IIntersectionFilter,
+	type ISceneState,
 	type ISDTFAttributeVisualizationData,
 	type ISDTFItemData,
 	type ISDTFOverview,
@@ -51,6 +52,7 @@ import {
 	type IViewportUpdatedEvent,
 	MATERIAL_TYPE,
 	RENDERER_TYPE,
+	type SceneChangeChannel,
 	SPINNER_POSITIONING,
 	TEXTURE_ENCODING,
 	TONE_MAPPING,
@@ -419,6 +421,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set automaticColorAdjustment(value: boolean) {
+		this.noteSetting(
+			"colorManagement",
+			this.automaticColorAdjustment,
+			value,
+		);
 		if (this._automaticColorAdjustment === value) return;
 		this._automaticColorAdjustment = value;
 		this.colorCache.forEach((c) => c.colorCorrection(value));
@@ -498,6 +505,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set clearAlpha(value: number) {
+		this.noteSetting("colorManagement", this.clearAlpha, value);
 		this._clearAlpha = value;
 	}
 
@@ -506,6 +514,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set clearColor(value: Color) {
+		this.noteSetting("colorManagement", this.clearColor, value);
 		this._clearColor = value;
 	}
 
@@ -528,6 +537,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set contactShadowBlur(value: number) {
+		this.noteSetting("environmentGeometry", this.contactShadowBlur, value);
 		this._environmentGeometryManager.contactShadow.blur = value;
 	}
 
@@ -536,6 +546,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set contactShadowDarkness(value: number) {
+		this.noteSetting(
+			"environmentGeometry",
+			this.contactShadowDarkness,
+			value,
+		);
 		this._environmentGeometryManager.contactShadow.darkness = value;
 	}
 
@@ -544,6 +559,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set contactShadowHeight(value: number) {
+		this.noteSetting(
+			"environmentGeometry",
+			this.contactShadowHeight,
+			value,
+		);
 		this._environmentGeometryManager.contactShadow.height = value;
 	}
 
@@ -552,6 +572,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set contactShadowOpacity(value: number) {
+		this.noteSetting(
+			"environmentGeometry",
+			this.contactShadowOpacity,
+			value,
+		);
 		this._environmentGeometryManager.contactShadow.opacity = value;
 	}
 
@@ -560,6 +585,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set contactShadowVisibility(value: boolean) {
+		this.noteSetting(
+			"environmentGeometry",
+			this.contactShadowVisibility,
+			value,
+		);
 		this._environmentGeometryManager.contactShadow.visible = value;
 	}
 
@@ -584,6 +614,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set defaultLineMaterial(value: MaterialBasicLineData) {
+		this.noteSetting("materialSettings", this.defaultLineMaterial, value);
 		this.materialLoader.defaultLineMaterialData = value;
 	}
 
@@ -592,6 +623,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set defaultMaterial(value: MaterialStandardData) {
+		this.noteSetting("materialSettings", this.defaultMaterial, value);
 		this.materialLoader.defaultMaterialData = value;
 	}
 
@@ -600,6 +632,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set defaultMaterialColor(value: Color) {
+		this.noteSetting("materialSettings", this.defaultMaterialColor, value);
 		this.materialLoader.defaultMaterialData.color = value;
 		this.materialLoader.assignDefaultMaterial();
 		this.materialLoader.defaultLineMaterialData.color = value;
@@ -613,6 +646,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set defaultPointMaterial(value: MaterialPointData) {
+		this.noteSetting("materialSettings", this.defaultPointMaterial, value);
 		this.materialLoader.defaultPointMaterialData = value;
 	}
 
@@ -637,6 +671,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set environmentMap(value: string | string[]) {
+		this.noteSetting("environment", this.environmentMap, value);
 		const previous = this._environmentMap;
 		this._environmentMap = value;
 		this._environmentMapLoader.load(this.environmentMap).catch((error) => {
@@ -658,6 +693,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set environmentMapAnalyticDfg(value: boolean) {
+		this.noteSetting("environment", this.environmentMapAnalyticDfg, value);
 		this._environmentMapAnalyticDfg = value;
 		this._materialLoader.assignEnvironmentMapAnalyticDfg(value);
 	}
@@ -667,6 +703,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set environmentMapSquaredRoughnessBend(value: boolean) {
+		this.noteSetting(
+			"environment",
+			this.environmentMapSquaredRoughnessBend,
+			value,
+		);
 		this._environmentMapSquaredRoughnessBend = value;
 		this._materialLoader.assignEnvironmentMapSquaredRoughnessBend(value);
 	}
@@ -676,6 +717,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set environmentMapAsBackground(value: boolean) {
+		this.noteSetting("environment", this.environmentMapAsBackground, value);
 		this._environmentMapAsBackground = value;
 	}
 
@@ -684,6 +726,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set environmentMapBlurriness(value: number) {
+		this.noteSetting("environment", this.environmentMapBlurriness, value);
 		this._environmentMapBlurriness = value;
 		this._sceneTreeManager.scene.backgroundBlurriness =
 			this._environmentMapBlurriness;
@@ -694,6 +737,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set environmentMapFiltering(value: ENVIRONMENT_MAP_FILTERING) {
+		this.noteSetting("environment", this.environmentMapFiltering, value);
 		if (this._environmentMapFiltering === value) return;
 		this.assignEnvironmentMapFiltering(value);
 		// HDR maps are prefiltered on load, reload the current one with the new filtering
@@ -711,6 +755,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set environmentMapForUnlitMaterials(value: boolean) {
+		this.noteSetting(
+			"environment",
+			this.environmentMapForUnlitMaterials,
+			value,
+		);
 		this._environmentMapForUnlitMaterials = value;
 		this._materialLoader.assignEnvironmentMapForUnlitMaterials(value);
 	}
@@ -720,6 +769,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set environmentMapIntensity(value: number) {
+		this.noteSetting("environment", this.environmentMapIntensity, value);
 		this._environmentMapIntensity = value;
 		this._sceneTreeManager.scene.backgroundIntensity = value;
 		this._materialLoader.assignEnvironmentMapIntensity(value);
@@ -736,6 +786,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set environmentMapOrientation(value: ENVIRONMENT_MAP_ORIENTATION) {
+		this.noteSetting("environment", this.environmentMapOrientation, value);
 		this._environmentMapOrientation = value;
 		this._materialLoader.assignEnvironmentMapIrradianceMirror(
 			!this.threeJsOrientationApplied,
@@ -756,6 +807,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set environmentMapPbrMode(value: ENVIRONMENT_MAP_PBR_MODE) {
+		this.noteSetting("environment", this.environmentMapPbrMode, value);
 		this._environmentMapPbrMode = value;
 		this._materialLoader.assignEnvironmentMapPbrMode(value);
 	}
@@ -769,6 +821,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set environmentMapResolution(value: string) {
+		this.noteSetting("environment", this.environmentMapResolution, value);
 		this._environmentMapResolution = value;
 		this._environmentMapLoader.load(this.environmentMap);
 	}
@@ -778,6 +831,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set environmentMapRotation(value: quat) {
+		this.noteSetting("environment", this.environmentMapRotation, value);
 		this._environmentMapRotation = value;
 		this._materialLoader.assignEnvironmentMapRotation(
 			this.effectiveEnvironmentMapRotation,
@@ -795,6 +849,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set gemNormalMapResolution(value: number) {
+		this.noteSetting(
+			"materialSettings",
+			this.gemNormalMapResolution,
+			value,
+		);
 		if (this._gemNormalMapResolution === value) return;
 		this._gemNormalMapResolution = value;
 		this._geometryLoader.recaptureGemNormalMaps();
@@ -805,6 +864,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set gemEnvironmentMapIntensity(value: number) {
+		this.noteSetting(
+			"materialSettings",
+			this.gemEnvironmentMapIntensity,
+			value,
+		);
 		this._gemEnvironmentMapIntensity = value;
 		this._materialLoader.assignGemEnvironmentMapIntensity(value);
 	}
@@ -814,6 +878,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set gemClampColor(value: boolean) {
+		this.noteSetting("materialSettings", this.gemClampColor, value);
 		this._gemClampColor = value;
 	}
 
@@ -822,6 +887,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set gemTracing(value: "sphere" | "facets") {
+		this.noteSetting("materialSettings", this.gemTracing, value);
 		if (this._gemTracing === value) return;
 		this._gemTracing = value;
 		this._geometryLoader.recaptureGemNormalMaps();
@@ -877,6 +943,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set gridColor(value: Color) {
+		this.noteSetting("environmentGeometry", this.gridColor, value);
 		this._environmentGeometryManager.grid.color = value;
 	}
 
@@ -885,6 +952,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set gridVisibility(value: boolean) {
+		this.noteSetting("environmentGeometry", this.gridVisibility, value);
 		this._environmentGeometryManager.grid.visible = value;
 		this._gridVisibility = value;
 	}
@@ -894,6 +962,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set groundPlaneColor(value: Color) {
+		this.noteSetting("environmentGeometry", this.groundPlaneColor, value);
 		this._environmentGeometryManager.groundPlane.color = value;
 	}
 
@@ -902,6 +971,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set groundPlaneShadowColor(value: Color) {
+		this.noteSetting(
+			"environmentGeometry",
+			this.groundPlaneShadowColor,
+			value,
+		);
 		this._environmentGeometryManager.groundPlaneShadow.color = value;
 	}
 
@@ -910,6 +984,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set groundPlaneShadowVisibility(value: boolean) {
+		this.noteSetting(
+			"environmentGeometry",
+			this.groundPlaneShadowVisibility,
+			value,
+		);
 		this._environmentGeometryManager.groundPlaneShadow.visible = value;
 		this._groundPlaneShadowVisibility = value;
 	}
@@ -919,6 +998,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set groundPlaneVisibility(value: boolean) {
+		this.noteSetting(
+			"environmentGeometry",
+			this.groundPlaneVisibility,
+			value,
+		);
 		this._environmentGeometryManager.groundPlane.visible = value;
 		this._groundPlaneVisibility = value;
 	}
@@ -956,6 +1040,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set lights(value: boolean) {
+		this.noteSetting("shadows", this.lights, value);
 		this._lights = value;
 	}
 
@@ -980,6 +1065,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set materialOverrideType(value: MATERIAL_TYPE | undefined) {
+		this.noteSetting("materialSettings", this.materialOverrideType, value);
 		this.materialLoader.materialOverrideType = value;
 	}
 
@@ -1021,6 +1107,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set outputEncoding(value: TEXTURE_ENCODING) {
+		this.noteSetting("colorManagement", this.outputEncoding, value);
 		switch (value) {
 			case TEXTURE_ENCODING.SRGB:
 				this._renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -1045,6 +1132,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set physicallyCorrectLights(value: boolean) {
+		this.noteSetting(
+			"colorManagement",
+			this.physicallyCorrectLights,
+			value,
+		);
 		this._useLegacyLights = !value;
 	}
 
@@ -1053,6 +1145,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set physicalGemDispersion(value: boolean) {
+		this.noteSetting("materialSettings", this.physicalGemDispersion, value);
 		this._physicalGemDispersion = value;
 		this._materialLoader.assignPhysicalGemDispersion(value);
 	}
@@ -1062,6 +1155,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set physicalGemFresnel(value: boolean) {
+		this.noteSetting("materialSettings", this.physicalGemFresnel, value);
 		this._physicalGemFresnel = value;
 		this._materialLoader.assignPhysicalGemFresnel(value);
 	}
@@ -1071,6 +1165,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set gemLighting(value: "all" | "firstSurface" | "environment") {
+		this.noteSetting("materialSettings", this.gemLighting, value);
 		this._gemLighting = value;
 		this._materialLoader.assignGemLighting(value);
 	}
@@ -1080,6 +1175,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set pointSize(value: number) {
+		this.noteSetting("materialSettings", this.pointSize, value);
 		this.materialLoader.defaultPointMaterialData.size = value;
 		this.materialLoader.assignDefaultPointMaterial();
 	}
@@ -1138,6 +1234,11 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		return this._sceneTracingManager;
 	}
 
+	/** The scene state of this viewport (see `ISceneState`). */
+	public get sceneState(): ISceneState {
+		return this._sceneTreeManager.sceneState;
+	}
+
 	public get sceneTreeManager(): SceneTreeManager {
 		return this._sceneTreeManager;
 	}
@@ -1159,6 +1260,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set shadows(value: boolean) {
+		this.noteSetting("shadows", this.shadows, value);
 		this._shadows = value;
 		this._renderingManager.applyShadowMapEnabled();
 	}
@@ -1184,6 +1286,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set softShadows(value: boolean) {
+		this.noteSetting("shadows", this.softShadows, value);
 		this._softShadows = value;
 	}
 
@@ -1210,6 +1313,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set textureEncoding(value: TEXTURE_ENCODING) {
+		this.noteSetting("colorManagement", this.textureEncoding, value);
 		switch (value) {
 			case TEXTURE_ENCODING.SRGB:
 				this.environmentMapLoader.textureEncoding =
@@ -1230,6 +1334,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set toneMapping(value: TONE_MAPPING) {
+		this.noteSetting("colorManagement", this.toneMapping, value);
 		this._toneMapping = value;
 		switch (value) {
 			case TONE_MAPPING.LINEAR:
@@ -1263,6 +1368,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set toneMappingExposure(value: number) {
+		this.noteSetting("colorManagement", this.toneMappingExposure, value);
 		this._renderer.toneMappingExposure = value;
 	}
 
@@ -1271,6 +1377,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	}
 
 	public set type(value: RENDERER_TYPE) {
+		this.noteSetting("rendererType", this.type, value);
 		this._type = value;
 	}
 
@@ -1307,6 +1414,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 			  ) => ISDTFAttributeVisualizationData)
 			| undefined,
 	) {
+		this.noteSetting("rendererType", this.visualizeAttributes, value);
 		this._visualizeAttributes = value;
 	}
 
@@ -1796,12 +1904,22 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	public update(id: string): void {
+	/**
+	 * Applies the current changes of the scene tree now, as the next frame
+	 * would.
+	 *
+	 * @param id who asked for the update (unused)
+	 * @param unknownWithoutPass when no scene update runs, mark everything as
+	 * changed in the scene state (channel `unknown`): an edit the viewport
+	 * cannot see may have been made. `false` for the update a setting runs
+	 * after it recorded its own channel.
+	 */
+	public update(id: string, unknownWithoutPass: boolean = true): void {
 		if (this.closed) return;
 		if (this.sceneTreeManager.suspendSceneUpdates === true) return;
 		this._sceneTreeManager.updateSceneTree(this._tree.root);
-		const sceneChanges = this._sceneTreeManager.takeSceneChanges();
+		const sceneChanges =
+			this._sceneTreeManager.takeSceneChanges(unknownWithoutPass);
 		this._renderingManager.updateShadowMap();
 		this._animationEngine.updateAnimationData(sceneChanges);
 		this._renderingManager.render();
@@ -1809,6 +1927,21 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 			viewportId: this.id,
 			sceneChanges,
 		} as IViewportUpdatedEvent);
+	}
+
+	/**
+	 * Records a change of a setting group in the revisions of the scene
+	 * state when the new value differs from the current one. The same
+	 * object or array set again counts as a change: it may have been edited
+	 * in place.
+	 */
+	private noteSetting(
+		channel: SceneChangeChannel,
+		current: unknown,
+		value: unknown,
+	): void {
+		if (sameSettingValue(current, value)) return;
+		this._sceneTreeManager?.recordChannel(channel);
 	}
 
 	public updateEnvironmentGeometry(): void {
@@ -1830,6 +1963,19 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		return this._arManager.viewableInAR();
 	}
 }
+
+/**
+ * Whether a setting keeps its value: the same primitive, or two different
+ * arrays (or typed arrays) with the same elements.
+ */
+const sameSettingValue = (a: unknown, b: unknown): boolean => {
+	if (a === b) return typeof a !== "object" || a === null;
+	const arrayLike = (v: unknown): v is ArrayLike<unknown> =>
+		Array.isArray(v) || ArrayBuffer.isView(v);
+	if (!arrayLike(a) || !arrayLike(b) || a.length !== b.length) return false;
+	for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+	return true;
+};
 
 /** A non-negative whole number of frames; anything else is 0. */
 const toFrameCount = (value: number): number =>

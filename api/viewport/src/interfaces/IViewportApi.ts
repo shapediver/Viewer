@@ -23,6 +23,7 @@ import {
 	type IAnimationData,
 	type IGeometryData,
 	type IIntersectionFilter,
+	type ISceneState,
 	type ISDTFAttributeVisualizationData,
 	type ISDTFItemData,
 	type ISDTFOverview,
@@ -403,6 +404,19 @@ export interface IViewportApi {
 	 */
 	preRenderingCallback?: (renderer: THREE.WebGLRenderer) => void;
 	/**
+	 * The scene state of the viewport: whether the scene changes from frame
+	 * to frame by itself (an animation, object controls, continuous
+	 * rendering), and per channel the time at which the viewport last
+	 * applied a change (`revisions`). A new object per read.
+	 * `EVENTTYPE_VIEWPORT.SCENE_STATE_CHANGED` is sent when `static` or
+	 * `reasons` change.
+	 *
+	 * A hide, show or move of a node is the edit plus `updateVersion()`: the
+	 * next frame applies it. {@link update} applies it at once. Both give the
+	 * same `sceneChanges` on `VIEWPORT_UPDATED` and the same `revisions`.
+	 */
+	readonly sceneState: ISceneState;
+	/**
 	 * Option to enable / disable rendering of shadows. (default: true)
 	 */
 	shadows: boolean;
@@ -780,6 +794,12 @@ export interface IViewportApi {
 	 * Update the viewport with the current changes of the complete scene tree.
 	 * This carries out preparations for rendering. Call it after doing
 	 * direct changes to the scene tree.
+	 *
+	 * A change with a new version (`node.updateVersion()`) does not need this
+	 * call: the next frame applies it, with the same `VIEWPORT_UPDATED`
+	 * report. Call it to apply the change at once, or after an edit without
+	 * a new version. Without a new version, the scene state marks everything
+	 * as changed (channel `unknown` of {@link sceneState}).
 	 */
 	update(): void;
 	/**

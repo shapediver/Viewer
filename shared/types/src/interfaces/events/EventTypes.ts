@@ -323,9 +323,19 @@ export enum EVENTTYPE_VIEWPORT {
 	 * through the whole tree (for example the first update of a viewport, or
 	 * after a change of the renderer type or of GPU instancing), or if no scene
 	 * update ran. A listener that keeps data about the scene tree reads the
-	 * whole tree then.
+	 * whole tree then. `sceneChanges.kinds` says per node what changed on the
+	 * node itself.
 	 */
 	VIEWPORT_UPDATED = "viewport.updated",
+	/**
+	 * The SCENE_STATE_CHANGED-event is sent when the scene of the viewport
+	 * switches between static and dynamic, or when the reasons why it is
+	 * dynamic change (an animation starts or ends, object controls or
+	 * `continuousRendering` are switched). Its payload
+	 * ({@link IViewportSceneStateEvent}) has the new `sceneState`. It is
+	 * sent once per switch, never per frame.
+	 */
+	SCENE_STATE_CHANGED = "viewport.sceneStateChanged",
 	/**
 	 * The VIEWPORT_CLOSED-event is sent when the viewport has been closed.
 	 */

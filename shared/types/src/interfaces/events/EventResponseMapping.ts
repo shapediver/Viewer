@@ -17,6 +17,7 @@ import {type ISessionErrorEvent, type ISessionEvent} from "./ISessionEvent";
 import {type ITaskEvent} from "./ITaskEvent";
 import {
 	type IViewportEvent,
+	type IViewportSceneStateEvent,
 	type IViewportUpdatedEvent,
 } from "./IViewportEvent";
 
@@ -38,6 +39,7 @@ export type EventResponseMapping = {
 	[EVENTTYPE_VIEWPORT.BUSY_MODE_OFF]: IViewportEvent;
 	[EVENTTYPE_VIEWPORT.VIEWPORT_CREATED]: IViewportEvent;
 	[EVENTTYPE_VIEWPORT.VIEWPORT_UPDATED]: IViewportUpdatedEvent;
+	[EVENTTYPE_VIEWPORT.SCENE_STATE_CHANGED]: IViewportSceneStateEvent;
 	[EVENTTYPE_VIEWPORT.VIEWPORT_CLOSED]: IViewportEvent;
 	[EVENTTYPE_VIEWPORT.VIEWPORT_VISIBLE]: IViewportEvent;
 	[EVENTTYPE_VIEWPORT.VIEWPORT_HIDDEN]: IViewportEvent;

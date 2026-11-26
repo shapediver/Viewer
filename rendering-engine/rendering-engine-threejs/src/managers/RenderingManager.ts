@@ -19,6 +19,7 @@ import {
 import {
 	BUSY_MODE_DISPLAY,
 	type ICameraEvent,
+	type IViewportSceneStateEvent,
 	type IViewportUpdatedEvent,
 	RENDERER_TYPE,
 	SPINNER_POSITIONING,
@@ -838,6 +839,28 @@ export class RenderingManager implements IManager {
 
 	// #region Private Methods (14)
 
+	/**
+	 * The scene state of this frame: why the scene changes from frame to
+	 * frame by itself (bits in the order of SCENE_DYNAMIC_REASONS). Sends
+	 * SCENE_STATE_CHANGED when they changed since the last frame.
+	 */
+	private updateSceneState(): void {
+		const controls = this._renderingEngine.cameraEngine.camera?.controls;
+		const reasons =
+			(this._runningAnimation ? 1 : 0) |
+			(controls?.enableTurntableControls || controls?.enableObjectControls
+				? 2
+				: 0) |
+			(this._continuousRendering ? 4 : 0) |
+			(this._continuousShadowMapUpdate ? 8 : 0);
+		const sceneTreeManager = this._renderingEngine.sceneTreeManager;
+		if (!sceneTreeManager.setDynamicReasons(reasons)) return;
+		this._eventEngine.emitEvent(EVENTTYPE_VIEWPORT.SCENE_STATE_CHANGED, {
+			viewportId: this._renderingEngine.id,
+			sceneState: sceneTreeManager.sceneState,
+		} as IViewportSceneStateEvent);
+	}
+
 	private activateBeautyRenderShaders() {
 		this._renderingEngine.renderer.shadowMap.type = THREE.BasicShadowMap;
 		this._renderingEngine.renderer.shadowMap.needsUpdate = true;
@@ -887,6 +910,7 @@ export class RenderingManager implements IManager {
 
 		if (runningAnimation !== this._runningAnimation) this.render();
 		this._runningAnimation = runningAnimation;
+		this.updateSceneState();
 		if (this._runningAnimation)
 			this._renderingEngine.sceneTreeManager.updateTransformations();
 		if (this._runningAnimation)
@@ -911,6 +935,8 @@ export class RenderingManager implements IManager {
 			this._lastSize.height !== height ||
 			this._lastSize.width !== width;
 		this._lastSize = {width, height, adjustedWidth, adjustedHeight};
+		if (this._sizeChanged)
+			this._renderingEngine.sceneTreeManager.recordChannel("size");
 
 		// animation loop - part 3: update the camera, if there are new movements, they will start / continue the rendering
 		this._cameraChanged = this._renderingEngine.cameraEngine.camera

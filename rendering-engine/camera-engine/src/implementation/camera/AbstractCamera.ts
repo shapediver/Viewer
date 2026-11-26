@@ -2,13 +2,19 @@ import {type IRenderingEngine} from "@shapediver/viewer.rendering-engine.renderi
 import {Box, type IBox, Sphere} from "@shapediver/viewer.shared.math";
 import {
 	AbstractTreeNodeData,
-	type ITreeNode} from "@shapediver/viewer.shared.node-tree";
+	type ITreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {
 	EventEngine,
 	EVENTTYPE,
 	SettingsEngine,
-	StateEngine} from "@shapediver/viewer.shared.services";
-import {CAMERA_TYPE, type ICameraOptions} from "@shapediver/viewer.shared.types";
+	StateEngine,
+} from "@shapediver/viewer.shared.services";
+import {
+	CAMERA_TYPE,
+	type ICameraOptions,
+	type SceneNodeChangeKind,
+} from "@shapediver/viewer.shared.types";
 
 import {mat4, vec2, vec3, vec4} from "gl-matrix";
 
@@ -56,6 +62,11 @@ export abstract class AbstractCamera
 		private readonly _isDefault: boolean = false,
 	) {
 		super(_id, version);
+	}
+
+	/** @internal A camera change is a `camera` change of its nodes. */
+	public get changeKind(): SceneNodeChangeKind {
+		return "camera";
 	}
 
 	public get active(): boolean {
