@@ -46,7 +46,11 @@ async function runToFirstFrame(page: Page) {
 
 async function collect(page: Page, variant: SceneVariant): Promise<Counters> {
 	const gpu = await page.evaluate(
-		([v, options]) => (window as any).__probe.create(v, options),
+		([v, options]) => {
+			const probe = (window as any).__probe;
+			probe.countRenderList = true;
+			return probe.create(v, options);
+		},
 		[variant, AEC_DEFAULT] as const,
 	);
 	test.info().annotations.push({type: "gpu", description: gpu});

@@ -6,7 +6,7 @@ import {EventEngine, EVENTTYPE} from "@shapediver/viewer.shared.services";
 import {PRIMITIVE_MODE} from "@shapediver/viewer.shared.types";
 import * as THREE from "three";
 import {GemMaterial} from "../materials/GemMaterial";
-import {SD_DATA_TYPE, SDObject} from "../objects/SDObject";
+import {SD_DATA_TYPE, SDObject, setBatchHidden} from "../objects/SDObject";
 import {RenderingEngine} from "../RenderingEngine";
 
 /**
@@ -186,7 +186,7 @@ export class MaterialBatchManager {
 		member.batch.mesh.setVisibleAt(member.instanceId, false);
 		// The geometry cache can hand this mesh (or a clone of it) to another
 		// node. It must not stay hidden, and must not point at the batch.
-		mesh.visible = true;
+		setBatchHidden(mesh, false);
 		delete mesh.userData.batchedMesh;
 		delete mesh.userData.batchId;
 	}
@@ -797,7 +797,7 @@ export class MaterialBatchManager {
 			try {
 				id = batchMesh.addGeometry(entry.mesh.geometry);
 			} catch {
-				entry.mesh.visible = true;
+				setBatchHidden(entry.mesh, false);
 				return false;
 			}
 			info = {id, count: 0};
@@ -1167,7 +1167,7 @@ export class MaterialBatchManager {
 				this._renderingEngine.renderingManager.requestCompile(
 					member.mesh,
 				);
-			member.mesh.visible = true;
+			setBatchHidden(member.mesh, false);
 			delete member.mesh.userData.batchedMesh;
 			delete member.mesh.userData.batchId;
 			return;
@@ -1181,7 +1181,7 @@ export class MaterialBatchManager {
 		// Keep the source mesh and its geometry. Drag, outline, and a
 		// material edit show that mesh again without rebuilding the chunk.
 		// three.js does not raycast an instance hidden with setVisibleAt.
-		member.mesh.visible = false;
+		setBatchHidden(member.mesh, true);
 		member.mesh.userData.batchedMesh = member.batch.mesh;
 		member.mesh.userData.batchId = member.instanceId;
 	}
@@ -1318,7 +1318,7 @@ export class MaterialBatchManager {
 		if (this._byMesh.get(member.mesh) === member)
 			this._byMesh.delete(member.mesh);
 		if (member.orphan) return;
-		member.mesh.visible = true;
+		setBatchHidden(member.mesh, false);
 		delete member.mesh.userData.batchedMesh;
 		delete member.mesh.userData.batchId;
 		released.push(member.mesh);

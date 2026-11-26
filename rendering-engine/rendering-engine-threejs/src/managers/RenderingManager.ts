@@ -28,6 +28,7 @@ import {RenderPass} from "postprocessing";
 import * as Stats from "stats.js";
 import * as THREE from "three";
 import {GemMaterial} from "../materials/GemMaterial";
+import {renderInScope} from "../objects/SDObject";
 import {RenderingEngine} from "../RenderingEngine";
 import {SSAARenderPass} from "./postprocessing/SSAARenderPass";
 import {StillFrameAccumulator} from "./postprocessing/StillFrameAccumulator";
@@ -250,6 +251,21 @@ export class RenderingManager implements IManager {
 		};
 		const renderer = new THREE.WebGLRenderer(renderingProperties);
 		renderer.setPixelRatio(window.devicePixelRatio);
+		// Every render of this renderer (the main pass, the postprocessing
+		// passes, contact shadows, accumulation) runs in the render scope,
+		// so fully batched branches are cut from its walk (SS-10606).
+		// `compile` is not wrapped: it sees the real visibility.
+		const render = renderer.render;
+		const renderingEngine = this._renderingEngine;
+		renderer.render = function (
+			this: THREE.WebGLRenderer,
+			scene: THREE.Object3D,
+			camera: THREE.Camera,
+		) {
+			return renderInScope(renderingEngine.renderListCut, () =>
+				render.call(this, scene, camera),
+			);
+		};
 
 		const context = renderer.getContext();
 

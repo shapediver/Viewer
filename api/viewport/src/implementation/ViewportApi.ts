@@ -867,6 +867,21 @@ export class ViewportApi implements IViewportApi {
 
 	/**
 	 * @internal
+	 * Cut branches whose meshes are all drawn by batches or instance groups
+	 * from the render-list walk of three.js (SS-10606). On by default; off
+	 * walks every object, as before. For tests that compare both. Not part
+	 * of the public API and subject to change without notice.
+	 */
+	public get renderListCut(): boolean {
+		return this.#renderingEngine.renderListCut;
+	}
+
+	public set renderListCut(value: boolean) {
+		this.#renderingEngine.renderListCut = value;
+	}
+
+	/**
+	 * @internal
 	 * GPU instancing for this viewport. On by default. Turning it back on scans
 	 * already-loaded geometry so a later conversion can batch it. Not part of
 	 * the public API and subject to change without notice.
