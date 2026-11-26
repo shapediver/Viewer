@@ -189,6 +189,14 @@ test("SS-10565 each edit of one node is reported with exactly its kind", async (
 			perf.viewport.updateNodeTransformation(node);
 			node.updateVersion();
 		});
+		// A visibility change applied after a move that is still waiting.
+		step("move, then visibility, updateNodeTransformation", node, () => {
+			node.transformations = [{id: "place", matrix: tools.shift(0.75)}];
+			perf.viewport.updateNodeTransformation(node);
+			node.visible = true;
+			perf.viewport.updateNodeTransformation(node);
+			node.updateVersion();
+		});
 		step("updateVersion", node, () => node.updateVersion());
 		step("in place", node, () => {
 			node.transformations[0].matrix = tools.shift(1);
@@ -230,6 +238,11 @@ test("SS-10565 each edit of one node is reported with exactly its kind", async (
 	expect(result["transformation, updateNodeTransformation first"]).toEqual(
 		only("transformation"),
 	);
+	expect(result["move, then visibility, updateNodeTransformation"]).toEqual({
+		node: ["transformation", "visibility"],
+		others: [],
+		channels: ["transformation", "visibility"],
+	});
 	expect(result.structure).toEqual(only("structure"));
 	// updateVersion() alone: reported, no kind, no channel.
 	expect(result.updateVersion).toEqual({node: [], others: [], channels: []});
