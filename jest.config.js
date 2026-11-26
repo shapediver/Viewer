@@ -6,6 +6,7 @@
 module.exports = {
 	projects: [
 		"<rootDir>/features/interaction",
+		"<rootDir>/rendering-engine/intersection-engine",
 		"<rootDir>/shared/node-tree",
 		"<rootDir>/shared/services",
 		"<rootDir>/utils/settings",
