@@ -14,6 +14,7 @@ describe("tree node index - test", () => {
 	const changes = (nodes: ITreeNode[], removed: ITreeNode[] = []) => ({
 		nodes,
 		removedNodeIds: removed.map((node) => node.id),
+		kinds: nodes.map(() => []),
 	});
 
 	beforeEach(() => {

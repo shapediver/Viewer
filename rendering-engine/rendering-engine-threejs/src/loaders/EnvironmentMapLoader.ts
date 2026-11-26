@@ -529,6 +529,7 @@ export class EnvironmentMapLoader implements ILoader {
 			this._renderingEngine.effectiveEnvironmentMapRotation,
 		);
 		this._envMap = map;
+		this._renderingEngine.sceneTreeManager.recordChannel("environment");
 		this.notify(eventId);
 		// Trigger a render to ensure the newly assigned environment map is drawn.
 		// The beauty render countdown may have already expired by the time the map

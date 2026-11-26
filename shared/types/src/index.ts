@@ -200,8 +200,13 @@ import {
 } from "./interfaces/events/ITaskEvent";
 import type {
 	ISceneChanges,
+	ISceneState,
 	IViewportEvent,
+	IViewportSceneStateEvent,
 	IViewportUpdatedEvent,
+	SceneChangeChannel,
+	SceneDynamicReason,
+	SceneNodeChangeKind,
 } from "./interfaces/events/IViewportEvent";
 import type {IBox} from "./interfaces/math/IBox";
 import type {IGeometry} from "./interfaces/math/IGeometry";
@@ -518,6 +523,7 @@ export type {
 	IScanlineEffectDefinition,
 	ISceneChanges,
 	ISceneEvent,
+	ISceneState,
 	ISelectionParameterProps,
 	ISelectiveBloomEffectDefinition,
 	ISepiaEffectDefinition,
@@ -537,6 +543,7 @@ export type {
 	ITreeNodeData,
 	ITriangle,
 	IViewportEvent,
+	IViewportSceneStateEvent,
 	IViewportSettingsSections,
 	IViewportUpdatedEvent,
 	IVignetteEffectDefinition,
@@ -550,6 +557,9 @@ export type {
 	RestrictionDefinition,
 	Rotation,
 	SDImageBitmap,
+	SceneChangeChannel,
+	SceneDynamicReason,
+	SceneNodeChangeKind,
 	SelectionParameterValue,
 	SessionCreationDefinition,
 	TaskCategoryTypes,

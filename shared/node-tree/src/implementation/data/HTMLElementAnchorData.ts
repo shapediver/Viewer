@@ -3,7 +3,9 @@ import {
 	type IAnchorDataImage,
 	type IAnchorDataText,
 	type IHTMLElementAnchorData,
-	type IHTMLElementAnchorUpdateProperties} from "@shapediver/viewer.shared.types";
+	type IHTMLElementAnchorUpdateProperties,
+	type SceneNodeChangeKind,
+} from "@shapediver/viewer.shared.types";
 import {vec3} from "gl-matrix";
 import {AbstractTreeNodeData} from "../AbstractTreeNodeData";
 
@@ -64,6 +66,11 @@ export abstract class HTMLElementAnchorData
 	// #endregion Constructors (1)
 
 	// #region Public Accessors (12)
+
+	/** @internal An anchor is not drawn by WebGL: no change kind. */
+	public get changeKind(): SceneNodeChangeKind | undefined {
+		return undefined;
+	}
 
 	public get data(): IAnchorDataImage | IAnchorDataText | any {
 		return this.#data;

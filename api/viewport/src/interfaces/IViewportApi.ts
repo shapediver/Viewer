@@ -23,6 +23,7 @@ import {
 	type IAnimationData,
 	type IGeometryData,
 	type IIntersectionFilter,
+	type ISceneState,
 	type ISDTFAttributeVisualizationData,
 	type ISDTFItemData,
 	type ISDTFOverview,
@@ -403,6 +404,15 @@ export interface IViewportApi {
 	 */
 	preRenderingCallback?: (renderer: THREE.WebGLRenderer) => void;
 	/**
+	 * The scene state of the viewport: whether the scene changes from frame
+	 * to frame by itself (an animation, object controls, continuous
+	 * rendering), and per channel the time at which the viewport last
+	 * applied a change (`revisions`). A new object per read.
+	 * `EVENTTYPE_VIEWPORT.SCENE_STATE_CHANGED` is sent when `static` or
+	 * `reasons` change.
+	 */
+	readonly sceneState: ISceneState;
+	/**
 	 * Option to enable / disable rendering of shadows. (default: true)
 	 */
 	shadows: boolean;
@@ -780,6 +790,12 @@ export interface IViewportApi {
 	 * Update the viewport with the current changes of the complete scene tree.
 	 * This carries out preparations for rendering. Call it after doing
 	 * direct changes to the scene tree.
+	 *
+	 * It applies the changes at once and synchronously. Without it, a shown
+	 * viewport applies a change with a new version (`node.updateVersion()`)
+	 * in its next frame, with the same `VIEWPORT_UPDATED` report. Called
+	 * without a new version, the scene state marks everything as changed
+	 * (channel `unknown` of {@link sceneState}).
 	 */
 	update(): void;
 	/**

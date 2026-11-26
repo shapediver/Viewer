@@ -1,4 +1,17 @@
-import {ITransformation, ITreeNode, ITreeNodeData, Tree, TreeNode} from "../";
+import {SceneNodeChangeKind} from "@shapediver/viewer.shared.types";
+import {mat4} from "gl-matrix";
+import {
+	AbstractTreeNodeData,
+	currentSerial,
+	CustomData,
+	ITransformation,
+	ITreeNode,
+	ITreeNodeData,
+	markTreeRead,
+	nextSerial,
+	Tree,
+	TreeNode,
+} from "../";
 
 describe("scene graph engine - test", () => {
 	let tree: Tree;
@@ -421,5 +434,169 @@ describe("scene graph node - test", () => {
 		nodes[0].updateVersion();
 		expect(nodes[0].id).toBe(id);
 		expect(clone.originalId).toBe(nodes[0].originalId);
+	});
+});
+
+describe("change clock and change kinds (SS-10565)", () => {
+	/** A data item whose changes are light changes. */
+	class LightLikeData extends AbstractTreeNodeData {
+		public get changeKind(): SceneNodeChangeKind {
+			return "light";
+		}
+	}
+
+	/** The kinds that have a clock value later than `serial`. */
+	const kindsAfter = (node: ITreeNode, serial: number) => {
+		const serials = (node as TreeNode).changeSerials;
+		return (Object.keys(serials) as SceneNodeChangeKind[]).filter(
+			(kind) => serials[kind] > serial,
+		);
+	};
+
+	/** A parent with one child, both read by a viewport. */
+	const readTree = () => {
+		const parent = new TreeNode("parent");
+		const child = new TreeNode("child", parent);
+		markTreeRead();
+		return {parent, child, before: currentSerial()};
+	};
+
+	test("versions are values of the clock", async () => {
+		const node = new TreeNode();
+		const now = currentSerial();
+		expect(currentSerial()).toBe(now);
+		node.updateVersion(false, false);
+		expect(node.version).toBe("v" + (now + 1));
+		expect(node.serial).toBe(now + 1);
+		expect(nextSerial()).toBe(now + 2);
+		node.version = "custom";
+		expect(node.serial).toBe(0);
+	});
+
+	test("visible records visibility only when the value changes", async () => {
+		const {child, before} = readTree();
+		child.visible = true;
+		expect(kindsAfter(child, before)).toEqual([]);
+		child.visible = false;
+		expect(kindsAfter(child, before)).toEqual(["visibility"]);
+		const hidden = currentSerial();
+		child.visible = false;
+		expect(kindsAfter(child, hidden)).toEqual([]);
+	});
+
+	test("the transformation setters record transformation", async () => {
+		const {child} = readTree();
+		const transformation = {id: "t", matrix: mat4.create()};
+		let serial = currentSerial();
+		child.addTransformation(transformation);
+		expect(kindsAfter(child, serial)).toEqual(["transformation"]);
+		serial = currentSerial();
+		child.removeTransformation(transformation);
+		expect(kindsAfter(child, serial)).toEqual(["transformation"]);
+		serial = currentSerial();
+		child.removeTransformation(transformation);
+		expect(kindsAfter(child, serial)).toEqual([]);
+		child.transformations = [transformation];
+		expect(kindsAfter(child, serial)).toEqual(["transformation"]);
+	});
+
+	test("addChild and removeChild record structure on the parent", async () => {
+		const {parent, child, before} = readTree();
+		const other = new TreeNode("other");
+		parent.addChild(other);
+		expect(kindsAfter(parent, before)).toEqual(["structure"]);
+		expect(kindsAfter(child, before)).toEqual([]);
+		const serial = currentSerial();
+		parent.removeChild(child);
+		expect(kindsAfter(parent, serial)).toEqual(["structure"]);
+		expect(kindsAfter(child, before)).toEqual([]);
+	});
+
+	test("data added, removed or versioned records the item's kind", async () => {
+		const {child} = readTree();
+		const geometry = new CustomData({});
+		const light = new LightLikeData();
+		let serial = currentSerial();
+		child.addData(geometry);
+		expect(kindsAfter(child, serial)).toEqual(["geometry"]);
+		serial = currentSerial();
+		child.addData(light);
+		// only the kind of the item that was added or removed
+		expect(kindsAfter(child, serial)).toEqual(["light"]);
+		serial = currentSerial();
+		light.updateVersion();
+		expect(kindsAfter(child, serial)).toEqual(["light"]);
+		serial = currentSerial();
+		child.removeData(geometry);
+		expect(kindsAfter(child, serial)).toEqual(["geometry"]);
+		serial = currentSerial();
+		child.addData(new CustomData({}));
+		expect(kindsAfter(child, serial)).toEqual(["geometry"]);
+		serial = currentSerial();
+		child.removeData(light);
+		expect(kindsAfter(child, serial)).toEqual(["light"]);
+		serial = currentSerial();
+		child.data.pop();
+		expect(kindsAfter(child, serial)).toEqual(["geometry"]);
+	});
+
+	test("any number of items added or removed at once records their kind", async () => {
+		const {child} = readTree();
+		const items = Array.from({length: 128}, () => new CustomData({}));
+		let serial = currentSerial();
+		child.addData(items);
+		expect(kindsAfter(child, serial)).toEqual(["geometry"]);
+		serial = currentSerial();
+		child.removeData(items);
+		expect(kindsAfter(child, serial)).toEqual(["geometry"]);
+	});
+
+	test("a change without a version records its kind on the data's nodes", async () => {
+		const {parent, child} = readTree();
+		const geometry = new CustomData({});
+		child.addData(geometry);
+		const version = child.version;
+		const parentVersion = parent.version;
+		const serial = currentSerial();
+		geometry.noteParentsChange("material");
+		expect(kindsAfter(child, serial)).toEqual(["material"]);
+		expect(child.version).toBe(version);
+		expect(parent.version).toBe(parentVersion);
+	});
+
+	test("updateVersion records no kind", async () => {
+		const {parent, child, before} = readTree();
+		const version = child.version;
+		child.updateVersion();
+		expect(child.version).not.toBe(version);
+		expect(child.serial).toBeGreaterThan(before);
+		expect(kindsAfter(child, 0)).toEqual([]);
+		expect(kindsAfter(parent, 0)).toEqual([]);
+	});
+
+	test("a node created after the last read records nothing", async () => {
+		markTreeRead();
+		const node = new TreeNode("new");
+		const child = new TreeNode("child", node);
+		node.visible = false;
+		node.addTransformation({id: "t", matrix: mat4.create()});
+		node.addData(new CustomData({}));
+		node.removeChild(child);
+		expect(kindsAfter(node, 0)).toEqual([]);
+		// read from now on
+		markTreeRead();
+		node.visible = true;
+		expect(kindsAfter(node, 0)).toEqual(["visibility"]);
+	});
+
+	test("structureVersion changes on add and remove", async () => {
+		const {parent} = readTree();
+		const first = parent.structureVersion;
+		const other = new TreeNode("other");
+		parent.addChild(other);
+		const second = parent.structureVersion;
+		expect(second).not.toBe(first);
+		parent.removeChild(other);
+		expect(parent.structureVersion).not.toBe(second);
 	});
 });

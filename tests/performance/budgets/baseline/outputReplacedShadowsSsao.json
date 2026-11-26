@@ -55,7 +55,7 @@
 	"half.shadowMapRenders": 2,
 	"half.treeDataReads": 104703,
 	"half.updateMatrixWorldCalls": 25321,
-	"half.versionsCreated": 12936,
+	"half.versionsCreated": 12949,
 	"tenth.batchBoundsReads": 0,
 	"tenth.batchInstancesAdded": 258,
 	"tenth.batchInstancesDeleted": 258,
@@ -112,5 +112,5 @@
 	"tenth.shadowMapRenders": 2,
 	"tenth.treeDataReads": 104703,
 	"tenth.updateMatrixWorldCalls": 25321,
-	"tenth.versionsCreated": 12936
+	"tenth.versionsCreated": 12949
 }

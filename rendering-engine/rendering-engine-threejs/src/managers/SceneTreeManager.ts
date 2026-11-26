@@ -8,19 +8,30 @@ import {
 import {type IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {Box, type IBox} from "@shapediver/viewer.shared.math";
 import {
+	changedKindsSince,
+	changeKindsOfBits,
+	currentSerial,
+	dataChangeKind,
 	GeometryData,
 	HTMLElementAnchorData,
 	InstanceData,
 	type ITree,
 	type ITreeNode,
 	type ITreeNodeData,
+	markTreeRead,
 	MaterialGemData,
+	nextSerial,
+	noteNodeChange,
+	SCENE_NODE_CHANGE_KIND_INDEX,
 	Tree,
 } from "@shapediver/viewer.shared.node-tree";
 import {
 	type ISceneChanges,
+	type ISceneState,
 	type ISDTFOverview,
 	RENDERER_TYPE,
+	type SceneChangeChannel,
+	type SceneDynamicReason,
 } from "@shapediver/viewer.shared.types";
 
 import {
@@ -35,6 +46,11 @@ import {SD_DATA_TYPE, SDObject} from "../objects/SDObject";
 import {RenderingEngine} from "../RenderingEngine";
 import {ThreejsData} from "../types/ThreejsData";
 import {assignBoundingBox, removeData} from "./sceneTree/SceenTreeManagerUtils";
+import {
+	SCENE_CHANGE_CHANNEL_INDEX,
+	SCENE_CHANGE_CHANNELS,
+	SCENE_DYNAMIC_REASONS,
+} from "./sceneTree/sceneState";
 import {createSDTFOverview, injectAttributeData} from "./sceneTree/SDTFUtils";
 import {assignEnvironmentMapForThreeJsDataObject} from "./sceneTree/ThreeJsDataUtils";
 
@@ -70,6 +86,16 @@ export class SceneTreeManager implements IManager {
 	// first), and the ids of the nodes whose converted objects they removed.
 	private readonly _changedNodes = new Set<ITreeNode>();
 	private readonly _removedNodeIds = new Set<string>();
+	// The kinds (bits) of the nodes in _changedNodes that changed on the
+	// node itself, read from the node's change serials. Absent: none.
+	private readonly _changedKinds = new Map<ITreeNode, number>();
+	// Per channel (SCENE_CHANGE_CHANNELS), the clock value at which this
+	// viewport last applied a change of that channel.
+	private readonly _revisions = new Float64Array(
+		SCENE_CHANGE_CHANNELS.length,
+	);
+	// Why the scene changes from frame to frame (bits, SCENE_DYNAMIC_REASONS).
+	private _dynamicReasons = 0;
 	// A scene update ran since the last `takeSceneChanges`.
 	private _passRan = false;
 	// One of them went through the whole tree, so the sets say nothing.
@@ -91,8 +117,37 @@ export class SceneTreeManager implements IManager {
 		return this._lastRootVersion;
 	}
 
+	/** The scene does not change from frame to frame by itself. */
+	public get isStatic(): boolean {
+		return this._dynamicReasons === 0;
+	}
+
 	public get mainNode() {
 		return this._mainConvertedObject;
+	}
+
+	/**
+	 * Per channel (in the order of SCENE_CHANGE_CHANNELS), the clock value at
+	 * which this viewport last applied a change of that channel. Read only.
+	 */
+	public get revisionValues(): Readonly<Float64Array> {
+		return this._revisions;
+	}
+
+	/** The scene state of this viewport, a new frozen object per read. */
+	public get sceneState(): ISceneState {
+		const revisions = {} as Record<SceneChangeChannel, number>;
+		for (let i = 0; i < SCENE_CHANGE_CHANNELS.length; i++)
+			revisions[SCENE_CHANGE_CHANNELS[i]] = this._revisions[i];
+		const reasons: SceneDynamicReason[] = [];
+		for (let i = 0; i < SCENE_DYNAMIC_REASONS.length; i++)
+			if (this._dynamicReasons & (1 << i))
+				reasons.push(SCENE_DYNAMIC_REASONS[i]);
+		return Object.freeze({
+			static: reasons.length === 0,
+			reasons: Object.freeze(reasons),
+			revisions: Object.freeze(revisions),
+		});
 	}
 
 	public get scene() {
@@ -106,21 +161,49 @@ export class SceneTreeManager implements IManager {
 	 * update, renderer type or instancing switch, attribute visualization):
 	 * a listener has to read the whole tree then.
 	 */
-	public takeSceneChanges(): ISceneChanges | undefined {
-		const changes =
-			this._passRan && !this._fullPass
-				? Object.freeze({
-						nodes: Object.freeze([...this._changedNodes]),
-						removedNodeIds: Object.freeze([
-							...this._removedNodeIds,
-						]),
-					})
-				: undefined;
+	public takeSceneChanges(
+		unknownWithoutPass: boolean = true,
+	): ISceneChanges | undefined {
+		let changes: ISceneChanges | undefined;
+		if (this._passRan && !this._fullPass) {
+			const nodes = [...this._changedNodes];
+			changes = Object.freeze({
+				nodes: Object.freeze(nodes),
+				removedNodeIds: Object.freeze([...this._removedNodeIds]),
+				kinds: Object.freeze(
+					nodes.map((node) =>
+						changeKindsOfBits(this._changedKinds.get(node) ?? 0),
+					),
+				),
+			});
+		} else if (this._passRan || unknownWithoutPass) {
+			// A listener reads the whole tree: so does every cache.
+			this.recordChannel("unknown");
+		}
 		this._changedNodes.clear();
+		this._changedKinds.clear();
 		this._removedNodeIds.clear();
 		this._passRan = false;
 		this._fullPass = false;
 		return changes;
+	}
+
+	/**
+	 * Records that this viewport applied a change of `channel` now (see
+	 * `ISceneState.revisions`).
+	 */
+	public recordChannel(channel: SceneChangeChannel): void {
+		this._revisions[SCENE_CHANGE_CHANNEL_INDEX[channel]] = nextSerial();
+	}
+
+	/**
+	 * Sets why the scene changes from frame to frame (bits in the order of
+	 * SCENE_DYNAMIC_REASONS). Returns whether they changed.
+	 */
+	public setDynamicReasons(reasons: number): boolean {
+		if (reasons === this._dynamicReasons) return false;
+		this._dynamicReasons = reasons;
+		return true;
 	}
 
 	public get suspendSceneUpdates(): boolean {
@@ -468,27 +551,61 @@ export class SceneTreeManager implements IManager {
 			if (!obj) return;
 		}
 
+		// Changes made from now on are applied by a later update.
+		if (this._batchDepth === 0) markTreeRead();
 		this._batchDepth++;
 		try {
 			const convertedObject = <SDObject>obj;
 			const nodeMatrix = treeNode.nodeMatrix;
 			const isVisible = this.isNodeVisible(treeNode);
 			const isVisibleInHierarchy = visibleInHierarchy && isVisible;
+			// The clock value when this viewport last applied the node, 0 if
+			// it converts the node for the first time.
+			const appliedBefore = convertedObject.SDappliedSerial;
+			// Moves and visibility changes can be reported ahead of the rest.
+			const movesApplied = Math.max(
+				appliedBefore,
+				convertedObject.SDmovesReportedSerial,
+			);
+			const moved = !convertedObject.hasTransformation(nodeMatrix);
+			const visibilityChanged = convertedObject.visible !== isVisible;
+			// A matrix changed in place (no setter of the node saw it): the
+			// node records the move now, so every viewport reads it.
+			if (
+				moved &&
+				appliedBefore > 0 &&
+				!(
+					changedKindsSince(treeNode, movesApplied) &
+					TRANSFORMATION_BIT
+				)
+			)
+				noteNodeChange(treeNode, "transformation");
 			// A transformation-only pass also applies the visibility of the
 			// node. The next scene update then finds it applied and leaves the
 			// node out, so it is reported here.
+			if (filter.transformationOnly && visibilityChanged)
+				this._changedNodes.add(treeNode);
 			if (
 				filter.transformationOnly &&
-				convertedObject.visible !== isVisible
+				appliedBefore > 0 &&
+				(moved || visibilityChanged)
 			)
-				this._changedNodes.add(treeNode);
+				this.applyMoveOrVisibility(
+					treeNode,
+					convertedObject,
+					appliedBefore,
+					movesApplied,
+					(moved ? TRANSFORMATION_BIT : 0) |
+						(visibilityChanged ? VISIBILITY_BIT : 0),
+					visibilityChanged,
+				);
 
 			// The transformation and the visibility are inherited by the
 			// whole branch (world matrices, bounding boxes, instances and
 			// batches), so a change here forces an update of everything below.
 			const dirty =
-				!convertedObject.hasTransformation(nodeMatrix) ||
-				convertedObject.visible !== isVisible ||
+				moved ||
+				visibilityChanged ||
 				convertedObject.SDvisibleInHierarchy !== isVisibleInHierarchy;
 
 			// A transformation-only pass over the whole tree only has to
@@ -532,9 +649,20 @@ export class SceneTreeManager implements IManager {
 			// reset bounding boxes
 			this.resetBoundingBoxes(treeNode);
 
+			// The kinds of change on this node that this viewport applies
+			// now. A node converted for the first time gets the kinds of its
+			// data items (below).
+			let changedKinds = 0;
 			// cleanup obsolete data and children
 			if (filter.transformationOnly === false) {
 				this._changedNodes.add(treeNode);
+				if (appliedBefore > 0)
+					changedKinds =
+						(changedKindsSince(treeNode, appliedBefore) &
+							~MOVE_BITS) |
+						(changedKindsSince(treeNode, movesApplied) &
+							MOVE_BITS) |
+						(visibilityChanged ? VISIBILITY_BIT : 0);
 				this.cleanupObsoleteData(treeNode, convertedObject);
 				this.cleanupObsoleteChildren(treeNode, convertedObject);
 				// Children added or removed below this node from now on make
@@ -568,6 +696,14 @@ export class SceneTreeManager implements IManager {
 					alwaysUpdate = alwaysWalk = forceChildren = true;
 				else if (dataItem instanceof AbstractCamera)
 					alwaysWalk = forceChildren = true;
+				if (
+					appliedBefore === 0 &&
+					filter.transformationOnly === false
+				) {
+					const kind = dataChangeKind(dataItem);
+					if (kind)
+						changedKinds |= 1 << SCENE_NODE_CHANGE_KIND_INDEX[kind];
+				}
 				const convertedObjectData = convertedChildrenMap.get(
 					dataItem.id,
 				);
@@ -600,6 +736,13 @@ export class SceneTreeManager implements IManager {
 			convertedObject.visible = isVisible;
 			convertedObject.applyTransformation(nodeMatrix);
 			convertedObject.SDvisibleInHierarchy = isVisibleInHierarchy;
+			if (filter.transformationOnly === false)
+				this.applyChangedKinds(
+					treeNode,
+					convertedObject,
+					changedKinds,
+					appliedBefore,
+				);
 
 			// A transformation-only pass does not union the bounding boxes of
 			// the ancestors that it only checks, so the next scene update has
@@ -677,6 +820,8 @@ export class SceneTreeManager implements IManager {
 				);
 		} finally {
 			this._batchDepth--;
+			// Nodes created during the update (by a callback) count as read.
+			if (this._batchDepth === 0) markTreeRead();
 			if (
 				this._batchDepth === 0 &&
 				filter.transformationOnly === false &&
@@ -730,6 +875,8 @@ export class SceneTreeManager implements IManager {
 		this._newRendererType =
 			this._renderingEngine.type !== this._lastRendererType ||
 			instancingChanged;
+		if (this._newRendererType && this._mainConvertedObject)
+			this.recordChannel("rendererType");
 		this._lastRendererType = this._renderingEngine.type;
 		this._lastInstancingEnabled =
 			this._renderingEngine.instanceGroupManager.enabled;
@@ -939,6 +1086,75 @@ export class SceneTreeManager implements IManager {
 		} finally {
 			this._skipUnchanged = skipUnchanged;
 		}
+	}
+
+	/**
+	 * Adds kinds (bits) to the report of a node in _changedNodes.
+	 */
+	private addChangedKinds(treeNode: ITreeNode, kinds: number): void {
+		if (kinds === 0) return;
+		this._changedKinds.set(
+			treeNode,
+			(this._changedKinds.get(treeNode) ?? 0) | kinds,
+		);
+	}
+
+	/**
+	 * Marks a node as applied by this viewport now, and records the kinds of
+	 * change it applied: in the report and in the revisions of their
+	 * channels.
+	 */
+	private applyChangedKinds(
+		treeNode: ITreeNode,
+		convertedObject: SDObject,
+		kinds: number,
+		appliedBefore: number,
+	): void {
+		if (kinds === 0) {
+			// Nothing to record. A later change gets a larger clock value.
+			if (appliedBefore === 0)
+				convertedObject.SDappliedSerial = currentSerial();
+			return;
+		}
+		const applied = nextSerial();
+		convertedObject.SDappliedSerial = applied;
+		this.addChangedKinds(treeNode, kinds);
+		for (let i = 0; kinds >> i; i++)
+			if (kinds & (1 << i)) this._revisions[i] = applied;
+	}
+
+	/**
+	 * A transformation-only visit applied a move or a visibility change of
+	 * the node (`kinds`): records their channels and, for a visibility
+	 * change, the node's report (the visibility in this viewport can also
+	 * change through `excludeViewports` or `restrictViewports`, which record
+	 * no kind). A report includes every move and visibility change of the
+	 * node not reported yet. The node then counts as applied if nothing else
+	 * waits on it (this visit does not convert its data); otherwise only its
+	 * moves and visibility changes do, and the full visit reports the rest.
+	 * A move alone is reported by the next full visit, so it stays waiting:
+	 * the in-place record of an animated node is then written once, not
+	 * every frame.
+	 */
+	private applyMoveOrVisibility(
+		treeNode: ITreeNode,
+		convertedObject: SDObject,
+		appliedBefore: number,
+		movesApplied: number,
+		kinds: number,
+		reported: boolean,
+	): void {
+		const applied = nextSerial();
+		for (let i = 0; kinds >> i; i++)
+			if (kinds & (1 << i)) this._revisions[i] = applied;
+		if (!reported) return;
+		this.addChangedKinds(
+			treeNode,
+			kinds | (changedKindsSince(treeNode, movesApplied) & MOVE_BITS),
+		);
+		if (changedKindsSince(treeNode, appliedBefore) & ~MOVE_BITS)
+			convertedObject.SDmovesReportedSerial = applied;
+		else convertedObject.SDappliedSerial = applied;
 	}
 
 	/**
@@ -1306,3 +1522,7 @@ export class SceneTreeManager implements IManager {
 type UpdateFilter = {
 	transformationOnly: boolean;
 };
+
+const TRANSFORMATION_BIT = 1 << SCENE_NODE_CHANGE_KIND_INDEX.transformation;
+const VISIBILITY_BIT = 1 << SCENE_NODE_CHANGE_KIND_INDEX.visibility;
+const MOVE_BITS = TRANSFORMATION_BIT | VISIBILITY_BIT;

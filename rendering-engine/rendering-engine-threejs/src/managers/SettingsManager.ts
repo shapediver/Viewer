@@ -696,7 +696,11 @@ export class SettingsManager implements IManager {
 		this._stateEngine.viewportEngines[
 			this._renderingEngine.id
 		]?.settingsAssigned.resolve(true);
+		// The settings recorded their own channels in the scene state.
 		if (updateViewport)
-			this._renderingEngine.update("RenderingEngine.applySyncSettings");
+			this._renderingEngine.update(
+				"RenderingEngine.applySyncSettings",
+				false,
+			);
 	}
 }

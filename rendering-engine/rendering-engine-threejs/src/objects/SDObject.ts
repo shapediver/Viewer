@@ -1,4 +1,5 @@
 import {type ISDObject} from "@shapediver/viewer.rendering-engine.rendering-engine";
+import {nextSerial} from "@shapediver/viewer.shared.node-tree";
 import {mat4} from "gl-matrix";
 import * as THREE from "three";
 import {Object3D} from "three";
@@ -14,6 +15,47 @@ export enum SD_DATA_TYPE {
 	HTML_ELEMENT_ANCHOR = "html_element_anchor",
 	CUSTOM = "custom",
 	OBJECT = "object",
+}
+
+/** The clock value of the last change of a draw set (see noteDrawSetChange). */
+let drawSetSerial = 0;
+
+/**
+ * Records that a draw set of the converted objects changed (a branch was cut
+ * from the render-list walk, or a hidden batch source mesh changed), on the
+ * scene tree's change clock. One value for all viewports: an SDObject does
+ * not know its viewport. Caches read it as the channel `drawSet` of
+ * `SceneCacheGuard`.
+ */
+export function noteDrawSetChange(): void {
+	drawSetSerial = nextSerial();
+}
+
+/** The clock value of the last {@link noteDrawSetChange}, `0` if none. */
+export function drawSetRevision(): number {
+	return drawSetSerial;
+}
+
+/**
+ * How many renderer calls are running (nested renders are possible). Code
+ * that has to know whether three.js walks the scene for a draw reads it.
+ * Rendering is synchronous, so one value serves every viewport.
+ */
+let renderDepth = 0;
+
+/** Call when a render of a viewport starts. Pair it with {@link leaveRenderScope} in a `finally`. */
+export function enterRenderScope(): void {
+	renderDepth++;
+}
+
+/** Call when a render that {@link enterRenderScope} started has ended. */
+export function leaveRenderScope(): void {
+	if (renderDepth > 0) renderDepth--;
+}
+
+/** The number of renders running now, `0` outside of a render. */
+export function getRenderDepth(): number {
+	return renderDepth;
 }
 
 export class SDObject extends Object3D implements ISDObject {
@@ -39,6 +81,19 @@ export class SDObject extends Object3D implements ISDObject {
 	 */
 	public SDvisibleInHierarchy?: boolean;
 	public SDstructureVersion?: number;
+	/**
+	 * The value of the scene tree's change clock when this viewport last
+	 * applied the node (SS-10565). `0`: not converted yet. A change kind the
+	 * node recorded after it (`TreeNode.changedKindsSince`) is not applied.
+	 */
+	public SDappliedSerial = 0;
+	/**
+	 * The value of the change clock up to which a transformation-only visit
+	 * reported the node's moves and visibility changes while other kinds
+	 * were still waiting (`0`: none). Those two kinds count as applied up to
+	 * the later of this and {@link SDappliedSerial}.
+	 */
+	public SDmovesReportedSerial = 0;
 	public SDalwaysUpdate = false;
 	public SDboundsStale = false;
 

@@ -7,15 +7,23 @@ import {
 	type ITransformation,
 	type ITreeNode,
 	type ITreeNodeData,
+	type SceneNodeChangeKind,
 } from "@shapediver/viewer.shared.types";
 
 import {mat4} from "gl-matrix";
-import {nextVersion} from "./version";
-
-/** The last structure version given to a node (see structureChanged). */
-let lastStructureVersion = 0;
-/** The last structure version given out when a version was read. */
-let readStructureVersion = 0;
+import {
+	dataChangeKind,
+	SCENE_NODE_CHANGE_KIND_INDEX,
+	SCENE_NODE_CHANGE_KINDS,
+} from "./changeKinds";
+import {
+	currentSerial,
+	lastReadSerial,
+	markTreeRead,
+	nextSerial,
+	nextSerialIfRead,
+	serialOfVersion,
+} from "./version";
 
 export class TreeNode implements ITreeNode {
 	readonly #boundingBox: IBox = new Box();
@@ -29,6 +37,12 @@ export class TreeNode implements ITreeNode {
 	readonly #id: string;
 	readonly #uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
+	/**
+	 * Per change kind (index in SCENE_NODE_CHANGE_KINDS), the clock value of
+	 * the last change of that kind. Allocated at the first change after the
+	 * node was read.
+	 */
+	private _changeSerials?: Float64Array;
 	#convertedObject: {[key: string]: unknown} = {};
 	#displayName: string | undefined;
 	#excludeViewports: string[] = [];
@@ -47,7 +61,21 @@ export class TreeNode implements ITreeNode {
 		| ((newObj: unknown, oldObj: unknown, viewport: string) => void)
 		| null = null;
 	#version: string;
+	private _serial: number;
 	#visible: boolean = true;
+	/**
+	 * The clock value at the creation of this node. While it is later than
+	 * the last read of the tree (markTreeRead), nobody has read the node, and
+	 * its changes are not recorded: its first conversion reports its data.
+	 * Set before the constructor body runs, so changes made in the
+	 * constructor are not recorded either.
+	 */
+	private readonly _createdAt: number = currentSerial() + 1;
+	/**
+	 * The number of data items of each change kind, by kind index. Created
+	 * once the node holds a data item with a kind.
+	 */
+	private _dataKindCounts?: Uint32Array;
 
 	/**
 	 * Creation of a node that can be used in the node tree.
@@ -70,7 +98,10 @@ export class TreeNode implements ITreeNode {
 
 		this.#id = this.#uuidGenerator.create();
 		this.#originalId = this.#id;
-		this.#version = nextVersion();
+		// nextVersion(), with its number kept
+		const serial = nextSerial();
+		this._serial = serial;
+		this.#version = "v" + serial;
 		this.#parent?.addChild(this);
 	}
 
@@ -80,6 +111,20 @@ export class TreeNode implements ITreeNode {
 
 	public get boundingBoxViewport(): {[key: string]: IBox} {
 		return this.#boundingBoxViewport;
+	}
+
+	/**
+	 * Per change kind, the clock value of the node's last own change of that
+	 * kind (see `version.ts`). `0`: no change since the node was first read.
+	 * A copy: the scene update reads `changedKindsSince` instead.
+	 *
+	 * @internal
+	 */
+	public get changeSerials(): Readonly<Record<SceneNodeChangeKind, number>> {
+		const record = {} as Record<SceneNodeChangeKind, number>;
+		for (let i = 0; i < SCENE_NODE_CHANGE_KINDS.length; i++)
+			record[SCENE_NODE_CHANGE_KINDS[i]] = this._changeSerials?.[i] ?? 0;
+		return Object.freeze(record);
 	}
 
 	public get children(): ITreeNode[] {
@@ -180,10 +225,21 @@ export class TreeNode implements ITreeNode {
 		this.#restrictViewports = value;
 	}
 
+	/**
+	 * The clock value of the node's version: of its last `updateVersion()`,
+	 * own or from a descendant. `0` for a version set from outside that the
+	 * clock did not make.
+	 *
+	 * @internal
+	 */
+	public get serial(): number {
+		return this._serial;
+	}
+
 	public get structureVersion(): number {
 		// Whoever reads a version compares it with a later read, so a
 		// change from now on has to reach this node again.
-		readStructureVersion = lastStructureVersion;
+		markTreeRead();
 		return this._structureVersion;
 	}
 
@@ -193,6 +249,7 @@ export class TreeNode implements ITreeNode {
 
 	public set transformations(value: ITransformation[]) {
 		this.#transformations = value;
+		this.noteChange("transformation");
 	}
 
 	public get updateCallback():
@@ -227,6 +284,7 @@ export class TreeNode implements ITreeNode {
 
 	public set version(value: string) {
 		this.#version = value;
+		this._serial = serialOfVersion(value);
 	}
 
 	public get visible(): boolean {
@@ -234,7 +292,9 @@ export class TreeNode implements ITreeNode {
 	}
 
 	public set visible(value: boolean) {
+		if (this.#visible === value) return;
 		this.#visible = value;
+		this.noteChange("visibility");
 	}
 
 	public get worldMatrix(): mat4 {
@@ -286,7 +346,23 @@ export class TreeNode implements ITreeNode {
 
 	public addTransformation(transformation: ITransformation): boolean {
 		this.#transformations.push(transformation);
+		this.noteChange("transformation");
 		return true;
+	}
+
+	/**
+	 * The kinds (bits, see SCENE_NODE_CHANGE_KINDS) that this node changed
+	 * after the clock value `serial`.
+	 *
+	 * @internal
+	 */
+	public changedKindsSince(serial: number): number {
+		const serials = this._changeSerials;
+		if (!serials) return 0;
+		let bits = 0;
+		for (let i = 0; i < serials.length; i++)
+			if (serials[i] > serial) bits |= 1 << i;
+		return bits;
 	}
 
 	public clone(): ITreeNode {
@@ -343,6 +419,20 @@ export class TreeNode implements ITreeNode {
 			});
 
 		return clone;
+	}
+
+	/**
+	 * Records a change of `kind` on this node at the current time of the
+	 * clock. Nothing is recorded while nobody has read the node.
+	 *
+	 * @internal
+	 */
+	public noteChange(kind: SceneNodeChangeKind): void {
+		const serial = nextSerialIfRead(this._createdAt);
+		if (serial === 0) return;
+		(this._changeSerials ??= new Float64Array(
+			SCENE_NODE_CHANGE_KINDS.length,
+		))[SCENE_NODE_CHANGE_KIND_INDEX[kind]] = serial;
 	}
 
 	public getChild(id: string): ITreeNode | undefined {
@@ -443,13 +533,16 @@ export class TreeNode implements ITreeNode {
 	 * tree that nobody has read since cost one step each.
 	 */
 	private structureChanged(): void {
-		const version = ++lastStructureVersion;
+		const version = nextSerial();
+		const read = lastReadSerial();
+		// The structure change of this node, at the same clock value.
+		if (this._createdAt <= read)
+			(this._changeSerials ??= new Float64Array(
+				SCENE_NODE_CHANGE_KINDS.length,
+			))[SCENE_NODE_CHANGE_KIND_INDEX.structure] = version;
 		this._structureVersion = version;
 		let node = this.parent;
-		while (
-			node instanceof TreeNode &&
-			node._structureVersion <= readStructureVersion
-		) {
+		while (node instanceof TreeNode && node._structureVersion <= read) {
 			node._structureVersion = version;
 			node = node.parent;
 		}
@@ -482,6 +575,7 @@ export class TreeNode implements ITreeNode {
 		const index = this.#transformations.indexOf(transformation);
 		if (index === -1) return false;
 		this.#transformations.splice(index, 1);
+		this.noteChange("transformation");
 
 		return true;
 	}
@@ -523,19 +617,52 @@ export class TreeNode implements ITreeNode {
 		}
 
 		const oldVersion = this.#version;
-		this.#version = nextVersion();
+		// nextVersion(), with its number kept
+		const serial = nextSerial();
+		this._serial = serial;
+		this.#version = "v" + serial;
 		if (this.#updateCallback)
 			this.#updateCallback(this.#version, oldVersion);
 	}
 
 	private onDataChanged(data: readonly ITreeNodeData[]) {
+		const counts = DATA_KIND_SCRATCH.fill(0);
+		let any = false;
 		// ensure parent update versions are set
 		data.forEach((d) => {
+			const kind = dataChangeKind(d);
+			if (kind) {
+				counts[SCENE_NODE_CHANGE_KIND_INDEX[kind]]++;
+				any = true;
+			}
 			if (d.parentsUpdateVersions[this.id] === undefined) {
-				d.parentsUpdateVersions[this.id] = () => {
+				// Called by the data item: with no argument for a new version
+				// of the item, with a kind for a change without a version
+				// (AbstractTreeNodeData.noteParentsChange).
+				const onChange = (changeOnly?: SceneNodeChangeKind) => {
+					if (changeOnly) {
+						this.noteChange(changeOnly);
+						return;
+					}
+					if (kind) this.noteChange(kind);
 					this.updateVersion(true, false);
 				};
+				d.parentsUpdateVersions[this.id] = onChange;
 			}
 		});
+		// An item was added or removed: the kinds whose count changed.
+		let before = this._dataKindCounts;
+		if (!before) {
+			if (!any) return;
+			before = this._dataKindCounts = new Uint32Array(counts.length);
+		}
+		for (let i = 0; i < counts.length; i++) {
+			if (counts[i] === before[i]) continue;
+			before[i] = counts[i];
+			this.noteChange(SCENE_NODE_CHANGE_KINDS[i]);
+		}
 	}
 }
+
+/** Reused by `onDataChanged` for the new counts, by kind index. */
+const DATA_KIND_SCRATCH = new Uint32Array(SCENE_NODE_CHANGE_KINDS.length);

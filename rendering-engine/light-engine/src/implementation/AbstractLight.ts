@@ -1,8 +1,12 @@
 import {
 	AbstractTreeNodeData,
-	type ITreeNode} from "@shapediver/viewer.shared.node-tree";
+	type ITreeNode,
+} from "@shapediver/viewer.shared.node-tree";
 import {UuidGenerator} from "@shapediver/viewer.shared.services";
-import {type Color} from "@shapediver/viewer.shared.types";
+import {
+	type Color,
+	type SceneNodeChangeKind,
+} from "@shapediver/viewer.shared.types";
 import {type ILight, LIGHT_TYPE} from "../interface/ILight";
 
 export abstract class AbstractLight
@@ -46,6 +50,11 @@ export abstract class AbstractLight
 	// #endregion Constructors (1)
 
 	// #region Public Getters And Setters (13)
+
+	/** @internal A light change is a `light` change of its nodes. */
+	public get changeKind(): SceneNodeChangeKind {
+		return "light";
+	}
 
 	public get color(): Color {
 		return this.#color;

@@ -2,20 +2,31 @@ import {
 	type ITransformation,
 	type ITree,
 	type ITreeNode,
-	type ITreeNodeData} from "@shapediver/viewer.shared.types";
+	type ITreeNodeData,
+} from "@shapediver/viewer.shared.types";
 import {AbstractTreeNodeData} from "./implementation/AbstractTreeNodeData";
+import {
+	changedKindsSince,
+	changeKindsOfBits,
+	dataChangeKind,
+	noteNodeChange,
+	SCENE_NODE_CHANGE_KIND_INDEX,
+	SCENE_NODE_CHANGE_KINDS,
+} from "./implementation/changeKinds";
 import {AnimationData} from "./implementation/data/AnimationData";
 import {ChunkData} from "./implementation/data/ChunkData";
 import {CustomData} from "./implementation/data/CustomData";
 import {
 	AttributeData,
 	GeometryData,
-	PrimitiveData} from "./implementation/data/GeometryData";
+	PrimitiveData,
+} from "./implementation/data/GeometryData";
 import {
 	HTMLElementAnchorCustomData,
 	HTMLElementAnchorData,
 	HTMLElementAnchorImageData,
-	HTMLElementAnchorTextData} from "./implementation/data/HTMLElementAnchorData";
+	HTMLElementAnchorTextData,
+} from "./implementation/data/HTMLElementAnchorData";
 import {InstanceData} from "./implementation/data/InstanceData";
 import {AbstractMaterialData} from "./implementation/material/AbstractMaterialData";
 import {MapData} from "./implementation/material/MapData";
@@ -32,16 +43,24 @@ import {MaterialUnlitData} from "./implementation/material/MaterialUnlitData";
 import {MaterialVariantsData} from "./implementation/material/MaterialVariantsData";
 import {
 	SDTFAttributeData,
-	SDTFAttributesData} from "./implementation/sdtf/SDTFAttributesData";
+	SDTFAttributesData,
+} from "./implementation/sdtf/SDTFAttributesData";
 import {SDTFItemData} from "./implementation/sdtf/SDTFItemData";
 import {SDTFOverviewData} from "./implementation/sdtf/SDTFOverviewData";
 import {Tree} from "./implementation/Tree";
 import {TreeNode} from "./implementation/TreeNode";
 import {
 	type ITreeNodeIndexEntry,
-	TreeNodeIndex} from "./implementation/TreeNodeIndex";
+	TreeNodeIndex,
+} from "./implementation/TreeNodeIndex";
+import {
+	currentSerial,
+	markTreeRead,
+	nextSerial,
+} from "./implementation/version";
 
-export {AbstractMaterialData,
+export {
+	AbstractMaterialData,
 	AbstractTreeNodeData,
 	AnimationData,
 	AttributeData,
@@ -72,9 +91,24 @@ export {AbstractMaterialData,
 	SDTFOverviewData,
 	Tree,
 	TreeNode,
-	TreeNodeIndex};
-export type {ITransformation,
+	TreeNodeIndex,
+};
+// Internal: the scene tree's change clock and the change kinds of its nodes.
+export {
+	changedKindsSince,
+	changeKindsOfBits,
+	currentSerial,
+	dataChangeKind,
+	markTreeRead,
+	nextSerial,
+	noteNodeChange,
+	SCENE_NODE_CHANGE_KIND_INDEX,
+	SCENE_NODE_CHANGE_KINDS,
+};
+export type {
+	ITransformation,
 	ITree,
 	ITreeNode,
 	ITreeNodeData,
-	ITreeNodeIndexEntry};
+	ITreeNodeIndexEntry,
+};

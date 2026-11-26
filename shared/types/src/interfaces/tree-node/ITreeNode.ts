@@ -236,6 +236,9 @@ export interface ITreeNode {
 	/**
 	 * Update the version.
 	 *
+	 * A shown viewport applies the new version in its next frame;
+	 * `viewport.update()` applies it at once.
+	 *
 	 * @param parents if true, the version of all parents will be updated as well (default: true)
 	 * @param children if true, the version of all children will be updated as well (default: true)
 	 */

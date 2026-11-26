@@ -1,5 +1,8 @@
 import {UuidGenerator} from "@shapediver/viewer.shared.services";
-import {type ITreeNodeData} from "@shapediver/viewer.shared.types";
+import {
+	type ITreeNodeData,
+	type SceneNodeChangeKind,
+} from "@shapediver/viewer.shared.types";
 import {nextVersion} from "./version";
 
 export abstract class AbstractTreeNodeData implements ITreeNodeData {
@@ -25,6 +28,17 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
 	constructor(id?: string, version?: string) {
 		this.#id = id || this.#uuidGenerator.create();
 		this.#version = version || nextVersion();
+	}
+
+	/**
+	 * What a change of this data item (added to a node, removed from it, or
+	 * given a new version) changes on the nodes that hold it. `undefined`:
+	 * nothing that a viewport draws.
+	 *
+	 * @internal
+	 */
+	public get changeKind(): SceneNodeChangeKind | undefined {
+		return "geometry";
 	}
 
 	public get convertedObject(): {[key: string]: unknown} {
@@ -81,6 +95,18 @@ export abstract class AbstractTreeNodeData implements ITreeNodeData {
 	public clone(): ITreeNodeData {
 		const clone = new (this.constructor as new () => ITreeNodeData)();
 		return clone;
+	}
+
+	/**
+	 * Records a change of `kind` on every node that holds this item, without
+	 * a new version (for example an effect material that a viewport applies
+	 * directly).
+	 *
+	 * @internal
+	 */
+	public noteParentsChange(kind: SceneNodeChangeKind): void {
+		for (const callback of Object.values(this.#parentsUpdateVersions))
+			(callback as (changeOnly?: SceneNodeChangeKind) => void)(kind);
 	}
 
 	/**

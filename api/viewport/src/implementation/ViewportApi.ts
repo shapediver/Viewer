@@ -45,6 +45,7 @@ import {
 	type IAnimationData,
 	type IGeometryData,
 	type IIntersectionFilter,
+	type ISceneState,
 	type ISDTFAttributeVisualizationData,
 	type ISDTFItemData,
 	type ISDTFOverview,
@@ -178,7 +179,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("arRotation");
+		this.#applyUpdate("arRotation");
 	}
 
 	public get arScale(): vec3 {
@@ -200,7 +201,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("arScale");
+		this.#applyUpdate("arScale");
 	}
 
 	public get arTranslation(): vec3 {
@@ -218,7 +219,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("arTranslation");
+		this.#applyUpdate("arTranslation");
 	}
 
 	public get accumulationFrames(): number {
@@ -236,7 +237,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("accumulationFrames");
+		this.#applyUpdate("accumulationFrames");
 	}
 
 	public get accumulationFramesMobile(): number {
@@ -254,7 +255,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("accumulationFramesMobile");
+		this.#applyUpdate("accumulationFramesMobile");
 	}
 
 	public get accumulationMode(): "display" | "hdr" {
@@ -274,7 +275,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("accumulationMode");
+		this.#applyUpdate("accumulationMode");
 	}
 
 	public get automaticColorAdjustment(): boolean {
@@ -292,7 +293,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("automaticColorAdjustment");
+		this.#applyUpdate("automaticColorAdjustment");
 	}
 
 	public get automaticResizing(): boolean {
@@ -310,7 +311,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("automaticResizing");
+		this.#applyUpdate("automaticResizing");
 	}
 
 	public get beautyRenderBlendingDuration(): number {
@@ -328,7 +329,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("beautyRenderBlendingDuration");
+		this.#applyUpdate("beautyRenderBlendingDuration");
 	}
 
 	public get beautyRenderDelay(): number {
@@ -346,7 +347,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("beautyRenderDelay");
+		this.#applyUpdate("beautyRenderDelay");
 	}
 
 	public get camera(): ICameraApi | null {
@@ -377,7 +378,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("clearAlpha");
+		this.#applyUpdate("clearAlpha");
 	}
 
 	public get clearColor(): Color {
@@ -395,7 +396,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("clearColor");
+		this.#applyUpdate("clearColor");
 	}
 
 	public get contactShadowBlur(): number {
@@ -413,7 +414,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("contactShadowBlur");
+		this.#applyUpdate("contactShadowBlur");
 	}
 
 	public get contactShadowDarkness(): number {
@@ -431,7 +432,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("contactShadowDarkness");
+		this.#applyUpdate("contactShadowDarkness");
 	}
 
 	public get contactShadowHeight(): number {
@@ -449,7 +450,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("contactShadowHeight");
+		this.#applyUpdate("contactShadowHeight");
 	}
 
 	public get contactShadowOpacity(): number {
@@ -467,7 +468,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("contactShadowOpacity");
+		this.#applyUpdate("contactShadowOpacity");
 	}
 
 	public get contactShadowVisibility(): boolean {
@@ -485,7 +486,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("contactShadowVisibility");
+		this.#applyUpdate("contactShadowVisibility");
 	}
 
 	public get defaultLineMaterial(): MaterialBasicLineData {
@@ -511,7 +512,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("defaultMaterialColor");
+		this.#applyUpdate("defaultMaterialColor");
 	}
 
 	public get defaultPointMaterial(): MaterialPointData {
@@ -533,7 +534,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("enableAR");
+		this.#applyUpdate("enableAR");
 	}
 
 	public get environmentMap(): string | string[] {
@@ -551,7 +552,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("environmentMap");
+		this.#applyUpdate("environmentMap");
 	}
 
 	public get environmentMapAnalyticDfg(): boolean {
@@ -569,7 +570,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("environmentMapAnalyticDfg");
+		this.#applyUpdate("environmentMapAnalyticDfg");
 	}
 
 	public get environmentMapAsBackground(): boolean {
@@ -587,7 +588,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("environmentMapAsBackground");
+		this.#applyUpdate("environmentMapAsBackground");
 	}
 
 	public get environmentMapBlurriness(): number {
@@ -605,7 +606,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("environmentMapBlurriness");
+		this.#applyUpdate("environmentMapBlurriness");
 	}
 
 	public get environmentMapFiltering(): ENVIRONMENT_MAP_FILTERING {
@@ -625,7 +626,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("environmentMapFiltering");
+		this.#applyUpdate("environmentMapFiltering");
 	}
 
 	public get environmentMapForUnlitMaterials(): boolean {
@@ -643,7 +644,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("environmentMapForUnlitMaterials");
+		this.#applyUpdate("environmentMapForUnlitMaterials");
 	}
 
 	public get environmentMapIntensity(): number {
@@ -661,7 +662,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("environmentMapIntensity");
+		this.#applyUpdate("environmentMapIntensity");
 	}
 
 	public get environmentMapOrientation(): ENVIRONMENT_MAP_ORIENTATION {
@@ -684,7 +685,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("environmentMapOrientation");
+		this.#applyUpdate("environmentMapOrientation");
 	}
 
 	public get environmentMapPbrMode(): ENVIRONMENT_MAP_PBR_MODE {
@@ -707,7 +708,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("environmentMapPbrMode");
+		this.#applyUpdate("environmentMapPbrMode");
 	}
 
 	public get environmentMapResolution(): string {
@@ -725,7 +726,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("environmentMapResolution");
+		this.#applyUpdate("environmentMapResolution");
 	}
 
 	public get environmentMapRotation(): quat {
@@ -743,7 +744,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("environmentMapRotation");
+		this.#applyUpdate("environmentMapRotation");
 	}
 
 	public get environmentMapSquaredRoughnessBend(): boolean {
@@ -761,7 +762,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("environmentMapSquaredRoughnessBend");
+		this.#applyUpdate("environmentMapSquaredRoughnessBend");
 	}
 
 	public get gemEnvironmentMapIntensity(): number {
@@ -779,7 +780,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("gemEnvironmentMapIntensity");
+		this.#applyUpdate("gemEnvironmentMapIntensity");
 	}
 
 	public get gemClampColor(): boolean {
@@ -797,7 +798,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("gemClampColor");
+		this.#applyUpdate("gemClampColor");
 	}
 
 	public get gemNormalMapResolution(): number {
@@ -821,7 +822,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("gemNormalMapResolution");
+		this.#applyUpdate("gemNormalMapResolution");
 	}
 
 	public get gemLighting(): "all" | "firstSurface" | "environment" {
@@ -841,7 +842,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("gemLighting");
+		this.#applyUpdate("gemLighting");
 	}
 
 	public get gemTracing(): "sphere" | "facets" {
@@ -861,7 +862,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("gemTracing");
+		this.#applyUpdate("gemTracing");
 	}
 
 	/**
@@ -913,7 +914,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("gridColor");
+		this.#applyUpdate("gridColor");
 	}
 
 	public get gridVisibility(): boolean {
@@ -931,7 +932,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("gridVisibility");
+		this.#applyUpdate("gridVisibility");
 	}
 
 	public get groundPlaneColor(): Color {
@@ -949,7 +950,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("groundPlaneColor");
+		this.#applyUpdate("groundPlaneColor");
 	}
 
 	public get groundPlaneShadowColor(): Color {
@@ -967,7 +968,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("groundPlaneShadowColor");
+		this.#applyUpdate("groundPlaneShadowColor");
 	}
 
 	public get groundPlaneShadowVisibility(): boolean {
@@ -985,7 +986,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("groundPlaneShadowVisibility");
+		this.#applyUpdate("groundPlaneShadowVisibility");
 	}
 
 	public get groundPlaneVisibility(): boolean {
@@ -1003,7 +1004,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("groundPlaneVisibility");
+		this.#applyUpdate("groundPlaneVisibility");
 	}
 
 	public get id(): string {
@@ -1040,7 +1041,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("lights");
+		this.#applyUpdate("lights");
 	}
 
 	public get loadDefaultCameras(): boolean {
@@ -1058,7 +1059,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("loadDefaultCameras");
+		this.#applyUpdate("loadDefaultCameras");
 	}
 
 	public get materialOverrideType(): MATERIAL_TYPE | undefined {
@@ -1078,7 +1079,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("materialOverrideType");
+		this.#applyUpdate("materialOverrideType");
 	}
 
 	public get maximumRenderingSize(): {
@@ -1109,7 +1110,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("maximumRenderingSize");
+		this.#applyUpdate("maximumRenderingSize");
 	}
 
 	public get outputEncoding(): TEXTURE_ENCODING {
@@ -1129,7 +1130,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("outputEncoding");
+		this.#applyUpdate("outputEncoding");
 	}
 
 	public get physicalGemDispersion(): boolean {
@@ -1147,7 +1148,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("physicalGemDispersion");
+		this.#applyUpdate("physicalGemDispersion");
 	}
 
 	public get physicalGemFresnel(): boolean {
@@ -1165,7 +1166,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("physicalGemFresnel");
+		this.#applyUpdate("physicalGemFresnel");
 	}
 
 	public get physicallyCorrectLights(): boolean {
@@ -1183,7 +1184,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("physicallyCorrectLights");
+		this.#applyUpdate("physicallyCorrectLights");
 	}
 
 	public get pointSize(): number {
@@ -1201,7 +1202,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("pointSize");
+		this.#applyUpdate("pointSize");
 	}
 
 	public get postProcessing(): IPostProcessingApi {
@@ -1238,7 +1239,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("postRenderingCallback");
+		this.#applyUpdate("postRenderingCallback");
 	}
 
 	public get preRenderingCallback():
@@ -1261,7 +1262,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("preRenderingCallback");
+		this.#applyUpdate("preRenderingCallback");
 	}
 
 	public get sessionSettingsId(): string | undefined {
@@ -1287,7 +1288,11 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("shadows");
+		this.#applyUpdate("shadows");
+	}
+
+	public get sceneState(): ISceneState {
+		return this.#renderingEngine.sceneState;
 	}
 
 	public get show(): boolean {
@@ -1305,7 +1310,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("show");
+		this.#applyUpdate("show");
 	}
 
 	public get showStatistics(): boolean {
@@ -1323,7 +1328,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("showStatistics");
+		this.#applyUpdate("showStatistics");
 	}
 
 	public get softShadows(): boolean {
@@ -1341,7 +1346,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("softShadows");
+		this.#applyUpdate("softShadows");
 	}
 
 	public get textureEncoding(): TEXTURE_ENCODING {
@@ -1361,7 +1366,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("textureEncoding");
+		this.#applyUpdate("textureEncoding");
 	}
 
 	public get threeJsCoreObjects(): {
@@ -1393,7 +1398,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("toneMapping");
+		this.#applyUpdate("toneMapping");
 	}
 
 	public get toneMappingExposure(): number {
@@ -1411,7 +1416,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("toneMappingExposure");
+		this.#applyUpdate("toneMappingExposure");
 	}
 
 	public get type(): RENDERER_TYPE {
@@ -1431,7 +1436,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("type");
+		this.#applyUpdate("type");
 	}
 
 	public get visualizeAttributes():
@@ -1537,7 +1542,7 @@ export class ViewportApi implements IViewportApi {
 			"string",
 		);
 		const check = this.#renderingEngine.cameraEngine.assignCamera(id);
-		this.update("assignCamera");
+		this.#applyUpdate("assignCamera");
 		return check;
 	}
 
@@ -1549,7 +1554,7 @@ export class ViewportApi implements IViewportApi {
 			"string",
 		);
 		const check = this.#renderingEngine.lightEngine.assignLightScene(id);
-		this.update("assignLightScene");
+		this.#applyUpdate("assignLightScene");
 		return check;
 	}
 
@@ -1585,13 +1590,13 @@ export class ViewportApi implements IViewportApi {
 				"node",
 			);
 
-		this.update("convertToGlTF.start");
+		this.#applyUpdate("convertToGlTF.start");
 		const result = await this.#gltfConverter.convert(
 			node,
 			convertForAr,
 			this.id,
 		);
-		this.update("convertToGlTF.end");
+		this.#applyUpdate("convertToGlTF.end");
 		return new Blob([result], {type: "application/octet-stream"});
 	}
 
@@ -1636,7 +1641,7 @@ export class ViewportApi implements IViewportApi {
 		});
 
 		// create the gltf
-		this.update("createArSessionLink.start");
+		this.#applyUpdate("createArSessionLink.start");
 		const blob = await this.#gltfConverter.convert(
 			targetNode,
 			true,
@@ -1648,7 +1653,7 @@ export class ViewportApi implements IViewportApi {
 			if (targetNode.transformations[i].id === "ar_scaling")
 				targetNode.transformations.splice(i, 1);
 
-		this.update("createArSessionLink.end");
+		this.#applyUpdate("createArSessionLink.end");
 
 		const response = await this.#stateEngine.sessionEngines[
 			sessionEngineId!
@@ -1742,7 +1747,7 @@ export class ViewportApi implements IViewportApi {
 		const lightScene = this.#renderingEngine.lightEngine.createLightScene(
 			properties || {},
 		);
-		this.update("createLightScene");
+		this.#applyUpdate("createLightScene");
 		return this.#lightScenes[lightScene.id];
 	}
 
@@ -1758,7 +1763,7 @@ export class ViewportApi implements IViewportApi {
 			CAMERA_TYPE.ORTHOGRAPHIC,
 			id,
 		);
-		this.update("createOrthographicCamera");
+		this.#applyUpdate("createOrthographicCamera");
 		return <IOrthographicCameraApi>this.#cameras[camera.id];
 	}
 
@@ -1774,7 +1779,7 @@ export class ViewportApi implements IViewportApi {
 			CAMERA_TYPE.PERSPECTIVE,
 			id,
 		);
-		this.update("createPerspectiveCamera");
+		this.#applyUpdate("createPerspectiveCamera");
 		return <IPerspectiveCameraApi>this.#cameras[camera.id];
 	}
 
@@ -1798,7 +1803,7 @@ export class ViewportApi implements IViewportApi {
 			"string",
 		);
 		this.#renderingEngine.displayErrorMessage(message);
-		this.update("displayErrorMessage");
+		this.#applyUpdate("displayErrorMessage");
 	}
 
 	public getEnvironmentMapImageUrl(): string {
@@ -1819,7 +1824,7 @@ export class ViewportApi implements IViewportApi {
 			"number",
 			false,
 		);
-		this.update("getScreenshot");
+		this.#applyUpdate("getScreenshot");
 		return this.#renderingEngine.getScreenshot(type, quality);
 	}
 
@@ -1840,7 +1845,7 @@ export class ViewportApi implements IViewportApi {
 			"number",
 			false,
 		);
-		this.update("getSettledScreenshot");
+		this.#applyUpdate("getSettledScreenshot");
 		return await this.#renderingEngine.getSettledScreenshot(type, quality);
 	}
 
@@ -1894,7 +1899,7 @@ export class ViewportApi implements IViewportApi {
 			"boolean",
 			false,
 		);
-		this.update("getScreenshotAdvanced");
+		this.#applyUpdate("getScreenshotAdvanced");
 		return (this.#renderingEngine.getScreenshotAdvanced as any)(
 			type,
 			quality,
@@ -1959,7 +1964,7 @@ export class ViewportApi implements IViewportApi {
 			"string",
 		);
 		const check = this.#renderingEngine.cameraEngine.removeCamera(id);
-		this.update("removeCamera");
+		this.#applyUpdate("removeCamera");
 		return check;
 	}
 
@@ -1994,7 +1999,7 @@ export class ViewportApi implements IViewportApi {
 			"string",
 		);
 		const check = this.#renderingEngine.lightEngine.removeLightScene(id);
-		this.update("removeLightScene");
+		this.#applyUpdate("removeLightScene");
 		return check;
 	}
 
@@ -2012,7 +2017,7 @@ export class ViewportApi implements IViewportApi {
 		for (const c in this.cameras)
 			this.#renderingEngine.cameraEngine.removeCamera(c);
 		this.#renderingEngine.cameraEngine.createDefaultCameras();
-		this.update("resetToDefaultCameras");
+		this.#applyUpdate("resetToDefaultCameras");
 	}
 
 	public resize(width: number, height: number): void {
@@ -2028,7 +2033,7 @@ export class ViewportApi implements IViewportApi {
 			"number",
 		);
 		this.#renderingEngine.resize(width, height);
-		this.update("resize");
+		this.#applyUpdate("resize");
 	}
 
 	public restrictEventListeners(allowedListeners: {
@@ -2050,6 +2055,16 @@ export class ViewportApi implements IViewportApi {
 		this.#renderingEngine.update(id || "ViewportApi");
 	}
 
+	/**
+	 * The update that a setter or method of this viewport runs to apply its
+	 * own change. Unlike {@link update}, it does not mark everything as
+	 * changed in the scene state (channel `unknown`) when no scene update
+	 * ran: a setting records its own channel.
+	 */
+	#applyUpdate(id: string): void {
+		this.#renderingEngine.update(id, false);
+	}
+
 	public updateDefaultLineMaterial(value: MaterialBasicLineData) {
 		const scope = "updateDefaultLineMaterial";
 		this.#inputValidator.validateAndError(
@@ -2061,7 +2076,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("updateDefaultLineMaterial");
+		this.#applyUpdate("updateDefaultLineMaterial");
 	}
 
 	public updateDefaultMaterial(value: MaterialStandardData) {
@@ -2075,7 +2090,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("updateDefaultMaterial");
+		this.#applyUpdate("updateDefaultMaterial");
 	}
 
 	public updateDefaultPointMaterial(value: MaterialPointData) {
@@ -2089,7 +2104,7 @@ export class ViewportApi implements IViewportApi {
 		this.#logger.debug(
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
-		this.update("updateDefaultPointMaterial");
+		this.#applyUpdate("updateDefaultPointMaterial");
 	}
 
 	public updateEnvironmentGeometry(): void {
@@ -2097,6 +2112,10 @@ export class ViewportApi implements IViewportApi {
 	}
 
 	public updateGeometryData(geometryData: IGeometryData): void {
+		// The nodes that hold the data record a material change, without a
+		// new version: the material is swapped here, not converted again.
+		(geometryData as GeometryData).noteParentsChange?.("material");
+		this.#renderingEngine.sceneTreeManager.recordChannel("material");
 		this.#renderingEngine.geometryLoader.updateGeometryMaterial(
 			geometryData as GeometryData,
 		);
@@ -2184,7 +2203,7 @@ export class ViewportApi implements IViewportApi {
 		});
 
 		// create the gltf
-		this.update("viewInAR.start");
+		this.#applyUpdate("viewInAR.start");
 		const blob = await this.#gltfConverter.convert(
 			targetNode,
 			true,
@@ -2196,7 +2215,7 @@ export class ViewportApi implements IViewportApi {
 			if (targetNode.transformations[i].id === "ar_scaling")
 				targetNode.transformations.splice(i, 1);
 
-		this.update("viewInAR.end");
+		this.#applyUpdate("viewInAR.end");
 
 		const response = await this.#stateEngine.sessionEngines[
 			sessionEngineId!

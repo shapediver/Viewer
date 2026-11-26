@@ -191,6 +191,7 @@ export class PostProcessingManager implements IManager {
 	}
 
 	public set antiAliasingTechnique(value: ANTI_ALIASING_TECHNIQUE) {
+		if (this._antiAliasingTechnique !== value) this.recordChange();
 		this._antiAliasingTechnique = value;
 		this.changeEffectPass();
 	}
@@ -200,6 +201,7 @@ export class PostProcessingManager implements IManager {
 	}
 
 	public set antiAliasingTechniqueMobile(value: ANTI_ALIASING_TECHNIQUE) {
+		if (this._antiAliasingTechniqueMobile !== value) this.recordChange();
 		this._antiAliasingTechniqueMobile = value;
 
 		// we don't allow SSAA on mobile devices anymore as it is too slow
@@ -231,6 +233,7 @@ export class PostProcessingManager implements IManager {
 	}
 
 	public set enablePostProcessingOnMobile(value: boolean) {
+		if (this._enablePostProcessingOnMobile !== value) this.recordChange();
 		this._enablePostProcessingOnMobile = value;
 	}
 
@@ -246,6 +249,7 @@ export class PostProcessingManager implements IManager {
 
 	public set hdr(value: boolean) {
 		if (this._hdr === value) return;
+		this.recordChange();
 		this._hdr = value;
 
 		const oldComposer = this._composer;
@@ -315,6 +319,7 @@ export class PostProcessingManager implements IManager {
 	}
 
 	public set manualPostProcessing(value: boolean) {
+		if (this._manualPostProcessing !== value) this.recordChange();
 		this._manualPostProcessing = value;
 		if (this._composer && this._manualPostProcessing === true) {
 			this._composer.removeAllPasses();
@@ -392,6 +397,7 @@ export class PostProcessingManager implements IManager {
 	}
 
 	public set ssaaSampleLevel(value: number) {
+		if (this.ssaaSampleLevel !== value) this.recordChange();
 		if (this._ssaaRenderPass) this._ssaaRenderPass.sampleLevel = value;
 	}
 
@@ -405,6 +411,7 @@ export class PostProcessingManager implements IManager {
 	): string {
 		const token = t || this._uuidGenerator.create();
 		this._effectDefinitions.push({token, definition});
+		this.recordChange();
 
 		switch (definition.type) {
 			case POST_PROCESSING_EFFECT_TYPE.GOD_RAYS:
@@ -488,6 +495,7 @@ export class PostProcessingManager implements IManager {
 			});
 		}
 		this._suspendEffectPassUpdate = false;
+		this.recordChange();
 		this.changeEffectPass();
 	}
 
@@ -2017,11 +2025,13 @@ export class PostProcessingManager implements IManager {
 		const effectToRemove = this._effectDefinitions.find(
 			(e) => e.token === token,
 		);
-		if (effectToRemove)
+		if (effectToRemove) {
 			this._effectDefinitions.splice(
 				this._effectDefinitions.indexOf(effectToRemove),
 				1,
 			);
+			this.recordChange();
+		}
 
 		if (this._godRaysManagers[token]) {
 			delete this._godRaysManagers[token];
@@ -2180,6 +2190,11 @@ export class PostProcessingManager implements IManager {
 	// #endregion Public Methods (13)
 
 	// #region Private Methods (3)
+
+	/** Records a change of the post-processing in the scene state. */
+	private recordChange(): void {
+		this._renderingEngine.sceneTreeManager?.recordChannel("postProcessing");
+	}
 
 	private createComposer(): EffectComposer {
 		let frameBufferType: THREE.TextureDataType = THREE.UnsignedByteType;

@@ -168,8 +168,9 @@ async function replaceOutput(
 		[`${prefix}.${key}`]: value(settled),
 	});
 	const counters: Counters = {
-		// Versions the swap created: the new session node, its ancestors
-		// and every node below it, changed or not.
+		// Values the swap took from the tree's change clock: the versions of
+		// the new session node, its ancestors and every node below it,
+		// changed or not, plus the change stamps of the edits (SS-10565).
 		[`${prefix}.versionsCreated`]: call.ids,
 		// The nodes the scene update went through (-1: the whole tree).
 		[`${prefix}.sceneChangeNodes`]: result.sceneChangeNodes as number,
