@@ -103,11 +103,25 @@ function walkContribution(object: Object3D): number {
 			? 1
 			: 0;
 	if ((object as WalkCounted)._SDbatchHidden === true) return 0;
-	if (object.children.length > 0) return 1;
 	const userData = object.userData;
-	if (userData.isInstanced === true) return 0;
-	if (userData.SDtype === SD_DATA_TYPE.HTML_ELEMENT_ANCHOR) return 0;
-	return 1;
+	if (
+		userData.isInstanced !== true &&
+		userData.SDtype !== SD_DATA_TYPE.HTML_ELEMENT_ANCHOR
+	)
+		return 1;
+	// A placeholder draws nothing, unless an API user adds something to it.
+	// Its own `add` is the one of three.js, so follow its children.
+	watchPlaceholder(object as WalkCounted & {_SDwatched?: boolean});
+	return object.children.length > 0 ? 1 : 0;
+}
+
+/** Recount a placeholder when a child is added to it or removed from it. */
+function watchPlaceholder(object: Object3D & {_SDwatched?: boolean}): void {
+	if (object._SDwatched) return;
+	object._SDwatched = true;
+	const refresh = () => refreshWalkCount(object);
+	object.addEventListener("childadded", refresh);
+	object.addEventListener("childremoved", refresh);
 }
 
 /**
@@ -354,9 +368,10 @@ export class SDObject extends Object3D implements ISDObject {
 		}
 		const object = objects[0] as WalkCounted | undefined;
 		if (!object || object.parent !== this) return super.remove(...objects);
-		super.remove(object);
+		// Reset before the `removed` event: a listener may add it elsewhere.
 		const counted = object._SDcounted ?? 0;
 		object._SDcounted = 0;
+		super.remove(object);
 		if (counted !== 0) {
 			const wasCut = this.SDcutState;
 			this.SDwalkNeeded -= counted;

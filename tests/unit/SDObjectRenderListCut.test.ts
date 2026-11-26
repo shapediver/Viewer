@@ -169,9 +169,18 @@ test("placeholders count 0, a placeholder with children counts 1", () => {
 	anchor.userData.SDtype = SD_DATA_TYPE.HTML_ELEMENT_ANCHOR;
 	root.add(anchor);
 	expect(root.SDwalkNeeded).toBe(0);
-	root.remove(instanced);
-	instanced.add(new THREE.Mesh());
-	root.add(instanced);
+	// Something an API user adds to a placeholder that is in the tree.
+	const helper = new THREE.Mesh();
+	instanced.add(helper);
+	expect(root.SDwalkNeeded).toBe(1);
+	instanced.remove(helper);
+	expect(root.SDwalkNeeded).toBe(0);
+	anchor.attach(helper);
+	expect(root.SDwalkNeeded).toBe(1);
+	// Added with children already.
+	root.remove(anchor);
+	expect(root.SDwalkNeeded).toBe(0);
+	root.add(anchor);
 	expect(root.SDwalkNeeded).toBe(1);
 });
 
