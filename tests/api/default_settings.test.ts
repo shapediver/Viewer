@@ -34,6 +34,8 @@ const readOptions = () => {
 		accumulationFrames: viewport.accumulationFrames,
 		accumulationFramesMobile: viewport.accumulationFramesMobile,
 		accumulationMode: viewport.accumulationMode,
+		ambientOcclusionWhileMoving: viewport.ambientOcclusionWhileMoving,
+		softShadowsWhileMoving: viewport.softShadowsWhileMoving,
 		aoExcludeGems: [...properties("ssao"), ...properties("hbao")].map(
 			(p) => p.excludeGems === true,
 		),
@@ -72,9 +74,14 @@ const OLD_LOOK = {
 	accumulationFramesMobile: 0,
 	ssr: [],
 	accumulationMode: "display",
+	ambientOcclusionWhileMoving: true,
+	softShadowsWhileMoving: true,
 };
 
 const NEW_LOOK = {
+	// no preset leaves the effects out while the camera moves (SS-10553)
+	ambientOcclusionWhileMoving: true,
+	softShadowsWhileMoving: true,
 	environmentMapPbrMode: "modern",
 	environmentMapOrientation: "threejs",
 	// only the jewelry preset uses the analytic DFG
@@ -204,6 +211,56 @@ test.describe("Default settings", () => {
 			width: 1920,
 			height: 1080,
 		});
+	});
+
+	test("ambientOcclusionWhileMoving and softShadowsWhileMoving survive saving and applying the settings", async ({
+		page,
+	}) => {
+		const result = await page.evaluate(async () => {
+			const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+			const source = await SDV.createViewport({
+				id: "source",
+				canvas: <HTMLCanvasElement>document.getElementById("canvas"),
+			});
+			source.ambientOcclusionWhileMoving = false;
+			source.softShadowsWhileMoving = false;
+			const settings: any = source.getViewportSettings();
+			const stored = {
+				ambientOcclusionWhileMoving:
+					settings.rendering.ambientOcclusionWhileMoving,
+				softShadowsWhileMoving:
+					settings.rendering.softShadowsWhileMoving,
+			};
+			await source.close();
+			const target = await SDV.createViewport({
+				id: "myViewport",
+				canvas: <HTMLCanvasElement>document.getElementById("canvas"),
+			});
+			// TODO: drop once the @shapediver/viewer.settings pin includes settings 7.2
+			settings.settings_version = "7.1";
+			await target.applyViewportSettings(settings, {
+				ar: true,
+				camera: true,
+				environment: true,
+				general: true,
+				light: true,
+				postprocessing: true,
+				scene: true,
+			});
+			return {
+				stored,
+				applied: {
+					ambientOcclusionWhileMoving:
+						target.ambientOcclusionWhileMoving,
+					softShadowsWhileMoving: target.softShadowsWhileMoving,
+				},
+			};
+		});
+		const off = {
+			ambientOcclusionWhileMoving: false,
+			softShadowsWhileMoving: false,
+		};
+		expect(result).toEqual({stored: off, applied: off});
 	});
 
 	test("a model with settings from before 7.2 keeps the old look", async ({
