@@ -21,7 +21,7 @@
 	"cameraFrame.updateMatrixWorldCalls": 28,
 	"cameraFrame.updateMatrixWorldSkips": 2,
 	"cameraMove.batchBoundsReads": 0,
-	"cameraMove.framesRendered": 164,
+	"cameraMove.framesRendered": 90,
 	"cameraMove.materialUpdatesOutsideRender": 0,
 	"cameraMove.materialsCreated": 0,
 	"final.geometries": 4,
