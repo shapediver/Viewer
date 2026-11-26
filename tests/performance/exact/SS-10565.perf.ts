@@ -779,17 +779,23 @@ test.describe("SS-10565 the call", () => {
 	/**
 	 * Calls and executed blocks of each edit on `origin/development` before
 	 * this ticket (`4d2ea2d2f`, this test on SwiftShader, the same on 20 and
-	 * 80 floors; the hide is 75/84 on a GPU too). The edit may cost at most
-	 * 5 calls and 10 blocks more. With this ticket, on both renderers:
-	 * 78/87, 75/84, 71/80, 84/92, 110/136, 99/123.
+	 * 80 floors; the hide is 75/84 on a GPU too): 75/84, 73/82, 71/80,
+	 * 82/90, 108/134, 97/121. With this ticket, on both renderers: 78/87,
+	 * 75/84, 71/80, 84/92, 110/136, 99/123.
+	 *
+	 * SS-10564 adds the log of changed children: each ancestor of the node
+	 * logs the branch it came from (work per level of the tree, the same on
+	 * both sizes; an added or removed child walks the ancestors once more).
+	 * The counts below are those of `development` with SS-10564 (production
+	 * bundle, GPU). The edit may cost at most 5 calls and 10 blocks more.
 	 */
 	const BEFORE: Record<string, {calls: number; blocks: number}> = {
-		hide: {calls: 75, blocks: 84},
-		addTransformation: {calls: 73, blocks: 82},
-		matrixInPlace: {calls: 71, blocks: 80},
-		dataVersion: {calls: 82, blocks: 90},
-		addChild: {calls: 108, blocks: 134},
-		removeChild: {calls: 97, blocks: 121},
+		hide: {calls: 86, blocks: 134},
+		addTransformation: {calls: 83, blocks: 131},
+		matrixInPlace: {calls: 79, blocks: 127},
+		dataVersion: {calls: 92, blocks: 139},
+		addChild: {calls: 158, blocks: 250},
+		removeChild: {calls: 146, blocks: 216},
 	};
 
 	test("SS-10565 an edit plus updateVersion() costs the same on 20 and 80 floors", async ({
