@@ -67,6 +67,8 @@ interface IRecording {
 	always: boolean;
 	/** Something below the root has a raycast other than `Object3D`'s. */
 	pickable: boolean;
+	/** The children of the root when it was recorded. */
+	rootChildren: THREE.Object3D[];
 	/** The union of the world boxes of the meshes, lines and points. */
 	box: THREE.Box3;
 	/**
@@ -125,8 +127,12 @@ interface IContainer {
 	/** The children of the owner at the last scan. */
 	children: THREE.Object3D[];
 	meshes: IMeshState[];
-	/** Every instanced mesh of it has bounded slots. */
-	boundable: boolean;
+	/**
+	 * The instance hashes with a mesh whose slots are not bounded. The
+	 * engine tests the meshes of one hash together, so one such mesh makes
+	 * the entries of that hash candidates for every ray, and no other.
+	 */
+	unbounded: Set<unknown>;
 }
 
 interface ILeaf {
@@ -134,8 +140,8 @@ interface ILeaf {
 	geometryData: {[key: string]: GeometryData};
 	/** One of the geometry data of the entry converts to an instanced mesh. */
 	instanced: boolean;
-	/** The containers of the instanced meshes of the entry. */
-	containers: IContainer[];
+	/** The container and hash of each instanced mesh of the entry. */
+	groups: {container: IContainer; hash: unknown}[];
 	recording: IRecording;
 	always: boolean;
 }
@@ -210,6 +216,12 @@ function expandSlightly(box: THREE.Box3, size: THREE.Vector3): void {
 	if (box.isEmpty()) return;
 	box.getSize(size);
 	box.expandByScalar(BOX_EXPANSION * size.length() + 1e-9);
+}
+
+function sameSet(a: Set<unknown>, b: Set<unknown>): boolean {
+	if (a.size !== b.size) return false;
+	for (const value of a) if (!b.has(value)) return false;
+	return true;
 }
 
 /** The container of an instanced mesh. */
@@ -495,17 +507,20 @@ export class NodeBoundsHierarchy {
 			// A node whose entries all convert to instanced meshes, and that
 			// had nothing a ray can hit below it (only the groups and
 			// placeholders of its instances), is not compared: on a scene of
-			// instances that would be every node on every query. It is
-			// recorded again when its converted object is replaced, or when
-			// one of its entries starts or stops converting to an instanced
-			// mesh. A node with anything a ray can hit below it (an entry of
+			// instances that would be every node on every query. Only its
+			// converted object and that object's children are compared (a
+			// data added to the node is a new child), not counted as objects.
+			// It is recorded again when they differ, or when one of its
+			// entries starts or stops converting to an instanced mesh.
+			// SS-10642 replaces this with the change clock. A node with
+			// anything a ray can hit below it (an entry of
 			// the interaction feature also holds the geometry data of the
 			// nodes below it) is compared like any other.
 			if (
 				!switchedHere &&
 				!recording.pickable &&
 				this.allInstanced(recording) &&
-				recording.node.convertedObject[viewportId] === recording.root
+				this.sameRoot(recording)
 			)
 				continue;
 			if (!switchedHere && this.isCurrent(recording)) continue;
@@ -526,6 +541,24 @@ export class NodeBoundsHierarchy {
 		if (structural || instances.structural || alwaysChanged || !this._root)
 			this.buildTree();
 		else this.refit(this._root);
+	}
+
+	/**
+	 * Whether the node has the same converted object with the same children
+	 * as when it was recorded. A data added to a node (a `ThreejsData`, say)
+	 * is a new child of its converted object, which is kept.
+	 */
+	private sameRoot(recording: IRecording): boolean {
+		const root = recording.node.convertedObject[this._viewportId] as
+			| THREE.Object3D
+			| undefined;
+		if (root !== recording.root) return false;
+		if (!root) return true;
+		const children = recording.rootChildren;
+		if (root.children.length !== children.length) return false;
+		for (let i = 0; i < children.length; i++)
+			if (root.children[i] !== children[i]) return false;
+		return true;
 	}
 
 	/** Whether every entry of the node converts to an instanced mesh. */
@@ -620,7 +653,7 @@ export class NodeBoundsHierarchy {
 					entry,
 					geometryData: entry.geometryData,
 					instanced,
-					containers: [],
+					groups: [],
 					recording,
 					always: false,
 				};
@@ -641,7 +674,9 @@ export class NodeBoundsHierarchy {
 			leaf.always =
 				leaf.recording.always ||
 				(leaf.instanced
-					? !leaf.containers.every((container) => container.boundable)
+					? leaf.groups.some((group) =>
+							group.container.unbounded.has(group.hash),
+						)
 					: !leaf.recording.root);
 			if (leaf.always) always.push(index);
 		});
@@ -662,6 +697,7 @@ export class NodeBoundsHierarchy {
 			objects: [],
 			always: false,
 			pickable: false,
+			rootChildren: root ? root.children.slice() : [],
 			box: new THREE.Box3(),
 			lineWiden: new THREE.Vector3(),
 			pointsWiden: new THREE.Vector3(),
@@ -808,7 +844,7 @@ export class NodeBoundsHierarchy {
 		const viewportId = this._viewportId;
 		for (let i = 0; i < this._leaves.length; i++) {
 			const leaf = this._leaves[i];
-			leaf.containers = [];
+			leaf.groups = [];
 			if (!leaf.instanced) continue;
 			const nodeId = leaf.entry.node.id;
 			for (const key in leaf.geometryData) {
@@ -822,19 +858,26 @@ export class NodeBoundsHierarchy {
 						owner,
 						children: [],
 						meshes: [],
-						boundable: true,
+						unbounded: new Set(),
 					};
 					this._containers.set(owner, container);
 				}
-				if (!leaf.containers.includes(container))
-					leaf.containers.push(container);
+				const hash = converted.userData.instanceHash;
+				if (
+					!leaf.groups.some(
+						(group) =>
+							group.container === container &&
+							group.hash === hash,
+					)
+				)
+					leaf.groups.push({container, hash});
 				const entryKey = `${nodeId}:${data.id}`;
 				let targets = this._instancedEntryKeys.get(entryKey);
 				if (!targets)
 					this._instancedEntryKeys.set(entryKey, (targets = []));
 				targets.push({
 					entry: i,
-					hash: converted.userData.instanceHash,
+					hash,
 					owner,
 				});
 			}
@@ -866,7 +909,6 @@ export class NodeBoundsHierarchy {
 			container.meshes.map((state) => [state.mesh, state]),
 		);
 		container.meshes = [];
-		container.boundable = true;
 		for (const child of list) {
 			if (!(child instanceof THREE.InstancedMesh)) continue;
 			let state = old.get(child);
@@ -880,11 +922,20 @@ export class NodeBoundsHierarchy {
 				this.refreshMesh(state, scan);
 			}
 			container.meshes.push(state);
-			if (!state.boundable) container.boundable = false;
 		}
+		this.refreshUnbounded(container);
 		for (const state of old.values())
 			for (const occurrence of state.occurrences)
 				removed.push(occurrence);
+	}
+
+	/** The instance hashes of the container with a mesh that is not bounded. */
+	private refreshUnbounded(container: IContainer): void {
+		const unbounded = new Set<unknown>();
+		for (const state of container.meshes)
+			if (!state.boundable)
+				unbounded.add(state.mesh.userData.instanceHash);
+		container.unbounded = unbounded;
 	}
 
 	private meshState(mesh: THREE.InstancedMesh): IMeshState {
@@ -939,9 +990,9 @@ export class NodeBoundsHierarchy {
 						}
 			}
 			if (!sameChildren) {
-				const boundable = container.boundable;
+				const unbounded = container.unbounded;
 				this.scanContainer(container, scan, removed);
-				if (boundable !== container.boundable) structural = true;
+				if (!sameSet(unbounded, container.unbounded)) structural = true;
 				continue;
 			}
 			for (const state of container.meshes) {
@@ -950,9 +1001,7 @@ export class NodeBoundsHierarchy {
 				if (!this.refreshMesh(state, scan)) continue;
 				for (const occurrence of before) removed.push(occurrence);
 				if (boundable !== state.boundable) {
-					container.boundable = container.meshes.every(
-						(other) => other.boundable,
-					);
+					this.refreshUnbounded(container);
 					structural = true;
 				}
 			}

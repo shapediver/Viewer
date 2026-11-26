@@ -401,4 +401,71 @@ describe("NodeBoundsHierarchy: review cases", () => {
 		expect(raycaster.intersectObject(line).length).toBeGreaterThan(0);
 		expect(hierarchy.candidates(raycaster.ray, thresholds)).toEqual([0]);
 	});
+
+	test("an object added below an instanced node makes it a candidate as that object requires", () => {
+		const {entries, nodes} = instancedSceneForReview(3);
+		const hierarchy = new NodeBoundsHierarchy(VIEWPORT);
+		hierarchy.setNodes(entries);
+		const thresholds = {line: 1, points: 1};
+		expect(hierarchy.candidates(rayAlongZ(50, 50), thresholds)).toEqual([]);
+		// A sprite is hit through its own raycast: a candidate for every ray.
+		nodes[1].convertedObject[VIEWPORT]!.add(new THREE.Sprite());
+		expect(hierarchy.candidates(rayAlongZ(50, 50), thresholds)).toEqual([
+			1,
+		]);
+	});
+
+	test("an instanced mesh that is not bounded affects only the entries of its own hash", () => {
+		const {root, entries} = instancedSceneForReview(3);
+		// Another instance group without slot keys under the same root.
+		const other = new THREE.InstancedMesh(
+			box(),
+			new THREE.MeshBasicMaterial(),
+			1,
+		);
+		other.userData.instanceHash = "other";
+		root.add(other);
+		const otherNode = fakeNode(new THREE.Group());
+		const hierarchy = new NodeBoundsHierarchy(VIEWPORT);
+		hierarchy.setNodes([...entries, entry(otherNode, [fakeData(other)])]);
+		const thresholds = {line: 1, points: 1};
+		expect(hierarchy.candidates(rayAlongZ(50, 50), thresholds)).toEqual([
+			3,
+		]);
+		expect(hierarchy.candidates(rayAlongZ(2, 0), thresholds)).toEqual([
+			1, 3,
+		]);
+		expect(hierarchy.instanceSlots(3)).toBeUndefined();
+	});
 });
+
+/** Three instances 2 apart below one root, as the manager writes them. */
+function instancedSceneForReview(count: number) {
+	const root = new THREE.Group();
+	const data = fakeData();
+	const mesh = new THREE.InstancedMesh(
+		box(),
+		new THREE.MeshBasicMaterial(),
+		count,
+	);
+	mesh.userData.instanceHash = "hash";
+	mesh.userData.instanceNodes = [];
+	mesh.userData.instanceKeys = [];
+	root.add(mesh);
+	data.convertedObject[VIEWPORT] = mesh;
+	const nodes: IFakeNode[] = [];
+	const entries: INodeBoundsEntry[] = [];
+	for (let i = 0; i < count; i++) {
+		const group = new THREE.Group();
+		group.add(new THREE.Object3D());
+		const node = fakeNode(group);
+		nodes.push(node);
+		entries.push(entry(node, [data]));
+		mesh.setMatrixAt(i, new THREE.Matrix4().makeTranslation(i * 2, 0, 0));
+		mesh.userData.instanceNodes[i] = node;
+		mesh.userData.instanceKeys[i] = `${node.id}:${data.id}`;
+	}
+	mesh.count = count;
+	root.updateMatrixWorld(true);
+	return {root, mesh, nodes, entries};
+}
