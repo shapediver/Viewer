@@ -71,15 +71,14 @@ export const JewelryDefaults: () => ISettings = () => {
 				{
 					// contact darkening in crevices, not on the stones
 					properties: {
-						// AO inside the shading: the composite mode at power 2.5
-						// darkened the highlights of polished metal by up to 17
-						// levels. "uniform" darkens the environment reflections
-						// by the AO itself; three's specular occlusion left
-						// mirror metal seen head-on untouched and blackened it
-						// at grazing angles. With the SSAO this darkens the gold
-						// of a ring like the reference renderer (SS-10601).
+						// the AO of the reference renderer: Scalable Ambient
+						// Obscurance, applied to the indirect light inside the
+						// material with three.js's specular occlusion;
+						// intensity 1 uses the occlusion as computed (SS-10653)
 						mode: "shading",
-						specularOcclusion: "uniform",
+						specularOcclusion: "physical",
+						algorithm: "sao",
+						intensity: 1,
 						excludeGems: true,
 					},
 					type: "ssao",
