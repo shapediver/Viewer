@@ -40,7 +40,7 @@ const readOptions = () => {
 		bloom: properties("bloom").map((p) => ({
 			highlightsOnly: p.highlightsOnly,
 			backgroundBloom: p.backgroundBloom,
-			additiveBlur: p.additiveBlur,
+			filter: p.filter,
 		})),
 		// screen-space reflections, only in the jewelry preset (SS-10509)
 		ssr: properties("ssr").map((p) => ({
@@ -161,12 +161,12 @@ test.describe("Default settings", () => {
 			accumulationFramesMobile: 8,
 			accumulationMode: "hdr",
 			aoExcludeGems: [true],
-			// additive blur like the reference's bloom (SS-10603)
+			// the bloom algorithm of the reference renderer (SS-10655)
 			bloom: [
 				{
 					highlightsOnly: true,
 					backgroundBloom: false,
-					additiveBlur: true,
+					filter: "dualFilter",
 				},
 			],
 			// on desktop only

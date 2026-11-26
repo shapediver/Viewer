@@ -15,7 +15,7 @@ type IBloomEffect = {
 		backgroundBloom: boolean;
 		highlightsOnly: boolean;
 		highlightLimit?: number;
-		additiveBlur?: boolean;
+		filter?: "mipmap" | "dualFilter";
 	};
 };
 

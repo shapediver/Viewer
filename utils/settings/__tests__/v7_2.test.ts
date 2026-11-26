@@ -146,32 +146,35 @@ describe("settings V7.2", () => {
 		expect(() => validate(newer, "7.2")).not.toThrow();
 	});
 
-	it("validate - bloom additiveBlur is an optional boolean", () => {
+	it("validate - bloom filter is an optional mipmap | dualFilter", () => {
 		const settings = createSettingsV7_2();
 		expect(() => validate(settings, "7.2")).not.toThrow();
-		(settings.postprocessing.effects[2].properties as any).additiveBlur =
-			true;
-		expect(() => validate(settings, "7.2")).not.toThrow();
-		(settings.postprocessing.effects[2].properties as any).additiveBlur =
-			"true";
+		for (const filter of ["mipmap", "dualFilter"]) {
+			(settings.postprocessing.effects[2].properties as any).filter =
+				filter;
+			expect(() => validate(settings, "7.2")).not.toThrow();
+		}
+		(settings.postprocessing.effects[2].properties as any).filter =
+			"additive";
 		expect(() => validate(settings, "7.2")).toThrow();
 	});
 
-	it("convert 7.2 -> 7.1 -> 7.2 handles the bloom additiveBlur", () => {
+	it("convert 7.2 -> 7.1 -> 7.2 handles the bloom filter", () => {
 		const settings = createSettingsV7_2();
-		(settings.postprocessing.effects[2].properties as any).additiveBlur =
-			true;
+		(settings.postprocessing.effects[2].properties as any).filter =
+			"dualFilter";
 
 		const older = <ISettingsV7_1>convert(settings, "7.1");
 		expect(older.postprocessing.effects[2].properties).not.toHaveProperty(
-			"additiveBlur",
+			"filter",
 		);
 
 		// settings saved by the Viewer with a 7.1 label keep the value
-		(older.postprocessing.effects[2].properties as any).additiveBlur = true;
+		(older.postprocessing.effects[2].properties as any).filter =
+			"dualFilter";
 		const newer = <ISettingsV7_2>convert(older, "7.2");
 		expect(newer.postprocessing.effects[2].properties).toMatchObject({
-			additiveBlur: true,
+			filter: "dualFilter",
 		});
 		expect(() => validate(newer, "7.2")).not.toThrow();
 	});
