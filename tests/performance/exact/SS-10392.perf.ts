@@ -200,6 +200,28 @@ for (const settings of [
 			finished: 1,
 			late: {frames: 1, finished: 1},
 		});
+
+		// a move on each of 5 frames (a drag): 5 frames, the event once at
+		// the end, not once per frame
+		for (let step = 1; step <= 5; step++) {
+			await page.evaluate((x) => {
+				const root = (window as any).SDV.sceneTree.root;
+				const node = root.children.find((n: any) => n.name === "box0");
+				node.addTransformation({
+					id: "move",
+					matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, 0, 0, 1],
+				});
+				node.updateVersion();
+				(window as any).__perf.viewport.update();
+			}, step);
+			await page.clock.runFor(16);
+		}
+		await page.clock.runFor(2500);
+		const drag = await page.evaluate(() => ({
+			frames: (window as any).__tools.frames().length,
+			finished: (window as any).__tools.finished(),
+		}));
+		expect(drag).toEqual({frames: 5, finished: 1});
 	});
 }
 
