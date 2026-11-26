@@ -72,10 +72,10 @@ export class TreeNode implements ITreeNode {
 	 */
 	private readonly _createdAt: number = currentSerial() + 1;
 	/**
-	 * The number of data items of each change kind: digit `i` in base 128 is
-	 * the count of kind `i` (see DATA_KIND_WEIGHTS). No allocation per node.
+	 * The number of data items of each change kind, by kind index. Created
+	 * once the node holds a data item with a kind.
 	 */
-	private _dataKindCounts = 0;
+	private _dataKindCounts?: Uint32Array;
 
 	/**
 	 * Creation of a node that can be used in the node tree.
@@ -626,12 +626,15 @@ export class TreeNode implements ITreeNode {
 	}
 
 	private onDataChanged(data: readonly ITreeNodeData[]) {
-		let counts = 0;
+		const counts = DATA_KIND_SCRATCH.fill(0);
+		let any = false;
 		// ensure parent update versions are set
 		data.forEach((d) => {
 			const kind = dataChangeKind(d);
-			if (kind)
-				counts += DATA_KIND_WEIGHTS[SCENE_NODE_CHANGE_KIND_INDEX[kind]];
+			if (kind) {
+				counts[SCENE_NODE_CHANGE_KIND_INDEX[kind]]++;
+				any = true;
+			}
 			if (d.parentsUpdateVersions[this.id] === undefined) {
 				// Called by the data item: with no argument for a new version
 				// of the item, with a kind for a change without a version
@@ -648,21 +651,18 @@ export class TreeNode implements ITreeNode {
 			}
 		});
 		// An item was added or removed: the kinds whose count changed.
-		const before = this._dataKindCounts;
-		this._dataKindCounts = counts;
-		if (counts === before) return;
-		for (let i = 0; i < DATA_KIND_WEIGHTS.length; i++) {
-			const weight = DATA_KIND_WEIGHTS[i];
-			if (
-				Math.floor(counts / weight) % 128 !==
-				Math.floor(before / weight) % 128
-			)
-				this.noteChange(SCENE_NODE_CHANGE_KINDS[i]);
+		let before = this._dataKindCounts;
+		if (!before) {
+			if (!any) return;
+			before = this._dataKindCounts = new Uint32Array(counts.length);
+		}
+		for (let i = 0; i < counts.length; i++) {
+			if (counts[i] === before[i]) continue;
+			before[i] = counts[i];
+			this.noteChange(SCENE_NODE_CHANGE_KINDS[i]);
 		}
 	}
 }
 
-/** The weight of one data item of each change kind in `_dataKindCounts`. */
-const DATA_KIND_WEIGHTS: readonly number[] = SCENE_NODE_CHANGE_KINDS.map(
-	(_, i) => 128 ** i,
-);
+/** Reused by `onDataChanged` for the new counts, by kind index. */
+const DATA_KIND_SCRATCH = new Uint32Array(SCENE_NODE_CHANGE_KINDS.length);

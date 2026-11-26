@@ -540,6 +540,17 @@ describe("change clock and change kinds (SS-10565)", () => {
 		expect(kindsAfter(child, serial)).toEqual(["geometry"]);
 	});
 
+	test("any number of items added or removed at once records their kind", async () => {
+		const {child} = readTree();
+		const items = Array.from({length: 128}, () => new CustomData({}));
+		let serial = currentSerial();
+		child.addData(items);
+		expect(kindsAfter(child, serial)).toEqual(["geometry"]);
+		serial = currentSerial();
+		child.removeData(items);
+		expect(kindsAfter(child, serial)).toEqual(["geometry"]);
+	});
+
 	test("a change without a version records its kind on the data's nodes", async () => {
 		const {parent, child} = readTree();
 		const geometry = new CustomData({});
