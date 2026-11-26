@@ -196,8 +196,9 @@ const createGemMaterial = () =>
 	viewport.gemNormalMapResolution = PRESET.material.gemNormalMapResolution;
 	// The background does not bloom (`backgroundBloom: false` below). The grey
 	// stays only because the reference's white background is tone mapped to a
-	// light grey.
-	viewport.clearColor = "#e4e4e4";
+	// light grey: ACES Filmic with exposure 1 maps white (1.0) to 226 in sRGB.
+	// Our tone mapping leaves the background as it is, so set that grey here.
+	viewport.clearColor = "#e2e2e2";
 	viewport.clearAlpha = 1;
 	// the tone mapping of the jewelry preset
 	viewport.toneMapping = SDV.TONE_MAPPING.ACES_FILMIC;
