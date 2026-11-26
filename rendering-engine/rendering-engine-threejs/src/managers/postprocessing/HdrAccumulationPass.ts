@@ -126,7 +126,7 @@ export class HdrAccumulationPass extends Pass {
 			return;
 		}
 
-		this.ensureTargets(inputBuffer);
+		this.ensureTargets(renderer, inputBuffer);
 		const [read, write] = this._targets!;
 		this._count++;
 		const uniforms = this._blendMaterial.uniforms;
@@ -164,9 +164,19 @@ export class HdrAccumulationPass extends Pass {
 		this.fullscreenMaterial = this._blendMaterial;
 	}
 
-	private ensureTargets(inputBuffer: THREE.WebGLRenderTarget): void {
+	private ensureTargets(
+		renderer: THREE.WebGLRenderer,
+		inputBuffer: THREE.WebGLRenderTarget,
+	): void {
 		const {width, height} = inputBuffer;
-		const type = inputBuffer.texture.type;
+		// Each blend rounds the mean to the precision of its target. In half
+		// float the rounding of 30 blends adds up to a quarter of a display
+		// level, so the mean is kept in float where the device renders to it.
+		const type =
+			inputBuffer.texture.type === THREE.HalfFloatType &&
+			renderer.extensions.has("EXT_color_buffer_float")
+				? THREE.FloatType
+				: inputBuffer.texture.type;
 		if (
 			this._targets &&
 			this._targets[0].width === width &&
