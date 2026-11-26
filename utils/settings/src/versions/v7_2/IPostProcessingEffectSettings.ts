@@ -30,6 +30,14 @@ export type IAmbientOcclusionMode = "composite" | "shading";
  */
 export type IAmbientOcclusionSpecularOcclusion = "physical" | "uniform";
 
+/**
+ * The algorithm of the SSAO effect.
+ * "hemisphere" samples a hemisphere in world space,
+ * "sao" is Scalable Ambient Obscurance (the algorithm of three.js's SAOShader).
+ * The default is "hemisphere".
+ */
+export type IAmbientOcclusionAlgorithm = "hemisphere" | "sao";
+
 export interface IBloomEffectDefinition extends Omit<
 	IBloomEffectDefinitionV4,
 	"properties"
@@ -98,6 +106,11 @@ export interface ISSAOEffectDefinition extends Omit<
 		 * Default: "physical"
 		 */
 		specularOcclusion?: IAmbientOcclusionSpecularOcclusion;
+		/**
+		 * The AO algorithm.
+		 * Default: "hemisphere"
+		 */
+		algorithm?: IAmbientOcclusionAlgorithm;
 		/**
 		 * Whether gems are left out of the ambient occlusion in the composite mode.
 		 * Settings converted from before 7.2 use false.
