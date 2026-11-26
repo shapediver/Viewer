@@ -242,6 +242,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	private _toneMapping: TONE_MAPPING = TONE_MAPPING.NONE;
 	private _type: RENDERER_TYPE = RENDERER_TYPE.STANDARD;
 	private _useLegacyLights: boolean = false;
+	private _renderListCut: boolean = true;
 	private _visualizeAttributes:
 		| ((
 				overview: ISDTFOverview,
@@ -1253,6 +1254,23 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 
 	public get settingsEngine(): SettingsEngine | undefined {
 		return this._settingsManager.settingsEngine;
+	}
+
+	/**
+	 * Cut branches whose meshes are all drawn by batches or instance groups
+	 * from the render-list walk of three.js (SS-10606). Default true; false
+	 * walks every object, as before (tests compare both).
+	 *
+	 * @internal
+	 */
+	public get renderListCut(): boolean {
+		return this._renderListCut;
+	}
+
+	public set renderListCut(value: boolean) {
+		if (this._renderListCut === value) return;
+		this._renderListCut = value;
+		this._renderingManager.render();
 	}
 
 	public get shadows(): boolean {

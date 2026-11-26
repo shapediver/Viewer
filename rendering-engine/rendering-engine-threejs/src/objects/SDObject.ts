@@ -58,6 +58,93 @@ export function getRenderDepth(): number {
 	return renderDepth;
 }
 
+/**
+ * Whether the render that runs now cuts branches from the render-list walk
+ * (SS-10606, `RenderingEngine.renderListCut` of the viewport that renders).
+ */
+let renderCut = false;
+
+/**
+ * Run a render of a viewport in the render scope: while it runs, an
+ * SDObject whose branch holds nothing three.js draws on its own reads
+ * `visible === false` when `cut` is true (see `SDObject.SDwalkNeeded`).
+ */
+export function renderInScope<T>(cut: boolean, render: () => T): T {
+	const previousCut = renderCut;
+	renderCut = cut;
+	enterRenderScope();
+	try {
+		return render();
+	} finally {
+		leaveRenderScope();
+		renderCut = previousCut;
+	}
+}
+
+/** Bookkeeping fields of the render-list cut on any object (SS-10606). */
+type WalkCounted = Object3D & {
+	/** What this object adds to its SDObject parent's `SDwalkNeeded`. */
+	_SDcounted?: number;
+	/** A batch source mesh hidden because its batch draws it. */
+	_SDbatchHidden?: boolean;
+};
+
+/**
+ * Whether three.js has to visit an object to draw what it holds (`1`) or
+ * can leave it out of the render-list walk (`0`). Only objects whose
+ * meaning the Viewer knows count `0`; anything else counts `1`, also a
+ * plain object hidden for another reason, because its `visible` can be
+ * written without the Viewer noticing.
+ */
+function walkContribution(object: Object3D): number {
+	if (object instanceof SDObject)
+		return object.SDvisibleState &&
+			(object.SDwalkNeeded > 0 || object.SDalwaysWalk)
+			? 1
+			: 0;
+	if ((object as WalkCounted)._SDbatchHidden === true) return 0;
+	if (object.children.length > 0) return 1;
+	const userData = object.userData;
+	if (userData.isInstanced === true) return 0;
+	if (userData.SDtype === SD_DATA_TYPE.HTML_ELEMENT_ANCHOR) return 0;
+	return 1;
+}
+
+/**
+ * The contribution of an object to its parent may have changed: update the
+ * counts on the way up, as far as a cut state flips. Costs the tree depth.
+ */
+function refreshWalkCount(object: Object3D): void {
+	let child = object as WalkCounted;
+	let parent = child.parent;
+	while (parent instanceof SDObject) {
+		const next = walkContribution(child);
+		const previous = child._SDcounted ?? 0;
+		if (next === previous) return;
+		child._SDcounted = next;
+		const wasCut = parent.SDcutState;
+		parent.SDwalkNeeded += next - previous;
+		if (parent.SDcutState !== wasCut) noteDrawSetChange();
+		child = parent;
+		parent = parent.parent;
+	}
+}
+
+/**
+ * Hide or show a batch source mesh (`MaterialBatchManager`). A hidden one
+ * is drawn by its batch, so three.js does not need to visit it, and a
+ * branch of such meshes can be cut from the render-list walk. Every write
+ * of a source mesh's `visible` for its batch goes through here.
+ */
+export function setBatchHidden(mesh: Object3D, hidden: boolean): void {
+	mesh.visible = !hidden;
+	const counted = mesh as WalkCounted;
+	if ((counted._SDbatchHidden === true) === hidden) return;
+	counted._SDbatchHidden = hidden;
+	noteDrawSetChange();
+	refreshWalkCount(mesh);
+}
+
 export class SDObject extends Object3D implements ISDObject {
 	// #region Constructors (1)
 
@@ -102,7 +189,23 @@ export class SDObject extends Object3D implements ISDObject {
 	 *   (three.js objects), so the walk always goes through it.
 	 */
 	public SDmatrixDirty = false;
-	public SDalwaysWalk = false;
+	#alwaysWalk = false;
+
+	/**
+	 * State of the render-list cut (SS-10606), see the `visible` accessor
+	 * below the class.
+	 *
+	 * How many children three.js has to visit to draw what they hold: a
+	 * visible child SDObject whose own count is above 0 or that is
+	 * `SDalwaysWalk`, and every other child except a hidden batch source
+	 * mesh (`setBatchHidden`), an instancing placeholder and an HTML anchor
+	 * placeholder. `0` and not `SDalwaysWalk`: inside a render that cuts,
+	 * this object reads `visible === false`, so three.js leaves its branch
+	 * out of the render list and the shadow map. Every object of such a
+	 * branch is cut, not only its top one. Kept current by every add,
+	 * remove and visibility change, at the cost of the tree depth.
+	 */
+	public SDwalkNeeded = 0;
 
 	/**
 	 * This node itself holds a light, a camera or a three.js object. Its
@@ -231,15 +334,75 @@ export class SDObject extends Object3D implements ISDObject {
 	 * was never computed: mark it and the way to it from the scene.
 	 */
 	public override add(...objects: Object3D[]): this {
+		if (objects.length > 1) {
+			for (const object of objects) this.add(object);
+			return this;
+		}
 		super.add(...objects);
-		for (const object of objects) object.matrixWorldNeedsUpdate = true;
+		for (const object of objects) {
+			object.matrixWorldNeedsUpdate = true;
+			if (object.parent === this) refreshWalkCount(object);
+		}
 		markMatrixDirty(this);
+		return this;
+	}
+
+	public override remove(...objects: Object3D[]): this {
+		if (objects.length > 1) {
+			for (const object of objects) this.remove(object);
+			return this;
+		}
+		const object = objects[0] as WalkCounted | undefined;
+		if (!object || object.parent !== this) return super.remove(...objects);
+		super.remove(object);
+		const counted = object._SDcounted ?? 0;
+		object._SDcounted = 0;
+		if (counted !== 0) {
+			const wasCut = this.SDcutState;
+			this.SDwalkNeeded -= counted;
+			if (this.SDcutState !== wasCut) noteDrawSetChange();
+			refreshWalkCount(this);
+		}
+		return this;
+	}
+
+	public override attach(object: Object3D): this {
+		super.attach(object);
+		if (object.parent === this) refreshWalkCount(object);
 		return this;
 	}
 
 	// #endregion Constructors (1)
 
 	// #region Public Accessors (4)
+
+	/**
+	 * The branch holds objects that three.js moves on its own (lights,
+	 * cameras) or that API users move by setting `position` (three.js
+	 * objects), so the matrix walk always goes through it (SS-10485), and
+	 * the render-list walk is never cut there (SS-10606).
+	 */
+	public get SDalwaysWalk(): boolean {
+		return this.#alwaysWalk;
+	}
+
+	public set SDalwaysWalk(value: boolean) {
+		if (this.#alwaysWalk === value) return;
+		const wasCut = this.SDcutState;
+		this.#alwaysWalk = value;
+		if (this.SDcutState !== wasCut) noteDrawSetChange();
+		refreshWalkCount(this);
+	}
+
+	/** The visibility written last, also inside a render (see `visible`). */
+	public get SDvisibleState(): boolean {
+		return (this as {_SDvisible?: boolean})._SDvisible !== false;
+	}
+
+	/** Whether this object is cut inside a render that cuts. */
+	public get SDcutState(): boolean {
+		return this.SDwalkNeeded === 0 && !this.#alwaysWalk;
+	}
 
 	public get SDid(): string {
 		return this.#SDid;
@@ -304,5 +467,30 @@ Object.defineProperty(SDObject.prototype, "matrixWorldNeedsUpdate", {
 	) {
 		this._SDmatrixWorldNeedsUpdate = value;
 		if (value) markMatrixDirty(this);
+	},
+});
+
+/**
+ * `visible` of an SDObject (SS-10606). Outside a render it is exactly the
+ * value written last: the node's visibility, as the scene update applies
+ * it. Inside a render that cuts (`renderInScope`), an object whose branch
+ * holds nothing three.js draws on its own (`SDcutState`) reads `false` as
+ * well, so the render-list walk of three.js (`projectObject`) and the
+ * shadow map stop there. Batches and instance groups draw what such a
+ * branch holds. three.js assigns `visible` in the Object3D constructor, so
+ * it is defined on the prototype with a plain backing field, as
+ * `matrixWorldNeedsUpdate` above.
+ */
+Object.defineProperty(SDObject.prototype, "visible", {
+	configurable: true,
+	get(this: SDObject & {_SDvisible?: boolean}): boolean {
+		const value = this._SDvisible !== false;
+		if (!value || renderDepth === 0 || !renderCut) return value;
+		return !this.SDcutState;
+	},
+	set(this: SDObject & {_SDvisible?: boolean}, value: boolean) {
+		if (this._SDvisible === value) return;
+		this._SDvisible = value;
+		refreshWalkCount(this);
 	},
 });
