@@ -138,6 +138,54 @@ describe("RGBEWorkerDecoder", () => {
 		expect(file.byteLength).toBeGreaterThan(0);
 	});
 
+	test("decodes on the main thread when the decoder throws in the worker", async () => {
+		// a worker that starts, but whose decoder cannot run there (for example
+		// a helper a minifier added that the worker scope does not have)
+		let created = 0;
+		const scope = globalThis as Record<string, unknown>;
+		const originals = {Blob: scope.Blob, URL: scope.URL};
+		scope.Blob = class {};
+		scope.URL = {createObjectURL: () => "blob:test", revokeObjectURL() {}};
+		scope.Worker = class {
+			public onmessage?: (event: {data: unknown}) => void;
+			constructor() {
+				created++;
+				setTimeout(() => this.onmessage?.({data: {ready: true}}));
+			}
+			public postMessage(message: {id: number}) {
+				setTimeout(() =>
+					this.onmessage?.({
+						data: {id: message.id, crashed: "w is not defined"},
+					}),
+				);
+			}
+			public terminate() {}
+		};
+		try {
+			let isolated: typeof import("../src/three/loaders/RGBEWorkerDecoder");
+			await jest.isolateModulesAsync(async () => {
+				isolated =
+					await import("../src/three/loaders/RGBEWorkerDecoder");
+			});
+			const pixels = image(16, 2);
+			const first = await isolated!
+				.getRgbeDecoder()
+				.decode(hdrFile(16, 2, pixels, true));
+			expect(Array.from(first.data)).toEqual(
+				Array.from(reference(pixels)),
+			);
+			// later files go to the main thread without a new worker
+			await isolated!
+				.getRgbeDecoder()
+				.decode(hdrFile(16, 2, image(16, 2), false));
+			expect(created).toBe(1);
+		} finally {
+			scope.Blob = originals.Blob;
+			scope.URL = originals.URL;
+			delete scope.Worker;
+		}
+	});
+
 	test("rejects a bad file", async () => {
 		await expect(
 			getRgbeDecoder().decode(new Uint8Array([1, 2, 3]).buffer),

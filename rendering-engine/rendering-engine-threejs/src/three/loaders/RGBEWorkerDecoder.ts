@@ -23,9 +23,14 @@ function rgbeWorkerMain(
 		try {
 			result = decode(data.buffer);
 		} catch (error: any) {
-			result = {
-				error: error && error.message ? error.message : String(error),
-			};
+			// A bad file returns {error}. A throw means the decoder cannot run
+			// here, for example a helper a minifier added that the worker does
+			// not have: the main thread decodes instead.
+			scope.postMessage({
+				id: data.id,
+				crashed: error && error.message ? error.message : String(error),
+			});
+			return;
 		}
 		if ("error" in result) {
 			scope.postMessage({id: data.id, error: result.error});
@@ -124,8 +129,14 @@ class RGBEWorkerDecoder {
 		id?: number;
 		result?: IDecodedRgbe;
 		error?: string;
+		crashed?: string;
 	}): void {
 		if (!data || data.id === undefined) return;
+		if (data.crashed !== undefined) {
+			// this request and every pending one decode on the main thread
+			this.failWorker();
+			return;
+		}
 		const request = this._pending.get(data.id);
 		if (!request) return;
 		this._pending.delete(data.id);
