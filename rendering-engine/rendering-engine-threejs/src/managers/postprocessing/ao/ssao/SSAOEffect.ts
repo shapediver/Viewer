@@ -1,5 +1,5 @@
 import {EffectComposer} from "postprocessing";
-import {Camera, Scene, Vector3} from "three";
+import {Camera, Scene, ShaderMaterial, Vector3} from "three";
 import {AOEffect} from "../ao/AOEffect";
 import {AOPass} from "../ao/AOPass";
 import {ao_utils} from "../ao/shader/ao_utils";
@@ -15,6 +15,10 @@ class SSAOPass extends AOPass {
 
 	constructor(camera: Camera, scene: Scene) {
 		super(camera, scene, finalFragmentShader);
+
+		(this.fullscreenMaterial as ShaderMaterial).uniforms.saoRadius = {
+			value: 1,
+		};
 	}
 
 	// #endregion Constructors (1)
@@ -24,6 +28,9 @@ class SSAOEffect extends AOEffect {
 	// #region Properties (1)
 
 	public spp = 16;
+	// declared only: the reactive accessors are defined by makeOptionsReactive
+	declare public algorithm: string;
+	declare public saoRadius: number;
 
 	// #endregion Properties (1)
 
@@ -44,6 +51,8 @@ class SSAOEffect extends AOEffect {
 				distance: 1,
 				distancePower: 0.25,
 				power: 2,
+				algorithm: "hemisphere",
+				saoRadius: 1,
 			},
 		};
 
@@ -75,7 +84,7 @@ class SSAOEffect extends AOEffect {
 	public makeOptionsReactive(options: {[key: string]: unknown}) {
 		super.makeOptionsReactive(options);
 
-		for (const key of ["spp"]) {
+		for (const key of ["spp", "algorithm", "saoRadius"]) {
 			Object.defineProperty(this, key, {
 				get() {
 					return options[key];
@@ -107,6 +116,26 @@ class SSAOEffect extends AOEffect {
 							this.aoPass.fullscreenMaterial.needsUpdate = true;
 							break;
 						}
+
+						case "algorithm": {
+							const defines =
+								this.aoPass.fullscreenMaterial.defines;
+							if (value === "sao") {
+								if (!("SAO" in defines)) {
+									defines.SAO = "";
+									this.aoPass.fullscreenMaterial.needsUpdate = true;
+								}
+							} else if ("SAO" in defines) {
+								delete defines.SAO;
+								this.aoPass.fullscreenMaterial.needsUpdate = true;
+							}
+							break;
+						}
+
+						case "saoRadius":
+							this.aoPass.fullscreenMaterial.uniforms.saoRadius.value =
+								value;
+							break;
 					}
 				},
 				configurable: true,
@@ -114,6 +143,10 @@ class SSAOEffect extends AOEffect {
 		}
 
 		this.spp = options["spp"] as number;
+		if (options["algorithm"] !== undefined)
+			this.algorithm = options["algorithm"] as string;
+		if (options["saoRadius"] !== undefined)
+			this.saoRadius = options["saoRadius"] as number;
 	}
 
 	// #endregion Public Methods (2)
