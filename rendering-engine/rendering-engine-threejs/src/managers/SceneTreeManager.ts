@@ -1119,8 +1119,10 @@ export class SceneTreeManager implements IManager {
 	 * the node (`kinds`): records their channels and, for a visibility
 	 * change, the node's report (the visibility in this viewport can also
 	 * change through `excludeViewports` or `restrictViewports`, which record
-	 * no kind). The node counts as applied only if nothing else waits on
-	 * it: this visit does not convert its data.
+	 * no kind). A reported node counts as applied if nothing else waits on
+	 * it (this visit does not convert its data). A move alone is reported
+	 * by the next full visit, so it stays waiting: the in-place record of
+	 * an animated node is then written once, not every frame.
 	 */
 	private applyMoveOrVisibility(
 		treeNode: ITreeNode,
@@ -1136,7 +1138,8 @@ export class SceneTreeManager implements IManager {
 		const waiting =
 			changedKindsSince(treeNode, appliedBefore) &
 			~(TRANSFORMATION_BIT | VISIBILITY_BIT);
-		if (waiting === 0) convertedObject.SDappliedSerial = applied;
+		if (reported && waiting === 0)
+			convertedObject.SDappliedSerial = applied;
 	}
 
 	/**

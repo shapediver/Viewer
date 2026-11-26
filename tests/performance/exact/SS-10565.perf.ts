@@ -183,6 +183,12 @@ test("SS-10565 each edit of one node is reported with exactly its kind", async (
 			node.addChild(new SDV.TreeNode("empty"));
 			node.updateVersion();
 		});
+		// A move applied by a transformation-only update first.
+		step("transformation, updateNodeTransformation first", node, () => {
+			node.transformations = [{id: "place", matrix: tools.shift(0.25)}];
+			perf.viewport.updateNodeTransformation(node);
+			node.updateVersion();
+		});
 		step("updateVersion", node, () => node.updateVersion());
 		step("in place", node, () => {
 			node.transformations[0].matrix = tools.shift(1);
@@ -221,6 +227,9 @@ test("SS-10565 each edit of one node is reported with exactly its kind", async (
 	expect(result.geometry).toEqual(only("geometry"));
 	expect(result.visibility).toEqual(only("visibility"));
 	expect(result.transformation).toEqual(only("transformation"));
+	expect(result["transformation, updateNodeTransformation first"]).toEqual(
+		only("transformation"),
+	);
 	expect(result.structure).toEqual(only("structure"));
 	// updateVersion() alone: reported, no kind, no channel.
 	expect(result.updateVersion).toEqual({node: [], others: [], channels: []});
