@@ -8,6 +8,7 @@ import {
 import {type IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {Box, type IBox} from "@shapediver/viewer.shared.math";
 import {
+	changedChildrenSince,
 	changedKindsSince,
 	changeKindsOfBits,
 	currentSerial,
@@ -23,6 +24,7 @@ import {
 	nextSerial,
 	noteNodeChange,
 	SCENE_NODE_CHANGE_KIND_INDEX,
+	SDTFOverviewData,
 	Tree,
 } from "@shapediver/viewer.shared.node-tree";
 import {
@@ -51,7 +53,11 @@ import {
 	SCENE_CHANGE_CHANNELS,
 	SCENE_DYNAMIC_REASONS,
 } from "./sceneTree/sceneState";
-import {createSDTFOverview, injectAttributeData} from "./sceneTree/SDTFUtils";
+import {
+	createSDTFOverview,
+	injectAttributeData,
+	mergeSDTFOverviews,
+} from "./sceneTree/SDTFUtils";
 import {assignEnvironmentMapForThreeJsDataObject} from "./sceneTree/ThreeJsDataUtils";
 
 export class SceneTreeManager implements IManager {
@@ -63,6 +69,17 @@ export class SceneTreeManager implements IManager {
 
 	private _boundingBox: IBox = new Box();
 	private _currentSDTFOverview!: ISDTFOverview;
+	/**
+	 * In the attribute visualization: per tree node id, the overview items
+	 * (`SDTFOverviewData`) the scene update found on the node, with their
+	 * versions. A change merges the overview again from these items.
+	 */
+	private readonly _sdtfOverviewItems = new Map<
+		string,
+		{item: SDTFOverviewData; version: string}[]
+	>();
+	/** `_currentSDTFOverview` is current for the attribute visualization. */
+	private _sdtfOverviewKept = false;
 	private _directionalLightData: DirectionalLight[] = [];
 	private _hiddenCamera: THREE.PerspectiveCamera =
 		new THREE.PerspectiveCamera();
@@ -158,7 +175,8 @@ export class SceneTreeManager implements IManager {
 	 * What the scene updates since the last call went through, to be sent
 	 * with `VIEWPORT_UPDATED`, and forgets it. `undefined` if no scene
 	 * update ran, or if one of them went through the whole tree (first
-	 * update, renderer type or instancing switch, attribute visualization):
+	 * update, renderer type or instancing switch, entering or leaving the
+	 * attribute visualization):
 	 * a listener has to read the whole tree then.
 	 */
 	public takeSceneChanges(
@@ -437,7 +455,11 @@ export class SceneTreeManager implements IManager {
 					// second time. Such an object takes the full compile.
 					let hasLight = false;
 					dataChild.traverse((object) => {
-						if ((object as THREE.Light).isLight) hasLight = true;
+						if (!(object as THREE.Light).isLight) return;
+						hasLight = true;
+						this._renderingEngine.renderingManager.trackLight(
+							object as THREE.Light,
+						);
 					});
 					if (hasLight)
 						this._renderingEngine.renderingManager.requestFullCompile();
@@ -461,6 +483,9 @@ export class SceneTreeManager implements IManager {
 					);
 
 					if (threeLight) {
+						this._renderingEngine.renderingManager.trackLight(
+							threeLight,
+						);
 						dataChild = threeLight;
 						dataChild.userData.SDtype = SD_DATA_TYPE.LIGHT;
 						dataChild.userData.SDid = treeNodeData.id;
@@ -641,10 +666,27 @@ export class SceneTreeManager implements IManager {
 				return;
 			}
 			if (filter.transformationOnly) this._movedNodes++;
-			// The batches compare the meshes of the nodes visited since their
-			// last rebuild, a moved node among them (it can leave or join a
-			// batch by being mirrored).
-			this._renderingEngine.materialBatchManager.markNode(treeNode);
+
+			// A node that is only passed on the way to a change below it
+			// (unchanged matrix and visibility, already converted) goes
+			// through the children that its log names (SS-10564), not
+			// through all of them. `undefined`: all children.
+			const childrenSerial = currentSerial();
+			const logged =
+				this._skipUnchanged &&
+				filter.transformationOnly === false &&
+				!dirty &&
+				this._dirtyDepth === 0 &&
+				appliedBefore > 0 &&
+				convertedObject.SDchildrenSerial > 0
+					? changedChildrenSince(
+							treeNode,
+							convertedObject.SDchildrenSerial,
+						)
+					: undefined;
+			// The boxes before this visit, to update them by the changed
+			// children only.
+			const oldBoxes = logged ? this.cloneBoxes(treeNode) : undefined;
 
 			// reset bounding boxes
 			this.resetBoundingBoxes(treeNode);
@@ -653,6 +695,9 @@ export class SceneTreeManager implements IManager {
 			// now. A node converted for the first time gets the kinds of its
 			// data items (below).
 			let changedKinds = 0;
+			// A data item of this node was removed or converted again, so
+			// its bounding box may differ from the one before this visit.
+			let dataChanged = false;
 			// cleanup obsolete data and children
 			if (filter.transformationOnly === false) {
 				this._changedNodes.add(treeNode);
@@ -663,8 +708,18 @@ export class SceneTreeManager implements IManager {
 						(changedKindsSince(treeNode, movesApplied) &
 							MOVE_BITS) |
 						(visibilityChanged ? VISIBILITY_BIT : 0);
-				this.cleanupObsoleteData(treeNode, convertedObject);
-				this.cleanupObsoleteChildren(treeNode, convertedObject);
+				// A node that holds no data and held none at its last visit has
+				// nothing to clean up: a visit through the log leaves out the
+				// look at its children.
+				if (
+					(!logged || convertedObject.SDholdsData !== false) &&
+					this.cleanupObsoleteData(treeNode, convertedObject)
+				)
+					dataChanged = true;
+				// A visit through the log removes the children its log
+				// names as removed.
+				if (!logged)
+					this.cleanupObsoleteChildren(treeNode, convertedObject);
 				// Children added or removed below this node from now on make
 				// the next scene update come back to this branch.
 				convertedObject.SDstructureVersion = treeNode.structureVersion;
@@ -673,13 +728,15 @@ export class SceneTreeManager implements IManager {
 			// convert all data items of the current node
 			// old versions will be replaced by new ones
 
-			// Create a lookup map for efficient access to converted children
+			// Create a lookup map for efficient access to converted children.
+			// A visit through the log needs it only for the data items.
 			const convertedChildrenMap = new Map<string, SDObject>();
-			for (const child of convertedObject.children) {
-				if (child instanceof SDObject) {
-					convertedChildrenMap.set(child.SDid, child);
+			if (!logged || convertedObject.SDholdsData !== false)
+				for (const child of convertedObject.children) {
+					if (child instanceof SDObject) {
+						convertedChildrenMap.set(child.SDid, child);
+					}
 				}
-			}
 
 			// Lights and three.js objects are read on every scene update.
 			let alwaysUpdate = false;
@@ -687,14 +744,28 @@ export class SceneTreeManager implements IManager {
 			// the tree: the matrix walk always goes through their branch.
 			let alwaysWalk = false;
 			let forceChildren = false;
+			// The overview items of this node, in the attribute visualization.
+			let overviewItems:
+				| {item: SDTFOverviewData; version: string}[]
+				| undefined;
 			for (let i = 0, len = treeNode.data.length; i < len; i++) {
 				const dataItem = treeNode.data[i];
+				// Data objects are added for data items only.
+				convertedObject.SDholdsData = true;
+				if (dataItem instanceof SDTFOverviewData)
+					(overviewItems ??= []).push({
+						item: dataItem,
+						version: dataItem.version,
+					});
 				if (
 					dataItem instanceof AbstractLight ||
 					dataItem instanceof ThreejsData
-				)
+				) {
 					alwaysUpdate = alwaysWalk = forceChildren = true;
-				else if (dataItem instanceof AbstractCamera)
+					// A three.js object changes its box without a new
+					// version: the box of this node is made again in full.
+					if (dataItem instanceof ThreejsData) dataChanged = true;
+				} else if (dataItem instanceof AbstractCamera)
 					alwaysWalk = forceChildren = true;
 				if (
 					appliedBefore === 0 &&
@@ -713,6 +784,7 @@ export class SceneTreeManager implements IManager {
 					convertedObjectData.SDversion !== dataItem.version ||
 					this._newRendererType
 				) {
+					dataChanged = true;
 					this.updateData(
 						dataItem,
 						treeNode,
@@ -729,6 +801,16 @@ export class SceneTreeManager implements IManager {
 					);
 				}
 			}
+
+			if (this._sdtfOverviewKept && filter.transformationOnly === false)
+				this.noteSDTFOverviewItems(treeNode, overviewItems);
+
+			// The batches compare the meshes of the nodes visited since their
+			// last rebuild, a moved node among them (it can leave or join a
+			// batch by being mirrored). A node passed through the log whose
+			// data did not change keeps its meshes.
+			if (!logged || dataChanged)
+				this._renderingEngine.materialBatchManager.markNode(treeNode);
 
 			// Children write batch matrices from mesh.matrixWorld, which walks
 			// ancestors. Apply this node's matrix first, or a transform-only
@@ -756,46 +838,82 @@ export class SceneTreeManager implements IManager {
 			// Update or create child nodes
 			if (dirty) this._dirtyDepth++;
 			try {
-				for (let i = 0, len = treeNode.children.length; i < len; i++) {
-					const treeNodeChild = treeNode.children[i];
-					const childConvertedObject = convertedChildrenMap.get(
-						treeNodeChild.id,
-					);
-
-					this.processChildTreeNode(
-						treeNodeChild,
+				if (logged) {
+					this.updateLoggedChildren(
+						treeNode,
 						convertedObject,
-						childConvertedObject,
+						logged,
+						oldBoxes!,
+						dataChanged,
 						filter,
 						isVisibleInHierarchy,
-					);
-
-					this.unionChildBoundingBoxes(
-						treeNode,
-						treeNodeChild,
 						isVisible,
 					);
+					const flagged = convertedObject.SDflaggedChildren;
+					if (flagged?.SDalwaysUpdate?.size) alwaysUpdate = true;
+					if (flagged?.SDalwaysWalk?.size) alwaysWalk = true;
+				} else {
+					// Rebuilt from the children below.
+					convertedObject.SDflaggedChildren = undefined;
+					for (
+						let i = 0, len = treeNode.children.length;
+						i < len;
+						i++
+					) {
+						const treeNodeChild = treeNode.children[i];
+						const childConvertedObject = convertedChildrenMap.get(
+							treeNodeChild.id,
+						);
 
-					if (
-						(<SDObject | undefined>(
+						this.processChildTreeNode(
+							treeNodeChild,
+							convertedObject,
+							childConvertedObject,
+							filter,
+							isVisibleInHierarchy,
+						);
+
+						this.unionChildBoundingBoxes(
+							treeNode,
+							treeNodeChild,
+							isVisible,
+						);
+
+						const child = <SDObject | undefined>(
 							treeNodeChild.convertedObject[
 								this._renderingEngine.id
 							]
-						))?.SDalwaysUpdate
-					)
-						alwaysUpdate = true;
-					if (
-						(<SDObject | undefined>(
-							treeNodeChild.convertedObject[
-								this._renderingEngine.id
-							]
-						))?.SDalwaysWalk
-					)
-						alwaysWalk = true;
+						);
+						if (child?.SDalwaysUpdate) alwaysUpdate = true;
+						if (child?.SDalwaysWalk) alwaysWalk = true;
+						if (
+							child?.SDalwaysUpdate ||
+							child?.SDalwaysWalk ||
+							child?.SDboundsStale
+						)
+							this.noteFlaggedChild(
+								convertedObject,
+								treeNodeChild,
+								child,
+							);
+					}
 				}
 			} finally {
 				if (dirty) this._dirtyDepth--;
 			}
+			// What the next visit reads of the log of changed children. A
+			// transformation-only visit converts no added child.
+			if (filter.transformationOnly === false)
+				convertedObject.SDchildrenSerial = childrenSerial;
+			// A node updated on its own (`viewport.updateNode()`, a drag)
+			// changed its boxes without its ancestors: the next scene update
+			// unites their boxes over all children on the way.
+			if (
+				this._batchDepth === 1 &&
+				filter.transformationOnly === false &&
+				treeNode.parent
+			)
+				this.flagAncestors(treeNode, convertedObject, "SDboundsStale");
 			if (alwaysUpdate) {
 				this.flagAncestors(treeNode, convertedObject, "SDalwaysUpdate");
 			} else {
@@ -924,29 +1042,41 @@ export class SceneTreeManager implements IManager {
 			this._scene.add(this._mainConvertedObject);
 		}
 
-		// Ensure the instanced-mesh root container is in the scene.
-		if (!this._scene.getObjectByName("instancedRoot"))
-			this._scene.add(
-				this._renderingEngine.instanceGroupManager.instancedRoot,
-			);
+		// Ensure the instanced-mesh root container is in the scene. A parent
+		// check: a search by name walks every object of the scene.
+		const instancedRoot =
+			this._renderingEngine.instanceGroupManager.instancedRoot;
+		if (instancedRoot.parent !== this._scene)
+			this._scene.add(instancedRoot);
 
 		// Only the attribute visualization reads the overview. Collecting it
-		// walks every node of the tree.
-		this._currentSDTFOverview =
-			this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES
-				? createSDTFOverview(rootTreeNode)
-				: {};
+		// walks every node of the tree: once when the visualization starts.
+		// Later passes keep it, and merge it again from the overview items
+		// when one of them changes (SS-10564).
+		if (this._renderingEngine.type === RENDERER_TYPE.ATTRIBUTES) {
+			if (this._newRendererType || !this._sdtfOverviewKept) {
+				this._sdtfOverviewItems.clear();
+				this._currentSDTFOverview = createSDTFOverview(rootTreeNode);
+				this._sdtfOverviewKept = true;
+			}
+		} else {
+			this._currentSDTFOverview = {};
+			this._sdtfOverviewItems.clear();
+			this._sdtfOverviewKept = false;
+		}
 		const outerDefer = this._deferBatch;
 		this._deferBatch = true;
 		// Branches whose version, transformation and visibility are unchanged
-		// are left out. A renderer type or instancing switch and the
-		// attribute visualization, which depends on data of the whole tree,
-		// update every node.
-		this._skipUnchanged =
-			!this._newRendererType &&
-			this._renderingEngine.type === RENDERER_TYPE.STANDARD;
+		// are left out. A renderer type or instancing switch (entering or
+		// leaving the attribute visualization among them) updates every
+		// node. A pass in the attribute visualization converts again only
+		// the data with a new version, as in the standard renderer.
+		this._skipUnchanged = !this._newRendererType;
 		if (!this._skipUnchanged) this._fullPass = true;
 		this._renderingEngine.instanceGroupManager.beginBoundsUpdate();
+		// A pass over the whole tree makes loose instance bounds exact.
+		if (!this._skipUnchanged)
+			this._renderingEngine.instanceGroupManager.tightenBounds();
 		try {
 			this.updateNode(rootTreeNode, this._mainConvertedObject);
 		} finally {
@@ -1035,10 +1165,12 @@ export class SceneTreeManager implements IManager {
 		 *
 		 */
 
-		// we initialize all texture and then clear the cache
+		// we initialize all texture and then clear the cache. Only the
+		// entries added or used differently since the last update.
 		const threeJsTextureCache =
 			this._renderingEngine.materialLoader.threeJsTextureCache;
-		for (const key in threeJsTextureCache) {
+		for (const key of this._renderingEngine.materialLoader.takeDirtyTextureKeys()) {
+			if (!threeJsTextureCache[key]) continue;
 			if (threeJsTextureCache[key].usage === 0) {
 				threeJsTextureCache[key].texture.dispose();
 				delete threeJsTextureCache[key];
@@ -1052,13 +1184,13 @@ export class SceneTreeManager implements IManager {
 
 		// we compile the shaders, the rendering waits until they are ready.
 		// Only the objects this update created or re-materialized are
-		// compiled. A renderer type or instancing switch and the attribute
-		// visualization change the programs of every object.
+		// compiled. A renderer type or instancing switch (entering or leaving
+		// the attribute visualization among them) changes the programs of
+		// every object.
 		this._renderingEngine.renderingManager.compileShaders(
 			this._renderingEngine.scene,
 			this._hiddenCamera,
-			this._newRendererType ||
-				this._renderingEngine.type !== RENDERER_TYPE.STANDARD,
+			this._newRendererType,
 		);
 
 		// Instancing (and renderer-type) toggles dispose and recreate meshes.
@@ -1195,19 +1327,222 @@ export class SceneTreeManager implements IManager {
 	private flagAncestors(
 		treeNode: ITreeNode,
 		convertedObject: SDObject,
-		flag: "SDalwaysUpdate" | "SDalwaysWalk" | "SDboundsStale",
+		flag: FlagName,
 	): void {
 		if (convertedObject[flag]) return;
 		convertedObject[flag] = true;
+		let child = treeNode;
 		let parent = treeNode.parent;
 		while (parent) {
 			const parentObject = parent.convertedObject[
 				this._renderingEngine.id
 			] as SDObject | undefined;
-			if (!parentObject || parentObject[flag]) return;
+			if (!parentObject) return;
+			// A visit of the parent through its log goes through the child.
+			((parentObject.SDflaggedChildren ??= {})[flag] ??= new Set()).add(
+				child,
+			);
+			if (parentObject[flag]) return;
 			parentObject[flag] = true;
+			child = parent;
 			parent = parent.parent;
 		}
+	}
+
+	/**
+	 * Records in the converted object of a node which flags (see
+	 * {@link flagAncestors}) the converted object of its child `treeNodeChild`
+	 * has set.
+	 */
+	private noteFlaggedChild(
+		convertedObject: SDObject,
+		treeNodeChild: ITreeNode,
+		child: SDObject | undefined,
+	): void {
+		for (const flag of FLAG_NAMES) {
+			if (child?.[flag])
+				((convertedObject.SDflaggedChildren ??= {})[flag] ??=
+					new Set()).add(treeNodeChild);
+			else
+				convertedObject.SDflaggedChildren?.[flag]?.delete(
+					treeNodeChild,
+				);
+		}
+	}
+
+	/**
+	 * The children of a node that a visit through its log of changed
+	 * children (`TreeNode.changedChildren`, SS-10564) goes through: the
+	 * changed, added and removed children it names, and the children whose
+	 * converted object has a flag set (lights and three.js objects, a branch
+	 * a transformation-only pass moved). The other children are unchanged
+	 * since the last visit.
+	 *
+	 * The bounding boxes of the node are its data boxes (already in place)
+	 * and the boxes before this visit, with the changed children's new boxes
+	 * added. That is exact when the old box of every changed child lay
+	 * strictly inside the node's old box: then the other children span it.
+	 * Otherwise (a box on the hull shrank or moved inwards, the node's data
+	 * changed, a branch moved by a transformation-only pass) the boxes are
+	 * united over all children, as a full visit does.
+	 */
+	private updateLoggedChildren(
+		treeNode: ITreeNode,
+		convertedObject: SDObject,
+		logged: {child: ITreeNode; removed: boolean}[],
+		oldBoxes: {general: IBox; viewport: IBox},
+		dataChanged: boolean,
+		filter: UpdateFilter,
+		isVisibleInHierarchy: boolean,
+		isVisible: boolean,
+	): void {
+		const id = this._renderingEngine.id;
+		const flagged = convertedObject.SDflaggedChildren;
+		// A branch moved by a transformation-only pass changed its boxes
+		// already: their old boxes are gone.
+		let unite = dataChanged || (flagged?.SDboundsStale?.size ?? 0) > 0;
+		const changed: ITreeNode[] = [];
+		const visit = (child: ITreeNode) => {
+			const childObject = child.convertedObject[id] as
+				| SDObject
+				| undefined;
+			const own = childObject?.parent === convertedObject;
+			const oldGeneral = child.boundingBox.clone();
+			const oldViewport = (
+				child.boundingBoxViewport[id] ?? EMPTY_BOX
+			).clone();
+			const inside = child.parent === treeNode;
+			if (!inside || child.excludeViewports.includes(id)) {
+				// Removed, or excluded from this viewport: the converted
+				// object leaves, as in cleanupObsoleteChildren.
+				if (own)
+					this.removeConvertedChild(convertedObject, childObject);
+				this.noteFlaggedChild(convertedObject, child, undefined);
+			}
+			// A child that left: its boxes may already be those of its new
+			// place, so its old extent is unknown. Unite over all children.
+			if (!inside) unite = true;
+			if (inside) {
+				this.processChildTreeNode(
+					child,
+					convertedObject,
+					own && childObject.parent === convertedObject
+						? childObject
+						: undefined,
+					filter,
+					isVisibleInHierarchy,
+				);
+				this.noteFlaggedChild(
+					convertedObject,
+					child,
+					child.convertedObject[id] as SDObject | undefined,
+				);
+				changed.push(child);
+			}
+			if (unite) return;
+			const newGeneral = inside ? child.boundingBox : EMPTY_BOX;
+			const newViewport = inside
+				? (child.boundingBoxViewport[id] ?? EMPTY_BOX)
+				: EMPTY_BOX;
+			if (
+				(!boxEquals(oldGeneral, newGeneral) &&
+					!strictlyInside(oldGeneral, oldBoxes.general)) ||
+				(isVisible &&
+					!boxEquals(oldViewport, newViewport) &&
+					!strictlyInside(oldViewport, oldBoxes.viewport))
+			)
+				unite = true;
+		};
+
+		let seen: Set<ITreeNode> | undefined;
+		const hasFlagged =
+			!!flagged?.SDalwaysUpdate?.size ||
+			!!flagged?.SDalwaysWalk?.size ||
+			!!flagged?.SDboundsStale?.size;
+		if (hasFlagged) seen = new Set();
+		for (const {child} of logged) {
+			seen?.add(child);
+			visit(child);
+		}
+		if (hasFlagged)
+			for (const flag of FLAG_NAMES) {
+				const set = flagged?.[flag];
+				if (!set) continue;
+				for (const child of [...set]) {
+					if (seen!.has(child)) continue;
+					seen!.add(child);
+					if (child.parent !== treeNode) {
+						set.delete(child);
+						continue;
+					}
+					visit(child);
+				}
+			}
+
+		if (unite) {
+			for (let i = 0, len = treeNode.children.length; i < len; i++)
+				this.unionChildBoundingBoxes(
+					treeNode,
+					treeNode.children[i],
+					isVisible,
+				);
+			return;
+		}
+		// The data boxes are in place: add the old boxes and the changed
+		// children.
+		if (!oldBoxes.general.isEmpty())
+			treeNode.boundingBox.union(oldBoxes.general);
+		if (isVisible && !oldBoxes.viewport.isEmpty())
+			treeNode.boundingBoxViewport[id].union(oldBoxes.viewport);
+		for (const child of changed)
+			this.unionChildBoundingBoxes(treeNode, child, isVisible);
+	}
+
+	/**
+	 * Records the overview items (`SDTFOverviewData`) of a visited node in
+	 * the attribute visualization. When they differ from the last visit (an
+	 * item added, removed or with a new version), the overview is merged
+	 * again from all recorded items, for the nodes visited after this one
+	 * (an overview item sits on an output node, its geometry below it). The
+	 * pass that starts the visualization read the overview from the whole
+	 * tree already and only records.
+	 */
+	private noteSDTFOverviewItems(
+		treeNode: ITreeNode,
+		items: {item: SDTFOverviewData; version: string}[] | undefined,
+	): void {
+		const before = this._sdtfOverviewItems.get(treeNode.id);
+		if (
+			(before?.length ?? 0) === (items?.length ?? 0) &&
+			(before ?? []).every(
+				(b, i) =>
+					b.item === items![i].item &&
+					b.version === items![i].version,
+			)
+		)
+			return;
+		if (items) this._sdtfOverviewItems.set(treeNode.id, items);
+		else this._sdtfOverviewItems.delete(treeNode.id);
+		if (!this._newRendererType) this.mergeSDTFOverview();
+	}
+
+	/** The overview, merged from the recorded overview items. */
+	private mergeSDTFOverview(): void {
+		const items: SDTFOverviewData[] = [];
+		for (const list of this._sdtfOverviewItems.values())
+			for (const {item} of list) items.push(item);
+		this._currentSDTFOverview = mergeSDTFOverviews(items);
+	}
+
+	/** Copies of the bounding boxes of a node (general and this viewport). */
+	private cloneBoxes(treeNode: ITreeNode): {general: IBox; viewport: IBox} {
+		return {
+			general: treeNode.boundingBox.clone(),
+			viewport: (
+				treeNode.boundingBoxViewport[this._renderingEngine.id] ??
+				EMPTY_BOX
+			).clone(),
+		};
 	}
 
 	/**
@@ -1234,22 +1569,38 @@ export class SceneTreeManager implements IManager {
 				return false;
 			}
 		});
-		childrenToRemove.forEach((cTR) => {
-			cTR.traverse((o) => {
-				// The node and every node below it left this viewport.
-				if (o instanceof SDObject && o.SDtype === SD_DATA_TYPE.OBJECT)
-					this._removedNodeIds.add(o.SDid);
-				if (o instanceof SDObject && o.SDtype !== SD_DATA_TYPE.OBJECT) {
-					removeData(this._renderingEngine, o);
-				} else if (
-					!(o instanceof SDObject) &&
-					o.userData.SDtype !== undefined
-				) {
-					removeData(this._renderingEngine, o);
-				}
-			});
-			convertedObject.remove(cTR);
+		childrenToRemove.forEach((cTR) =>
+			this.removeConvertedChild(convertedObject, cTR),
+		);
+	}
+
+	/**
+	 * Removes the converted object of a child node and its branch from the
+	 * converted object of the node, with the data they hold.
+	 */
+	private removeConvertedChild(
+		convertedObject: SDObject,
+		cTR: THREE.Object3D,
+	): void {
+		let overviewChanged = false;
+		cTR.traverse((o) => {
+			// The node and every node below it left this viewport.
+			if (o instanceof SDObject && o.SDtype === SD_DATA_TYPE.OBJECT) {
+				this._removedNodeIds.add(o.SDid);
+				if (this._sdtfOverviewItems.delete(o.SDid))
+					overviewChanged = true;
+			}
+			if (o instanceof SDObject && o.SDtype !== SD_DATA_TYPE.OBJECT) {
+				removeData(this._renderingEngine, o);
+			} else if (
+				!(o instanceof SDObject) &&
+				o.userData.SDtype !== undefined
+			) {
+				removeData(this._renderingEngine, o);
+			}
 		});
+		convertedObject.remove(cTR);
+		if (overviewChanged && !this._newRendererType) this.mergeSDTFOverview();
 	}
 
 	private shouldUseGpuInstancing(
@@ -1284,14 +1635,16 @@ export class SceneTreeManager implements IManager {
 	}
 
 	/**
-	 * Remove obsolete data items from the converted object
+	 * Remove obsolete data items from the converted object. Returns whether
+	 * one was removed.
 	 */
 	private cleanupObsoleteData(
 		treeNode: ITreeNode,
 		convertedObject: SDObject,
-	): void {
+	): boolean {
 		// remove all data items that do not exist anymore
 		const dataMap = new Map(treeNode.data.map((d) => [d.id, d.version]));
+		let kept = 0;
 		const dataToRemove = convertedObject.children.filter((oc) => {
 			if (!(oc instanceof SDObject)) {
 				const version = dataMap.get(oc.userData.SDid);
@@ -1300,6 +1653,7 @@ export class SceneTreeManager implements IManager {
 						// version is different
 						return true;
 					} else {
+						kept++;
 						return false;
 					}
 				} else {
@@ -1315,6 +1669,9 @@ export class SceneTreeManager implements IManager {
 			removeData(this._renderingEngine, dTR);
 			convertedObject.remove(dTR);
 		});
+		// Data objects are added only for data items of the node.
+		convertedObject.SDholdsData = kept > 0 || dataMap.size > 0;
+		return dataToRemove.length > 0;
 	}
 
 	/**
@@ -1351,6 +1708,16 @@ export class SceneTreeManager implements IManager {
 			const oldChild = treeNodeChild.convertedObject[
 				this._renderingEngine.id
 			] as THREE.Object3D;
+			// The node moved here from another parent that this pass has not
+			// visited yet: its converted object leaves that parent now. A
+			// visit of the old parent through its log would no longer find it
+			// (the node's converted object is the new one from here on).
+			if (
+				oldChild instanceof SDObject &&
+				oldChild.parent instanceof SDObject &&
+				oldChild.parent !== convertedObject
+			)
+				this.removeConvertedChild(oldChild.parent, oldChild);
 			treeNodeChild.convertedObject[this._renderingEngine.id] = newChild;
 			if (treeNodeChild.updateCallbackConvertedObject)
 				treeNodeChild.updateCallbackConvertedObject(
@@ -1522,6 +1889,44 @@ export class SceneTreeManager implements IManager {
 type UpdateFilter = {
 	transformationOnly: boolean;
 };
+
+/** The flags `flagAncestors` sets on a branch. */
+type FlagName = "SDalwaysUpdate" | "SDalwaysWalk" | "SDboundsStale";
+const FLAG_NAMES: readonly FlagName[] = [
+	"SDalwaysUpdate",
+	"SDalwaysWalk",
+	"SDboundsStale",
+];
+
+/** An empty box, never written. */
+const EMPTY_BOX: IBox = new Box();
+
+function boxEquals(a: IBox, b: IBox): boolean {
+	return (
+		a.min[0] === b.min[0] &&
+		a.min[1] === b.min[1] &&
+		a.min[2] === b.min[2] &&
+		a.max[0] === b.max[0] &&
+		a.max[1] === b.max[1] &&
+		a.max[2] === b.max[2]
+	);
+}
+
+/**
+ * Whether `box` lies inside `outer` without touching any of its faces. An
+ * empty box does.
+ */
+function strictlyInside(box: IBox, outer: IBox): boolean {
+	if (box.isEmpty()) return true;
+	return (
+		box.min[0] > outer.min[0] &&
+		box.min[1] > outer.min[1] &&
+		box.min[2] > outer.min[2] &&
+		box.max[0] < outer.max[0] &&
+		box.max[1] < outer.max[1] &&
+		box.max[2] < outer.max[2]
+	);
+}
 
 const TRANSFORMATION_BIT = 1 << SCENE_NODE_CHANGE_KIND_INDEX.transformation;
 const VISIBILITY_BIT = 1 << SCENE_NODE_CHANGE_KIND_INDEX.visibility;

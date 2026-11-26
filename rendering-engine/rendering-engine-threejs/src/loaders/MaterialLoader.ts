@@ -201,6 +201,11 @@ export class MaterialLoader implements ILoader {
 	private _textureEncoding: THREE.ColorSpace = THREE.SRGBColorSpace;
 	private _threeJsTextureCache: {[key: string]: ThreeJsTextureCacheObject} =
 		{};
+	/**
+	 * Keys of {@link _threeJsTextureCache} added or with a changed `usage`
+	 * since the last scene update, which initializes or frees only those.
+	 */
+	private _dirtyTextureKeys = new Set<string>();
 
 	// #endregion Properties (16)
 
@@ -282,6 +287,25 @@ export class MaterialLoader implements ILoader {
 		[key: string]: ThreeJsTextureCacheObject;
 	}) {
 		this._threeJsTextureCache = value;
+		for (const key in value) this._dirtyTextureKeys.add(key);
+	}
+
+	/**
+	 * Marks an entry of {@link threeJsTextureCache} whose `usage` changed,
+	 * for the next scene update.
+	 */
+	public markTextureDirty(key: string): void {
+		this._dirtyTextureKeys.add(key);
+	}
+
+	/**
+	 * The keys of {@link threeJsTextureCache} added or with a changed
+	 * `usage` since the last call (see {@link markTextureDirty}).
+	 */
+	public takeDirtyTextureKeys(): string[] {
+		const keys = [...this._dirtyTextureKeys];
+		this._dirtyTextureKeys.clear();
+		return keys;
 	}
 
 	// #endregion Public Getters And Setters (12)
@@ -2971,6 +2995,7 @@ uniform vec3 sdvScreenAOColor;
 		// the cache is cleared in updateSceneTree
 		if (this._threeJsTextureCache[key]) {
 			this._threeJsTextureCache[key].usage++;
+			this._dirtyTextureKeys.add(key);
 			return this._threeJsTextureCache[key].texture;
 		}
 
@@ -3054,6 +3079,7 @@ uniform vec3 sdvScreenAOColor;
 			usage: 1,
 			initialized: false,
 		};
+		this._dirtyTextureKeys.add(key);
 		return this._threeJsTextureCache[key].texture;
 	}
 
