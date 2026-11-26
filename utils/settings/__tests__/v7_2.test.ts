@@ -74,6 +74,8 @@ describe("settings V7.2", () => {
 			accumulationFrames: 0,
 			accumulationFramesMobile: 0,
 			accumulationMode: "display",
+			ambientOcclusionWhileMoving: true,
+			softShadowsWhileMoving: true,
 			maximumRenderingSize: {width: 1920, height: 1080},
 			maximumRenderingSizeMobile: {width: 1280, height: 720},
 		});
@@ -218,6 +220,8 @@ describe("settings V7.2", () => {
 			(s) => delete (s.rendering as any).accumulationFrames,
 			(s) => delete (s.rendering as any).accumulationFramesMobile,
 			(s) => delete (s.rendering as any).accumulationMode,
+			(s) => delete (s.rendering as any).ambientOcclusionWhileMoving,
+			(s) => delete (s.rendering as any).softShadowsWhileMoving,
 			(s) => delete (s.rendering as any).maximumRenderingSize,
 			(s) => delete (s.rendering as any).maximumRenderingSizeMobile,
 			(s) =>
@@ -265,6 +269,8 @@ describe("settings V7.2", () => {
 			(s) => ((s.rendering as any).accumulationFramesMobile = 2.5),
 			(s) => ((s.rendering as any).accumulationMode = "canvas"),
 			(s) => ((s.rendering as any).accumulationMode = true),
+			(s) => ((s.rendering as any).ambientOcclusionWhileMoving = "false"),
+			(s) => ((s.rendering as any).softShadowsWhileMoving = 0),
 			(s) => ((s.rendering as any).maximumRenderingSize = 1920),
 			(s) => ((s.rendering as any).maximumRenderingSize = {width: 1920}),
 			(s) =>
@@ -322,6 +328,8 @@ describe("settings V7.2", () => {
 		expect(converted.rendering.accumulationFrames).toBe(0);
 		expect(converted.rendering.accumulationFramesMobile).toBe(0);
 		expect(converted.rendering.accumulationMode).toBe("display");
+		expect(converted.rendering.ambientOcclusionWhileMoving).toBe(true);
+		expect(converted.rendering.softShadowsWhileMoving).toBe(true);
 		expect(converted.rendering.maximumRenderingSize).toStrictEqual({
 			width: 1920,
 			height: 1080,
@@ -370,6 +378,8 @@ describe("settings V7.2", () => {
 		settingsV7_1.material.gemTracing = "facets";
 		settingsV7_1.material.gemNormalMapResolution = 512;
 		settingsV7_1.rendering.accumulationFrames = 16;
+		settingsV7_1.rendering.ambientOcclusionWhileMoving = false;
+		settingsV7_1.rendering.softShadowsWhileMoving = false;
 		settingsV7_1.rendering.accumulationMode = "hdr";
 		settingsV7_1.rendering.maximumRenderingSize = {
 			width: 3840,
@@ -407,6 +417,8 @@ describe("settings V7.2", () => {
 		expect(converted.rendering.accumulationFrames).toBe(16);
 		expect(converted.rendering.accumulationFramesMobile).toBe(0);
 		expect(converted.rendering.accumulationMode).toBe("hdr");
+		expect(converted.rendering.ambientOcclusionWhileMoving).toBe(false);
+		expect(converted.rendering.softShadowsWhileMoving).toBe(false);
 		expect(converted.rendering.maximumRenderingSize).toStrictEqual({
 			width: 3840,
 			height: 2160,
@@ -484,6 +496,12 @@ describe("settings V7.2", () => {
 			"accumulationFramesMobile",
 		);
 		expect(converted.rendering).not.toHaveProperty("accumulationMode");
+		expect(converted.rendering).not.toHaveProperty(
+			"ambientOcclusionWhileMoving",
+		);
+		expect(converted.rendering).not.toHaveProperty(
+			"softShadowsWhileMoving",
+		);
 		expect(converted.rendering).not.toHaveProperty("maximumRenderingSize");
 		expect(converted.rendering).not.toHaveProperty(
 			"maximumRenderingSizeMobile",
@@ -600,6 +618,8 @@ describe("settings V7.2", () => {
 		settings.rendering.accumulationFrames = 16;
 		settings.rendering.accumulationFramesMobile = 8;
 		settings.rendering.accumulationMode = "hdr";
+		settings.rendering.ambientOcclusionWhileMoving = false;
+		settings.rendering.softShadowsWhileMoving = false;
 		settings.rendering.maximumRenderingSize = {width: 2560, height: 1440};
 		settings.rendering.maximumRenderingSizeMobile = {
 			width: 960,
@@ -622,6 +642,8 @@ describe("settings V7.2", () => {
 		expect(converted.environment.mapSquaredRoughnessBend).toBe(true);
 		expect(converted.rendering.accumulationFrames).toBe(16);
 		expect(converted.rendering.accumulationFramesMobile).toBe(8);
+		expect(converted.rendering.ambientOcclusionWhileMoving).toBe(false);
+		expect(converted.rendering.softShadowsWhileMoving).toBe(false);
 		expect(converted.rendering.maximumRenderingSize).toStrictEqual({
 			width: 2560,
 			height: 1440,

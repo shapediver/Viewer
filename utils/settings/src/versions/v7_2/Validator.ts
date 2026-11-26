@@ -165,6 +165,8 @@ export const renderingSettingsSchemaV7_2 = renderingSettingsSchema.extend({
 	accumulationFrames: z.number().int().min(0),
 	accumulationFramesMobile: z.number().int().min(0),
 	accumulationMode: z.enum(["display", "hdr"]),
+	ambientOcclusionWhileMoving: z.boolean(),
+	softShadowsWhileMoving: z.boolean(),
 	maximumRenderingSize: renderingSizeSchema,
 	maximumRenderingSizeMobile: renderingSizeSchema,
 });

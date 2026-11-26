@@ -98,6 +98,18 @@ export interface ISettings extends IGlobalSettings {
 		 */
 		accumulationMode: IAccumulationMode;
 		/**
+		 * Whether ambient occlusion is drawn while the camera moves.
+		 * false: it returns when the beauty rendering starts after the camera stopped.
+		 * Settings converted from before 7.2 use true.
+		 */
+		ambientOcclusionWhileMoving: boolean;
+		/**
+		 * Whether soft shadows are drawn while the camera moves.
+		 * false: hard shadows while the camera moves, the soft shadows fade in after it stopped.
+		 * Settings converted from before 7.2 use true.
+		 */
+		softShadowsWhileMoving: boolean;
+		/**
 		 * The largest drawing buffer on desktop devices, in physical pixels
 		 * (after the device pixel ratio). A larger viewport is rendered at this size and scaled up.
 		 * Settings converted from before 7.2 use 1920x1080.
