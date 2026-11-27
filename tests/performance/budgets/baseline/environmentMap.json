@@ -1,0 +1,8 @@
+{
+	"envMap.hdrDecodesInWorker": 1,
+	"envMap.hdrDecodesOnMainThread": 0,
+	"envMap.secondLoad.hdrDecodesInWorker": 1,
+	"envMap.secondLoad.programsLinked": 0,
+	"envMap.secondLoad.workersCreated": 0,
+	"envMap.workersCreated": 1
+}
