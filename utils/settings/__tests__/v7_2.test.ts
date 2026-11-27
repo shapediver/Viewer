@@ -514,6 +514,8 @@ describe("settings V7.2", () => {
 					enableOnMobile: false,
 				},
 			},
+			{type: "ssr", properties: {compositing: "radiance"}},
+			{type: "ssr", properties: {compositing: "specular"}},
 		);
 		expect(() => validate(settings, "7.2")).not.toThrow();
 	});
@@ -525,6 +527,7 @@ describe("settings V7.2", () => {
 			{steps: 1.5},
 			{intensity: -1},
 			{enableOnMobile: "yes"},
+			{compositing: "environment"},
 			{unknownProperty: 1},
 		];
 		for (const properties of invalid) {
