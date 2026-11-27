@@ -89,6 +89,9 @@ export const JewelryDefaults: () => ISettings = () => {
 					// gallery under a ring's head reflects the prongs (SS-10509);
 					// desktop only, it costs too much on mobile devices
 					properties: {
+						// weighted and combined like the reference renderer's
+						// reflections (SS-10654)
+						compositing: "specular",
 						enableOnMobile: false,
 					},
 					type: "ssr",
