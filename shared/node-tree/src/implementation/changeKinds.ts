@@ -53,6 +53,48 @@ export function changedKindsSince(node: ITreeNode, serial: number): number {
 	return tracked.changedKindsSince ? tracked.changedKindsSince(serial) : 0;
 }
 
+/** The log of changed children of `TreeNode` that the scene update reads. */
+interface IChildLoggingNode {
+	readonly changedChildren: readonly {
+		readonly child: ITreeNode;
+		readonly serial: number;
+		readonly removed: boolean;
+	}[];
+	readonly changedChildrenReset: number;
+}
+
+/**
+ * The children of `node` that got a new version, were added or were removed
+ * after the clock value `serial`, the newest entry of each, oldest first.
+ * `undefined` when the log cannot tell (a node of another implementation of
+ * `ITreeNode`, or the log overflowed after `serial`): look at all children.
+ * Costs the entries after `serial`, not the children. Duck-typed, as
+ * {@link changedKindsSince}.
+ *
+ * @internal
+ */
+export function changedChildrenSince(
+	node: ITreeNode,
+	serial: number,
+): {child: ITreeNode; removed: boolean}[] | undefined {
+	const logging = node as Partial<IChildLoggingNode>;
+	const log = logging.changedChildren;
+	if (log === undefined || logging.changedChildrenReset! > serial) return;
+	const result: {child: ITreeNode; removed: boolean}[] = [];
+	let seen: Set<ITreeNode> | undefined;
+	for (let i = log.length - 1; i >= 0; i--) {
+		const entry = log[i];
+		if (entry.serial <= serial) break;
+		if (result.length > 0) {
+			seen ??= new Set(result.map((r) => r.child));
+			if (seen.has(entry.child)) continue;
+			seen.add(entry.child);
+		}
+		result.push({child: entry.child, removed: entry.removed});
+	}
+	return result.reverse();
+}
+
 /**
  * Records a change of `kind` on `node` that no setter of the node saw, for
  * example a matrix changed in place.

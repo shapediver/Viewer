@@ -157,4 +157,50 @@ describe("tree node index - test", () => {
 		expect(index.version).toBe(version);
 		expect(index.get(loose.id)).toBeUndefined();
 	});
+
+	test("a node added after the list was made goes to its place without a walk (SS-10564)", () => {
+		// 30 groups of 3 nodes below the root.
+		const groups: TreeNode[] = [];
+		for (let g = 0; g < 30; g++) {
+			const group = new TreeNode("g" + g);
+			for (let i = 0; i < 3; i++) new TreeNode(`x${g}.${i}`, group);
+			tree.addNode(group, root);
+			groups.push(group);
+		}
+		const index = create();
+		index.rebuild(root);
+		index.entries(root);
+
+		// Count the reads of `children` from now on.
+		let reads = 0;
+		const proto = TreeNode.prototype;
+		const descriptor = Object.getOwnPropertyDescriptor(proto, "children")!;
+		Object.defineProperty(proto, "children", {
+			configurable: true,
+			get() {
+				reads++;
+				return descriptor.get!.call(this);
+			},
+		});
+		try {
+			const added = new TreeNode("x17.new");
+			groups[17].addChild(added);
+			index.apply(changes([added]), root);
+			const listed = names(index);
+			expect(listed.indexOf("x17.new")).toBe(listed.indexOf("x17.2") + 1);
+			expect(listed.length).toBe(91);
+			// A walk reads `children` of every node (121); the binary search
+			// reads a few sibling lists.
+			expect(reads).toBeLessThan(30);
+
+			// A moved node goes to its new place.
+			groups[3].addChild(added);
+			index.apply(changes([added], [added]), root);
+			const moved = names(index);
+			expect(moved.indexOf("x17.new")).toBe(moved.indexOf("x3.2") + 1);
+			expect(moved.length).toBe(91);
+		} finally {
+			Object.defineProperty(proto, "children", descriptor);
+		}
+	});
 });
