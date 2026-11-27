@@ -37,6 +37,7 @@ type IScreenSpaceReflectionEffect = {
 		steps?: number;
 		distance?: number;
 		thickness?: number;
+		compositing?: "radiance" | "specular";
 		enableOnMobile?: boolean;
 	};
 };

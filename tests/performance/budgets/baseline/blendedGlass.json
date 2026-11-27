@@ -1,5 +1,5 @@
 {
-	"blendedGlass.batchBoundsReads": 125440,
+	"blendedGlass.batchBoundsReads": 1280,
 	"blendedGlass.batchedMeshes": 3,
 	"blendedGlass.firstFrame.drawCalls": 5,
 	"blendedGlass.firstFrame.fullScreenPasses": 0,
@@ -10,7 +10,7 @@
 	"blendedGlass.firstFrame.scenePass0.triangles": 61680,
 	"blendedGlass.firstFrame.scenePasses": 1,
 	"blendedGlass.firstFrame.triangles": 61680,
-	"blendedGlass.framesRendered": 98,
+	"blendedGlass.framesRendered": 1,
 	"blendedGlass.idleRenderCalls": 0,
 	"blendedGlass.lastFrame.drawCalls": 5,
 	"blendedGlass.lastFrame.fullScreenPasses": 0,
