@@ -354,6 +354,12 @@ export interface ISSREffectDefinition extends IPostProcessingEffectDefinition {
 		distance?: number;
 		/** How thick a surface is assumed behind its depth, relative to the scene size like the distance. (default: 0.2) */
 		thickness?: number;
+		/**
+		 * How a reflection is combined with the material. (default: "radiance")
+		 * - "radiance": the reflected color replaces the environment reflection before the material's reflectance is applied; the reflection fades with the hit distance, at the screen edges and from half of `maxRoughness`.
+		 * - "specular": the reflected color times the material's reflectance, at most white, replaces the whole indirect specular light. Every hit counts fully, surfaces that face the camera get no reflection, the reflections fade towards the screen edges, and `maxRoughness` applies to the material's roughness without the curvature of the surface. Used by the `jewelry` preset.
+		 */
+		compositing?: "radiance" | "specular";
 		/** Whether the reflections are rendered on mobile devices. (default: false) */
 		enableOnMobile?: boolean;
 	};
