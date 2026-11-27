@@ -124,6 +124,15 @@ test("a default material of the fitting class is copied in place and keeps its b
 	expect(physical.clearcoat).toBe(0.5);
 });
 
+test("a default material copied in place keeps its cache key, so a later class change still reloads it", () => {
+	const material = new THREE.MeshStandardMaterial();
+	const loader = setup(material);
+	loader.defaultMaterialData = new MaterialStandardData({roughness: 0.3});
+	expect(material.userData.cacheKey).toBe("default");
+	loader.defaultMaterialData = new MaterialStandardData({clearcoat: 0.5});
+	expect(loader.isDropped(material)).toBe(true);
+});
+
 test("a GPU instance material of the other class is copied in place, not dropped", () => {
 	const loader = new MaterialLoader(engine as any);
 	const material = new THREE.MeshPhysicalMaterial({clearcoat: 0.5});

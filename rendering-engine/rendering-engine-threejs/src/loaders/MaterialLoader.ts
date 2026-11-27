@@ -832,6 +832,9 @@ uniform vec3 sdvScreenAOColor;
 				material.needsUpdate = true;
 				material.userData.SDid = SDid;
 				material.userData.SDversion = SDversion;
+				// the material cache, isDropped and the AO normal pass find the material by it
+				if (typeof trackedKey === "string")
+					material.userData.cacheKey = trackedKey;
 				// copy takes the side of the default material. A derived back
 				// or front material keeps its own side and is drawn only if
 				// the default material shows that side.
@@ -844,15 +847,11 @@ uniform vec3 sdvScreenAOColor;
 						defaultSide ===
 							(isBack ? THREE.BackSide : THREE.FrontSide);
 					material.side = isBack ? THREE.BackSide : THREE.FrontSide;
-					if (typeof trackedKey === "string")
-						material.userData.cacheKey = trackedKey;
 					continue;
 				}
 				if (!batch) continue;
 				material.onBeforeCompile = compile;
 				material.userData.materialBatch = true;
-				if (typeof trackedKey === "string")
-					material.userData.cacheKey = trackedKey;
 				if (shader) material.userData.shader = shader;
 				if (
 					"color" in material &&
