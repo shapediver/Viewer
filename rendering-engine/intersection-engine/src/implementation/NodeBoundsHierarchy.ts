@@ -4,6 +4,8 @@ import {
 } from "@shapediver/viewer.shared.node-tree";
 import * as THREE from "three";
 
+import {pickGuardsOf} from "./PickGuards";
+
 /**
  * A node that is tested by a pick, as the intersection engine and the
  * interaction feature keep them.
@@ -176,6 +178,8 @@ interface IStats {
 	nodesTested?: number;
 	/** Instance slots compared with what was recorded for them. */
 	instancesChecked?: number;
+	/** Queries that skipped the validation because the scene did not change. */
+	validationsSkipped?: number;
 }
 
 function testStats(): IStats | undefined {
@@ -465,7 +469,43 @@ export class NodeBoundsHierarchy {
 		return ray.intersectsBox(widened);
 	}
 
+	/**
+	 * Brings the hierarchy up to date with the scene. If the viewport handed
+	 * in guards (see `setPickGuards`), nothing is compared while the scene
+	 * did not change since the last validation: every node that moved, was
+	 * shown or hidden, got new geometry or was added or removed is applied
+	 * to the viewport through the change clock, which the guards read. A
+	 * material change (a highlight) only has the instance slots read again.
+	 * A dynamic scene is validated on every query, as without guards.
+	 */
 	private validate(): void {
+		const guards = pickGuardsOf(this._viewportId);
+		if (
+			guards &&
+			!this._dirty &&
+			!this._instancesStale &&
+			this._leaves.length === this._entries.length &&
+			guards.bounds.isValid()
+		) {
+			if (guards.instances.isValid()) {
+				const stats = testStats();
+				if (stats)
+					stats.validationsSkipped =
+						(stats.validationsSkipped ?? 0) + 1;
+				return;
+			}
+			this.finishValidation(false, false, this.validateInstances());
+			guards.instances.markBuilt();
+			return;
+		}
+		this.validateAll();
+		if (guards) {
+			guards.bounds.markBuilt();
+			guards.instances.markBuilt();
+		}
+	}
+
+	private validateAll(): void {
 		if (this._dirty || this._leaves.length !== this._entries.length) {
 			this.buildAll();
 			return;
@@ -512,7 +552,7 @@ export class NodeBoundsHierarchy {
 			// data added to the node is a new child), not counted as objects.
 			// It is recorded again when they differ, or when one of its
 			// entries starts or stops converting to an instanced mesh.
-			// SS-10642 replaces this with the change clock. A node with
+			// Without the change clock (see `validate`). A node with
 			// anything a ray can hit below it (an entry of
 			// the interaction feature also holds the geometry data of the
 			// nodes below it) is compared like any other.
@@ -532,7 +572,15 @@ export class NodeBoundsHierarchy {
 			for (const index of recording.entries)
 				this._leaves[index].recording = fresh;
 		}
-		const instances = this.validateInstances();
+		this.finishValidation(stale, structural, this.validateInstances());
+	}
+
+	/** Refits or builds the tree after the objects or instances changed. */
+	private finishValidation(
+		stale: boolean,
+		structural: boolean,
+		instances: {changed: boolean; structural: boolean},
+	): void {
 		if (!stale && !instances.changed) return;
 		const stats = testStats();
 		if (stats) stats.rebuilds++;

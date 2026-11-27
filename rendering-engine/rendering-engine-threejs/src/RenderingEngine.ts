@@ -1491,6 +1491,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	public async close(): Promise<void> {
 		this._closed = true;
 		this._pulseEffectManager.dispose();
+		this._sceneTracingManager.dispose();
 		this._instanceGroupManager.clear();
 		this._materialBatchManager.clear();
 		this._lightEngine.close();
