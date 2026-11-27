@@ -19,9 +19,13 @@ function resolveViewerTestBaseUrl(): string {
 
 	switch (target) {
 		case "development":
-			return withTrailingSlash("https://viewer.shapediver.com/v3/development");
+			return withTrailingSlash(
+				"https://viewer.shapediver.com/v3/development",
+			);
 		case "staging":
-			return withTrailingSlash("https://viewer.shapediver.com/v3/staging");
+			return withTrailingSlash(
+				"https://viewer.shapediver.com/v3/staging",
+			);
 		case "production":
 		case "latest":
 		case "main":
@@ -40,6 +44,9 @@ export default defineConfig({
 	globalSetup: require.resolve("./globalSetup"),
 	testDir: ".",
 	testMatch: "**/*.test.ts",
+	// `unit/` needs built workspace packages, not the deployed viewer: it has
+	// its own config (`unit/playwright.config.ts`, `pnpm test:unit-playwright`).
+	testIgnore: "unit/**",
 	tsconfig: "./tsconfig.json",
 	forbidOnly: !!process.env.CI,
 	fullyParallel: true,

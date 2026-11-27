@@ -28,6 +28,7 @@ The working tree is CRLF, git stores LF (`autocrlf`), and ESLint enforces `lineb
 ## Tests
 
 - E2E: `e2e-testing` skill (user level).
+- `tests/unit/*.test.ts` are Node-only tests run by the Playwright runner (not Jest) with `pnpm test:unit-playwright`. They import workspace packages from `dist/`: build first with `npx lerna run build --scope @shapediver/viewer.rendering-engine.rendering-engine-threejs --include-dependencies`. `tests/playwright.config.ts` ignores them, so `pnpm test` and the e2e shards never load them; CI runs them in the pull request `unit` job and the `unit` job of "Full Tests Preview". Add new built packages to that `--scope` list if a unit file imports them.
 - Root `pnpm test` runs Playwright against the hosted viewer (`https://viewer.shapediver.com/v3/latest/`), not your `src/` or `dist/`. For a manual check of uncommitted code, drive `localhost:8080` or `test-cdn`; for suite runs against the working tree, use the `e2e-testing` skill.
 - `VIEWER_TEST_ENV=staging` targets the staging CDN. Tests load `test-cdn/index.html`, which exposes `SDV` without creating a session.
 
