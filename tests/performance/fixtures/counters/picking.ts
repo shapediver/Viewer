@@ -236,3 +236,37 @@ export function installPickWork() {
 		},
 	};
 }
+
+/**
+ * How many queries of the bounds hierarchies skipped their validation
+ * because the scene did not change (SS-10642). Runs in the page. Adds
+ * `window.__pickClock`. It must not reference anything outside its own
+ * body. Install it with `page.evaluate(installPickClock)` before the first
+ * pick.
+ *
+ * `read()` gives, since the last reset:
+ * - `queries`: queries of a bounds hierarchy,
+ * - `validationsSkipped`: queries that compared nothing with the scene,
+ *   because the change clock of the viewport said nothing changed (0 on a
+ *   build without the clock).
+ * The hierarchy writes into `globalThis.__nodeBoundsStats` only if it
+ * exists; this installer creates it if no other counter did.
+ */
+export function installPickClock() {
+	const stats = ((globalThis as any).__nodeBoundsStats ??= {
+		queries: 0,
+		objectsChecked: 0,
+		rebuilds: 0,
+	});
+	stats.validationsSkipped ??= 0;
+	let base = {queries: stats.queries, skipped: stats.validationsSkipped};
+	(window as any).__pickClock = {
+		reset() {
+			base = {queries: stats.queries, skipped: stats.validationsSkipped};
+		},
+		read: () => ({
+			queries: stats.queries - base.queries,
+			validationsSkipped: stats.validationsSkipped - base.skipped,
+		}),
+	};
+}
