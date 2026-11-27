@@ -171,6 +171,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	private _accumulationFrames: number = 0;
 	private _accumulationFramesMobile: number = 0;
 	private _accumulationMode: "display" | "hdr" = "display";
+	private _ambientOcclusionWhileMoving: boolean = true;
 	private _arRotation: vec3 = vec3.create();
 	private _arScale: vec3 = vec3.fromValues(1, 1, 1);
 	private _arTranslation: vec3 = vec3.create();
@@ -237,6 +238,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	private _show: boolean = false;
 	private _showStatistics: boolean = false;
 	private _softShadows: boolean = true;
+	private _softShadowsWhileMoving: boolean = true;
 	private _spinnerDivElement: HTMLDivElement;
 	private _viewportCreationDefinition: ViewportCreationDefinition;
 	private _toneMapping: TONE_MAPPING = TONE_MAPPING.NONE;
@@ -391,6 +393,18 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._accumulationMode = value === "hdr" ? "hdr" : "display";
 		this._postProcessingManager.hdrAccumulation =
 			this._accumulationMode === "hdr";
+	}
+
+	/**
+	 * Whether ambient occlusion is drawn while the camera moves (SS-10553).
+	 * false: it returns with the beauty rendering after the camera stopped.
+	 */
+	public get ambientOcclusionWhileMoving(): boolean {
+		return this._ambientOcclusionWhileMoving;
+	}
+
+	public set ambientOcclusionWhileMoving(value: boolean) {
+		this._ambientOcclusionWhileMoving = value;
 	}
 
 	public get arRotation(): vec3 {
@@ -1317,6 +1331,18 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 	public set softShadows(value: boolean) {
 		this.noteSetting("shadows", this.softShadows, value);
 		this._softShadows = value;
+	}
+
+	/**
+	 * Whether soft shadows are drawn while the camera moves (SS-10553).
+	 * false: hard shadows until the soft shadows fade in after the stop.
+	 */
+	public get softShadowsWhileMoving(): boolean {
+		return this._softShadowsWhileMoving;
+	}
+
+	public set softShadowsWhileMoving(value: boolean) {
+		this._softShadowsWhileMoving = value;
 	}
 
 	public get spinnerDivElement(): HTMLDivElement {

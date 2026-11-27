@@ -61,6 +61,9 @@ export type ISettingsV7_2 = Omit<
 		accumulationFramesMobile?: number;
 		// not set = "display", the frames are averaged on the canvas
 		accumulationMode?: "display" | "hdr";
+		// not set = true, the effects are drawn while the camera moves
+		ambientOcclusionWhileMoving?: boolean;
+		softShadowsWhileMoving?: boolean;
 		// Without the two values a viewport keeps its maximum rendering size.
 		maximumRenderingSize?: {width: number; height: number};
 		maximumRenderingSizeMobile?: {width: number; height: number};
