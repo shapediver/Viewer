@@ -321,7 +321,7 @@ export interface ISSAOEffectDefinition extends IPostProcessingEffectDefinition {
 		mode?: "composite" | "shading";
 		/** How the ambient occlusion darkens the environment reflections in the "shading" mode. "physical" uses the specular occlusion of three.js, which leaves polished metal seen head-on almost untouched and darkens it strongly at grazing angles. "uniform" darkens the reflections by the ambient occlusion itself, like the ambient light. (default: "physical") */
 		specularOcclusion?: "physical" | "uniform";
-		/** The AO algorithm. "hemisphere" (default) samples a hemisphere in world space. "sao" is Scalable Ambient Obscurance (11 samples on a screen-space spiral, with the shading normals), the algorithm of three.js's SAOShader; its radius is `distance` times a quarter of the scene's bounding-box diagonal. (default: "hemisphere") */
+		/** The AO algorithm. "hemisphere" (default) samples a hemisphere in world space. "sao" is Scalable Ambient Obscurance (11 samples on a screen-space spiral, with the shading normals), the algorithm of three.js's SAOShader; `distance` scales its radius relative to the scene size; 1 is the radius of the WebGi reference for the same scene (the samples reach about 2 % of the scene's bounding-box diagonal). (default: "hemisphere") */
 		algorithm?: "hemisphere" | "sao";
 		/** Whether gems are left out of the ambient occlusion in the composite mode. (default: false) */
 		excludeGems?: boolean;

@@ -1085,6 +1085,9 @@ export class PostProcessingManager implements IManager {
 						// we adjust the scene size slightly to make the factor fit our requirements
 						// with this adjusted factor, a distance value of 1 fits well as a default
 						const sceneSizeFactor = this._sceneExtents / 50.0;
+						const saoRadius =
+							((properties.distance ?? 1) * this._sceneExtents) /
+							4;
 						const ssaoEffect = new SSAOEffect(
 							this._composer,
 							this._renderingEngine.camera,
@@ -1153,9 +1156,9 @@ export class PostProcessingManager implements IManager {
 								// the radius the reference renderer uses for its scene size;
 								// the hemisphere SSAO keeps distance * sceneExtents / 50
 								saoRadius:
-									((properties.distance ?? 1) *
-										this._sceneExtents) /
-									4,
+									Number.isFinite(saoRadius) && saoRadius > 0
+										? saoRadius
+										: 0,
 							},
 						);
 

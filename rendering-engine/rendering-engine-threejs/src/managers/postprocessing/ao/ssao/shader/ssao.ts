@@ -14,6 +14,7 @@ uniform float cameraNear;
 uniform float cameraFar;
 uniform int frame;
 uniform float saoRadius;
+uniform bool saoOrthographic;
 
 uniform vec3[spp] samples;
 uniform float[spp] samplesR;
@@ -137,6 +138,12 @@ void main() {
         return;
     }
 
+    // no radius, no occlusion
+    if (saoRadius <= 0.0) {
+        gl_FragColor = vec4(normal, 1.0);
+        return;
+    }
+
     // view-space position and the shading normal of the normal pass (view space)
     vec3 centerPosition = (viewMatrix * vec4(computeWorldPosition(depth, vUv), 1.0)).xyz;
     vec3 centerNormal = getUnpackedNormal(vUv);
@@ -145,7 +152,7 @@ void main() {
 
     // pixels per world unit at distance 1, and the radius of the sample spiral in pixels
     float projectionScale = 0.5 * texSize.y / projectionMatrixInverse[1][1];
-    float screenRadius = 0.09 * projectionScale * saoRadius / (-centerPosition.z);
+    float screenRadius = 0.09 * projectionScale * saoRadius / (saoOrthographic ? 1.0 : -centerPosition.z);
 
     float sum = 0.0;
     for (int i = 0; i < SAO_SAMPLES; i++) {

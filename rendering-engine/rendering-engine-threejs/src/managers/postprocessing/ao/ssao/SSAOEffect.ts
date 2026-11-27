@@ -1,5 +1,12 @@
 import {EffectComposer} from "postprocessing";
-import {Camera, Scene, ShaderMaterial, Vector3} from "three";
+import {
+	Camera,
+	OrthographicCamera,
+	Scene,
+	ShaderMaterial,
+	Vector3,
+	WebGLRenderer,
+} from "three";
 import {AOEffect} from "../ao/AOEffect";
 import {AOPass} from "../ao/AOPass";
 import {ao_utils} from "../ao/shader/ao_utils";
@@ -13,15 +20,31 @@ const finalFragmentShader = fragmentShader.replace(
 class SSAOPass extends AOPass {
 	// #region Constructors (1)
 
+	private _aoCamera: Camera;
+
 	constructor(camera: Camera, scene: Scene) {
 		super(camera, scene, finalFragmentShader);
+		this._aoCamera = camera;
 
 		(this.fullscreenMaterial as ShaderMaterial).uniforms.saoRadius = {
 			value: 1,
 		};
+		// the pass renders with its own fullscreen camera, so three's isOrthographic is not usable
+		(this.fullscreenMaterial as ShaderMaterial).uniforms.saoOrthographic = {
+			value: false,
+		};
 	}
 
 	// #endregion Constructors (1)
+
+	public render(renderer: WebGLRenderer) {
+		(
+			this.fullscreenMaterial as ShaderMaterial
+		).uniforms.saoOrthographic.value =
+			(this._aoCamera as OrthographicCamera).isOrthographicCamera ===
+			true;
+		super.render(renderer);
+	}
 }
 
 class SSAOEffect extends AOEffect {
