@@ -1,3 +1,4 @@
+import {SystemInfo} from "@shapediver/viewer.shared.services";
 import {CopyMaterial, Pass} from "postprocessing";
 import * as THREE from "three";
 
@@ -172,8 +173,12 @@ export class HdrAccumulationPass extends Pass {
 		// Each blend rounds the mean to the precision of its target. In half
 		// float the rounding of 30 blends adds up to a quarter of a display
 		// level, so the mean is kept in float where the device renders to it.
+		// Mobile devices keep the input type: they accumulate 8 frames, where
+		// the half float drift is under 0.1 level, and float targets would
+		// double the memory.
 		const type =
 			inputBuffer.texture.type === THREE.HalfFloatType &&
+			SystemInfo.instance.isMobile !== true &&
 			renderer.extensions.has("EXT_color_buffer_float")
 				? THREE.FloatType
 				: inputBuffer.texture.type;

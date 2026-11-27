@@ -658,6 +658,8 @@ export class RenderingManager implements IManager {
 	 * accumulationMode "hdr": whether the background is stored as an HDR
 	 * colour and tone-mapped like the scene. The averaged frames then mix
 	 * object and background in HDR at the silhouette, as inside the object.
+	 * A clear colour lighter than about the tone-mapped 1.0 is capped, see
+	 * {@link backgroundInHdr}.
 	 * Otherwise the tone mapping leaves the background untouched, and a pixel
 	 * that holds both is tone-mapped as a whole or not at all, depending on
 	 * the depth of the last frame.
@@ -677,21 +679,39 @@ export class RenderingManager implements IManager {
 	 * reads the clear colour as sRGB and stores it in linear colour; the
 	 * returned colour is stored as the HDR value that the tone mapping turns
 	 * back into that linear colour, so the background looks as before.
+	 *
+	 * The HDR value is capped at 1.0 per channel (the reference viewer stores
+	 * its white background as 1.0 too). A light clear colour would otherwise be
+	 * stored far above 1 (white: about 15 with ACES) and the effects before the
+	 * tone mapping (bloom, vignette) would see it, e.g. bloom glowing around
+	 * silhouettes. Consequence: in "hdr" a clear colour lighter than about
+	 * #e2e2e2 (ACES) shows as at most the tone-mapped 1.0; darker colours are
+	 * exact.
+	 *
+	 * three.js multiplies the clear colour by the clear alpha
+	 * (premultiplied alpha), so the buffer holds `B * a`. For `0 < a < 1` the
+	 * inverse therefore targets `linear * a` and its result is divided by `a`.
+	 * With `a <= 0` the pixel is transparent and the colour stays as it is.
 	 */
 	private backgroundInHdr(color: THREE.Color): THREE.Color {
 		const engine = this._renderingEngine;
-		const key = `${color.r},${color.g},${color.b},${engine.toneMapping},${engine.toneMappingExposure}`;
+		const alpha = engine.clearAlpha;
+		const key = `${color.r},${color.g},${color.b},${alpha},${engine.toneMapping},${engine.toneMappingExposure}`;
 		if (this._backgroundInHdr?.key !== key) {
 			const linear = color.clone().convertSRGBToLinear();
-			const [r, g, b] = inverseToneMapping(
-				[linear.r, linear.g, linear.b],
-				engine.toneMapping,
-				engine.toneMappingExposure,
-			);
+			let rgb: [number, number, number] = [linear.r, linear.g, linear.b];
+			if (alpha > 0) {
+				const a = Math.min(alpha, 1);
+				rgb = inverseToneMapping(
+					[linear.r * a, linear.g * a, linear.b * a],
+					engine.toneMapping,
+					engine.toneMappingExposure,
+				).map((v) => Math.min(v / a, 1)) as [number, number, number];
+			}
 			this._backgroundInHdr = {
 				key,
 				color: new THREE.Color()
-					.setRGB(r, g, b, THREE.LinearSRGBColorSpace)
+					.setRGB(rgb[0], rgb[1], rgb[2], THREE.LinearSRGBColorSpace)
 					.convertLinearToSRGB(),
 			};
 		}
