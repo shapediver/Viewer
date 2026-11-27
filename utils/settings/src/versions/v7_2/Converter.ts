@@ -186,7 +186,7 @@ export const convertToPrevious = (
 	// - rendering.accumulationFrames, rendering.accumulationFramesMobile, rendering.accumulationMode
 	// - rendering.maximumRenderingSize, rendering.maximumRenderingSizeMobile
 	// - rendering.ambientOcclusionWhileMoving, rendering.softShadowsWhileMoving
-	// - bloom properties: backgroundBloom, highlightsOnly, highlightLimit, additiveBlur (mipmapBlur is required in 7.1)
+	// - bloom properties: backgroundBloom, highlightsOnly, highlightLimit, filter (mipmapBlur is required in 7.1)
 	// - HBAO/SSAO properties: mode, specularOcclusion, excludeGems
 	// - the SSR effect
 	const oldEffects = newSettings.postprocessing.effects
@@ -197,7 +197,7 @@ export const convertToPrevious = (
 				delete properties.backgroundBloom;
 				delete properties.highlightsOnly;
 				delete properties.highlightLimit;
-				delete properties.additiveBlur;
+				delete properties.filter;
 				properties.mipmapBlur = properties.mipmapBlur ?? false;
 				return {...effect, properties};
 			}

@@ -1522,6 +1522,7 @@ export class RenderingEngine implements IRenderingEngineThreeJS {
 		this._lightEngine.close();
 		this._cameraEngine.close();
 		this._renderingManager.dispose();
+		this._environmentMapLoader.dispose();
 		this._renderer.clear(true, true, true);
 		this._renderer.dispose();
 		this._domEventEngine.removeAllDomEventListener();

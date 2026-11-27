@@ -169,6 +169,6 @@
 	"attributes.switch.raycastCalls": 0,
 	"attributes.switch.treeDataReads": 5760,
 	"final.geometries": 4,
-	"final.programs": 11,
+	"final.programs": 10,
 	"final.textures": 6
 }
