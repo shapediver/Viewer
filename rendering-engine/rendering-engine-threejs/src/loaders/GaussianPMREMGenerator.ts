@@ -1,4 +1,8 @@
 import * as THREE from "three";
+import {
+	IPMREMGeneratorInternals as IPreparedPMREMGeneratorInternals,
+	ViewerPMREMGenerator,
+} from "./ViewerPMREMGenerator";
 
 /*
  * The prefiltering loop of the three.js r160 PMREMGenerator
@@ -49,7 +53,7 @@ interface IPMREMGeneratorInternals {
  * the Gaussian blur of three.js r160 and older, instead of the GGX importance
  * sampling of current three.js. The sharp level is the same in both.
  */
-export class GaussianPMREMGenerator extends THREE.PMREMGenerator {
+export class GaussianPMREMGenerator extends ViewerPMREMGenerator {
 	/**
 	 * Replaces the GGX filter loop of THREE.PMREMGenerator with the one of r160.
 	 * Called by THREE.PMREMGenerator after the sharp level was written.
@@ -70,5 +74,12 @@ export class GaussianPMREMGenerator extends THREE.PMREMGenerator {
 		}
 
 		renderer.autoClear = autoClear;
+	}
+
+	/** The blurred levels are filled with the blur material, not the GGX one. */
+	protected filterMaterial(
+		internals: IPreparedPMREMGeneratorInternals,
+	): THREE.ShaderMaterial | null {
+		return internals._blurMaterial;
 	}
 }
