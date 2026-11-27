@@ -116,6 +116,11 @@ jobs:
             - name: Run unit tests
               run: pnpm test:unit
 
+            # tests/unit: Node-only Playwright-runner tests that import the
+            # built packages. Not part of the e2e shards.
+            - name: Run Playwright unit tests
+              run: pnpm test:unit-playwright
+
     perf-exact:
         name: "Performance: exact tests (SwiftShader)"
         needs: build

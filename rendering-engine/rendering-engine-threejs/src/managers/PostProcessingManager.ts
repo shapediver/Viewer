@@ -1302,13 +1302,6 @@ export class PostProcessingManager implements IManager {
 				(e) => e.effect instanceof BackgroundMaskedBloomEffect,
 			);
 
-		const effectArray = this._effects.map((v) => v.effect);
-		if (antiAliasingTechnique === ANTI_ALIASING_TECHNIQUE.FXAA) {
-			effectArray.unshift(this._fxaaEffect!);
-		} else if (antiAliasingTechnique === ANTI_ALIASING_TECHNIQUE.SMAA) {
-			effectArray.unshift(this._smaaEffect!);
-		}
-
 		this._effectPasses = [];
 		/**
 		 * For every 3 effects we add another effects pass.
@@ -1397,24 +1390,29 @@ export class PostProcessingManager implements IManager {
 			}
 		}
 
-		// for the AO effects we need to add a separate AA pass at the end that anti-aliases the AO effect
-		// In the "shading" mode the AO is not composited, so the pass only anti-aliases
-		// the scene and follows the technique.
+		// The only anti-aliasing pass of the composer ("ssaa" renders the scene
+		// supersampled instead): after the effects, before the tone mapping.
+		// "smaa" and "fxaa" always get it. The AO effects also need it to
+		// anti-alias the composited AO, with SMAA unless "fxaa" is chosen, even
+		// with "none" or "ssaa". In the "shading" mode the AO is not composited,
+		// so there "none" gives no pass.
 		const aoShadingOnly =
 			!!this._shadingAOEffect &&
 			!this._effects.some((e) => e.effect instanceof AOEffect);
+		const hasAO = this._effectDefinitions.some(
+			(e) =>
+				e.definition.type === POST_PROCESSING_EFFECT_TYPE.HBAO ||
+				e.definition.type === POST_PROCESSING_EFFECT_TYPE.SSAO,
+		);
 		if (
-			this._effectDefinitions.find(
-				(e) =>
-					e.definition.type === POST_PROCESSING_EFFECT_TYPE.HBAO ||
-					e.definition.type === POST_PROCESSING_EFFECT_TYPE.SSAO,
-			) &&
-			!(
-				antiAliasingTechnique === ANTI_ALIASING_TECHNIQUE.NONE &&
-				aoShadingOnly
-			)
+			antiAliasingTechnique === ANTI_ALIASING_TECHNIQUE.SMAA ||
+			antiAliasingTechnique === ANTI_ALIASING_TECHNIQUE.FXAA ||
+			(hasAO &&
+				!(
+					antiAliasingTechnique === ANTI_ALIASING_TECHNIQUE.NONE &&
+					aoShadingOnly
+				))
 		) {
-			// respect the AA choice if one of the effects was selected, use SMAA otherwise
 			this.addPassToEffectComposer(
 				new EffectPass(
 					this._renderingEngine.camera,
