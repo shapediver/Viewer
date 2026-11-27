@@ -15,6 +15,7 @@ import {
 } from "@shapediver/viewer.shared.node-tree";
 import {btoaCustom, Converter} from "@shapediver/viewer.shared.services";
 import {
+	type Color,
 	ENVIRONMENT_MAP_PBR_MODE,
 	type IMapData,
 	type IMaterialAbstractData,
@@ -111,6 +112,35 @@ type SidePair = {
 
 // #endregion Type aliases (6)
 
+/**
+ * Whether a standard material needs three.js `MeshPhysicalMaterial`, or
+ * draws the same picture with the cheaper `MeshStandardMaterial`.
+ *
+ * Physical only when a physical feature changes the picture. three.js
+ * compiles clearcoat, sheen and transmission (and their maps, thickness and
+ * attenuation) only above 0. At ior 1.5 with a white specular colour and
+ * intensity 1 the physical specular equals the standard one (F0 0.04, F90 1).
+ */
+export const needsPhysicalMaterial = (data: {
+	clearcoat: number;
+	sheen: number;
+	transmission: number;
+	ior: number;
+	specularIntensity: number;
+	specularColor: Color;
+	specularIntensityMap?: IMapData;
+	specularColorMap?: IMapData;
+}): boolean =>
+	data.clearcoat > 0 ||
+	data.sheen > 0 ||
+	data.transmission > 0 ||
+	data.ior !== 1.5 ||
+	data.specularIntensity !== 1 ||
+	data.specularIntensityMap !== undefined ||
+	data.specularColorMap !== undefined ||
+	Converter.instance.toThreeJsColorInput(data.specularColor).toLowerCase() !==
+		"#ffffff";
+
 // #region Classes (1)
 
 export class MaterialLoader implements ILoader {
@@ -159,6 +189,8 @@ export class MaterialLoader implements ILoader {
 	// two passes. Looked up by the source and by either derived material.
 	private readonly _sidePairs = new Map<THREE.Material, SidePair>();
 	private readonly _sidePairOf = new WeakMap<THREE.Material, SidePair>();
+	// cache keys of default materials dropped for the other class (SS-10395)
+	private readonly _classSwitchedKeys = new Set<string>();
 	// no occlusion (alpha 1) until the shading pass provides the AO texture;
 	// three binds a black texture for null, which would occlude everything
 	private readonly _screenAONone = (() => {
@@ -828,9 +860,24 @@ uniform vec3 sdvScreenAOColor;
 
 	public assignDefaultMaterial() {
 		const batches: ThreeJsMaterialTypes[] = [];
+		// copy cannot change the class: entries whose standard or physical
+		// class no longer fits the default data are rebuilt instead. GPU
+		// instance materials are not reloaded by a scene update; they keep
+		// their class and are copied in place.
+		const physical = this.usesPhysicalClass(null);
+		const rebuild: string[] = [];
 		for (const cacheKey in this._materialCache) {
 			if (this._materialCache[cacheKey].materialData === null) {
 				const material = this._materialCache[cacheKey].material;
+				if (
+					this.isStandardOrPhysical(material) &&
+					material instanceof THREE.MeshPhysicalMaterial !==
+						physical &&
+					!cacheKey.startsWith("gpu-instance/")
+				) {
+					rebuild.push(cacheKey);
+					continue;
+				}
 				// copy replaces userData and the shading properties. A batch
 				// keeps a white color so the per-instance tint is the color,
 				// and it keeps the shadow hook copy does not carry over.
@@ -859,8 +906,10 @@ uniform vec3 sdvScreenAOColor;
 					);
 				} else if (material instanceof SpecularGlossinessMaterial) {
 					material.copy(new SpecularGlossinessMaterial(properties));
-				} else {
+				} else if (material instanceof THREE.MeshPhysicalMaterial) {
 					material.copy(new THREE.MeshPhysicalMaterial(properties));
+				} else {
+					material.copy(new THREE.MeshStandardMaterial(properties));
 				}
 				this.assignEnvironmentMapPbrModeToMaterial(
 					material,
@@ -870,6 +919,9 @@ uniform vec3 sdvScreenAOColor;
 				material.needsUpdate = true;
 				material.userData.SDid = SDid;
 				material.userData.SDversion = SDversion;
+				// the material cache, isDropped and the AO normal pass find the material by it
+				if (typeof trackedKey === "string")
+					material.userData.cacheKey = trackedKey;
 				// copy takes the side of the default material. A derived back
 				// or front material keeps its own side and is drawn only if
 				// the default material shows that side.
@@ -882,15 +934,11 @@ uniform vec3 sdvScreenAOColor;
 						defaultSide ===
 							(isBack ? THREE.BackSide : THREE.FrontSide);
 					material.side = isBack ? THREE.BackSide : THREE.FrontSide;
-					if (typeof trackedKey === "string")
-						material.userData.cacheKey = trackedKey;
 					continue;
 				}
 				if (!batch) continue;
 				material.onBeforeCompile = compile;
 				material.userData.materialBatch = true;
-				if (typeof trackedKey === "string")
-					material.userData.cacheKey = trackedKey;
 				if (shader) material.userData.shader = shader;
 				if (
 					"color" in material &&
@@ -904,6 +952,24 @@ uniform vec3 sdvScreenAOColor;
 			this._renderingEngine.materialBatchManager.syncBatchColors(
 				material,
 			);
+		if (rebuild.length === 0) return;
+		for (const cacheKey of rebuild) {
+			// a derived back or front material may already be gone with
+			// its source
+			const entry = this._materialCache[cacheKey];
+			if (!entry) continue;
+			this._classSwitchedKeys.add(cacheKey);
+			const pair = this._sidePairs.get(entry.material);
+			if (pair) {
+				this._classSwitchedKeys.add(pair.backKey);
+				this._classSwitchedKeys.add(pair.frontKey);
+			}
+			this.removeSidePair(entry.material);
+			entry.material.dispose();
+			delete this._materialCache[cacheKey];
+		}
+		// the next update converts those meshes again with the new class
+		this._sceneTree.root.updateVersion();
 	}
 
 	public assignDefaultPointMaterial() {
@@ -1633,7 +1699,8 @@ uniform vec3 sdvScreenAOColor;
 						) {
 							material = new THREE.MeshPhongMaterial(properties);
 						} else {
-							material = new THREE.MeshPhysicalMaterial(
+							material = this.createStandardOrPhysical(
+								materialData,
 								properties,
 							);
 						}
@@ -1650,14 +1717,15 @@ uniform vec3 sdvScreenAOColor;
 					} else if (materialData instanceof MaterialPhongData) {
 						material = new THREE.MeshPhongMaterial(properties);
 					} else {
-						material = new THREE.MeshPhysicalMaterial(properties);
+						material = this.createStandardOrPhysical(
+							materialData,
+							properties,
+						);
 					}
 				}
 				this.attachCompileHook(material);
-				if (
-					material instanceof SpecularGlossinessMaterial ||
-					material instanceof THREE.MeshPhysicalMaterial
-				) {
+				// standard, physical, gem and specular-glossiness
+				if (material instanceof THREE.MeshStandardMaterial) {
 					material.defines ??= {};
 					material.defines[
 						"ENVMAP_TYPE_" + this._envMapType.toUpperCase()
@@ -1731,6 +1799,54 @@ uniform vec3 sdvScreenAOColor;
 		}
 
 		return material;
+	}
+
+	/**
+	 * Whether a mesh material that would be physical before SS-10395 stays
+	 * physical: standard data (or the default data for `null`) only when a
+	 * physical feature is set. Other data under the "standard" override and
+	 * everything under the "gem" override keep the physical class.
+	 */
+	private usesPhysicalClass(
+		materialData: IMaterialAbstractData | null,
+	): boolean {
+		const data = materialData ?? this._defaultMaterialData;
+		if (!(data instanceof MaterialStandardData)) return true;
+		if (this._materialOverrideType === MATERIAL_TYPE.GEM) return true;
+		return needsPhysicalMaterial(data);
+	}
+
+	private createStandardOrPhysical(
+		materialData: IMaterialAbstractData | null,
+		properties: ThreeJsMaterialParameterTypes,
+	): THREE.MeshStandardMaterial {
+		return this.usesPhysicalClass(materialData)
+			? new THREE.MeshPhysicalMaterial(properties)
+			: new THREE.MeshStandardMaterial(properties);
+	}
+
+	/**
+	 * Whether the material was dropped because the default material changed
+	 * between standard and physical, and not loaded again yet. A mesh that
+	 * still shows it, or a copy of it such as a pulse effect, has to load
+	 * its material again.
+	 */
+	public isDropped(material: THREE.Material): boolean {
+		const key = material.userData.cacheKey;
+		return (
+			typeof key === "string" &&
+			this._classSwitchedKeys.has(key) &&
+			this._materialCache[key] === undefined
+		);
+	}
+
+	/** A plain standard or physical material, not a gem or specular-glossiness. */
+	private isStandardOrPhysical(material: THREE.Material): boolean {
+		return (
+			material instanceof THREE.MeshStandardMaterial &&
+			!(material instanceof SpecularGlossinessMaterial) &&
+			!(material instanceof GemMaterial)
+		);
 	}
 
 	public emptyMaterialCache() {
@@ -2551,11 +2667,51 @@ uniform vec3 sdvScreenAOColor;
 
 		/**
 		 *
-		 * the final exit, the MeshPhysicalMaterial
+		 * the final exit, the MeshStandardMaterial or MeshPhysicalMaterial
 		 *
 		 */
 
 		if (!(materialData instanceof MaterialStandardData))
+			return {properties: standardProperties, mapCount};
+
+		if (materialData.displacementMap !== undefined) {
+			standardProperties.displacementMap = this.createTexture(
+				materialData.displacementMap,
+			);
+			mapCount++;
+		}
+
+		standardProperties.displacementScale = materialData.displacementScale;
+
+		standardProperties.displacementBias = materialData.displacementBias;
+
+		standardProperties.metalness = materialData.metalness;
+		standardProperties.roughness = materialData.roughness;
+
+		if (materialData.metalnessRoughnessMap !== undefined) {
+			standardProperties.metalnessMap = this.createTexture(
+				materialData.metalnessRoughnessMap,
+			);
+			standardProperties.roughnessMap = standardProperties.metalnessMap;
+			mapCount++;
+		} else {
+			if (materialData.metalnessMap !== undefined) {
+				standardProperties.metalnessMap = this.createTexture(
+					materialData.metalnessMap,
+				);
+				mapCount++;
+			}
+			if (materialData.roughnessMap !== undefined) {
+				standardProperties.roughnessMap = this.createTexture(
+					materialData.roughnessMap,
+				);
+				mapCount++;
+			}
+		}
+
+		// drawn with MeshStandardMaterial: no physical keys, and no textures
+		// for features three.js would not use
+		if (!needsPhysicalMaterial(materialData))
 			return {properties: standardProperties, mapCount};
 
 		const meshPhysicalProperties: THREE.MeshPhysicalMaterialParameters =
@@ -2586,18 +2742,6 @@ uniform vec3 sdvScreenAOColor;
 			);
 			mapCount++;
 		}
-
-		if (materialData.displacementMap !== undefined) {
-			meshPhysicalProperties.displacementMap = this.createTexture(
-				materialData.displacementMap,
-			);
-			mapCount++;
-		}
-
-		meshPhysicalProperties.displacementScale =
-			materialData.displacementScale;
-
-		meshPhysicalProperties.displacementBias = materialData.displacementBias;
 
 		meshPhysicalProperties.ior = materialData.ior;
 
@@ -2668,30 +2812,6 @@ uniform vec3 sdvScreenAOColor;
 			mapCount++;
 		}
 
-		meshPhysicalProperties.metalness = materialData.metalness;
-		meshPhysicalProperties.roughness = materialData.roughness;
-
-		if (materialData.metalnessRoughnessMap !== undefined) {
-			meshPhysicalProperties.metalnessMap = this.createTexture(
-				materialData.metalnessRoughnessMap,
-			);
-			meshPhysicalProperties.roughnessMap =
-				meshPhysicalProperties.metalnessMap;
-			mapCount++;
-		} else {
-			if (materialData.metalnessMap !== undefined) {
-				meshPhysicalProperties.metalnessMap = this.createTexture(
-					materialData.metalnessMap,
-				);
-				mapCount++;
-			}
-			if (materialData.roughnessMap !== undefined) {
-				meshPhysicalProperties.roughnessMap = this.createTexture(
-					materialData.roughnessMap,
-				);
-				mapCount++;
-			}
-		}
 		return {properties: meshPhysicalProperties, mapCount};
 	}
 
@@ -2704,10 +2824,11 @@ uniform vec3 sdvScreenAOColor;
 	private getShaderSignature(
 		type: GEOMETRY_MATERIAL_TYPE,
 		materialData: IMaterialAbstractData | null,
-		materialSettings?: MaterialSettings,
+		materialSettings: MaterialSettings | undefined,
+		materialClass: string,
 	): string {
 		// Use a simple string concatenation for better performance than JSON.stringify
-		return `${type}_${materialData?.constructor.name || "default"}_${this._materialOverrideType || "none"}_${materialSettings?.useVertexColors ? "vc" : ""}_${materialSettings?.useFlatShading ? "fs" : ""}_${materialSettings?.useMorphTargets ? "mt" : ""}_${this._envMapType}`;
+		return `${type}_${materialData?.constructor.name || "default"}_${materialClass}_${this._materialOverrideType || "none"}_${materialSettings?.useVertexColors ? "vc" : ""}_${materialSettings?.useFlatShading ? "fs" : ""}_${materialSettings?.useMorphTargets ? "mt" : ""}_${this._envMapType}`;
 	}
 
 	/**
@@ -2803,6 +2924,7 @@ uniform vec3 sdvScreenAOColor;
 			type,
 			materialData,
 			materialSettings,
+			material.type,
 		);
 		material.userData.cacheKey = cacheKey;
 		material.userData.shaderSignature = shaderSignature;

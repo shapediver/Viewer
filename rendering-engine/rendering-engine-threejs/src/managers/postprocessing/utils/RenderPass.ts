@@ -13,6 +13,7 @@ import {
 	Material,
 	Mesh,
 	MeshPhysicalMaterial,
+	MeshStandardMaterial,
 	Object3D,
 	Points,
 	Scene,
@@ -20,6 +21,7 @@ import {
 	WebGLRenderTarget,
 } from "three";
 import {GemMaterial} from "../../../materials/GemMaterial";
+import {SpecularGlossinessMaterial} from "../../../materials/SpecularGlossinessMaterial";
 
 export class RenderPass extends Pass {
 	clearPass: ClearPass;
@@ -276,9 +278,16 @@ export class RenderPass extends Pass {
 					const material = Array.isArray(object.material)
 						? object.material[0]
 						: object.material;
+					// physical, and the plain materials of the material
+					// loader that are standard since SS-10395 (they carry a
+					// cache key); not gems or specular-glossiness
 					if (
-						material instanceof MeshPhysicalMaterial &&
+						(material instanceof MeshPhysicalMaterial ||
+							(material instanceof MeshStandardMaterial &&
+								typeof material.userData.cacheKey ===
+									"string")) &&
 						!(material instanceof GemMaterial) &&
+						!(material instanceof SpecularGlossinessMaterial) &&
 						material.transparent
 					) {
 						materialsNotRenderer.push(object);
