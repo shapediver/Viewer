@@ -46,6 +46,10 @@ export const OLD_LOOK_V7_2 = {
 	accumulationFramesMobile: 0,
 	/** `rendering.accumulationMode` */
 	accumulationMode: "display",
+	/** `rendering.ambientOcclusionWhileMoving` */
+	ambientOcclusionWhileMoving: true,
+	/** `rendering.softShadowsWhileMoving` */
+	softShadowsWhileMoving: true,
 	/** `rendering.maximumRenderingSize` */
 	maximumRenderingSize: {width: 1920, height: 1080},
 	/** `rendering.maximumRenderingSizeMobile` */
@@ -110,6 +114,12 @@ export const convertFromPrevious = (
 				OLD_LOOK_V7_2.accumulationFramesMobile,
 			accumulationMode:
 				oldRendering.accumulationMode ?? OLD_LOOK_V7_2.accumulationMode,
+			ambientOcclusionWhileMoving:
+				oldRendering.ambientOcclusionWhileMoving ??
+				OLD_LOOK_V7_2.ambientOcclusionWhileMoving,
+			softShadowsWhileMoving:
+				oldRendering.softShadowsWhileMoving ??
+				OLD_LOOK_V7_2.softShadowsWhileMoving,
 			maximumRenderingSize: oldRendering.maximumRenderingSize ?? {
 				...OLD_LOOK_V7_2.maximumRenderingSize,
 			},
@@ -175,8 +185,9 @@ export const convertToPrevious = (
 	//   material.gemTracing, material.gemNormalMapResolution
 	// - rendering.accumulationFrames, rendering.accumulationFramesMobile, rendering.accumulationMode
 	// - rendering.maximumRenderingSize, rendering.maximumRenderingSizeMobile
+	// - rendering.ambientOcclusionWhileMoving, rendering.softShadowsWhileMoving
 	// - bloom properties: backgroundBloom, highlightsOnly, highlightLimit, filter (mipmapBlur is required in 7.1)
-	// - HBAO/SSAO properties: mode, specularOcclusion, excludeGems
+	// - HBAO/SSAO properties: mode, specularOcclusion, algorithm (SSAO), excludeGems
 	// - the SSR effect
 	const oldEffects = newSettings.postprocessing.effects
 		.filter((effect) => effect.type !== "ssr")
@@ -197,6 +208,7 @@ export const convertToPrevious = (
 				const properties: any = {...effect.properties};
 				delete properties.mode;
 				delete properties.specularOcclusion;
+				delete properties.algorithm;
 				delete properties.excludeGems;
 				return {...effect, properties};
 			}
@@ -223,6 +235,8 @@ export const convertToPrevious = (
 	delete rendering.accumulationFrames;
 	delete rendering.accumulationFramesMobile;
 	delete rendering.accumulationMode;
+	delete rendering.ambientOcclusionWhileMoving;
+	delete rendering.softShadowsWhileMoving;
 	delete rendering.maximumRenderingSize;
 	delete rendering.maximumRenderingSizeMobile;
 

@@ -10,7 +10,7 @@ test("SS-10392 the beauty blend renders 16 frames across 1500ms", async ({
 	);
 	test.fail(
 		true,
-		"SS-10392: the capped fade (16 frames) is open, it changes how the fade looks",
+		"SS-10687 not implemented: the capped fade (16 frames) moved to SS-10687",
 	);
 	await page.clock.install({time: new Date("2026-01-01T00:00:00Z")});
 	await open(page);

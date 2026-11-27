@@ -701,7 +701,8 @@ export class GeometryLoader implements ILoader {
 
 	/**
 	 * Whether the material data of the geometry is a different material
-	 * (other id) than the one currently applied to the given object.
+	 * (other id) than the one currently applied to the given object, or the
+	 * applied default material was dropped for the other material class.
 	 * Versions are not compared: in-place edits keep the existing handling.
 	 */
 	public isMaterialReplaced(
@@ -723,6 +724,9 @@ export class GeometryLoader implements ILoader {
 		// a back and front pair carries the ids of its source
 		const shown = Array.isArray(current) ? current[0] : current;
 		if (!shown) return false;
+		// a default material dropped because it changes between standard
+		// and physical (SS-10395)
+		if (this._renderingEngine.materialLoader.isDropped(shown)) return true;
 		return shown.userData.SDid !== (source || geometry).id;
 	}
 

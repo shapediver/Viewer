@@ -86,7 +86,8 @@ async function setup(page: import("@playwright/test").Page) {
 		const direct = renderer.renderBufferDirect;
 		renderer.renderBufferDirect = (...args: any[]) => {
 			const [, , , material, object, group] = args;
-			if (material.isMeshPhysicalMaterial)
+			// plain panes are MeshStandardMaterial since SS-10395
+			if (material.isMeshStandardMaterial)
 				draws.push({
 					id: object.id,
 					side: material.side,

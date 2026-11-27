@@ -91,6 +91,8 @@ export class RenderingManager implements IManager {
 	/** The grid and ground plane objects among them, shown without update. */
 	private _hiddenEnvironmentNotCompiled = new Set<THREE.Object3D>();
 	private _lightSignature: string | null = null;
+	/** The lights of the scene, see {@link trackLight}. */
+	private readonly _lights = new Set<THREE.Light>();
 	private _continuousRendering: boolean = false;
 	private _continuousShadowMapUpdate: boolean = false;
 	private _height: number = 0;
@@ -140,6 +142,15 @@ export class RenderingManager implements IManager {
 	/** lightSizeUV and blending of the last fade frame */
 	private _beautyShadowState?: [number, number];
 	private _updateShadowMapInNextRender: boolean = false;
+	/**
+	 * SS-10553: "moving" from CAMERA_START, "stopping" after CAMERA_END until
+	 * the beauty rendering starts. Both count as a moving camera.
+	 */
+	private _cameraMotion: "none" | "moving" | "stopping" = "none";
+	/** The camera whose CAMERA_START began the moving phase. */
+	private _movingCameraId?: string;
+	/** The soft-shadow blend of the interactive frames last applied. */
+	private _interactiveBlend?: number;
 
 	// #endregion Properties (31)
 
@@ -382,20 +393,41 @@ export class RenderingManager implements IManager {
 	}
 
 	/**
+	 * Counts a light the scene update converted (a light of the tree, or one
+	 * inside a three.js object) in the light signature while it is in the
+	 * scene.
+	 */
+	public trackLight(light: THREE.Light): void {
+		this._lights.add(light);
+	}
+
+	/**
 	 * The program key of every lit material depends on the number of lights
 	 * per type and on which of them cast shadows.
 	 */
 	private lightSignature(scene: THREE.Object3D): string {
-		// Per type: lights, and lights that cast shadows.
+		// Per type: lights, and lights that cast shadows. Of the lights the
+		// scene update converted, those that are visible in the scene: the
+		// lights times the tree depth, not a walk over the scene (SS-10564).
 		const counts: Record<string, number> = {};
-		scene.traverseVisible((object) => {
-			const light = object as THREE.Light;
-			if (!light.isLight) return;
+		for (const light of this._lights) {
+			let visible = light.visible;
+			let parent = light.parent;
+			while (parent !== null && parent !== scene) {
+				visible &&= parent.visible;
+				parent = parent.parent;
+			}
+			if (parent !== scene) {
+				// Removed. A scene update that converts it again adds it.
+				this._lights.delete(light);
+				continue;
+			}
+			if (!visible || !scene.visible) continue;
 			const type = (light as THREE.Light & {type: string}).type;
 			counts[type] = (counts[type] ?? 0) + 1;
 			if (light.castShadow)
 				counts[type + "Shadow"] = (counts[type + "Shadow"] ?? 0) + 1;
-		});
+		}
 		return (
 			Object.keys(counts)
 				.sort()
@@ -821,14 +853,20 @@ export class RenderingManager implements IManager {
 				EVENTTYPE.CAMERA.CAMERA_START,
 				(e) => {
 					const viewerEvent = <ICameraEvent>e;
-					if (viewerEvent.viewportId === this._renderingEngine.id)
-						this.startRendering();
+					if (viewerEvent.viewportId !== this._renderingEngine.id)
+						return;
+					this._cameraMotion = "moving";
+					this._movingCameraId = viewerEvent.cameraId;
+					this.startRendering();
 				},
 			);
 			this._eventEngine.addListener(EVENTTYPE.CAMERA.CAMERA_END, (e) => {
 				const viewerEvent = <ICameraEvent>e;
-				if (viewerEvent.viewportId === this._renderingEngine.id)
-					this.stopRendering();
+				if (viewerEvent.viewportId !== this._renderingEngine.id) return;
+				// still moving until the beauty rendering starts
+				if (this._cameraMotion === "moving")
+					this._cameraMotion = "stopping";
+				this.stopRendering();
 			});
 
 			window.onresize = () => {
@@ -959,6 +997,8 @@ export class RenderingManager implements IManager {
 			this._lightSizeUVStart,
 			0,
 		);
+		// the fade owns the blend until the next interactive frame
+		this._interactiveBlend = undefined;
 	}
 
 	private animate(
@@ -1314,6 +1354,10 @@ export class RenderingManager implements IManager {
 			: null;
 		// check if we should render with post-processing
 		const renderPostProcessing = this.renderPostProcessing();
+		// SS-10553: no ambient occlusion while the camera moves, if set
+		this._renderingEngine.postProcessingManager.ambientOcclusionSuspended =
+			!this._renderingEngine.ambientOcclusionWhileMoving &&
+			this.cameraMoving();
 		const toneMapBackground =
 			renderPostProcessing && this.toneMapsBackground();
 
@@ -1697,13 +1741,71 @@ export class RenderingManager implements IManager {
 	}
 
 	private applyInteractiveShaders() {
-		if (!this._restoreInteractiveShaders) return;
+		const blend = this.interactiveBlend();
+		if (!this._restoreInteractiveShaders) {
+			// SS-10553: the camera started or stopped moving, or the setting
+			// changed, after the interactive look was applied. Uniforms only.
+			if (
+				this._interactiveBlend === undefined ||
+				this._softShadowRenderingActive ||
+				this._interactiveBlend === blend
+			)
+				return;
+			this._interactiveBlend = blend;
+			this._renderingEngine.materialLoader.updateSoftShadow(
+				this._lightSizeUVStart,
+				blend,
+			);
+			return;
+		}
 		this._restoreInteractiveShaders = false;
 		this._renderingEngine.renderer.shadowMap.type = THREE.BasicShadowMap;
 		this._renderingEngine.renderer.shadowMap.needsUpdate = true;
+		this._interactiveBlend = blend;
 		this._renderingEngine.materialLoader.updateSoftShadow(
 			this._lightSizeUVStart,
-			0.1,
+			blend,
+		);
+	}
+
+	/**
+	 * The soft-shadow blend of interactive frames: hard shadows (0, no PCSS
+	 * kernel) while the camera moves and softShadowsWhileMoving is off
+	 * (SS-10553), otherwise 0.1.
+	 */
+	private interactiveBlend(): number {
+		return !this._renderingEngine.softShadowsWhileMoving &&
+			this.cameraMoving()
+			? 0
+			: 0.1;
+	}
+
+	/**
+	 * Whether the camera moves (SS-10553): from CAMERA_START until the
+	 * beauty rendering starts after CAMERA_END, and while it autorotates.
+	 */
+	private cameraMoving(startCountdown = true): boolean {
+		const camera = this._renderingEngine.cameraEngine.camera;
+		if (
+			this._cameraMotion !== "none" &&
+			(!camera ||
+				camera.id !== this._movingCameraId ||
+				camera.controls?.enabled === false)
+		) {
+			// SS-10553: a switched camera or disabled controls send no
+			// CAMERA_END, so end the phase as CAMERA_END would.
+			this._cameraMotion = "none";
+			if (startCountdown) this.startBeautyRenderCountdown();
+		}
+		if (this._cameraMotion !== "none") return true;
+		if (camera?.type !== CAMERA_TYPE.PERSPECTIVE) return false;
+		const controls = <PerspectiveCameraControls>(
+			(<PerspectiveCamera>camera).controls
+		);
+		return (
+			controls.enabled !== false &&
+			controls.enableAutoRotation === true &&
+			controls.autoRotationSpeed !== 0
 		);
 	}
 
@@ -1961,6 +2063,19 @@ export class RenderingManager implements IManager {
 	}
 
 	private startBeautyRendering() {
+		// SS-10553: a change during a drag (a hide, a setting) does not end
+		// the moving phase; CAMERA_END starts the countdown again. With both
+		// settings on, the beauty rendering starts as before.
+		// drops a stale moving phase; the beauty rendering starts right here
+		this.cameraMoving(false);
+		if (
+			this._cameraMotion === "moving" &&
+			(!this._renderingEngine.ambientOcclusionWhileMoving ||
+				!this._renderingEngine.softShadowsWhileMoving)
+		)
+			return;
+		// the moving phase ends with the beauty rendering
+		if (this._cameraMotion === "stopping") this._cameraMotion = "none";
 		this._softShadowRenderingActive = true;
 		this._softShadowRenderingDurationActive = 0;
 		// the frames while the countdown ran may have stopped the rendering

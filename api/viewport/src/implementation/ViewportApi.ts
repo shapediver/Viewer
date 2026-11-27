@@ -258,6 +258,24 @@ export class ViewportApi implements IViewportApi {
 		this.#applyUpdate("accumulationFramesMobile");
 	}
 
+	public get ambientOcclusionWhileMoving(): boolean {
+		return this.#renderingEngine.ambientOcclusionWhileMoving;
+	}
+
+	public set ambientOcclusionWhileMoving(value: boolean) {
+		const scope = "ambientOcclusionWhileMoving";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"boolean",
+		);
+		this.#renderingEngine.ambientOcclusionWhileMoving = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.#applyUpdate("ambientOcclusionWhileMoving");
+	}
+
 	public get accumulationMode(): "display" | "hdr" {
 		return this.#renderingEngine.accumulationMode;
 	}
@@ -1362,6 +1380,24 @@ export class ViewportApi implements IViewportApi {
 			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
 		);
 		this.#applyUpdate("softShadows");
+	}
+
+	public get softShadowsWhileMoving(): boolean {
+		return this.#renderingEngine.softShadowsWhileMoving;
+	}
+
+	public set softShadowsWhileMoving(value: boolean) {
+		const scope = "softShadowsWhileMoving";
+		this.#inputValidator.validateAndError(
+			`ViewportApi.${scope}`,
+			value,
+			"boolean",
+		);
+		this.#renderingEngine.softShadowsWhileMoving = value;
+		this.#logger.debug(
+			`ViewportApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.#applyUpdate("softShadowsWhileMoving");
 	}
 
 	public get textureEncoding(): TEXTURE_ENCODING {

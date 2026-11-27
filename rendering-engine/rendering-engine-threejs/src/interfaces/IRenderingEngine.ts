@@ -20,6 +20,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
 	accumulationFrames: number;
 	accumulationFramesMobile: number;
 	accumulationMode: "display" | "hdr";
+	ambientOcclusionWhileMoving: boolean;
 	automaticColorAdjustment: boolean;
 	beautyRenderBlendingDuration: number;
 	beautyRenderDelay: number;
@@ -71,6 +72,7 @@ export interface IRenderingEngineThreeJS extends IRenderingEngine {
 	preRenderCallback?: (renderer: THREE.WebGLRenderer) => void;
 	shadows: boolean;
 	softShadows: boolean;
+	softShadowsWhileMoving: boolean;
 	textureEncoding: TEXTURE_ENCODING;
 	toneMapping: TONE_MAPPING;
 	toneMappingExposure: number;

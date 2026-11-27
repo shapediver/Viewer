@@ -48,6 +48,35 @@ interface InstanceGroup {
 const MATERIAL_OVERRIDE_PREFIX = "material-override:";
 
 /**
+ * Uploads one instance slot of an instance attribute in the next frame,
+ * instead of the whole attribute (SS-10564). Slots written one after the
+ * other (a group being filled) extend one range.
+ */
+function uploadSlot(attribute: THREE.BufferAttribute, index: number): void {
+	const size = attribute.itemSize;
+	const start = index * size;
+	const ranges = attribute.updateRanges;
+	const last = ranges[ranges.length - 1];
+	if (last !== undefined && last.start + last.count === start)
+		last.count += size;
+	else if (ranges.length >= MAX_UPLOAD_RANGES) {
+		// Ranges pile up while the mesh is not drawn (three.js clears them
+		// at the upload): one range over everything instead.
+		attribute.clearUpdateRanges();
+		attribute.addUpdateRange(0, attribute.array.length);
+	} else attribute.addUpdateRange(start, size);
+	attribute.needsUpdate = true;
+}
+
+/** More slot ranges than this upload the whole attribute. */
+const MAX_UPLOAD_RANGES = 64;
+
+/** Scratch objects of `_growBounds`. */
+const GROW_BOX = new THREE.Box3();
+const GROW_MATRIX = new THREE.Matrix4();
+const GROW_SPHERE = new THREE.Sphere();
+
+/**
  * Manages GPU-instanced meshes and their per-instance operations.
  *
  * Each group of primitives sharing the same geometry hash is represented by
@@ -63,7 +92,15 @@ export class InstanceGroupManager {
 	// #region Properties (3)
 
 	private readonly _groups = new Map<string, InstanceGroup>();
-	private _boundsDirty = false;
+	/**
+	 * Groups whose mesh bounds are recomputed at the next commit (over their
+	 * instances). A hide keeps the bounds and a show or move grows them by
+	 * the one instance (SS-10564): those groups are only loose, made exact
+	 * by {@link tightenBounds} at the next full scene update.
+	 */
+	private readonly _boundsDirtyGroups = new Set<InstanceGroup>();
+	/** Loose groups, with the number of loose updates since exact bounds. */
+	private readonly _looseGroups = new Map<InstanceGroup, number>();
 	private _suspendBoundsCommit = false;
 	// A tree node may contain more than one primitive. Keep those registrations
 	// separate: using only node.id makes every primitive after the first look like
@@ -233,11 +270,11 @@ export class InstanceGroupManager {
 		group.count++;
 		group.defaultMesh.count = group.count;
 
-		group.defaultMesh.instanceMatrix.needsUpdate = true;
+		uploadSlot(group.defaultMesh.instanceMatrix, idx);
 		if (group.defaultMesh.instanceColor)
-			group.defaultMesh.instanceColor.needsUpdate = true;
+			uploadSlot(group.defaultMesh.instanceColor, idx);
 
-		this._boundsDirty = true;
+		this._growBounds(group, group.defaultMesh, matrix);
 		return group.defaultMesh;
 	}
 
@@ -290,10 +327,8 @@ export class InstanceGroupManager {
 		if (group.nodeMatrices.size === 0) {
 			this._disposeGroup(group);
 			this._groups.delete(instanceHash);
-			this._boundsDirty = true;
 			return true;
 		}
-		this._boundsDirty = true;
 		return false;
 	}
 
@@ -669,7 +704,8 @@ export class InstanceGroupManager {
 		this._nodeKeysByGeometry.clear();
 		this._geometryIdByNodeKey.clear();
 		this.instancedRoot.clear();
-		this._boundsDirty = false;
+		this._boundsDirtyGroups.clear();
+		this._looseGroups.clear();
 	}
 
 	/**
@@ -686,12 +722,72 @@ export class InstanceGroupManager {
 	}
 
 	public commitBounds(): void {
-		if (this._suspendBoundsCommit || !this._boundsDirty) return;
-		this._boundsDirty = false;
-		this._groups.forEach((group) => {
+		if (this._suspendBoundsCommit || this._boundsDirtyGroups.size === 0)
+			return;
+		for (const group of this._boundsDirtyGroups) {
+			this._looseGroups.delete(group);
 			this._updateMeshBounds(group.defaultMesh);
 			group.effectMeshes.forEach((mesh) => this._updateMeshBounds(mesh));
-		});
+		}
+		this._boundsDirtyGroups.clear();
+	}
+
+	/**
+	 * The next commit makes the bounds of every group exact again that a
+	 * hide, show or move left larger than needed. For a scene update over
+	 * the whole tree.
+	 */
+	public tightenBounds(): void {
+		for (const group of this._looseGroups.keys())
+			this._boundsDirtyGroups.add(group);
+	}
+
+	/** The bounds of the group's meshes are recomputed at the next commit. */
+	private _markBounds(group: InstanceGroup): void {
+		this._boundsDirtyGroups.add(group);
+	}
+
+	/**
+	 * Grows the bounds of `mesh` by one instance at `matrix` (local box times
+	 * the matrix, as the regular meshes), instead of a pass over the group.
+	 * The bounds may then be larger than needed, which is safe for culling
+	 * and the ray test.
+	 */
+	private _growBounds(
+		group: InstanceGroup,
+		mesh: THREE.InstancedMesh,
+		matrix: ArrayLike<number>,
+	): void {
+		if (this._boundsDirtyGroups.has(group)) return;
+		const geometry = mesh.geometry;
+		if (!geometry.boundingBox) geometry.computeBoundingBox();
+		if (
+			!mesh.boundingBox ||
+			!mesh.boundingSphere ||
+			!geometry.boundingBox ||
+			mesh.boundingBox.isEmpty()
+		) {
+			this._markBounds(group);
+			return;
+		}
+		const box = GROW_BOX.copy(geometry.boundingBox).applyMatrix4(
+			GROW_MATRIX.fromArray(matrix),
+		);
+		mesh.boundingBox.union(box);
+		mesh.boundingSphere.union(box.getBoundingSphere(GROW_SPHERE));
+		this._loosen(group);
+	}
+
+	/**
+	 * Records a loose update of the group's bounds. After more of them than
+	 * the group has instances, the next commit makes the bounds exact again:
+	 * a drag or repeated moves cannot grow them without end, and the exact
+	 * pass costs at most one per loose update.
+	 */
+	private _loosen(group: InstanceGroup): void {
+		const updates = (this._looseGroups.get(group) ?? 0) + 1;
+		if (updates > Math.max(group.count, 8)) this._markBounds(group);
+		this._looseGroups.set(group, updates);
 	}
 
 	/** Snapshot of the current batching state, for debugging and support. */
@@ -807,7 +903,7 @@ export class InstanceGroupManager {
 		const idx = group.nodeToIndex.get(nodeId);
 		if (idx !== undefined && group.defaultMesh.instanceColor) {
 			group.defaultMesh.setColorAt(idx, color);
-			group.defaultMesh.instanceColor.needsUpdate = true;
+			uploadSlot(group.defaultMesh.instanceColor, idx);
 		}
 
 		const effectMesh = this._getEffectMesh(group, nodeId);
@@ -871,10 +967,14 @@ export class InstanceGroupManager {
 		group.indexToKey.delete(lastIdx);
 		this._clearInstanceSlot(group.defaultMesh, lastIdx);
 
-		group.defaultMesh.instanceMatrix.needsUpdate = true;
-		if (group.defaultMesh.instanceColor)
-			group.defaultMesh.instanceColor.needsUpdate = true;
-		this._boundsDirty = true;
+		// The last slot moved into the freed one; the count drops the last.
+		if (index !== lastIdx) {
+			uploadSlot(group.defaultMesh.instanceMatrix, index);
+			if (group.defaultMesh.instanceColor)
+				uploadSlot(group.defaultMesh.instanceColor, index);
+		}
+		// The bounds still hold the other instances.
+		this._loosen(group);
 	}
 
 	private _addBackToDefault(
@@ -906,10 +1006,10 @@ export class InstanceGroupManager {
 		group.count++;
 		group.defaultMesh.count = group.count;
 
-		group.defaultMesh.instanceMatrix.needsUpdate = true;
+		uploadSlot(group.defaultMesh.instanceMatrix, newIdx);
 		if (group.defaultMesh.instanceColor)
-			group.defaultMesh.instanceColor.needsUpdate = true;
-		this._boundsDirty = true;
+			uploadSlot(group.defaultMesh.instanceColor, newIdx);
+		this._growBounds(group, group.defaultMesh, matrix);
 	}
 
 	/** worldMatrix, composed with the baked-transform offset when present. */
@@ -936,10 +1036,12 @@ export class InstanceGroupManager {
 
 		const idx = group.nodeToIndex.get(nodeId);
 		if (idx !== undefined) {
+			const visibleMatrix = this._getVisibleMatrix(group, nodeId);
 			const tempMatrix = new THREE.Matrix4();
-			tempMatrix.fromArray(this._getVisibleMatrix(group, nodeId));
+			tempMatrix.fromArray(visibleMatrix);
 			group.defaultMesh.setMatrixAt(idx, tempMatrix);
-			group.defaultMesh.instanceMatrix.needsUpdate = true;
+			uploadSlot(group.defaultMesh.instanceMatrix, idx);
+			this._growBounds(group, group.defaultMesh, visibleMatrix);
 		}
 
 		const effectMesh = this._getEffectMesh(group, nodeId);
@@ -947,8 +1049,8 @@ export class InstanceGroupManager {
 			const tempMatrix = new THREE.Matrix4();
 			tempMatrix.fromArray(this._getVisibleMatrix(group, nodeId));
 			this._setMeshMatrix(effectMesh, nodeId, tempMatrix);
+			this._markBounds(group);
 		}
-		this._boundsDirty = true;
 	}
 
 	private _removeKeyFromEffect(
@@ -1013,7 +1115,7 @@ export class InstanceGroupManager {
 		if (effectMesh.instanceColor)
 			effectMesh.instanceColor.needsUpdate = true;
 		group.nodeEffectMeshKeys.set(nodeId, this._getEffectMeshKey(effects));
-		this._boundsDirty = true;
+		this._markBounds(group);
 	}
 
 	private _removeFromEffectMesh(group: InstanceGroup, nodeId: string): void {
@@ -1062,7 +1164,7 @@ export class InstanceGroupManager {
 			this._disposeMaterial(effectMesh.material as THREE.Material);
 			group.effectMeshes.delete(meshKey);
 		}
-		this._boundsDirty = true;
+		this._markBounds(group);
 	}
 
 	private _getOrCreateEffectMesh(
@@ -1174,6 +1276,8 @@ export class InstanceGroupManager {
 	}
 
 	private _disposeGroup(group: InstanceGroup): void {
+		this._boundsDirtyGroups.delete(group);
+		this._looseGroups.delete(group);
 		this.instancedRoot.remove(group.defaultMesh);
 		group.defaultMesh.dispose();
 		this._disposeMaterial(group.defaultMesh.material as THREE.Material);
