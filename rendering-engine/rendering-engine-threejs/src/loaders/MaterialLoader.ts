@@ -226,6 +226,8 @@ export class MaterialLoader implements ILoader {
 		sdvSSRNoise: {value: 0},
 	};
 	private _screenSSREnabled = false;
+	// SSR compositing "specular" (see setScreenSpaceReflections)
+	private _screenSSRSpecular = false;
 	private _shaderProgramCache: Map<string, ThreeJsMaterialTypes> = new Map();
 	private _compiledShaderSignatures: Set<string> = new Set();
 	private _maxMapCount: number = 0;
@@ -528,10 +530,22 @@ export class MaterialLoader implements ILoader {
 	 * Turns the screen space reflections in the material shading on or off
 	 * for all cached materials. Only opaque metal / roughness materials
 	 * receive them; gems, transparent and unlit materials never do.
+	 *
+	 * @param specular compositing "specular": the reflection replaces the
+	 * whole indirect specular light, clamped to 1, weighted like the
+	 * reference renderer (no reflections on surfaces that face the camera,
+	 * a fade towards the screen edges). Otherwise ("radiance") it replaces
+	 * the environment radiance before the BRDF.
 	 */
-	public setScreenSpaceReflections(enabled: boolean) {
-		if (enabled === this._screenSSREnabled) return;
+	public setScreenSpaceReflections(enabled: boolean, specular = false) {
+		const useSpecular = enabled && specular;
+		if (
+			enabled === this._screenSSREnabled &&
+			useSpecular === this._screenSSRSpecular
+		)
+			return;
 		this._screenSSREnabled = enabled;
+		this._screenSSRSpecular = useSpecular;
 		if (!enabled) this._screenSSRUniforms.sdvSSRValid.value = 0;
 		for (const cacheKey in this._materialCache) {
 			this.assignScreenSSRToMaterial(
@@ -554,15 +568,24 @@ export class MaterialLoader implements ILoader {
 		const materialWithDefines = material as THREE.Material & {
 			defines?: {[key: string]: string};
 		};
+		const specular = eligible && this._screenSSRSpecular;
 		const present =
 			materialWithDefines.defines !== undefined &&
 			"SDV_SCREEN_SSR" in materialWithDefines.defines;
-		if (eligible === present) return;
+		const specularPresent =
+			materialWithDefines.defines !== undefined &&
+			"SDV_SCREEN_SSR_SPECULAR" in materialWithDefines.defines;
+		if (eligible === present && specular === specularPresent) return;
+		materialWithDefines.defines ??= {};
 		if (eligible) {
-			materialWithDefines.defines ??= {};
 			materialWithDefines.defines["SDV_SCREEN_SSR"] = "";
 		} else {
-			delete materialWithDefines.defines!["SDV_SCREEN_SSR"];
+			delete materialWithDefines.defines["SDV_SCREEN_SSR"];
+		}
+		if (specular) {
+			materialWithDefines.defines["SDV_SCREEN_SSR_SPECULAR"] = "";
+		} else {
+			delete materialWithDefines.defines["SDV_SCREEN_SSR_SPECULAR"];
 		}
 		material.needsUpdate = true;
 	}
@@ -650,12 +673,42 @@ vec4 sdvSSRTrace( const in vec3 origin, const in vec3 direction ) {
 	}
 	return vec4( 0.0 );
 }
+
+#ifdef SDV_SCREEN_SSR_SPECULAR
+// compositing "specular": the reflection of this pixel, applied to the
+// indirect specular light after all lights
+vec3 sdvSSRSpecularColor = vec3( 0.0 );
+vec3 sdvSSRSpecularBRDF = vec3( 0.0 );
+float sdvSSRSpecularWeight = 0.0;
+#endif
 #endif`,
 			)
 			.replace(
 				"#include <lights_fragment_maps>",
 				`#include <lights_fragment_maps>
 #if defined( SDV_SCREEN_SSR ) && defined( STANDARD ) && defined( RE_IndirectSpecular )
+#ifdef SDV_SCREEN_SSR_SPECULAR
+// compositing "specular" (SS-10654), weighted like the reference renderer:
+// the base roughness decides, every hit counts fully, surfaces that face the
+// camera get no reflection, and the reflections fade towards the screen edges
+if ( sdvSSRValid > 0.5 && metalnessFactor > 0.5 && roughnessFactor < sdvSSRParams.y ) {
+	vec2 sdvSSRScreen = gl_FragCoord.xy / vec2( textureSize( sdvSSRColorMap, 0 ) );
+	float sdvSSRBorder = max( 0.0, min( min( 1.0 - sdvSSRScreen.x, 1.0 - sdvSSRScreen.y ), min( sdvSSRScreen.x, sdvSSRScreen.y ) ) );
+	float sdvSSRWeight = sdvSSRParams.x * ( 1.0 - clamp( 0.3 * material.roughness, 0.0, 1.0 ) )
+		* clamp( 3.8 - 4.0 * dot( geometryViewDir, normal ), 0.0, 1.0 )
+		* pow( clamp( sdvSSRBorder * sdvSSRBorder / 0.101, 0.0, 1.0 ), 0.3 );
+	vec3 sdvSSRBRDF = EnvironmentBRDF( geometryNormal, geometryViewDir, material.specularColorBlended, material.specularF90, material.roughness );
+	if ( length( sdvSSRBRDF ) * sdvSSRWeight > 0.01 ) {
+		vec3 sdvSSRDirection = normalize( reflect( - geometryViewDir, geometryNormal ) );
+		// start a little above the surface, so the ray does not hit it
+		vec3 sdvSSROrigin = geometryPosition + geometryNormal * ( 0.1 * sdvSSRParams.w );
+		vec4 sdvSSRHit = sdvSSRTrace( sdvSSROrigin, sdvSSRDirection );
+		sdvSSRSpecularColor = sdvSSRHit.rgb;
+		sdvSSRSpecularBRDF = sdvSSRBRDF;
+		sdvSSRSpecularWeight = clamp( sdvSSRWeight, 0.0, 1.0 ) * step( 0.0001, sdvSSRHit.a );
+	}
+}
+#else
 if ( sdvSSRValid > 0.5 && metalnessFactor > 0.5 && material.roughness < sdvSSRParams.y ) {
 	vec3 sdvSSRDirection = normalize( reflect( - geometryViewDir, geometryNormal ) );
 	// start a little above the surface, so the ray does not hit it
@@ -664,6 +717,16 @@ if ( sdvSSRValid > 0.5 && metalnessFactor > 0.5 && material.roughness < sdvSSRPa
 	float sdvSSRWeight = clamp( sdvSSRHit.a * sdvSSRParams.x, 0.0, 1.0 ) * ( 1.0 - smoothstep( 0.5 * sdvSSRParams.y, sdvSSRParams.y, material.roughness ) );
 	radiance = mix( radiance, sdvSSRHit.rgb, sdvSSRWeight );
 }
+#endif
+#endif`,
+			)
+			.replace(
+				"#include <lights_fragment_end>",
+				`#include <lights_fragment_end>
+#if defined( SDV_SCREEN_SSR ) && defined( SDV_SCREEN_SSR_SPECULAR ) && defined( STANDARD ) && defined( RE_IndirectSpecular )
+// compositing "specular": the reflection replaces the whole indirect
+// specular light (with its multiple scattering), clamped to 1
+reflectedLight.indirectSpecular = mix( reflectedLight.indirectSpecular, saturate( sdvSSRSpecularBRDF * sdvSSRSpecularColor ), sdvSSRSpecularWeight );
 #endif`,
 			);
 	}
