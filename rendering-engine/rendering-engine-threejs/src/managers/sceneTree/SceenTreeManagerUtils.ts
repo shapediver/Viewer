@@ -109,6 +109,9 @@ export const removeData = (
 							renderingEngine.materialLoader.threeJsTextureCache[
 								texture.userData.cacheKey
 							].usage--;
+							renderingEngine.materialLoader.markTextureDirty(
+								texture.userData.cacheKey,
+							);
 						} else {
 							texture.dispose();
 						}

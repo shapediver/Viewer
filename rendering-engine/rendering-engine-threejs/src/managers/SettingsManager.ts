@@ -520,7 +520,13 @@ export class SettingsManager implements IManager {
 			accumulationFrames?: number;
 			accumulationFramesMobile?: number;
 			accumulationMode?: "display" | "hdr";
+			ambientOcclusionWhileMoving?: boolean;
+			softShadowsWhileMoving?: boolean;
 		};
+		renderingAccumulation.ambientOcclusionWhileMoving =
+			this._renderingEngine.ambientOcclusionWhileMoving;
+		renderingAccumulation.softShadowsWhileMoving =
+			this._renderingEngine.softShadowsWhileMoving;
 		renderingAccumulation.accumulationFrames =
 			this._renderingEngine.accumulationFrames;
 		renderingAccumulation.accumulationFramesMobile =
@@ -633,7 +639,14 @@ export class SettingsManager implements IManager {
 				accumulationFrames?: unknown;
 				accumulationFramesMobile?: unknown;
 				accumulationMode?: unknown;
+				ambientOcclusionWhileMoving?: unknown;
+				softShadowsWhileMoving?: unknown;
 			};
+			// a missing or invalid value is the old look (drawn while moving)
+			this._renderingEngine.ambientOcclusionWhileMoving =
+				rendering.ambientOcclusionWhileMoving !== false;
+			this._renderingEngine.softShadowsWhileMoving =
+				rendering.softShadowsWhileMoving !== false;
 			this._renderingEngine.accumulationFrames =
 				typeof rendering.accumulationFrames === "number"
 					? rendering.accumulationFrames

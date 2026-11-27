@@ -270,6 +270,8 @@ export class SettingsManager {
 				accumulationFrames?: number;
 				accumulationFramesMobile?: number;
 				accumulationMode?: "display" | "hdr";
+				ambientOcclusionWhileMoving?: boolean;
+				softShadowsWhileMoving?: boolean;
 				maximumRenderingSize?: {width: number; height: number};
 				maximumRenderingSizeMobile?: {width: number; height: number};
 			};
@@ -279,6 +281,10 @@ export class SettingsManager {
 			currentRendering.accumulationFramesMobile =
 				rendering.accumulationFramesMobile;
 			currentRendering.accumulationMode = rendering.accumulationMode;
+			currentRendering.ambientOcclusionWhileMoving =
+				rendering.ambientOcclusionWhileMoving;
+			currentRendering.softShadowsWhileMoving =
+				rendering.softShadowsWhileMoving;
 			currentRendering.maximumRenderingSize =
 				rendering.maximumRenderingSize;
 			currentRendering.maximumRenderingSizeMobile =
