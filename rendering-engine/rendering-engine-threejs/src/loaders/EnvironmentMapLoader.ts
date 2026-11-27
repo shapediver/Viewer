@@ -20,8 +20,40 @@ import {
 import {RenderingEngine} from "..";
 import {type ILoader} from "../interfaces/ILoader";
 import {assignEnvironmentMapForThreeJsData} from "../managers/sceneTree/ThreeJsDataUtils";
-import {RGBELoader} from "../three/loaders/RGBELoader";
+import {type IDecodedRgbe} from "../three/loaders/decodeRgbeBuffer";
+import {getRgbeDecoder} from "../three/loaders/RGBEWorkerDecoder";
 import {GaussianPMREMGenerator} from "./GaussianPMREMGenerator";
+import {ViewerPMREMGenerator} from "./ViewerPMREMGenerator";
+
+/**
+ * The cube face size an .hdr map is prepared for before its file is decoded:
+ * a quarter of the width of the built-in maps (1k).
+ */
+const EXPECTED_HDR_CUBE_SIZE = 256;
+
+/**
+ * The half-float texture of a decoded .hdr file, set up as three.js's
+ * RGBELoader and DataTextureLoader set it up.
+ */
+const createHdrTexture = (decoded: IDecodedRgbe): THREE.DataTexture => {
+	const texture = new THREE.DataTexture(
+		decoded.data,
+		decoded.width,
+		decoded.height,
+		THREE.RGBAFormat,
+		THREE.HalfFloatType,
+	);
+	texture.colorSpace = THREE.LinearSRGBColorSpace;
+	texture.wrapS = THREE.ClampToEdgeWrapping;
+	texture.wrapT = THREE.ClampToEdgeWrapping;
+	texture.magFilter = THREE.LinearFilter;
+	texture.minFilter = THREE.LinearFilter;
+	texture.anisotropy = 1;
+	texture.generateMipmaps = false;
+	texture.flipY = true;
+	texture.needsUpdate = true;
+	return texture;
+};
 
 export enum ENVIRONMENT_MAP_CUBE {
 	DEFAULT = "default",
@@ -156,12 +188,13 @@ export class EnvironmentMapLoader implements ILoader {
 	private readonly _stateEngine: StateEngine = StateEngine.instance;
 	private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
+	private _disposed: boolean = false;
 	private _envMap: THREE.CubeTexture | THREE.Texture | null = null;
 	private _gaussianPmremGenerator?: GaussianPMREMGenerator;
 	private _isBuiltInEnvironmentMap: boolean = false;
 	private _isHDRMap: boolean = false;
 	private _loadCount: number = 0;
-	private _pmremGenerator!: THREE.PMREMGenerator;
+	private _pmremGenerator!: ViewerPMREMGenerator;
 	private _textureEncoding: THREE.ColorSpace = THREE.SRGBColorSpace;
 	private _type: ENVIRONMENT_MAP_TYPE = ENVIRONMENT_MAP_TYPE.NULL;
 
@@ -272,13 +305,22 @@ export class EnvironmentMapLoader implements ILoader {
 			type: ENVIRONMENT_MAP_TYPE.NONE,
 		};
 
-		this._pmremGenerator = new THREE.PMREMGenerator(
+		// its programs are linked by prepare, in the variant the prefilter draws with
+		this._pmremGenerator = new ViewerPMREMGenerator(
 			this._renderingEngine.renderer,
 		);
-		this._pmremGenerator.compileEquirectangularShader();
+	}
+
+	/** Dispose the PMREM generators and their programs. Called when the viewport closes. */
+	public dispose(): void {
+		this._disposed = true;
+		this._pmremGenerator?.dispose();
+		this._gaussianPmremGenerator?.dispose();
+		this._gaussianPmremGenerator = undefined;
 	}
 
 	public async load(name: string | string[]): Promise<boolean> {
+		if (this._disposed) return false;
 		const eventId = this._uuidGenerator.create();
 		const loadId = ++this._loadCount;
 		try {
@@ -290,6 +332,8 @@ export class EnvironmentMapLoader implements ILoader {
 				loadId,
 			);
 		} catch (e) {
+			// the viewport closed while the map was loading: nothing to report
+			if (this._disposed) return false;
 			if (e instanceof ShapeDiverViewerEnvironmentMapError) {
 				throw e;
 			} else {
@@ -502,6 +546,8 @@ export class EnvironmentMapLoader implements ILoader {
 		if (name in this._environmentMaps === false) return;
 		const isBuiltIn = this._environmentMaps[name].isBuiltIn === true;
 		const map = await this._environmentMaps[name].map;
+		// the viewport closed while the map was loading: its task was cancelled
+		if (this._disposed) return;
 		// a newer load was started while this one was loading, for example by a change
 		// of the filtering right after the map: the newer one is assigned, not this one
 		if (loadId !== this._loadCount) {
@@ -561,15 +607,14 @@ export class EnvironmentMapLoader implements ILoader {
 	 */
 	private getPmremGenerator(
 		filtering: ENVIRONMENT_MAP_FILTERING,
-	): THREE.PMREMGenerator {
-		if (filtering !== ENVIRONMENT_MAP_FILTERING.GAUSSIAN)
+	): ViewerPMREMGenerator {
+		// after close, the disposed generator rejects every prepare
+		if (filtering !== ENVIRONMENT_MAP_FILTERING.GAUSSIAN || this._disposed)
 			return this._pmremGenerator;
-		if (!this._gaussianPmremGenerator) {
+		if (!this._gaussianPmremGenerator)
 			this._gaussianPmremGenerator = new GaussianPMREMGenerator(
 				this._renderingEngine.renderer,
 			);
-			this._gaussianPmremGenerator.compileEquirectangularShader();
-		}
 		return this._gaussianPmremGenerator;
 	}
 
@@ -596,36 +641,36 @@ export class EnvironmentMapLoader implements ILoader {
 				async (resolve, reject) => {
 					try {
 						if (!Array.isArray(url)) {
+							const pmremGenerator =
+								this.getPmremGenerator(filtering);
+							// the programs link while the file downloads and decodes
+							pmremGenerator
+								.prepare(EXPECTED_HDR_CUBE_SIZE, "equirect")
+								.catch(() => {});
 							const response: HttpResponse<ArrayBuffer> =
 								(await this._httpClient.get(
 									url,
 									undefined,
 									true,
 								)) as HttpResponse<ArrayBuffer>;
-							const arrayBufferView = new Uint8Array(
+							// in a worker where possible; the cached response stays intact
+							const decoded = await getRgbeDecoder().decode(
 								response.data,
 							);
-							const blob = new Blob([arrayBufferView], {
-								type: response.headers["content-type"],
-							});
-							const blobUrl = URL.createObjectURL(blob);
-							new RGBELoader().load(
-								blobUrl,
-								(texture) => {
-									const pmremGenerator =
-										this.getPmremGenerator(filtering);
-									const map =
-										pmremGenerator.fromEquirectangular(
-											texture,
-										).texture;
-									pmremGenerator.dispose();
-									URL.revokeObjectURL(blobUrl);
-									this._environmentMaps[name].resolved = true;
-									resolve(map);
-								},
-								() => {},
-								(error) => reject(error),
+							// resolves at once if the size was guessed right
+							await pmremGenerator.prepare(
+								decoded.width / 4,
+								"equirect",
 							);
+							const texture = createHdrTexture(decoded);
+							const map =
+								pmremGenerator.fromEquirectangular(
+									texture,
+								).texture;
+							texture.dispose();
+							pmremGenerator.releaseTargets();
+							this._environmentMaps[name].resolved = true;
+							resolve(map);
 						} else {
 							const promises: Promise<
 								HttpResponse<ArrayBuffer>
@@ -658,8 +703,34 @@ export class EnvironmentMapLoader implements ILoader {
 									map.format = THREE.RGBAFormat;
 									map.mapping = THREE.CubeReflectionMapping;
 									urls.forEach((u) => URL.revokeObjectURL(u));
-									this._environmentMaps[name].resolved = true;
-									resolve(map);
+									// three.js prefilters six-image maps in the first frame
+									// that uses them; its programs are linked before that
+									this._pmremGenerator
+										.prepare(
+											(map.images[0] as {width: number})
+												.width,
+											"cubemap",
+										)
+										.then(
+											() => {
+												// prepare created the intermediate
+												// target object; three.js prefilters
+												// with its own generator
+												this._pmremGenerator.releaseTargets();
+												this._environmentMaps[
+													name
+												].resolved = true;
+												resolve(map);
+											},
+											(e) => {
+												this.notify(eventId, true);
+												// closed viewport: nothing to report
+												if (this._disposed) {
+													map.dispose();
+													resolve(null);
+												} else reject(e);
+											},
+										);
 								},
 								() => {},
 								(error) => reject(error),
@@ -667,7 +738,10 @@ export class EnvironmentMapLoader implements ILoader {
 						}
 					} catch (e) {
 						this.notify(eventId, true);
-						reject(e);
+						// the viewport closed meanwhile: nothing to report, and
+						// material maps (MaterialLoader) do not reject unhandled
+						if (this._disposed) resolve(null);
+						else reject(e);
 					}
 				},
 			),
