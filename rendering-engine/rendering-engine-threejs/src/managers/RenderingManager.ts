@@ -1870,6 +1870,8 @@ export class RenderingManager implements IManager {
 		const timeout = setTimeout(() => {
 			if (this._softShadowRenderingTimeout !== timeout) return;
 			this._softShadowRenderingTimeout = null;
+			// the viewport was closed while the countdown ran
+			if (this._renderingEngine.closed) return;
 			if (this._settledOnScreen && !this.stillFramesChange()) {
 				// the settled frame is on screen already
 				this.deactivateBeautyRenderShaders();
