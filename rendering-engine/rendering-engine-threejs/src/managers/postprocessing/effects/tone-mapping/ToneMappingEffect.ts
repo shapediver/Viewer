@@ -27,6 +27,13 @@ import {tone_mapping} from "./tone-mapping";
  */
 
 export class ToneMappingEffect extends Effect {
+	/**
+	 * 1: the background (depth 1) holds an HDR colour and is tone-mapped like
+	 * the scene; 0: it keeps the clear colour untouched. Shared by all
+	 * viewports, so it is set for each draw (accumulationMode "hdr").
+	 */
+	public static readonly toneMapBackgroundUniform = new Uniform(0);
+
 	adaptiveLuminancePass: AdaptiveLuminancePass;
 	public luminancePass: LuminancePass;
 	public renderTargetLuminance: WebGLRenderTarget;
@@ -82,6 +89,10 @@ export class ToneMappingEffect extends Effect {
 				["whitePoint", new Uniform(whitePoint)],
 				["middleGrey", new Uniform(middleGrey)],
 				["averageLuminance", new Uniform(averageLuminance)],
+				[
+					"toneMapBackground",
+					ToneMappingEffect.toneMapBackgroundUniform,
+				],
 			] as any),
 		});
 		/**
