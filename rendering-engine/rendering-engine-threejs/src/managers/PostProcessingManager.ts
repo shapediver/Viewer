@@ -1059,6 +1059,10 @@ export class PostProcessingManager implements IManager {
 								thickness:
 									(properties.thickness ?? 0.2) *
 									sceneSizeFactor,
+								compositing:
+									properties.compositing === "specular"
+										? "specular"
+										: "radiance",
 							}),
 						};
 					}
@@ -1327,7 +1331,10 @@ export class PostProcessingManager implements IManager {
 			);
 			this.addPassToEffectComposer(passes.after, 1);
 			this.addPassToEffectComposer(passes.before, 0);
-			materialLoader.setScreenSpaceReflections(true);
+			materialLoader.setScreenSpaceReflections(
+				true,
+				ssrEffect.effect.options.compositing === "specular",
+			);
 		} else {
 			materialLoader.setScreenSpaceReflections(false);
 		}
@@ -1569,6 +1576,7 @@ export class PostProcessingManager implements IManager {
 					steps: 16,
 					distance: 2,
 					thickness: 0.2,
+					compositing: "radiance",
 					enableOnMobile: false,
 				};
 			case POST_PROCESSING_EFFECT_TYPE.SCANLINE:
@@ -1886,6 +1894,7 @@ export class PostProcessingManager implements IManager {
 								steps: properties.steps,
 								distance: properties.distance,
 								thickness: properties.thickness,
+								compositing: properties.compositing,
 								enableOnMobile: properties.enableOnMobile,
 							},
 						});

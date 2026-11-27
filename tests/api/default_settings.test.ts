@@ -47,6 +47,8 @@ const readOptions = () => {
 		// screen-space reflections, only in the jewelry preset (SS-10509)
 		ssr: properties("ssr").map((p) => ({
 			enableOnMobile: p.enableOnMobile === true,
+			// weighted and combined like the reference renderer (SS-10654)
+			compositing: p.compositing ?? "radiance",
 		})),
 	};
 };
@@ -175,7 +177,7 @@ test.describe("Default settings", () => {
 				},
 			],
 			// on desktop only
-			ssr: [{enableOnMobile: false}],
+			ssr: [{enableOnMobile: false, compositing: "specular"}],
 		});
 		// SSAO inside the shading, darkening the reflections by the AO itself
 		// (SS-10601), so polished metal keeps its highlights

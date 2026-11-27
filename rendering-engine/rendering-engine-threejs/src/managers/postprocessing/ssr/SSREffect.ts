@@ -34,6 +34,12 @@ export interface ISSREffectOptions {
 	maxDistance: number;
 	/** in world units */
 	thickness: number;
+	/**
+	 * "radiance": the hit replaces the environment radiance before the BRDF.
+	 * "specular": the hit replaces the whole indirect specular light,
+	 * weighted like the reference renderer (see MaterialLoader).
+	 */
+	compositing: "radiance" | "specular";
 }
 
 /**
