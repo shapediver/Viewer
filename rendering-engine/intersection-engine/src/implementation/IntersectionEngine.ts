@@ -15,8 +15,22 @@ import {
 } from "@shapediver/viewer.shared.types";
 import * as THREE from "three";
 import {type IIntersectionEngine} from "../interfaces/IIntersectionEngine";
-import {NodeBoundsHierarchy} from "./NodeBoundsHierarchy";
+import {
+	type IInstanceSlot,
+	type IRayThresholds,
+	NodeBoundsHierarchy,
+} from "./NodeBoundsHierarchy";
 import {SelectionBox} from "./SelectionBox";
+
+/**
+ * The hits of single instances of one ray, per instanced mesh: whether the
+ * ray enters the bounding sphere of the mesh, and the hits of each slot
+ * tested so far.
+ */
+export type InstanceSlotCache = Map<
+	THREE.InstancedMesh,
+	{entersMesh: boolean; slots: Map<number, THREE.Intersection[]>}
+>;
 
 export class IntersectionEngine implements IIntersectionEngine {
 	// #region Properties (9)
@@ -30,6 +44,11 @@ export class IntersectionEngine implements IIntersectionEngine {
 	private readonly _unitRay: THREE.Ray = new THREE.Ray();
 	private readonly _instanceMatrix: THREE.Matrix4 = new THREE.Matrix4();
 	private readonly _instanceWorldMatrix: THREE.Matrix4 = new THREE.Matrix4();
+	// The mesh that stands in for one instance, as in `InstancedMesh.raycast`.
+	private readonly _instanceProbe: THREE.Mesh = new THREE.Mesh();
+	private readonly _emptyGeometry: THREE.BufferGeometry =
+		new THREE.BufferGeometry();
+	private readonly _instanceSphere: THREE.Sphere = new THREE.Sphere();
 	private readonly _normalMatrix: THREE.Matrix3 = new THREE.Matrix3();
 	private readonly _raycaster: THREE.Raycaster = new THREE.Raycaster();
 	private readonly _tree: ITree = Tree.instance;
@@ -126,11 +145,15 @@ export class IntersectionEngine implements IIntersectionEngine {
 				THREE.BatchedMesh,
 				THREE.Intersection[]
 			>();
+			const instanceSlotCache: InstanceSlotCache = new Map();
 			let intersections: IRayTracingIntersection[] = [];
-			// Only the nodes a ray can hit are tested, in list order.
+			// Only the nodes a ray can hit are tested, in list order, and of
+			// their instances only those the ray can hit.
 			const nodes = this.intersectNodes;
-			const candidates = this.hierarchyFor(viewportId).candidates(
+			const hierarchy = this.hierarchyFor(viewportId);
+			const candidates = hierarchy.candidates(
 				this.toThreeRay(ray),
+				this.rayThresholds(options?.rayCasterParams),
 			);
 			candidates.forEach((index) => {
 				const i = nodes[index];
@@ -143,6 +166,8 @@ export class IntersectionEngine implements IIntersectionEngine {
 					options?.rayCasterParams,
 					instancedIntersectionCache,
 					batchedIntersectionCache,
+					hierarchy.instanceSlots(index),
+					instanceSlotCache,
 				);
 				if (currentIntersections)
 					intersections = intersections.concat(currentIntersections);
@@ -192,6 +217,15 @@ export class IntersectionEngine implements IIntersectionEngine {
 		}
 	}
 
+	/**
+	 * Intersect the ray with one node.
+	 *
+	 * @param instanceSlots the only instances of the instanced meshes of the
+	 * node that the ray can hit (from `NodeBoundsHierarchy.instanceSlots`).
+	 * Without them every instance is tested.
+	 * @param instanceSlotCache the hits of single instances of this ray, so
+	 * nodes that share an instance test it once.
+	 */
 	public intersectNode(
 		ray: IRay,
 		node: ITreeNode,
@@ -207,6 +241,8 @@ export class IntersectionEngine implements IIntersectionEngine {
 			THREE.BatchedMesh,
 			THREE.Intersection[]
 		> = new Map(),
+		instanceSlots?: readonly IInstanceSlot[],
+		instanceSlotCache: InstanceSlotCache = new Map(),
 	): IRayTracingIntersection[] | undefined {
 		if (node.visible === false) return;
 
@@ -233,6 +269,8 @@ export class IntersectionEngine implements IIntersectionEngine {
 						filterCriteria,
 						instancedIntersectionCache,
 						batchedIntersectionCache,
+						instanceSlots,
+						instanceSlotCache,
 					);
 			}
 		} else {
@@ -245,8 +283,25 @@ export class IntersectionEngine implements IIntersectionEngine {
 				undefined,
 				instancedIntersectionCache,
 				batchedIntersectionCache,
+				instanceSlots,
+				instanceSlotCache,
 			);
 		}
+	}
+
+	/**
+	 * The line and points thresholds a test with these raycaster parameters
+	 * runs with. Without parameters, the raycaster keeps those of the last
+	 * test that had some.
+	 */
+	public rayThresholds(
+		rayCasterParams?: THREE.RaycasterParameters,
+	): IRayThresholds {
+		const params = rayCasterParams ?? this._raycaster.params;
+		return {
+			line: params.Line?.threshold ?? Infinity,
+			points: params.Points?.threshold ?? Infinity,
+		};
 	}
 
 	// #endregion Public Methods (2)
@@ -341,6 +396,83 @@ export class IntersectionEngine implements IIntersectionEngine {
 	}
 
 	/**
+	 * The hits of the given instances of an instanced mesh, as
+	 * `intersectObject(mesh, false)` returns them for those instances: in
+	 * slot order, then sorted by distance. Each instance is raycast once per
+	 * ray (`cache`), as `InstancedMesh.raycast` would test it, but no other
+	 * instance of the mesh is read.
+	 */
+	private raycastInstances(
+		mesh: THREE.InstancedMesh,
+		instanceSlots: readonly IInstanceSlot[],
+		cache: InstanceSlotCache,
+	): THREE.Intersection[] {
+		const own: number[] = [];
+		for (const instance of instanceSlots)
+			if (instance.mesh === mesh) own.push(instance.slot);
+		if (own.length === 0) return [];
+		own.sort((a, b) => a - b);
+		let tested = cache.get(mesh);
+		if (!tested) {
+			tested = {
+				entersMesh: this.rayEntersInstancedMesh(mesh),
+				slots: new Map(),
+			};
+			cache.set(mesh, tested);
+		}
+		if (!tested.entersMesh) return [];
+		const output: THREE.Intersection[] = [];
+		const probe = this._instanceProbe;
+		const probeMaterial = probe.material;
+		let previous = -1;
+		for (const slot of own) {
+			if (slot === previous) continue;
+			previous = slot;
+			let hits = tested.slots.get(slot);
+			if (!hits) {
+				// The mesh stands in for this one instance, as in
+				// `InstancedMesh.raycast`.
+				hits = [];
+				probe.geometry = mesh.geometry;
+				probe.material = mesh.material;
+				mesh.getMatrixAt(slot, this._instanceMatrix);
+				probe.matrixWorld.multiplyMatrices(
+					mesh.matrixWorld,
+					this._instanceMatrix,
+				);
+				probe.raycast(this._raycaster, hits);
+				for (const hit of hits) {
+					hit.instanceId = slot;
+					hit.object = mesh;
+				}
+				tested.slots.set(slot, hits);
+			}
+			for (const hit of hits) output.push(hit);
+		}
+		// Do not keep the geometry and material of the scene alive.
+		probe.geometry = this._emptyGeometry;
+		probe.material = probeMaterial;
+		output.sort((a, b) => a.distance - b.distance);
+		return output;
+	}
+
+	/**
+	 * Whether `intersectObject` would test the instances of the mesh at all:
+	 * its layers match those of the raycaster, it has a material, and the
+	 * ray enters its bounding sphere (as `InstancedMesh.raycast` tests first;
+	 * it is computed if the mesh has none, as three.js does).
+	 */
+	private rayEntersInstancedMesh(mesh: THREE.InstancedMesh): boolean {
+		if (!mesh.layers.test(this._raycaster.layers)) return false;
+		if (mesh.material === undefined) return false;
+		if (mesh.boundingSphere === null) mesh.computeBoundingSphere();
+		this._instanceSphere
+			.copy(mesh.boundingSphere!)
+			.applyMatrix4(mesh.matrixWorld);
+		return this._raycaster.ray.intersectsSphere(this._instanceSphere);
+	}
+
+	/**
 	 * The nodes that contain geometry data, in tree order, one entry for each
 	 * geometry data. Made again only when a node entered or left the index or
 	 * a geometry data changed; the bounds hierarchies are made again with it.
@@ -390,6 +522,8 @@ export class IntersectionEngine implements IIntersectionEngine {
 			THREE.BatchedMesh,
 			THREE.Intersection[]
 		> = new Map(),
+		instanceSlots?: readonly IInstanceSlot[],
+		instanceSlotCache: InstanceSlotCache = new Map(),
 	): IRayTracingIntersection[] | undefined {
 		if (rayCasterParams) this._raycaster.params = rayCasterParams;
 
@@ -406,30 +540,46 @@ export class IntersectionEngine implements IIntersectionEngine {
 
 		const geometryValues = Object.values(geometryData);
 		const instancedMeshes = new Set<THREE.InstancedMesh>();
-		geometryValues.forEach((geometry) => {
-			const convertedObject = geometry.convertedObject[viewportId];
-			if (!(convertedObject instanceof THREE.InstancedMesh)) return;
+		// With an empty list of instances to test, no instance can be hit.
+		if (!instanceSlots || instanceSlots.length > 0)
+			geometryValues.forEach((geometry) => {
+				const convertedObject = geometry.convertedObject[viewportId];
+				if (!(convertedObject instanceof THREE.InstancedMesh)) return;
 
-			const instanceHash = convertedObject.userData.instanceHash as
-				| string
-				| undefined;
-			const groupMeshes = convertedObject.parent?.children.filter(
-				(child): child is THREE.InstancedMesh =>
-					child instanceof THREE.InstancedMesh &&
-					child.userData.instanceHash === instanceHash,
-			) ?? [convertedObject];
-			groupMeshes.forEach((mesh) => instancedMeshes.add(mesh));
-		});
+				const instanceHash = convertedObject.userData.instanceHash as
+					| string
+					| undefined;
+				const groupMeshes = convertedObject.parent?.children.filter(
+					(child): child is THREE.InstancedMesh =>
+						child instanceof THREE.InstancedMesh &&
+						child.userData.instanceHash === instanceHash,
+				) ?? [convertedObject];
+				groupMeshes.forEach((mesh) => instancedMeshes.add(mesh));
+			});
 
 		let intersections: IRayTracingIntersection[] = [];
 		instancedMeshes.forEach((mesh) => {
-			let meshIntersections = instancedIntersectionCache.get(mesh);
-			if (!meshIntersections) {
-				meshIntersections = this._raycaster.intersectObject(
+			let meshIntersections: THREE.Intersection[] | undefined;
+			// Only the instances the hierarchy found near the ray are tested,
+			// if the mesh raycasts as three.js does.
+			if (
+				instanceSlots &&
+				mesh.raycast === THREE.InstancedMesh.prototype.raycast
+			)
+				meshIntersections = this.raycastInstances(
 					mesh,
-					false,
+					instanceSlots,
+					instanceSlotCache,
 				);
-				instancedIntersectionCache.set(mesh, meshIntersections);
+			else {
+				meshIntersections = instancedIntersectionCache.get(mesh);
+				if (!meshIntersections) {
+					meshIntersections = this._raycaster.intersectObject(
+						mesh,
+						false,
+					);
+					instancedIntersectionCache.set(mesh, meshIntersections);
+				}
 			}
 
 			const instanceHash = mesh.userData.instanceHash as
