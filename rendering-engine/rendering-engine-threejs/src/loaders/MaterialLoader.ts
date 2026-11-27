@@ -2974,6 +2974,11 @@ uniform vec3 sdvScreenAOColor;
 	}
 
 	public updateSoftShadow(lightSizeUV: number, blending: number) {
+		// Only this method writes these uniforms, so every compiled material
+		// already holds the stored values, and a material compiled later reads
+		// them in its compile hook. Nothing to do when they did not change.
+		if (lightSizeUV === this._lightSizeUV && blending === this._blending)
+			return;
 		this._lightSizeUV = lightSizeUV;
 		this._blending = blending;
 		for (const cacheKey in this._materialCache) {
