@@ -60,11 +60,13 @@ export interface IBloomEffectDefinition extends Omit<
 		 */
 		highlightLimit?: number;
 		/**
-		 * Only with mipmap blur: whether the blur levels are added instead of
-		 * blended, which gives about 2.4 times the glow at the same intensity.
-		 * Default: false
+		 * How the light above the threshold is found and blurred: "mipmap"
+		 * (luminance per pixel, the mipmap or kernel blur) or "dualFilter"
+		 * (brightest channel of a slightly blurred frame, weighted levels at
+		 * full, 1/4, 1/8 and 1/16 resolution, about 2.4 times the glow).
+		 * Default: "mipmap"
 		 */
-		additiveBlur?: boolean;
+		filter?: "mipmap" | "dualFilter";
 	};
 }
 

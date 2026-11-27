@@ -76,8 +76,8 @@ import {AOShadingPass} from "./postprocessing/ao/ao/AOShadingPass";
 import {HBAOEffect} from "./postprocessing/ao/hbao/HBAOEffect";
 import {PoissionDenoisePass} from "./postprocessing/ao/poissionDenoise/PoissionDenoisePass";
 import {SSAOEffect} from "./postprocessing/ao/ssao/SSAOEffect";
-import {applyAdditiveMipmapBlur} from "./postprocessing/effects/bloom/AdditiveMipmapBlur";
 import {BackgroundMaskedBloomEffect} from "./postprocessing/effects/bloom/BackgroundMaskedBloomEffect";
+import {applyDualFilterBloom} from "./postprocessing/effects/bloom/DualFilterBloom";
 import {
 	DEFAULT_HIGHLIGHT_LIMIT,
 	HighlightBloomEffect,
@@ -590,8 +590,8 @@ export class PostProcessingManager implements IManager {
 											properties.highlightLimit,
 										)
 									: new BloomEffect(bloomOptions);
-						if (properties.additiveBlur === true)
-							applyAdditiveMipmapBlur(bloomEffect);
+						if (properties.filter === "dualFilter")
+							applyDualFilterBloom(bloomEffect);
 						this._effects.push({
 							token: this._effectDefinitions[i].token,
 							effect: bloomEffect,
@@ -1474,9 +1474,9 @@ export class PostProcessingManager implements IManager {
 		switch (type) {
 			case POST_PROCESSING_EFFECT_TYPE.BLOOM:
 				return {
-					additiveBlur: false,
 					backgroundBloom: true,
 					blendFunction: BlendFunction.ADD,
+					filter: "mipmap",
 					intensity: 1.0,
 					kernelSize: KernelSize.LARGE,
 					highlightLimit: DEFAULT_HIGHLIGHT_LIMIT,
@@ -1677,9 +1677,9 @@ export class PostProcessingManager implements IManager {
 							type: POST_PROCESSING_EFFECT_TYPE.BLOOM,
 							token: this._effectDefinitions[i].token,
 							properties: {
-								additiveBlur: properties.additiveBlur,
 								backgroundBloom: properties.backgroundBloom,
 								blendFunction: properties.blendFunction,
+								filter: properties.filter,
 								highlightLimit: properties.highlightLimit,
 								highlightsOnly: properties.highlightsOnly,
 								luminanceThreshold:

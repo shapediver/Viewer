@@ -96,8 +96,7 @@ export const JewelryDefaults: () => ISettings = () => {
 					type: "ssr",
 				},
 				{
-					// a glow on the brightest highlights only; the mipmap blur
-					// uses the highlight default
+					// a glow on the brightest highlights only
 					properties: {
 						// The bloom numbers of the reference renderer. A lower
 						// threshold or a stronger bloom makes overview shots too
@@ -107,9 +106,10 @@ export const JewelryDefaults: () => ISettings = () => {
 						luminanceSmoothing: 0.5,
 						highlightsOnly: true,
 						backgroundBloom: false,
-						// add the blur levels like the reference's bloom: at the
-						// same intensity, gem glints get the same glow (SS-10603)
-						additiveBlur: true,
+						// the bloom algorithm of the reference renderer: with the
+						// same numbers, the same glow on metal and gem glints
+						// (SS-10655)
+						filter: "dualFilter",
 					},
 					type: "bloom",
 				},

@@ -45,10 +45,14 @@ export interface IBloomEffectDefinition extends IPostProcessingEffectDefinition 
 	// #region Properties (11)
 
 	properties?: {
-		/** Only with `mipmapBlur`: add the blur levels instead of blending them. The glow then reaches over three octaves only and, at the same `intensity`, adds about 2.4 times the light above `luminanceThreshold`, as additive bloom implementations of other renderers do. Small, very bright highlights such as gem glints get a visible glow. The blur radius has no effect then, and `highlightLimit` caps the light before the blur, so a pixel can add up to about 2.4 times the limit. Meant for `IPostProcessingApi.hdr`: with 8-bit buffers each level is clipped at white. (default: false) */
-		additiveBlur?: boolean;
 		/** Whether the background (pixels where no geometry was drawn) contributes to the bloom. Set to false to keep a bright clear color or background from blooming. (default: true) */
 		backgroundBloom?: boolean;
+		/**
+		 * How the light above the threshold is found and blurred. (default: "mipmap")
+		 * - "mipmap": the luminance of each pixel is thresholded and blurred as `mipmapBlur` or the kernel blur say.
+		 * - "dualFilter": the brightest channel of a slightly blurred frame (each channel clamped at 16) is thresholded, with a soft knee of `luminanceSmoothing` times `luminanceThreshold` on each side; the blur adds weighted levels at full, 1/4, 1/8 and 1/16 resolution, so at the same `intensity` it adds about 2.4 times the light let through and the glow is wider and softer. `highlightLimit`, `mipmapBlur` and `kernelSize` have no effect. Meant for `IPostProcessingApi.hdr`.
+		 */
+		filter?: "mipmap" | "dualFilter";
 		/** Bloom only the light above `luminanceThreshold` (soft knee of width `luminanceSmoothing`, per-pixel cap, tighter mipmap blur), so only highlights glow and bright surfaces keep their colour. Recommended together with `IPostProcessingApi.hdr`. When enabled, unset `luminanceThreshold`, `luminanceSmoothing` and `mipmapBlur` default to 1, 0.25 and true. With 8-bit buffers the threshold is capped at 0.8. (default: false) */
 		highlightsOnly?: boolean;
 		/** Only with `highlightsOnly` and `IPostProcessingApi.hdr`: the most bloom light a single pixel can add, in multiples of white. Lower it (e.g. 1) when very bright gems leave a glow on the metal around them. (default: 8) */

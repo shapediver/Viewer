@@ -2,6 +2,7 @@ import * as THREE from "three";
 
 import {
 	type IIntersectionEngine,
+	type InstanceSlotCache,
 	IntersectionEngine,
 	NodeBoundsHierarchy,
 	RaycasterParameters,
@@ -326,14 +327,20 @@ export class IntersectionManager implements IIntersectionEngine {
 			THREE.Intersection[]
 		>();
 
-		// intersect the nodes the ray can hit, in list order
+		// The single instances of one ray are raycast once, not once per node.
+		const instanceSlotCache: InstanceSlotCache = new Map();
+
+		// intersect the nodes the ray can hit, in list order, and of their
+		// instances only those the ray can hit
 		const nodes = this.nodeList;
-		this.hierarchyFor(viewportId)
+		const hierarchy = this.hierarchyFor(viewportId);
+		hierarchy
 			.candidates(
 				new THREE.Ray(
 					new THREE.Vector3(...ray.origin),
 					new THREE.Vector3(...ray.direction),
 				),
+				this._intersectionEngine.rayThresholds(rayCasterParams),
 			)
 			.forEach((index) => {
 				const i = nodes[index];
@@ -347,6 +354,8 @@ export class IntersectionManager implements IIntersectionEngine {
 						rayCasterParams,
 						instancedIntersectionCache,
 						batchedIntersectionCache,
+						hierarchy.instanceSlots(index),
+						instanceSlotCache,
 					);
 				if (currentIntersection)
 					intersections = intersections.concat(currentIntersection);
