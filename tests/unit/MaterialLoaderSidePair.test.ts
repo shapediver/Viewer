@@ -8,9 +8,12 @@ import {MaterialLoader} from "../../rendering-engine/rendering-engine-threejs/sr
 function setup(
 	parameters: THREE.MeshPhysicalMaterialParameters,
 	engine: object = {},
+	MaterialClass: new (
+		p: THREE.MeshPhysicalMaterialParameters,
+	) => THREE.MeshStandardMaterial = THREE.MeshPhysicalMaterial,
 ) {
 	const loader = new MaterialLoader(engine as any);
-	const source = new THREE.MeshPhysicalMaterial(parameters);
+	const source = new MaterialClass(parameters);
 	source.userData.cacheKey = "source";
 	(loader as any)._materialCache["source"] = {
 		material: source,
@@ -103,12 +106,18 @@ test("removing the source removes and disposes the pair", () => {
 	expect(other.renderMaterialFor(next)).not.toEqual(shown);
 });
 
+// a plain default material is a MeshStandardMaterial (SS-10395); a source of
+// the fitting class is updated in place
 test("the default material update keeps the side of each pair material", () => {
-	const {loader, source} = setup(glass, {
-		createThreeJsColor: (color: string) => new THREE.Color(color),
-		environmentMapForUnlitMaterials: false,
-		materialBatchManager: {syncBatchColors: () => {}},
-	});
+	const {loader, source} = setup(
+		glass,
+		{
+			createThreeJsColor: (color: string) => new THREE.Color(color),
+			environmentMapForUnlitMaterials: false,
+			materialBatchManager: {syncBatchColors: () => {}},
+		},
+		THREE.MeshStandardMaterial,
+	);
 	const [back, front] = loader.renderMaterialFor(source) as THREE.Material[];
 	// the in-place copy of assignDefaultMaterial replaces the side
 	back.side = THREE.DoubleSide;
@@ -142,7 +151,11 @@ test("the default material update hides the pair material of a side it does not 
 		materialBatchManager: {syncBatchColors: () => {}},
 	};
 	const visible = (side: "FRONT" | "BACK" | "DOUBLE") => {
-		const {loader, source} = setup(glass, engine);
+		const {loader, source} = setup(
+			glass,
+			engine,
+			THREE.MeshStandardMaterial,
+		);
 		const pair = loader.renderMaterialFor(source) as THREE.Material[];
 		(loader as any)._defaultMaterialData = new MaterialStandardData({
 			side: MATERIAL_SIDE[side],

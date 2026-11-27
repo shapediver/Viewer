@@ -169,6 +169,16 @@ export interface IViewportApi {
 	 */
 	accumulationFramesMobile: number;
 	/**
+	 * Whether ambient occlusion (the SSAO and HBAO effects, in the "composite" and the "shading" mode)
+	 * is drawn while the camera moves. (default: true)
+	 * false: frames drawn while the camera moves leave the ambient occlusion out. It returns at full
+	 * strength on the first frame of the beauty rendering after the camera stopped
+	 * (that is, {@link beautyRenderDelay} after the camera stopped). The camera moves from
+	 * `CAMERA_START` until then, which covers user interaction, camera animations and autorotation.
+	 * Other changes keep the ambient occlusion. No effect without an ambient occlusion effect.
+	 */
+	ambientOcclusionWhileMoving: boolean;
+	/**
 	 * Where the frames of {@link accumulationFrames} are averaged. (default: "display", the legacy look)
 	 * "display" averages the finished frames on the canvas, after post-processing and tone mapping.
 	 * "hdr" averages the scene in the high dynamic range buffer of the post-processing, before bloom
@@ -430,6 +440,15 @@ export interface IViewportApi {
 	 * Option if the soft shadows should be rendered when the camera is not moving. (default: true)
 	 */
 	softShadows: boolean;
+	/**
+	 * Whether soft shadows are drawn while the camera moves. (default: true)
+	 * false: frames drawn while the camera moves show hard shadows. After the camera stopped, the soft
+	 * shadows fade in as before ({@link beautyRenderDelay}, {@link beautyRenderBlendingDuration}).
+	 * The camera moves from `CAMERA_START` until the beauty rendering starts, which covers user
+	 * interaction, camera animations and autorotation. Other changes keep the usual look.
+	 * No effect when {@link shadows} or {@link softShadows} is off.
+	 */
+	softShadowsWhileMoving: boolean;
 	/**
 	 * The encoding that is used for textures. (default: TEXTURE_ENCODING.SRGB)
 	 *

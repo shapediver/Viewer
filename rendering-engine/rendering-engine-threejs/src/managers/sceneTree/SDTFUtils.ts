@@ -39,6 +39,18 @@ export const createSDTFOverview = (node: ITreeNode): ISDTFOverview => {
 	return out.overview;
 };
 
+/**
+ * The overview merged from the given overview items, as
+ * {@link createSDTFOverview} merges those of a tree.
+ */
+export const mergeSDTFOverviews = (
+	items: readonly SDTFOverviewData[],
+): ISDTFOverview => {
+	const out: SDTFOverviewData = new SDTFOverviewData({});
+	for (const item of items) out.merge(item);
+	return out.overview;
+};
+
 export const injectAttributeData = (
 	renderingEngine: RenderingEngine,
 	currentSDTFOverview: ISDTFOverview,
