@@ -1,8 +1,7 @@
 import * as THREE from "three";
 import {MeshStandardMaterial, MeshStandardMaterialParameters} from "three";
 
-export interface SpecularGlossinessMaterialParameters
-	extends MeshStandardMaterialParameters {
+export interface SpecularGlossinessMaterialParameters extends MeshStandardMaterialParameters {
 	// #region Properties (4)
 
 	glossiness?: number | undefined;
@@ -117,6 +116,14 @@ export class SpecularGlossinessMaterial extends MeshStandardMaterial {
 					lightPhysicalFragmentChunk,
 				);
 		};
+
+		// three.js shares a shader program between materials of the same
+		// type and parameters when their program cache keys match. The
+		// loader wraps onBeforeCompile in an identical hook for every
+		// material, so the default key (the hook source) is the same for a
+		// plain MeshStandardMaterial and this one: whichever compiles first
+		// would give its shader to the other.
+		this.customProgramCacheKey = () => "sdvSpecularGlossiness";
 
 		Object.defineProperties(this, {
 			specular: {
