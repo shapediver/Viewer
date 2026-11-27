@@ -124,6 +124,8 @@ export interface ISSREffectDefinition {
 		distance?: number;
 		/** How thick a surface is assumed behind its depth, relative to the scene size. Default: 0.2 */
 		thickness?: number;
+		/** "radiance": the reflection replaces the environment reflection; "specular": it replaces the whole indirect specular light, with no reflections on surfaces that face the camera (used by the jewelry preset). Default: "radiance" */
+		compositing?: "radiance" | "specular";
 		/** Whether the reflections are rendered on mobile devices. Default: false */
 		enableOnMobile?: boolean;
 	};
