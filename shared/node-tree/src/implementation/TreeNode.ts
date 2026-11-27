@@ -43,6 +43,14 @@ export class TreeNode implements ITreeNode {
 	 * node was read.
 	 */
 	private _changeSerials?: Float64Array;
+	/**
+	 * The children that got a new version, were added or were removed, with
+	 * the clock value of that change, oldest first. Created at the first
+	 * entry. See {@link changedChildren}.
+	 */
+	private _changedChildren?: IChangedChild[];
+	/** The clock value of the last overflow of {@link _changedChildren}. */
+	private _changedChildrenReset = 0;
 	#convertedObject: {[key: string]: unknown} = {};
 	#displayName: string | undefined;
 	#excludeViewports: string[] = [];
@@ -125,6 +133,30 @@ export class TreeNode implements ITreeNode {
 		for (let i = 0; i < SCENE_NODE_CHANGE_KINDS.length; i++)
 			record[SCENE_NODE_CHANGE_KINDS[i]] = this._changeSerials?.[i] ?? 0;
 		return Object.freeze(record);
+	}
+
+	/**
+	 * The children that got a new version (`updateVersion()`, own or from
+	 * below), were added or were removed, with the clock value of that
+	 * change (`nextSerial()`), oldest first. The same child again moves its
+	 * entry to the end. At most `children.length + 1` entries: on overflow
+	 * the list is cleared and {@link changedChildrenReset} set, and a reader
+	 * that last read the list before that value looks at all children.
+	 *
+	 * @internal
+	 */
+	public get changedChildren(): readonly IChangedChild[] {
+		return this._changedChildren ?? NO_CHANGED_CHILDREN;
+	}
+
+	/**
+	 * The clock value of the last overflow of {@link changedChildren}, `0`
+	 * if it never overflowed.
+	 *
+	 * @internal
+	 */
+	public get changedChildrenReset(): number {
+		return this._changedChildrenReset;
 	}
 
 	public get children(): ITreeNode[] {
@@ -327,7 +359,7 @@ export class TreeNode implements ITreeNode {
 			this.#children.push(child);
 			if (child.parent) child.parent.removeChild(child);
 			(<ITreeNode>child.parent) = this;
-			this.structureChanged();
+			this.logChild(child, this.structureChanged(), false);
 
 			return true;
 		}
@@ -519,7 +551,7 @@ export class TreeNode implements ITreeNode {
 			if (index === -1) return false;
 			this.#children.splice(index, 1);
 			(<ITreeNode | undefined>child.parent) = undefined;
-			this.structureChanged();
+			this.logChild(child, this.structureChanged(), true);
 			return true;
 		}
 	}
@@ -531,8 +563,10 @@ export class TreeNode implements ITreeNode {
 	 * The walk stops at the first ancestor that got a version after the
 	 * last read: its own ancestors got one with it. Children added to a
 	 * tree that nobody has read since cost one step each.
+	 *
+	 * @returns the clock value of the change
 	 */
-	private structureChanged(): void {
+	private structureChanged(): number {
 		const version = nextSerial();
 		const read = lastReadSerial();
 		// The structure change of this node, at the same clock value.
@@ -546,6 +580,60 @@ export class TreeNode implements ITreeNode {
 			node._structureVersion = version;
 			node = node.parent;
 		}
+		// Each ancestor logs the branch it came from (SS-10564), so a scene
+		// update reaches this node through the logs without an
+		// `updateVersion()`, as it did through the structure version.
+		let child: ITreeNode = this;
+		let parent = this.#parent as TreeNode | undefined;
+		while (parent) {
+			parent.logChild?.(child, version, false);
+			child = parent;
+			parent = parent.parent as TreeNode | undefined;
+		}
+		return version;
+	}
+
+	/**
+	 * Adds `child` to {@link changedChildren} with the clock value `serial`,
+	 * which must be the latest value of the clock. The same child as the
+	 * last entry updates that entry. An earlier entry of the child stays:
+	 * finding it would cost the length of the list, and a reader takes the
+	 * newest entry of each child.
+	 *
+	 * @internal
+	 */
+	public logChild(child: ITreeNode, serial: number, removed: boolean): void {
+		// Nobody has read this node yet: its first reader looks at all
+		// children. A tree being built logs nothing.
+		const read = lastReadSerial();
+		if (this._createdAt > read) return;
+		const log = (this._changedChildren ??= []);
+		let last: IChangedChild | undefined = log[log.length - 1];
+		// Every entry is older than the last read of the tree: a viewport
+		// that visited this node since applied them. Dropping them frees
+		// removed children; a viewport that did not visit it reads all
+		// children instead (changedChildrenReset).
+		if (last !== undefined && last.serial <= read) {
+			this._changedChildrenReset = Math.max(
+				this._changedChildrenReset,
+				last.serial,
+			);
+			log.length = 0;
+			last = undefined;
+		}
+		if (last !== undefined && last.child === child) {
+			last.serial = serial;
+			last.removed = removed;
+			return;
+		}
+		if (log.length > this.#children.length) {
+			// Overflow: a reader that read the list before now looks at
+			// all children.
+			log.length = 0;
+			this._changedChildrenReset = serial;
+			return;
+		}
+		log.push({child, serial, removed});
 	}
 
 	public removeData(data: ITreeNodeData | ITreeNodeData[]): boolean {
@@ -621,6 +709,14 @@ export class TreeNode implements ITreeNode {
 		const serial = nextSerial();
 		this._serial = serial;
 		this.#version = "v" + serial;
+		// The parent's log of changed children (each ancestor of a call with
+		// `parents` logs itself in its own parent). Mostly the same child
+		// again (a drag): the last entry is updated without a call.
+		const parent = this.#parent as TreeNode | undefined;
+		const log = parent?._changedChildren;
+		const last = log?.[log.length - 1];
+		if (last?.child === this && !last.removed) last.serial = serial;
+		else parent?.logChild?.(this, serial, false);
 		if (this.#updateCallback)
 			this.#updateCallback(this.#version, oldVersion);
 	}
@@ -663,6 +759,21 @@ export class TreeNode implements ITreeNode {
 		}
 	}
 }
+
+/**
+ * An entry of `TreeNode.changedChildren`: a child that got a new version or
+ * was added (`removed` false) or removed (`removed` true) at the clock value
+ * `serial`.
+ *
+ * @internal
+ */
+export interface IChangedChild {
+	readonly child: ITreeNode;
+	serial: number;
+	removed: boolean;
+}
+
+const NO_CHANGED_CHILDREN: readonly IChangedChild[] = Object.freeze([]);
 
 /** Reused by `onDataChanged` for the new counts, by kind index. */
 const DATA_KIND_SCRATCH = new Uint32Array(SCENE_NODE_CHANGE_KINDS.length);

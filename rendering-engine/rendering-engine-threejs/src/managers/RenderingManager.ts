@@ -91,6 +91,8 @@ export class RenderingManager implements IManager {
 	/** The grid and ground plane objects among them, shown without update. */
 	private _hiddenEnvironmentNotCompiled = new Set<THREE.Object3D>();
 	private _lightSignature: string | null = null;
+	/** The lights of the scene, see {@link trackLight}. */
+	private readonly _lights = new Set<THREE.Light>();
 	private _continuousRendering: boolean = false;
 	private _continuousShadowMapUpdate: boolean = false;
 	private _height: number = 0;
@@ -382,20 +384,41 @@ export class RenderingManager implements IManager {
 	}
 
 	/**
+	 * Counts a light the scene update converted (a light of the tree, or one
+	 * inside a three.js object) in the light signature while it is in the
+	 * scene.
+	 */
+	public trackLight(light: THREE.Light): void {
+		this._lights.add(light);
+	}
+
+	/**
 	 * The program key of every lit material depends on the number of lights
 	 * per type and on which of them cast shadows.
 	 */
 	private lightSignature(scene: THREE.Object3D): string {
-		// Per type: lights, and lights that cast shadows.
+		// Per type: lights, and lights that cast shadows. Of the lights the
+		// scene update converted, those that are visible in the scene: the
+		// lights times the tree depth, not a walk over the scene (SS-10564).
 		const counts: Record<string, number> = {};
-		scene.traverseVisible((object) => {
-			const light = object as THREE.Light;
-			if (!light.isLight) return;
+		for (const light of this._lights) {
+			let visible = light.visible;
+			let parent = light.parent;
+			while (parent !== null && parent !== scene) {
+				visible &&= parent.visible;
+				parent = parent.parent;
+			}
+			if (parent !== scene) {
+				// Removed. A scene update that converts it again adds it.
+				this._lights.delete(light);
+				continue;
+			}
+			if (!visible || !scene.visible) continue;
 			const type = (light as THREE.Light & {type: string}).type;
 			counts[type] = (counts[type] ?? 0) + 1;
 			if (light.castShadow)
 				counts[type + "Shadow"] = (counts[type + "Shadow"] ?? 0) + 1;
-		});
+		}
 		return (
 			Object.keys(counts)
 				.sort()

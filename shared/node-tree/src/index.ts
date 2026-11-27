@@ -6,6 +6,7 @@ import {
 } from "@shapediver/viewer.shared.types";
 import {AbstractTreeNodeData} from "./implementation/AbstractTreeNodeData";
 import {
+	changedChildrenSince,
 	changedKindsSince,
 	changeKindsOfBits,
 	dataChangeKind,
@@ -95,6 +96,7 @@ export {
 };
 // Internal: the scene tree's change clock and the change kinds of its nodes.
 export {
+	changedChildrenSince,
 	changedKindsSince,
 	changeKindsOfBits,
 	currentSerial,

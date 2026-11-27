@@ -326,7 +326,8 @@ test("SS-10394 renderer type and instancing switches update every node", async (
 		perf.viewport.update();
 		const toAttributes = tree.updated().length;
 
-		// The attribute visualization reads data of the whole tree.
+		// In the attribute visualization an update goes only through the
+		// changed branch, as in the standard renderer (SS-10564).
 		tree.leaves[0][0].updateVersion();
 		perf.viewport.update();
 		const inAttributes = tree.updated().length;
@@ -364,7 +365,8 @@ test("SS-10394 renderer type and instancing switches update every node", async (
 		};
 	});
 	expect(result.toAttributes).toBe(73);
-	expect(result.inAttributes).toBe(73);
+	// The leaf and its two ancestors (73 before SS-10564).
+	expect(result.inAttributes).toBe(3);
 	expect(result.toStandard).toBe(73);
 	expect(result.instancing).toBe(73);
 	expect(result.explicit).toBe(9);

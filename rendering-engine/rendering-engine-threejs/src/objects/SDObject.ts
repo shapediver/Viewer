@@ -1,5 +1,6 @@
 import {type ISDObject} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {nextSerial} from "@shapediver/viewer.shared.node-tree";
+import {type ITreeNode} from "@shapediver/viewer.shared.types";
 import {mat4} from "gl-matrix";
 import * as THREE from "three";
 import {Object3D} from "three";
@@ -197,6 +198,30 @@ export class SDObject extends Object3D implements ISDObject {
 	public SDmovesReportedSerial = 0;
 	public SDalwaysUpdate = false;
 	public SDboundsStale = false;
+	/**
+	 * State of the visit of the children (SS-10564), see
+	 * `SceneTreeManager.updateNode`.
+	 *
+	 * - SDchildrenSerial: the value of the change clock when this viewport
+	 *   last read the node's log of changed children
+	 *   (`TreeNode.changedChildren`). `0`: never, look at all children.
+	 * - SDflaggedChildren: per flag, the child tree nodes whose converted
+	 *   object has the flag set, so a visit that reads only the log still
+	 *   goes through them (lights and three.js objects every pass, a branch
+	 *   moved by a transformation-only pass once).
+	 */
+	public SDchildrenSerial = 0;
+	/**
+	 * The object held data objects (meshes, lights, ...) of its node after
+	 * the last clean-up of its data. `false`: a node without data items has
+	 * nothing to clean up. `undefined`: not known yet.
+	 */
+	public SDholdsData?: boolean;
+	public SDflaggedChildren?: {
+		SDalwaysUpdate?: Set<ITreeNode>;
+		SDalwaysWalk?: Set<ITreeNode>;
+		SDboundsStale?: Set<ITreeNode>;
+	};
 
 	/**
 	 * State of the matrix walk (SS-10485), see `updateMatrixWorld`.
