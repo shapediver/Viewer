@@ -356,6 +356,11 @@ export class InstanceGroupManager {
 				effects.add(effectKey);
 				group.nodeEffects.set(nodeId, effects);
 				this._moveToEffectMesh(group, node, nodeId, effects);
+				// The occurrence is in another mesh now: the pick bounds
+				// hierarchy reads the slots again after a material change.
+				this._renderingEngine.sceneTreeManager.recordChannel(
+					"material",
+				);
 			}
 			const effectMesh = this._getEffectMesh(group, nodeId);
 			if (effectMesh && !meshes.includes(effectMesh))
@@ -376,6 +381,7 @@ export class InstanceGroupManager {
 				: undefined;
 			if (!group) continue;
 			this._removeKeyFromEffect(group, node, nodeId, effectKey);
+			this._renderingEngine.sceneTreeManager.recordChannel("material");
 		}
 	}
 

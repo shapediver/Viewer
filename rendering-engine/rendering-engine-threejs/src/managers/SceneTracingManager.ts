@@ -3,21 +3,31 @@ import * as THREE from "three";
 import {
 	AbstractCamera,
 	ORTHOGRAPHIC_CAMERA_DIRECTION,
-	OrthographicCamera} from "@shapediver/viewer.rendering-engine.camera-engine";
-import {IntersectionEngine} from "@shapediver/viewer.rendering-engine.intersection-engine";
+	OrthographicCamera,
+} from "@shapediver/viewer.rendering-engine.camera-engine";
+import {
+	IntersectionEngine,
+	setPickGuards,
+} from "@shapediver/viewer.rendering-engine.intersection-engine";
 import {
 	type IConvert3Dto2DResult,
-	type IManager} from "@shapediver/viewer.rendering-engine.rendering-engine";
+	type IManager,
+} from "@shapediver/viewer.rendering-engine.rendering-engine";
 import {type ITreeNode} from "@shapediver/viewer.shared.node-tree";
 import {ShapeDiverViewerViewportError} from "@shapediver/viewer.shared.services";
 import {
 	type IGeometryData,
 	type IIntersectionFilter,
-	type IRayTracingIntersection} from "@shapediver/viewer.shared.types";
+	type IRayTracingIntersection,
+} from "@shapediver/viewer.shared.types";
 
 import {vec2, vec3} from "gl-matrix";
 
 import {RenderingEngine} from "../RenderingEngine";
+import {
+	SceneCacheGuard,
+	type SceneCacheChannel,
+} from "./sceneTree/SceneCacheGuard";
 
 export class SceneTracingManager implements IManager {
 	private readonly _intersectionManager: IntersectionEngine =
@@ -131,7 +141,33 @@ export class SceneTracingManager implements IManager {
 		};
 	}
 
-	public init(): void {}
+	/**
+	 * Hands the picking caches of this viewport the change clock of its scene
+	 * tree, so they validate only after a scene change.
+	 */
+	public init(): void {
+		const sceneTreeManager = this._renderingEngine.sceneTreeManager;
+		const watched: SceneCacheChannel[] = [
+			"geometry",
+			"transformation",
+			"visibility",
+			"structure",
+			"drawSet",
+			"rendererType",
+		];
+		// Each picking cache gets guards of its own.
+		setPickGuards(this._renderingEngine.id, () => ({
+			bounds: new SceneCacheGuard(sceneTreeManager, watched),
+			instances: new SceneCacheGuard(sceneTreeManager, [
+				...watched,
+				"material",
+			]),
+		}));
+	}
+
+	public dispose(): void {
+		setPickGuards(this._renderingEngine.id, undefined);
+	}
 
 	/**
 	 * Calculate the ray that is created by the mouse event and the camera.

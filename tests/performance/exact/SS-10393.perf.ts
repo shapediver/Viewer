@@ -649,6 +649,10 @@ test("SS-10393 a mesh without a bounding box, edited in place, is hit where it i
 		// The hover updated the scene, and the viewer computed the box again.
 		custom.mesh.geometry.boundingBox = null;
 		custom.shift(4, 0, 0);
+		// An edit that no node version reports is seen after the next
+		// viewport update (SS-10642: the pick hierarchy follows the scene's
+		// change clock), which marks everything as changed.
+		(window as any).__perf.viewport.update();
 		(window as any).__pick.watch = custom.mesh;
 	});
 	await page.evaluate(() => (window as any).__pick.reset());
