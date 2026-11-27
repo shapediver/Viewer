@@ -23,6 +23,7 @@ import {
 	type IViewportUpdatedEvent,
 	RENDERER_TYPE,
 	SPINNER_POSITIONING,
+	TONE_MAPPING,
 } from "@shapediver/viewer.shared.types";
 import {RenderPass} from "postprocessing";
 import * as Stats from "stats.js";
@@ -30,6 +31,8 @@ import * as THREE from "three";
 import {GemMaterial} from "../materials/GemMaterial";
 import {renderInScope} from "../objects/SDObject";
 import {RenderingEngine} from "../RenderingEngine";
+import {inverseToneMapping} from "./postprocessing/effects/tone-mapping/inverseToneMapping";
+import {ToneMappingEffect} from "./postprocessing/effects/tone-mapping/ToneMappingEffect";
 import {SSAARenderPass} from "./postprocessing/SSAARenderPass";
 import {StillFrameAccumulator} from "./postprocessing/StillFrameAccumulator";
 import {updateMorphWeights} from "./sceneTree/SceenTreeManagerUtils";
@@ -131,6 +134,7 @@ export class RenderingManager implements IManager {
 	private _usingSwiftShader: boolean = false;
 	private _width: number = 0;
 	private _accumulator?: StillFrameAccumulator;
+	private _backgroundInHdr?: {key: string; color: THREE.Color};
 	// whether the current mean is averaged by the post-processing in HDR
 	private _accumulatedInHdr = false;
 	/** lightSizeUV and blending of the last fade frame */
@@ -662,6 +666,70 @@ export class RenderingManager implements IManager {
 				this._systemInfo.isMobile === true
 			)
 		);
+	}
+
+	/**
+	 * accumulationMode "hdr": whether the background is stored as an HDR
+	 * colour and tone-mapped like the scene. The averaged frames then mix
+	 * object and background in HDR at the silhouette, as inside the object.
+	 * A clear colour lighter than about the tone-mapped 1.0 is capped, see
+	 * {@link backgroundInHdr}.
+	 * Otherwise the tone mapping leaves the background untouched, and a pixel
+	 * that holds both is tone-mapped as a whole or not at all, depending on
+	 * the depth of the last frame.
+	 */
+	private toneMapsBackground(): boolean {
+		const engine = this._renderingEngine;
+		return (
+			engine.accumulationMode === "hdr" &&
+			engine.postProcessingManager.hdrAccumulationAvailable &&
+			engine.toneMapping !== TONE_MAPPING.NONE &&
+			!engine.environmentMapAsBackground
+		);
+	}
+
+	/**
+	 * The clear colour for {@link toneMapsBackground}. The post-processing
+	 * reads the clear colour as sRGB and stores it in linear colour; the
+	 * returned colour is stored as the HDR value that the tone mapping turns
+	 * back into that linear colour, so the background looks as before.
+	 *
+	 * The HDR value is capped at 1.0 per channel (the reference viewer stores
+	 * its white background as 1.0 too). A light clear colour would otherwise be
+	 * stored far above 1 (white: about 15 with ACES) and the effects before the
+	 * tone mapping (bloom, vignette) would see it, e.g. bloom glowing around
+	 * silhouettes. Consequence: in "hdr" a clear colour lighter than about
+	 * #e2e2e2 (ACES) shows as at most the tone-mapped 1.0; darker colours are
+	 * exact.
+	 *
+	 * three.js multiplies the clear colour by the clear alpha
+	 * (premultiplied alpha), so the buffer holds `B * a`. For `0 < a < 1` the
+	 * inverse therefore targets `linear * a` and its result is divided by `a`.
+	 * With `a <= 0` the pixel is transparent and the colour stays as it is.
+	 */
+	private backgroundInHdr(color: THREE.Color): THREE.Color {
+		const engine = this._renderingEngine;
+		const alpha = engine.clearAlpha;
+		const key = `${color.r},${color.g},${color.b},${alpha},${engine.toneMapping},${engine.toneMappingExposure}`;
+		if (this._backgroundInHdr?.key !== key) {
+			const linear = color.clone().convertSRGBToLinear();
+			let rgb: [number, number, number] = [linear.r, linear.g, linear.b];
+			if (alpha > 0) {
+				const a = Math.min(alpha, 1);
+				rgb = inverseToneMapping(
+					[linear.r * a, linear.g * a, linear.b * a],
+					engine.toneMapping,
+					engine.toneMappingExposure,
+				).map((v) => Math.min(v / a, 1)) as [number, number, number];
+			}
+			this._backgroundInHdr = {
+				key,
+				color: new THREE.Color()
+					.setRGB(rgb[0], rgb[1], rgb[2], THREE.LinearSRGBColorSpace)
+					.convertLinearToSRGB(),
+			};
+		}
+		return this._backgroundInHdr.color;
 	}
 
 	/** How the next frame draws the scene, see {@link SceneDraw}. */
@@ -1261,22 +1329,25 @@ export class RenderingManager implements IManager {
 			._renderingEngine.environmentMapAsBackground
 			? this._renderingEngine.environmentMapLoader.environmentMap
 			: null;
-		// set the background color / alpha
-		this._renderingEngine.renderer.setClearColor(
-			new THREE.Color(
-				this._converter.toThreeJsColorInput(
-					this._renderingEngine.clearColor,
-				),
-			),
-			this._renderingEngine.clearAlpha,
-		);
-
 		// check if we should render with post-processing
 		const renderPostProcessing = this.renderPostProcessing();
 		// SS-10553: no ambient occlusion while the camera moves, if set
 		this._renderingEngine.postProcessingManager.ambientOcclusionSuspended =
 			!this._renderingEngine.ambientOcclusionWhileMoving &&
 			this.cameraMoving();
+		const toneMapBackground =
+			renderPostProcessing && this.toneMapsBackground();
+
+		// set the background color / alpha
+		const clearColor = new THREE.Color(
+			this._converter.toThreeJsColorInput(
+				this._renderingEngine.clearColor,
+			),
+		);
+		this._renderingEngine.renderer.setClearColor(
+			toneMapBackground ? this.backgroundInHdr(clearColor) : clearColor,
+			this._renderingEngine.clearAlpha,
+		);
 
 		const scene = (<SceneTreeManager>this._renderingEngine.sceneTreeManager)
 			.scene;
@@ -1290,9 +1361,12 @@ export class RenderingManager implements IManager {
 		}
 
 		const draw = () => {
-			// the uniform is shared by all viewports, so set it for each draw
+			// the uniforms are shared by all viewports, so set them for each draw
 			GemMaterial.clampColorUniform.value = this._renderingEngine
 				.gemClampColor
+				? 1
+				: 0;
+			ToneMappingEffect.toneMapBackgroundUniform.value = toneMapBackground
 				? 1
 				: 0;
 			if (renderPostProcessing) {
