@@ -2,6 +2,8 @@ export const tone_mapping = `
 #include <tonemapping_pars_fragment>
 
 uniform float whitePoint;
+// 1: the background (depth 1) holds an HDR colour and is tone-mapped like the scene
+uniform float toneMapBackground;
 
 #if TONE_MAPPING_MODE == 2 || TONE_MAPPING_MODE == 3
 
@@ -86,7 +88,7 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
 
 	#endif
 
-    if(depth >= 1.0) {
+    if(depth >= 1.0 && toneMapBackground < 0.5) {
         outputColor = inputColor;
     }
 }

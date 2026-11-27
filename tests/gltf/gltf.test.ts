@@ -53,9 +53,7 @@ const test = base.extend<{}, {workerPage: Page}>({
 			});
 			const page = await context.newPage();
 
-			await page.goto(
-				"test-cdn/index.html",
-			);
+			await page.goto("test-cdn/index.html");
 
 			await page.evaluate(async () => {
 				const SDV = (<any>window).SDV;
@@ -113,6 +111,19 @@ const test = base.extend<{}, {workerPage: Page}>({
 						);
 						viewer.render();
 					});
+					// Wait until the GPU has run the frame (SS-10392: without a
+					// fade the event follows the one frame, and a software
+					// renderer may still be compiling its shaders).
+					const gl = viewer.threeJsCoreObjects.renderer.getContext();
+					gl.readPixels(
+						0,
+						0,
+						1,
+						1,
+						gl.RGBA,
+						gl.UNSIGNED_BYTE,
+						new Uint8Array(4),
+					);
 				};
 			});
 
