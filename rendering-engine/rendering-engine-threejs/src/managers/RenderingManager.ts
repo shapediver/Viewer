@@ -125,6 +125,11 @@ export class RenderingManager implements IManager {
 	private _softShadowRenderingDurationActive: number = 0;
 	private _softShadowRenderingTimeout: ReturnType<typeof setTimeout> | null =
 		null;
+	/**
+	 * SS-10392: nothing fades and the frame on screen is the settled one.
+	 * The countdown only sends BEAUTY_RENDERING_FINISHED when it ends.
+	 */
+	private _settledOnScreen = false;
 	private _stats: any;
 	private _usingSwiftShader: boolean = false;
 	private _width: number = 0;
@@ -1415,18 +1420,30 @@ export class RenderingManager implements IManager {
 			}
 
 			// if the duration was long enough and the frames are accumulated, disable the beauty rendering
+			// (SS-10392: without a fade the first beauty frame is the final one)
 			if (
 				options.trackBeauty &&
 				accumulationConverged &&
-				this._softShadowRenderingDurationActive >=
-					this._renderingEngine.beautyRenderBlendingDuration
+				this._softShadowRenderingTimeout &&
+				!this.stillFramesChange()
 			) {
+				// SS-10392: settled, the countdown sends the event
+				this._settledOnScreen = true;
+				this._activeRendering = false;
+			} else if (
+				options.trackBeauty &&
+				accumulationConverged &&
+				(this._softShadowRenderingDurationActive >=
+					this._renderingEngine.beautyRenderBlendingDuration ||
+					!this.stillFramesChange())
+			) {
+				// stop first: a listener that calls render() starts again
+				this.deactivateBeautyRenderShaders();
+				this._activeRendering = false;
 				this._eventEngine.emitEvent(
 					EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
 					{viewportId: this._renderingEngine.id},
 				);
-				this.deactivateBeautyRenderShaders();
-				this._activeRendering = false;
 			} else if (options.trackBeauty) {
 				this._softShadowRenderingDurationActive += deltaTime;
 			}
@@ -1436,12 +1453,33 @@ export class RenderingManager implements IManager {
 			if (options.trackBeauty) this._accumulator?.restart();
 
 			// if the beauty rendering was active, disable it
-			if (options.trackBeauty && this._softShadowRenderingActive) {
+			if (
+				options.trackBeauty &&
+				this._softShadowRenderingActive &&
+				this._softShadowRenderingTimeout &&
+				!this.stillFramesChange()
+			) {
+				// SS-10392: the beauty frame cannot run here (busy, an
+				// animation, no shadow map), this frame is the settled one
+				// and the countdown sends the event
+				this._settledOnScreen = true;
+				this._activeRendering = false;
+			} else if (options.trackBeauty && this._softShadowRenderingActive) {
+				// stop first: a listener that calls render() starts again
+				this.deactivateBeautyRenderShaders();
+				this._activeRendering = false;
 				this._eventEngine.emitEvent(
 					EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
 					{viewportId: this._renderingEngine.id},
 				);
-				this.deactivateBeautyRenderShaders();
+			} else if (
+				options.trackBeauty &&
+				this._softShadowRenderingTimeout &&
+				!this.stillFramesChange()
+			) {
+				// SS-10392: waiting for the beauty frame after a camera stop.
+				// Nothing fades, so the frames until then would all be this
+				// one: draw again when the countdown ends.
 				this._activeRendering = false;
 			}
 		}
@@ -1645,7 +1683,11 @@ export class RenderingManager implements IManager {
 	}
 
 	private deactivateBeautyRenderShaders() {
+		// a countdown still pending would start another beauty frame
+		if (this._softShadowRenderingTimeout)
+			clearTimeout(this._softShadowRenderingTimeout);
 		this._softShadowRenderingTimeout = null;
+		this._settledOnScreen = false;
 		this._beautyShadowState = undefined;
 		this._softShadowRenderingActive = false;
 		this._softShadowRenderingDurationActive = 0;
@@ -1807,8 +1849,11 @@ export class RenderingManager implements IManager {
 			this._softShadowRenderingDurationActive,
 			this._renderingEngine.beautyRenderBlendingDuration,
 		);
+		// a duration of 0 shows the settled look (0 / 0 would be NaN)
 		const percentage =
-			deltaTime / this._renderingEngine.beautyRenderBlendingDuration;
+			this._renderingEngine.beautyRenderBlendingDuration > 0
+				? deltaTime / this._renderingEngine.beautyRenderBlendingDuration
+				: 1;
 
 		if (percentage < 0.25) {
 			const percentageMapped = percentage / 0.25;
@@ -1885,15 +1930,61 @@ export class RenderingManager implements IManager {
 		// and so is the previous frame the reflections read
 		this._renderingEngine.postProcessingManager.invalidateHistory();
 		this.stopBeautyRenderCountdown();
+		// SS-10392: when nothing fades, the next frame is drawn in the
+		// settled look, and the countdown only sends the event. Changes in a
+		// row (a drag) restart it, so the event comes once at their end.
+		if (!this.stillFramesChange()) this.startBeautyRendering();
 		this.startBeautyRenderCountdown();
 	}
 
 	private startBeautyRenderCountdown() {
-		this._softShadowRenderingTimeout = setTimeout(() => {
-			this._softShadowRenderingActive = true;
-			this._softShadowRenderingDurationActive = 0;
-			this.activateBeautyRenderShaders();
+		// a countdown still pending (a change during a drag) is replaced
+		if (this._softShadowRenderingTimeout)
+			clearTimeout(this._softShadowRenderingTimeout);
+		const timeout = setTimeout(() => {
+			if (this._softShadowRenderingTimeout !== timeout) return;
+			this._softShadowRenderingTimeout = null;
+			// the viewport was closed while the countdown ran
+			if (this._renderingEngine.closed) return;
+			if (this._settledOnScreen && !this.stillFramesChange()) {
+				// the settled frame is on screen already
+				this.deactivateBeautyRenderShaders();
+				this._eventEngine.emitEvent(
+					EVENTTYPE.RENDERING.BEAUTY_RENDERING_FINISHED,
+					{viewportId: this._renderingEngine.id},
+				);
+				return;
+			}
+			this.startBeautyRendering();
 		}, this._renderingEngine.beautyRenderDelay);
+		this._softShadowRenderingTimeout = timeout;
+	}
+
+	private startBeautyRendering() {
+		this._softShadowRenderingActive = true;
+		this._softShadowRenderingDurationActive = 0;
+		// the frames while the countdown ran may have stopped the rendering
+		this._activeRendering = true;
+		this.activateBeautyRenderShaders();
+	}
+
+	/**
+	 * Whether the frames after a change differ from each other on a still
+	 * camera (SS-10392): the soft-shadow fade, the frame accumulation, or a
+	 * post-processing effect (ambient occlusion varies its noise per frame,
+	 * reflections read the previous frame). Otherwise one frame shows the
+	 * settled look. The fade never runs where the shadow map is off
+	 * (SwiftShader, the attributes renderer).
+	 */
+	private stillFramesChange(): boolean {
+		return (
+			(this._renderingEngine.shadows &&
+				this._renderingEngine.softShadows &&
+				this._renderingEngine.usingSwiftShader === false &&
+				this._renderingEngine.type !== RENDERER_TYPE.ATTRIBUTES) ||
+			this.accumulationFrames() > 1 ||
+			this.renderPostProcessing()
+		);
 	}
 
 	private startRendering() {
