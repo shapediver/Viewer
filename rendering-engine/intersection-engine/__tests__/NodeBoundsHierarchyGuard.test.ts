@@ -85,7 +85,7 @@ describe("NodeBoundsHierarchy: change guards", () => {
 		bounds.built = 0;
 		instances.valid = false;
 		instances.built = 0;
-		setPickGuards(VIEWPORT, {bounds, instances});
+		setPickGuards(VIEWPORT, () => ({bounds, instances}));
 	});
 
 	afterEach(() => {
@@ -146,6 +146,33 @@ describe("NodeBoundsHierarchy: change guards", () => {
 		expect(counts.objectsChecked).toBe(0);
 		expect(instances.built).toBe(2);
 		expect(bounds.built).toBe(1);
+	});
+
+	test("two hierarchies of one viewport do not share what they saw", () => {
+		const made: FakeGuard[] = [];
+		setPickGuards(VIEWPORT, () => {
+			const pair = {bounds: new FakeGuard(), instances: new FakeGuard()};
+			made.push(pair.bounds);
+			return pair;
+		});
+		const counts = stats();
+		const {meshes, entries, root} = scene(4);
+		const a = new NodeBoundsHierarchy(VIEWPORT);
+		const b = new NodeBoundsHierarchy(VIEWPORT);
+		a.setNodes(entries);
+		b.setNodes(entries);
+		a.candidates(ray(0));
+		b.candidates(ray(0));
+		expect(made.length).toBe(2);
+		// the scene changes; each guard reports it, a validates first
+		meshes[0].position.x = 100;
+		root.updateMatrixWorld(true);
+		made.forEach((guard) => guard.invalidate());
+		expect(a.candidates(ray(100))).toEqual([0]);
+		counts.objectsChecked = 0;
+		// b still has to read the scene
+		expect(b.candidates(ray(100))).toEqual([0]);
+		expect(counts.objectsChecked).toBe(8);
 	});
 
 	test("a new node list is built again", () => {

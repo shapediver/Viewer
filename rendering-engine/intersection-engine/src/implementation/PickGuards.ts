@@ -11,8 +11,9 @@ export interface IChangeGuard {
 }
 
 /**
- * The guards of the picking caches of one viewport. A viewport hands them in
- * when it is created, with `setPickGuards`.
+ * The guards of one picking cache. Each cache needs a pair of its own: a
+ * guard stores when its cache was built, so two caches must not share one.
+ * A viewport hands in a function that makes a pair, with `setPickGuards`.
  */
 export interface IPickGuards {
 	/**
@@ -29,23 +30,23 @@ export interface IPickGuards {
 	readonly instances: IChangeGuard;
 }
 
-const guards = new Map<string, IPickGuards>();
+const guards = new Map<string, () => IPickGuards>();
 
 /**
- * Sets (or with `undefined` removes) the guards the bounds hierarchies of a
- * viewport use to skip their validation while the scene is unchanged.
- * Without guards a hierarchy compares its objects with the scene on every
- * query.
+ * Sets (or with `undefined` removes) the function that makes the guards the
+ * bounds hierarchies of a viewport use to skip their validation while the
+ * scene is unchanged. Without it a hierarchy compares its objects with the
+ * scene on every query.
  */
 export function setPickGuards(
 	viewportId: string,
-	pickGuards: IPickGuards | undefined,
+	create: (() => IPickGuards) | undefined,
 ): void {
-	if (pickGuards) guards.set(viewportId, pickGuards);
+	if (create) guards.set(viewportId, create);
 	else guards.delete(viewportId);
 }
 
-/** The guards of the viewport, if it handed some in. */
-export function pickGuardsOf(viewportId: string): IPickGuards | undefined {
-	return guards.get(viewportId);
+/** A new pair of guards for the viewport, if it handed in a function. */
+export function createPickGuards(viewportId: string): IPickGuards | undefined {
+	return guards.get(viewportId)?.();
 }

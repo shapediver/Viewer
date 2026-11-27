@@ -24,7 +24,10 @@ import {
 import {vec2, vec3} from "gl-matrix";
 
 import {RenderingEngine} from "../RenderingEngine";
-import {SceneCacheGuard} from "./sceneTree/SceneCacheGuard";
+import {
+	SceneCacheGuard,
+	type SceneCacheChannel,
+} from "./sceneTree/SceneCacheGuard";
 
 export class SceneTracingManager implements IManager {
 	private readonly _intersectionManager: IntersectionEngine =
@@ -144,24 +147,22 @@ export class SceneTracingManager implements IManager {
 	 */
 	public init(): void {
 		const sceneTreeManager = this._renderingEngine.sceneTreeManager;
-		const bounds = new SceneCacheGuard(sceneTreeManager, [
+		const watched: SceneCacheChannel[] = [
 			"geometry",
 			"transformation",
 			"visibility",
 			"structure",
 			"drawSet",
 			"rendererType",
-		]);
-		const instances = new SceneCacheGuard(sceneTreeManager, [
-			"geometry",
-			"transformation",
-			"visibility",
-			"structure",
-			"drawSet",
-			"rendererType",
-			"material",
-		]);
-		setPickGuards(this._renderingEngine.id, {bounds, instances});
+		];
+		// Each picking cache gets guards of its own.
+		setPickGuards(this._renderingEngine.id, () => ({
+			bounds: new SceneCacheGuard(sceneTreeManager, watched),
+			instances: new SceneCacheGuard(sceneTreeManager, [
+				...watched,
+				"material",
+			]),
+		}));
 	}
 
 	public dispose(): void {

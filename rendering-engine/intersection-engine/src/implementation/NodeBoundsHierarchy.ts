@@ -4,7 +4,7 @@ import {
 } from "@shapediver/viewer.shared.node-tree";
 import * as THREE from "three";
 
-import {pickGuardsOf} from "./PickGuards";
+import {createPickGuards, type IPickGuards} from "./PickGuards";
 
 /**
  * A node that is tested by a pick, as the intersection engine and the
@@ -258,10 +258,13 @@ function ownerOf(mesh: THREE.Object3D): THREE.Object3D {
  *
  * Nothing tells the hierarchy that a node moved or that its geometry was
  * replaced: `updateNode`, `updateNodeTransformation`, dragging and
- * animations do not emit `VIEWPORT_UPDATED`. So every query first compares
+ * animations do not emit `VIEWPORT_UPDATED`. So a query first compares
  * what it recorded (parent, child count, raycast function, geometry,
  * position attribute version, bounding box, world matrix) with the scene,
- * once per node, and records the nodes that differ again. A node whose
+ * once per node, and records the nodes that differ again. (If the viewport handed in change guards, see
+ * `validate`, this comparison only runs after the scene tree's change clock moved: an edit that is
+ * applied through the viewport is seen, an edit of a three.js object that no
+ * update reports is seen after the next `viewport.update()`.) A node whose
  * entries all convert to instanced meshes has nothing of its own to
  * compare (see `validate`). The instanced meshes are compared as a whole
  * (their matrix attribute is written with a new version on every change):
@@ -287,6 +290,7 @@ export class NodeBoundsHierarchy {
 	private _items: IItem[] = [];
 	private _root: IHierarchyNode | undefined;
 	private _dirty = true;
+	private _guards: IPickGuards | undefined;
 
 	/** The instanced meshes are scanned again from the leaves. */
 	private _instancesStale = true;
@@ -479,7 +483,8 @@ export class NodeBoundsHierarchy {
 	 * A dynamic scene is validated on every query, as without guards.
 	 */
 	private validate(): void {
-		const guards = pickGuardsOf(this._viewportId);
+		// This hierarchy's own guards: each stores when it was built.
+		const guards = (this._guards ??= createPickGuards(this._viewportId));
 		if (
 			guards &&
 			!this._dirty &&
