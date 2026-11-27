@@ -164,7 +164,7 @@ for (const ORIGIN of ORIGINS) {
 		test("a move of the plane reports its translation", async ({page}) => {
 			const [[x1, y1], [x2, y2]] = (await page.evaluate(
 				(ps) => ps.map((p) => (<any>window).atRestScreen(p)),
-				[onPanel(ORIGIN, 1.5, 1), onPanel(ORIGIN, 2, 1.25)],
+				[onPanel(ORIGIN, 0.5, 1), onPanel(ORIGIN, 2.7, 1.3)],
 			)) as [number, number][];
 			await page.mouse.move(x1, y1, {steps: 4});
 			await page.mouse.down();
@@ -175,7 +175,10 @@ for (const ORIGIN of ORIGINS) {
 			const matrices = (await page.evaluate(
 				() => (<any>window).atRestState.matrices,
 			)) as number[][];
-			// the move is about 0.5 along u and 0.25 along v
+			// The move is about 2.2 along u and 0.3 along v. A move has to be
+			// larger than the identity tolerance of the translation (1e-4
+			// times the distance of the object, 1.5 at 15000 units, see
+			// snapToIdentity): a smaller one counts as rounding errors.
 			const moved = matrices.filter(
 				(m) => Math.hypot(m[12], m[13], m[14]) > 0.2,
 			);
