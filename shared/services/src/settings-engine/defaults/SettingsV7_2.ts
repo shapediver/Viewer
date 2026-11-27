@@ -25,6 +25,8 @@ type IAmbientOcclusionEffect = {
 		[key: string]: number | string | boolean | undefined;
 		mode?: "composite" | "shading";
 		specularOcclusion?: "physical" | "uniform";
+		// only the SSAO uses it
+		algorithm?: "hemisphere" | "sao";
 		excludeGems: boolean;
 	};
 };

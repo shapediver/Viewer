@@ -1085,6 +1085,9 @@ export class PostProcessingManager implements IManager {
 						// we adjust the scene size slightly to make the factor fit our requirements
 						// with this adjusted factor, a distance value of 1 fits well as a default
 						const sceneSizeFactor = this._sceneExtents / 50.0;
+						const saoRadius =
+							((properties.distance ?? 1) * this._sceneExtents) /
+							4;
 						const ssaoEffect = new SSAOEffect(
 							this._composer,
 							this._renderingEngine.camera,
@@ -1148,6 +1151,14 @@ export class PostProcessingManager implements IManager {
 									properties.samples !== undefined
 										? properties.samples
 										: 16,
+								algorithm: properties.algorithm ?? "hemisphere",
+								// with "sao", distance 1 is a quarter of the scene's bounding-box diagonal,
+								// the radius the reference renderer uses for its scene size;
+								// the hemisphere SSAO keeps distance * sceneExtents / 50
+								saoRadius:
+									Number.isFinite(saoRadius) && saoRadius > 0
+										? saoRadius
+										: 0,
 							},
 						);
 
@@ -1387,11 +1398,20 @@ export class PostProcessingManager implements IManager {
 		}
 
 		// for the AO effects we need to add a separate AA pass at the end that anti-aliases the AO effect
+		// In the "shading" mode the AO is not composited, so the pass only anti-aliases
+		// the scene and follows the technique.
+		const aoShadingOnly =
+			!!this._shadingAOEffect &&
+			!this._effects.some((e) => e.effect instanceof AOEffect);
 		if (
 			this._effectDefinitions.find(
 				(e) =>
 					e.definition.type === POST_PROCESSING_EFFECT_TYPE.HBAO ||
 					e.definition.type === POST_PROCESSING_EFFECT_TYPE.SSAO,
+			) &&
+			!(
+				antiAliasingTechnique === ANTI_ALIASING_TECHNIQUE.NONE &&
+				aoShadingOnly
 			)
 		) {
 			// respect the AA choice if one of the effects was selected, use SMAA otherwise
@@ -1870,6 +1890,7 @@ export class PostProcessingManager implements IManager {
 								lumaPhi: properties.lumaPhi,
 								mode: properties.mode,
 								specularOcclusion: properties.specularOcclusion,
+								algorithm: properties.algorithm,
 								excludeGems: properties.excludeGems,
 								depthPhi: properties.depthPhi,
 								normalPhi: properties.normalPhi,

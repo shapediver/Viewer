@@ -199,6 +199,16 @@ describe("settings V7.2", () => {
 		expect(() => validate(settings, "7.2")).toThrow();
 	});
 
+	it("validate - SSAO algorithm", () => {
+		const settings = createSettingsV7_2();
+		(settings.postprocessing.effects[1].properties as any).algorithm =
+			"sao";
+		expect(() => validate(settings, "7.2")).not.toThrow();
+		(settings.postprocessing.effects[1].properties as any).algorithm =
+			"invalid";
+		expect(() => validate(settings, "7.2")).toThrow();
+	});
+
 	it("validate - invalid SSAO mode fails", () => {
 		const settings = createSettingsV7_2();
 		(settings.postprocessing.effects[1].properties as any).mode = 1;

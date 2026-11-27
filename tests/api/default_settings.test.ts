@@ -190,10 +190,15 @@ test.describe("Default settings", () => {
 					.filter((e) => e.type === "ssao" || e.type === "hbao")
 					.map((e) => {
 						const p = <Record<string, unknown>>e.properties;
-						return [e.type, p.mode, p.specularOcclusion];
+						return [
+							e.type,
+							p.mode,
+							p.specularOcclusion,
+							p.algorithm,
+						];
 					}),
 			),
-		).toEqual([["ssao", "shading", "uniform"]]);
+		).toEqual([["ssao", "shading", "physical", "sao"]]);
 		expect(await page.evaluate(readMaximumRenderingSize)).toEqual({
 			width: 2560,
 			height: 1440,
