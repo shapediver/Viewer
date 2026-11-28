@@ -186,7 +186,8 @@ test.describe("Default settings", () => {
 			ssr: [{enableOnMobile: false, compositing: "specular"}],
 		});
 		// SSAO inside the shading, darkening the reflections by the AO itself
-		// (SS-10601), so polished metal keeps its highlights
+		// (SS-10601), so polished metal keeps its highlights; denoise radius 6
+		// instead of the engine's 12 (SS-10702)
 		expect(
 			await page.evaluate(() =>
 				(<typeof ShapeDiverViewer>(<any>window).SDV).viewports[
@@ -201,10 +202,11 @@ test.describe("Default settings", () => {
 							p.mode,
 							p.specularOcclusion,
 							p.algorithm,
+							p.radius,
 						];
 					}),
 			),
-		).toEqual([["ssao", "shading", "physical", "sao"]]);
+		).toEqual([["ssao", "shading", "physical", "sao", 6]]);
 		expect(await page.evaluate(readMaximumRenderingSize)).toEqual({
 			width: 2560,
 			height: 1440,

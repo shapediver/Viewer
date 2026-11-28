@@ -83,6 +83,9 @@ export const JewelryDefaults: () => ISettings = () => {
 						algorithm: "sao",
 						intensity: 1,
 						excludeGems: true,
+						// a narrower denoise than the engine's 12 keeps the dark
+						// contact band where the metal meets a stone (SS-10702)
+						radius: 6,
 					},
 					type: "ssao",
 				},
