@@ -17,6 +17,8 @@ const readOptions = () => {
 			.map((e) => <Record<string, unknown>>e.properties);
 	return {
 		hdr: viewport.postProcessing.hdr,
+		antiAliasingOnAccumulation:
+			viewport.postProcessing.antiAliasingOnAccumulation,
 		environmentMapPbrMode: viewport.environmentMapPbrMode,
 		environmentMapOrientation: viewport.environmentMapOrientation,
 		environmentMapAnalyticDfg: viewport.environmentMapAnalyticDfg,
@@ -60,6 +62,7 @@ const readMaximumRenderingSize = () =>
 
 const OLD_LOOK = {
 	hdr: false,
+	antiAliasingOnAccumulation: true,
 	environmentMapPbrMode: "legacy",
 	environmentMapOrientation: "legacy",
 	environmentMapAnalyticDfg: false,
@@ -81,6 +84,8 @@ const OLD_LOOK = {
 };
 
 const NEW_LOOK = {
+	// only the jewelry preset skips SMAA on the accumulated image (SS-10701)
+	antiAliasingOnAccumulation: true,
 	// no preset leaves the effects out while the camera moves (SS-10553)
 	ambientOcclusionWhileMoving: true,
 	softShadowsWhileMoving: true,
@@ -163,6 +168,7 @@ test.describe("Default settings", () => {
 			environmentMapFiltering: "gaussian",
 			environmentMapSquaredRoughnessBend: true,
 			hdr: true,
+			antiAliasingOnAccumulation: false,
 			toneMapping: "aces_filmic",
 			accumulationFrames: 32,
 			accumulationFramesMobile: 8,
@@ -231,12 +237,15 @@ test.describe("Default settings", () => {
 			});
 			source.ambientOcclusionWhileMoving = false;
 			source.softShadowsWhileMoving = false;
+			source.postProcessing.antiAliasingOnAccumulation = false;
 			const settings: any = source.getViewportSettings();
 			const stored = {
 				ambientOcclusionWhileMoving:
 					settings.rendering.ambientOcclusionWhileMoving,
 				softShadowsWhileMoving:
 					settings.rendering.softShadowsWhileMoving,
+				antiAliasingOnAccumulation:
+					settings.postprocessing.antiAliasingOnAccumulation,
 			};
 			await source.close();
 			const target = await SDV.createViewport({
@@ -260,12 +269,15 @@ test.describe("Default settings", () => {
 					ambientOcclusionWhileMoving:
 						target.ambientOcclusionWhileMoving,
 					softShadowsWhileMoving: target.softShadowsWhileMoving,
+					antiAliasingOnAccumulation:
+						target.postProcessing.antiAliasingOnAccumulation,
 				},
 			};
 		});
 		const off = {
 			ambientOcclusionWhileMoving: false,
 			softShadowsWhileMoving: false,
+			antiAliasingOnAccumulation: false,
 		};
 		expect(result).toEqual({stored: off, applied: off});
 	});
