@@ -84,6 +84,8 @@ export type ISettingsV7_2 = Omit<
 			| IScreenSpaceReflectionEffect
 		)[];
 		hdr: boolean;
+		// not set = true, the SMAA/FXAA pass also runs on the accumulated still image
+		antiAliasingOnAccumulation?: boolean;
 	};
 	material: ISettings["material"] & {
 		physicalGemDispersion: boolean;

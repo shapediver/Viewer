@@ -56,6 +56,7 @@ describe("settings V7.2", () => {
 	it("old look values", () => {
 		expect(OLD_LOOK_V7_2).toStrictEqual({
 			hdr: false,
+			antiAliasingOnAccumulation: true,
 			backgroundBloom: true,
 			highlightsOnly: false,
 			excludeGems: false,
@@ -218,6 +219,7 @@ describe("settings V7.2", () => {
 	it("validate - missing new options fail", () => {
 		const missing: ((s: ISettingsV7_2) => void)[] = [
 			(s) => delete (s.postprocessing as any).hdr,
+			(s) => delete (s.postprocessing as any).antiAliasingOnAccumulation,
 			(s) => delete (s.environment as any).mapPbrMode,
 			(s) => delete (s.environment as any).mapOrientation,
 			(s) => delete (s.environment as any).mapAnalyticDfg,
@@ -260,6 +262,8 @@ describe("settings V7.2", () => {
 	it("validate - wrong types of new options fail", () => {
 		const wrong: ((s: ISettingsV7_2) => void)[] = [
 			(s) => ((s.postprocessing as any).hdr = "true"),
+			(s) =>
+				((s.postprocessing as any).antiAliasingOnAccumulation = "true"),
 			(s) => ((s.environment as any).mapPbrMode = "other"),
 			(s) => ((s.environment as any).mapPbrMode = true),
 			(s) => ((s.environment as any).mapOrientation = "other"),
@@ -326,6 +330,7 @@ describe("settings V7.2", () => {
 
 		expect(converted.settings_version).toBe("7.2");
 		expect(converted.postprocessing.hdr).toBe(false);
+		expect(converted.postprocessing.antiAliasingOnAccumulation).toBe(true);
 		expect(converted.environment.mapPbrMode).toBe("legacy");
 		expect(converted.environment.mapOrientation).toBe("legacy");
 		expect(converted.environment.mapAnalyticDfg).toBe(false);
@@ -379,6 +384,7 @@ describe("settings V7.2", () => {
 	it("convert 7.1 -> 7.2 keeps values the 7.1 object already carries", () => {
 		const settingsV7_1: any = createSettingsV7_1();
 		settingsV7_1.postprocessing.hdr = true;
+		settingsV7_1.postprocessing.antiAliasingOnAccumulation = false;
 		settingsV7_1.environment.mapPbrMode = "modern";
 		settingsV7_1.environment.mapAnalyticDfg = true;
 		settingsV7_1.environment.mapFiltering = "gaussian";
@@ -415,6 +421,7 @@ describe("settings V7.2", () => {
 		const converted = <ISettingsV7_2>convert(settingsV7_1, "7.2");
 
 		expect(converted.postprocessing.hdr).toBe(true);
+		expect(converted.postprocessing.antiAliasingOnAccumulation).toBe(false);
 		expect(converted.environment.mapPbrMode).toBe("modern");
 		expect(converted.environment.mapOrientation).toBe("legacy");
 		expect(converted.environment.mapAnalyticDfg).toBe(true);
@@ -488,6 +495,9 @@ describe("settings V7.2", () => {
 			{type: "bloom", properties: {intensity: 1, mipmapBlur: true}},
 		]);
 		expect(converted.postprocessing).not.toHaveProperty("hdr");
+		expect(converted.postprocessing).not.toHaveProperty(
+			"antiAliasingOnAccumulation",
+		);
 		expect(converted.environment).not.toHaveProperty("mapPbrMode");
 		expect(converted.environment).not.toHaveProperty("mapOrientation");
 		expect(converted.environment).not.toHaveProperty("mapAnalyticDfg");
@@ -625,6 +635,7 @@ describe("settings V7.2", () => {
 	it("a 7.2 object with new-look values survives conversion unchanged", () => {
 		const settings = createSettingsV7_2();
 		settings.postprocessing.hdr = true;
+		settings.postprocessing.antiAliasingOnAccumulation = false;
 		settings.rendering.toneMapping = "AgX";
 		settings.environment.mapPbrMode = "modern";
 		settings.environment.mapOrientation = "threejs";
@@ -650,6 +661,7 @@ describe("settings V7.2", () => {
 		expect(() => validate(converted, "7.2")).not.toThrow();
 		expect(converted).toStrictEqual(roundTripped);
 		expect(converted.postprocessing.hdr).toBe(true);
+		expect(converted.postprocessing.antiAliasingOnAccumulation).toBe(false);
 		expect(converted.rendering.toneMapping).toBe("AgX");
 		expect(converted.environment.mapPbrMode).toBe("modern");
 		expect(converted.environment.mapOrientation).toBe("threejs");

@@ -148,6 +148,7 @@ export const postProcessingSettingsSchema = z.object({
 	ssaaSampleLevel: zNumOrInf,
 	effects: postProcessingSchema,
 	hdr: z.boolean(),
+	antiAliasingOnAccumulation: z.boolean(),
 });
 
 export const environmentSettingsSchemaV7_2 = environmentSettingsSchema.extend({

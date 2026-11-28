@@ -42,6 +42,17 @@ export interface IPostProcessingApi {
 	readonly effectComposer: EffectComposer | undefined;
 
 	/**
+	 * Whether the SMAA or FXAA pass of {@link antiAliasingTechnique} also runs on the averaged still image of `IViewportApi.accumulationMode` "hdr", once it holds two or more frames. (default: true)
+	 *
+	 * With false, the jittered frames are the only anti-aliasing of the still image, which keeps fine detail (facet edges, small highlights) sharper.
+	 * The first frame and the frames drawn while the camera moves are still anti-aliased.
+	 * No effect with other accumulation modes, and none while an HBAO/SSAO effect in the "composite" mode or an outline effect is active: they are drawn after the averaging from the last frame alone and keep the anti-aliasing.
+	 *
+	 * Note: The post-processing API is still WIP. Breaking changes are to be expected.
+	 */
+	antiAliasingOnAccumulation: boolean;
+
+	/**
 	 * Defines the anti-aliasing technique that is used when the post-processing is active. (default: ANTI_ALIASING_TECHNIQUE.SSAA)
 	 *
 	 * The various anti-aliasing technique have an impact on the performance and the rendering quality.

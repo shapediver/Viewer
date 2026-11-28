@@ -46,6 +46,9 @@ const PRESET = SDV.defaultSettings.jewelry() as unknown as {
 		accumulationFramesMobile: number;
 		accumulationMode: "display" | "hdr";
 	};
+	postprocessing: {
+		antiAliasingOnAccumulation: boolean;
+	};
 };
 // `?<name>=1` or `?<name>=0`; without the parameter the preset value
 const flag = (name: string, fallback: boolean): boolean => {
@@ -237,6 +240,12 @@ const createGemMaterial = () =>
 		PRESET.rendering.accumulationFramesMobile,
 	);
 	viewport.accumulationMode = ACCUMULATION_MODE;
+	// `?aaOnAccumulation=0|1`: SMAA also on the averaged still image (the
+	// reference has no anti-aliasing pass there)
+	viewport.postProcessing.antiAliasingOnAccumulation = flag(
+		"aaOnAccumulation",
+		PRESET.postprocessing.antiAliasingOnAccumulation,
+	);
 
 	if (viewport.camera?.type === SDV.CAMERA_TYPE.PERSPECTIVE)
 		(<SDV.IPerspectiveCameraApi>viewport.camera).fov = 25;

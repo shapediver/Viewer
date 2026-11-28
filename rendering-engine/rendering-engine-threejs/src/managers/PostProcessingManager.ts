@@ -42,6 +42,7 @@ import {
 	BlendFunction,
 	BloomEffect,
 	ChromaticAberrationEffect,
+	CopyPass,
 	DepthOfFieldEffect,
 	DotScreenEffect,
 	Effect,
@@ -102,6 +103,63 @@ export const resolveBloomBlendFunction = (
 ): BlendFunction | undefined =>
 	explicit ?? (halfFloat ? BlendFunction.ADD : undefined);
 
+/**
+ * The SMAA/FXAA pass of the composer. While `skip` returns true it leaves the
+ * buffers alone (the way {@link HdrAccumulationPass} does when inactive), so the
+ * next pass reads the image the pass would have anti-aliased.
+ */
+class AntiAliasingPass extends EffectPass {
+	private _copyPass?: CopyPass;
+
+	constructor(
+		camera: THREE.Camera,
+		effect: Effect,
+		private readonly _skip: () => boolean,
+	) {
+		super(camera, effect);
+	}
+
+	public dispose(): void {
+		this._copyPass?.dispose();
+		super.dispose();
+	}
+
+	public render(
+		renderer: THREE.WebGLRenderer,
+		inputBuffer: THREE.WebGLRenderTarget,
+		outputBuffer: THREE.WebGLRenderTarget,
+		deltaTime?: number,
+		stencilTest?: boolean,
+	): void {
+		if (!this._skip()) {
+			this.needsSwap = true;
+			super.render(
+				renderer,
+				inputBuffer,
+				outputBuffer,
+				deltaTime,
+				stencilTest,
+			);
+			return;
+		}
+		this.needsSwap = false;
+		// the last pass shows the image (no tone mapping after it)
+		if (this.renderToScreen) {
+			if (!this._copyPass) {
+				this._copyPass = new CopyPass();
+				this._copyPass.renderToScreen = true;
+				// the precision of the half-float input, as the effect pass reads it
+				this._copyPass.initialize(
+					renderer,
+					false,
+					inputBuffer.texture.type,
+				);
+			}
+			this._copyPass.render(renderer, inputBuffer, null);
+		}
+	}
+}
+
 export class PostProcessingManager implements IManager {
 	// #region Properties (23)
 
@@ -110,6 +168,7 @@ export class PostProcessingManager implements IManager {
 	private readonly _systemInfo: SystemInfo = SystemInfo.instance;
 	private readonly _uuidGenerator: UuidGenerator = UuidGenerator.instance;
 
+	private _antiAliasingOnAccumulation: boolean = true;
 	private _antiAliasingTechnique: ANTI_ALIASING_TECHNIQUE =
 		ANTI_ALIASING_TECHNIQUE.SMAA;
 	private _antiAliasingTechniqueMobile: ANTI_ALIASING_TECHNIQUE =
@@ -185,6 +244,23 @@ export class PostProcessingManager implements IManager {
 	// #endregion Constructors (1)
 
 	// #region Public Getters And Setters (16)
+
+	/**
+	 * Whether the SMAA/FXAA pass also runs on the HDR mean of a still view
+	 * (accumulationMode "hdr") once it holds two or more frames. With false
+	 * the jittered frames are the only anti-aliasing of the still image; the
+	 * first frame and the frames drawn while the camera moves keep the pass,
+	 * and so does every frame with a composited AO or an outline effect, which
+	 * are drawn after the mean from the last frame alone.
+	 */
+	public get antiAliasingOnAccumulation(): boolean {
+		return this._antiAliasingOnAccumulation;
+	}
+
+	public set antiAliasingOnAccumulation(value: boolean) {
+		if (this._antiAliasingOnAccumulation !== value) this.recordChange();
+		this._antiAliasingOnAccumulation = value;
+	}
 
 	public get antiAliasingTechnique(): ANTI_ALIASING_TECHNIQUE {
 		return this._antiAliasingTechnique;
@@ -480,6 +556,12 @@ export class PostProcessingManager implements IManager {
 		this.hdr =
 			(settingsEngine.settings.postprocessing as {hdr?: boolean}).hdr ??
 			false;
+		this.antiAliasingOnAccumulation =
+			(
+				settingsEngine.settings.postprocessing as {
+					antiAliasingOnAccumulation?: boolean;
+				}
+			).antiAliasingOnAccumulation !== false;
 
 		this._effectDefinitions = [];
 		const effects = settingsEngine.settings.postprocessing.effects;
@@ -1413,12 +1495,25 @@ export class PostProcessingManager implements IManager {
 					aoShadingOnly
 				))
 		) {
+			// antiAliasingOnAccumulation false: not on a mean of 2 or more
+			// frames. A composited AO and an outline are drawn after the mean
+			// from the last frame alone, so they keep the pass.
+			const aliasedAfterMean = this._effects.some(
+				(e) =>
+					e.effect instanceof AOEffect ||
+					e.effect instanceof OutlineEffect,
+			);
 			this.addPassToEffectComposer(
-				new EffectPass(
+				new AntiAliasingPass(
 					this._renderingEngine.camera,
 					antiAliasingTechnique === ANTI_ALIASING_TECHNIQUE.FXAA
 						? this._fxaaEffect!
 						: this._smaaEffect!,
+					() =>
+						!this._antiAliasingOnAccumulation &&
+						!aliasedAfterMean &&
+						this._hdrAccumulationActive &&
+						(this._hdrAccumulationPass?.count ?? 0) >= 2,
 				),
 			);
 		}
@@ -2188,6 +2283,11 @@ export class PostProcessingManager implements IManager {
 		// TODO: drop the cast once the @shapediver/viewer.settings pin includes settings 7.2
 		(settingsEngine.settings.postprocessing as {hdr?: boolean}).hdr =
 			this.hdr;
+		(
+			settingsEngine.settings.postprocessing as {
+				antiAliasingOnAccumulation?: boolean;
+			}
+		).antiAliasingOnAccumulation = this.antiAliasingOnAccumulation;
 		const effects = this.getPostProcessingEffectsArray();
 		// delete the tokens as we don't want to save them
 		effects.forEach((e) => delete e.token);

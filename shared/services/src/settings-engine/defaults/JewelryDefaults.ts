@@ -67,6 +67,9 @@ export const JewelryDefaults: () => ISettings = () => {
 			enablePostProcessingOnMobile: true,
 			ssaaSampleLevel: 2,
 			hdr: true,
+			// the jittered still frames anti-alias the settled image; SMAA on
+			// top of their mean softens facet edges (SS-10701)
+			antiAliasingOnAccumulation: false,
 			effects: [
 				{
 					// contact darkening in crevices, not on the stones

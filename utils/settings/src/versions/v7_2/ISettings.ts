@@ -78,6 +78,13 @@ export interface ISettings extends IGlobalSettings {
 		 * Settings converted from before 7.2 use false.
 		 */
 		hdr: boolean;
+		/**
+		 * Whether the SMAA/FXAA anti-aliasing pass also runs on the averaged still image of `rendering.accumulationMode` "hdr" once it holds two or more frames.
+		 * false skips the pass there (the jittered frames already anti-alias the image); the first frame and frames drawn while the camera moves keep it.
+		 * No effect with other accumulation modes, nor with an HBAO/SSAO effect in "composite" mode or an outline effect (drawn after the averaging, they keep the pass).
+		 * Settings converted from before 7.2 use true.
+		 */
+		antiAliasingOnAccumulation: boolean;
 	};
 	rendering: ISettingsV7_1["rendering"] & {
 		/**

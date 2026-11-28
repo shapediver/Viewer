@@ -10,6 +10,8 @@ import {type ISettings as ISettingsV7_2} from "./ISettings";
 export const OLD_LOOK_V7_2 = {
 	/** `postprocessing.hdr` */
 	hdr: false,
+	/** `postprocessing.antiAliasingOnAccumulation` */
+	antiAliasingOnAccumulation: true,
 	/** bloom `properties.backgroundBloom` */
 	backgroundBloom: true,
 	/** bloom `properties.highlightsOnly` */
@@ -164,6 +166,9 @@ export const convertFromPrevious = (
 			...oldSettings.postprocessing,
 			effects,
 			hdr: oldPostprocessing.hdr ?? OLD_LOOK_V7_2.hdr,
+			antiAliasingOnAccumulation:
+				oldPostprocessing.antiAliasingOnAccumulation ??
+				OLD_LOOK_V7_2.antiAliasingOnAccumulation,
 		},
 	};
 
@@ -177,7 +182,7 @@ export const convertToPrevious = (
 	const newSettings = <ISettingsV7_2>s;
 
 	// Drop every option that does not exist in 7.1. Add new 7.2 options here.
-	// - postprocessing.hdr
+	// - postprocessing.hdr, postprocessing.antiAliasingOnAccumulation
 	// - environment.mapPbrMode, environment.mapOrientation, environment.mapAnalyticDfg,
 	//   environment.mapFiltering, environment.mapSquaredRoughnessBend
 	// - material.physicalGemDispersion, material.physicalGemFresnel, material.gemLighting,
@@ -245,6 +250,7 @@ export const convertToPrevious = (
 		effects: oldEffects,
 	};
 	delete postprocessing.hdr;
+	delete postprocessing.antiAliasingOnAccumulation;
 
 	const settings = {
 		...newSettings,
