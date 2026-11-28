@@ -49,6 +49,26 @@ export class PostProcessingApi implements IPostProcessingApi {
 		this.#renderingEngine.update("PostProcessingApi", false);
 	}
 
+	public get antiAliasingOnAccumulation(): boolean {
+		return this.#renderingEngine.postProcessingManager
+			.antiAliasingOnAccumulation;
+	}
+
+	public set antiAliasingOnAccumulation(value: boolean) {
+		const scope = "antiAliasingOnAccumulation";
+		this.#inputValidator.validateAndError(
+			`PostProcessingApi.${scope}`,
+			value,
+			"boolean",
+		);
+		this.#renderingEngine.postProcessingManager.antiAliasingOnAccumulation =
+			value;
+		this.#logger.debug(
+			`PostProcessingApi.${scope}: ${scope} was set to: ${value}`,
+		);
+		this.#applyUpdate();
+	}
+
 	public get antiAliasingTechnique(): ANTI_ALIASING_TECHNIQUE {
 		return this.#renderingEngine.postProcessingManager
 			.antiAliasingTechnique;
