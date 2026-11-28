@@ -46,7 +46,7 @@ export interface IPostProcessingApi {
 	 *
 	 * With false, the jittered frames are the only anti-aliasing of the still image, which keeps fine detail (facet edges, small highlights) sharper.
 	 * The first frame and the frames drawn while the camera moves are still anti-aliased.
-	 * No effect with other accumulation modes.
+	 * No effect with other accumulation modes, and none while an HBAO/SSAO effect in the "composite" mode or an outline effect is active: they are drawn after the averaging from the last frame alone and keep the anti-aliasing.
 	 *
 	 * Note: The post-processing API is still WIP. Breaking changes are to be expected.
 	 */

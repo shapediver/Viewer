@@ -148,6 +148,12 @@ class AntiAliasingPass extends EffectPass {
 			if (!this._copyPass) {
 				this._copyPass = new CopyPass();
 				this._copyPass.renderToScreen = true;
+				// the precision of the half-float input, as the effect pass reads it
+				this._copyPass.initialize(
+					renderer,
+					false,
+					inputBuffer.texture.type,
+				);
 			}
 			this._copyPass.render(renderer, inputBuffer, null);
 		}
@@ -243,7 +249,9 @@ export class PostProcessingManager implements IManager {
 	 * Whether the SMAA/FXAA pass also runs on the HDR mean of a still view
 	 * (accumulationMode "hdr") once it holds two or more frames. With false
 	 * the jittered frames are the only anti-aliasing of the still image; the
-	 * first frame and the frames drawn while the camera moves keep the pass.
+	 * first frame and the frames drawn while the camera moves keep the pass,
+	 * and so does every frame with a composited AO or an outline effect, which
+	 * are drawn after the mean from the last frame alone.
 	 */
 	public get antiAliasingOnAccumulation(): boolean {
 		return this._antiAliasingOnAccumulation;
@@ -1487,7 +1495,14 @@ export class PostProcessingManager implements IManager {
 					aoShadingOnly
 				))
 		) {
-			// antiAliasingOnAccumulation false: not on a mean of 2 or more frames
+			// antiAliasingOnAccumulation false: not on a mean of 2 or more
+			// frames. A composited AO and an outline are drawn after the mean
+			// from the last frame alone, so they keep the pass.
+			const aliasedAfterMean = this._effects.some(
+				(e) =>
+					e.effect instanceof AOEffect ||
+					e.effect instanceof OutlineEffect,
+			);
 			this.addPassToEffectComposer(
 				new AntiAliasingPass(
 					this._renderingEngine.camera,
@@ -1496,6 +1511,7 @@ export class PostProcessingManager implements IManager {
 						: this._smaaEffect!,
 					() =>
 						!this._antiAliasingOnAccumulation &&
+						!aliasedAfterMean &&
 						this._hdrAccumulationActive &&
 						(this._hdrAccumulationPass?.count ?? 0) >= 2,
 				),

@@ -82,6 +82,38 @@ const settled = (page: Page, shot: Shot) =>
 			.join("");
 	}, shot);
 
+/**
+ * With the option false and SMAA: the number of frames of a settled 8-frame
+ * mean in which the anti-aliasing pass (the pass before the tone mapping)
+ * left the buffers alone.
+ */
+const skippedFrames = (page: Page) =>
+	page.evaluate(async () => {
+		const SDV: typeof ShapeDiverViewer = (<any>window).SDV;
+		const viewport = SDV.viewports["myViewport"];
+		viewport.postProcessing.antiAliasingTechnique = <any>"smaa";
+		viewport.postProcessing.antiAliasingOnAccumulation = false;
+		viewport.accumulationFrames = 8;
+		viewport.accumulationMode = "hdr";
+		viewport.update();
+		await viewport.getSettledScreenshot();
+		const passes = viewport.postProcessing.effectComposer!.passes;
+		const pass: any = passes[passes.length - 2];
+		const render = pass.render.bind(pass);
+		let skipped = 0;
+		pass.render = (...args: unknown[]) => {
+			render(...args);
+			if (!pass.needsSwap) skipped++;
+		};
+		await viewport.camera!.set(
+			viewport.camera!.position,
+			viewport.camera!.target,
+		);
+		viewport.update();
+		await viewport.getSettledScreenshot();
+		return skipped;
+	});
+
 const collectErrors = (page: Page) => {
 	const errors: string[] = [];
 	page.on("pageerror", (e) => errors.push(e.message));
@@ -163,7 +195,7 @@ test.describe("Anti-aliasing on the accumulated still image", () => {
 		expect(errors).toEqual([]);
 	});
 
-	test("false also skips FXAA and the pass of a composited AO on the mean", async ({
+	test("false also skips FXAA; a composited AO keeps its pass", async ({
 		page,
 	}) => {
 		const errors = collectErrors(page);
@@ -187,26 +219,14 @@ test.describe("Anti-aliasing on the accumulated still image", () => {
 		expect(fxaa).not.toEqual(none);
 		expect(fxaaSkipped).toEqual(none);
 
-		// the model's own composited SSAO keeps an SMAA pass even with "none"
+		expect(await skippedFrames(page)).toBeGreaterThan(0);
+
+		// The model's own composited SSAO is drawn after the mean from the last
+		// frame alone, so it keeps its pass. (Its settled images vary between
+		// page loads, so the passes are counted instead of comparing images.)
 		await page.goto("test-cdn/index.html");
 		await createViewport(page, true);
-		const aoNone = await settled(page, {
-			technique: "none",
-			onAccumulation: true,
-			frames: 8,
-		});
-		const aoSkipped = await settled(page, {
-			technique: "none",
-			onAccumulation: false,
-			frames: 8,
-		});
-		const aoSmaaSkipped = await settled(page, {
-			technique: "smaa",
-			onAccumulation: false,
-			frames: 8,
-		});
-		expect(aoSkipped).not.toEqual(aoNone);
-		expect(aoSmaaSkipped).toEqual(aoSkipped);
+		expect(await skippedFrames(page)).toBe(0);
 		expect(errors).toEqual([]);
 	});
 
